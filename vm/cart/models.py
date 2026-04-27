@@ -19,7 +19,7 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="cart_items")
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE, related_name="cart_items")
+    variant = models.ForeignKey(Variant, on_delete=models.PROTECT, related_name="cart_items")
     quantity = models.PositiveSmallIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     price_stat = models.DecimalField(max_digits=15, decimal_places=0)
