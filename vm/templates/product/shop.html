@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Shop — VM Graphics{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Shop</p>
+    <h1 class="h-display h-lg mt-8">All items</h1>
+  </div>
+</section>
+
+<section class="divide-top" style="padding: 24px 0;">
+  <div class="wrap">
+    <div class="shop">
+      <aside class="shop__filters">
+        <div class="shop__filters-inner">
+          <h4>Category</h4>
+          <ul>
+            <li><a href="{% url 'shop' %}" class="{% if not selected_category %}is-active{% endif %}">All</a></li>
+            {% for c in categories %}
+              <li><a href="?category={{ c.id }}" class="{% if selected_category == c.id|stringformat:'s' %}is-active{% endif %}">{{ c.name }}</a></li>
+            {% endfor %}
+          </ul>
+
+          <h4>Size</h4>
+          <ul>
+            {% for s in sizes %}
+              <li><a href="?size={{ s.id }}">{{ s.size }}</a></li>
+            {% endfor %}
+          </ul>
+
+          <h4>Sort</h4>
+          <ul>
+            <li><a href="?sort=new">Newest</a></li>
+            <li><a href="?sort=price_asc">Price ↑</a></li>
+            <li><a href="?sort=price_desc">Price ↓</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <div>
+        <div class="shop__top">
+          <span class="muted mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">
+            {{ products|length }} item{{ products|length|pluralize }}
+          </span>
+          <form method="get" class="row" style="gap: 8px;">
+            <input class="input" type="search" name="q" placeholder="Search..." value="{{ q|default:'' }}" style="padding: 10px 14px;">
+            <button class="btn btn--sm">Go</button>
+          </form>
+        </div>
+
+        <div class="shop__grid">
+          {% for p in products %}
+            <a href="{% url 'item' p.id %}" class="tile">
+              {% with p.images.first as img %}
+                {% if img %}
+                  <img class="tile__img" src="{{ img.picture.url }}" alt="{{ p.name }}">
+                {% else %}
+                  <div class="tile__placeholder">No image</div>
+                {% endif %}
+              {% endwith %}
+              <div class="tile__meta">
+                <span class="tile__name">{{ p.name }}</span>
+                <span class="tile__price">{% with p.variants.first as v %}{% if v %}{{ v.price|floatformat:0 }} UZS{% endif %}{% endwith %}</span>
+              </div>
+            </a>
+          {% empty %}
+            <div class="empty" style="grid-column: 1 / -1;">
+              <h2>Nothing yet.</h2>
+              <p>Drop coming soon.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

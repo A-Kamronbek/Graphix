@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — VM Graphics{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow mb-16">
+      <a href="{% url 'shop' %}">Shop</a>
+      {% if product.category %} · <a href="{% url 'shop' %}?category={{ product.category.id }}">{{ product.category.name }}</a>{% endif %}
+      · {{ product.name }}
+    </p>
+
+    <div class="item">
+      <div class="item__gallery">
+        {% for img in product.images.all %}
+          <img src="{{ img.picture.url }}" alt="{{ product.name }}">
+        {% empty %}
+          <div class="tile__placeholder">No image</div>
+          <div class="tile__placeholder">No image</div>
+          <div class="tile__placeholder">No image</div>
+        {% endfor %}
+      </div>
+
+      <aside class="item__info">
+        <h1 class="item__title">{{ product.name }}</h1>
+        <p class="item__price">
+          {% if selected_variant %}{{ selected_variant.price|floatformat:0 }} UZS{% else %}{% with product.variants.first as v %}{% if v %}{{ v.price|floatformat:0 }} UZS{% else %}— UZS{% endif %}{% endwith %}{% endif %}
+        </p>
+        <p class="item__desc">{{ product.description|default:"No description yet." }}</p>
+
+        <form class="stack mt-32" method="post" action="{% url 'cart_add' product.id %}" data-variant-form>
+          {% csrf_token %}
+          <input type="hidden" name="colour" value="{{ selected_variant.colour.id|default_if_none:'' }}">
+          <input type="hidden" name="size" value="{{ selected_variant.size.id|default_if_none:'' }}">
+
+          {# colours #}
+          <div class="item__row">
+            <h4>Colour</h4>
+            <div class="swatches">
+              {% for c in colours %}
+                <span class="swatch {% if selected_variant.colour.id == c.id %}is-active{% endif %}"
+                      data-swatch="{{ c.id }}"
+                      title="{{ c.colour }}"
+                      style="background: {{ c.hex_code|default:'#222' }}"></span>
+              {% empty %}
+                <span class="muted mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">— Single colour —</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          {# sizes #}
+          <div class="item__row">
+            <h4>Size</h4>
+            <div class="sizes">
+              {% for s in sizes %}
+                <span class="size {% if selected_variant.size.id == s.id %}is-active{% endif %} {% if s.id in unavailable_sizes %}is-oos{% endif %}"
+                      data-size="{{ s.id }}">{{ s.size }}</span>
+              {% empty %}
+                <span class="muted mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">— One size —</span>
+              {% endfor %}
+            </div>
+            <small class="field__hint mt-8" style="display:block;">Crossed-out sizes are out of stock.</small>
+          </div>
+
+          {# qty #}
+          <div class="item__row row" style="gap: 16px;">
+            <div>
+              <h4>Qty</h4>
+              <div class="qty" data-qty>
+                <button type="button" data-qty-dec aria-label="decrease">−</button>
+                <input type="number" name="quantity" min="1" max="99" value="1" inputmode="numeric">
+                <button type="button" data-qty-inc aria-label="increase">+</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn--solid btn--block btn--lg mt-24" type="submit">Add to cart</button>
+          <p class="muted mono mt-8" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">
+            Free local delivery over 500 000 UZS · Pay with Click
+          </p>
+        </form>
+      </aside>
+    </div>
+  </div>
+</section>
+
+{# related #}
+<section class="section divide-top">
+  <div class="wrap">
+    <p class="eyebrow">More like this</p>
+    <h2 class="h-display h-md mt-8 mb-24">You may also like</h2>
+    <div class="shop__grid">
+      {% for p in related %}
+        <a href="{% url 'item' p.id %}" class="tile">
+          {% with p.images.first as img %}
+            {% if img %}
+              <img class="tile__img" src="{{ img.picture.url }}" alt="{{ p.name }}">
+            {% else %}
+              <div class="tile__placeholder">No image</div>
+            {% endif %}
+          {% endwith %}
+          <div class="tile__meta">
+            <span class="tile__name">{{ p.name }}</span>
+            <span class="tile__price">{% with p.variants.first as v %}{% if v %}{{ v.price|floatformat:0 }} UZS{% endif %}{% endwith %}</span>
+          </div>
+        </a>
+      {% empty %}
+        <div class="muted mono" style="grid-column: 1 / -1; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">— —</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

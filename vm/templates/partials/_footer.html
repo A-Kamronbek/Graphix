@@ -1,0 +1,46 @@
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__grid">
+      <div>
+        <h4>Studio</h4>
+        <p class="muted" style="font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em;">
+          ValleyMade — Local Supplier.<br>
+          Tashkent, Uzbekistan.
+        </p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="{% url 'shop' %}">All Items</a></li>
+          <li><a href="{% url 'shop' %}?category=tops">Tops</a></li>
+          <li><a href="{% url 'shop' %}?category=bottoms">Bottoms</a></li>
+          <li><a href="{% url 'shop' %}?category=outer">Outerwear</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Help</h4>
+        <ul>
+          <li><a href="{% url 'contact' %}">Contact</a></li>
+          <li><a href="{% url 'about' %}">About</a></li>
+          <li><a href="#">Shipping</a></li>
+          <li><a href="#">Returns</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Follow</h4>
+        <ul>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="#">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+
+<!--    <div class="foot__brand">ValleyMade ★</div>-->
+
+    <div class="foot__bot">
+      <span>© {% now "Y" %} ValleyMade. All rights reserved.</span>
+      <span>Local Supplier · Made in Uzbekistan</span>
+    </div>
+  </div>
+</footer>

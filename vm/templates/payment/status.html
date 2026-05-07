@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} — Status{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="steps">
+      <span class="is-active">Cart</span>
+      <span class="is-active">Checkout</span>
+      <span class="is-active">Payment</span>
+      <span class="is-active">Status</span>
+    </div>
+
+    <p class="eyebrow">Order #{{ order.id }}</p>
+    <h1 class="h-display h-lg mt-8">
+      {% if order.status == 'done' %}Delivered.
+      {% elif order.status == 'cancelled' %}Cancelled.
+      {% elif order.status == 'on_the_way' %}On the way.
+      {% elif order.status == 'processing' %}Processing.
+      {% elif order.status == 'paid' %}Paid.
+      {% elif order.status == 'paying' %}Awaiting payment.
+      {% else %}Order placed.
+      {% endif %}
+    </h1>
+    <p class="muted mt-8 mono" style="font-size: 12px; letter-spacing: .08em;">
+      Placed {{ order.created_at|date:"d M Y · H:i" }} · Last update {{ order.updated_at|date:"d M Y · H:i" }}
+    </p>
+
+    <div class="checkout mt-32">
+      <div class="panel">
+        <h3 class="h-display h-sm mb-24">Tracking</h3>
+
+        {# Status flow: active → paying → paid → processing → on_the_way → done (or cancelled) #}
+        {% if order.status == 'cancelled' %}
+          <div class="msg msg--err">This order was cancelled.</div>
+        {% else %}
+          <div class="timeline">
+            <div class="timeline__item {% if order.status == 'active' %}is-current{% else %}is-done{% endif %}">
+              <div class="timeline__title">Order placed</div>
+              <div class="timeline__time">{{ order.created_at|date:"d M Y · H:i" }}</div>
+            </div>
+            <div class="timeline__item
+                {% if order.status == 'paying' %}is-current
+                {% elif order.status == 'paid' or order.status == 'processing' or order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
+              <div class="timeline__title">Awaiting payment</div>
+              <div class="timeline__time">via Click</div>
+            </div>
+            <div class="timeline__item
+                {% if order.status == 'paid' %}is-current
+                {% elif order.status == 'processing' or order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
+              <div class="timeline__title">Paid</div>
+              <div class="timeline__time">Confirmed by Click</div>
+            </div>
+            <div class="timeline__item
+                {% if order.status == 'processing' %}is-current
+                {% elif order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
+              <div class="timeline__title">Processing</div>
+              <div class="timeline__time">We're packing your order</div>
+            </div>
+            <div class="timeline__item
+                {% if order.status == 'on_the_way' %}is-current
+                {% elif order.status == 'done' %}is-done{% endif %}">
+              <div class="timeline__title">On the way</div>
+              <div class="timeline__time">Out for delivery</div>
+            </div>
+            <div class="timeline__item {% if order.status == 'done' %}is-current{% endif %}">
+              <div class="timeline__title">Delivered</div>
+              <div class="timeline__time">Enjoy ★</div>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="row mt-32" style="gap: 8px;">
+          <a class="btn btn--ghost btn--sm" href="{% url 'account_orders' %}">All orders</a>
+          {% if order.status == 'active' or order.status == 'paying' %}
+            <a class="btn btn--sm" href="{% url 'payment' order.id %}">Pay now →</a>
+            <form method="post" action="{% url 'order_cancel' order.id %}" style="margin: 0;">
+              {% csrf_token %}
+              <button class="btn btn--danger btn--sm" type="submit">Cancel order</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <aside class="summary">
+        <h3>Order details</h3>
+        <div class="summary__row"><span>Order #</span><span>{{ order.id }}</span></div>
+        <div class="summary__row"><span>Status</span><span class="pill pill--{{ order.status|cut:'_' }}">{{ order.get_status_display }}</span></div>
+        <div class="summary__row"><span>Items</span><span>{{ order.cart.cart_items.count }}</span></div>
+        <div class="summary__row"><span>Address</span><span style="text-align:right; max-width: 60%;">{{ order.address }}</span></div>
+        <div class="summary__row summary__row--total"><span>Total</span><span>{{ order.total_price|floatformat:0 }} UZS</span></div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

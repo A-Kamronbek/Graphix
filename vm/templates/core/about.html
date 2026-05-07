@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}About — VM Graphics{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1 class="ticker mt-16">Local<br>Supplier.</h1>
+  </div>
+</section>
+
+<section class="section divide-top">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <p class="eyebrow">Our story</p>
+        <h2 class="h-display h-md mt-16">A studio,<br>not a factory.</h2>
+      </div>
+      <div>
+        <p class="lede">
+          VM Graphics started out of a single room with one sewing machine and a screen press.
+          The brief was simple: make clothes the way our friends wanted to wear them, in our
+          own city, without compromise.
+        </p>
+        <p class="lede mt-16">
+          Every piece you see here is designed, cut, printed and finished in-house, in small
+          batches, by people whose names we know.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section divide-top">
+  <div class="wrap">
+    <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 24px;">
+      <div class="panel">
+        <p class="eyebrow">01</p>
+        <h3 class="h-display h-sm mt-8">Limited Drops</h3>
+        <p class="muted mt-16">Small runs only. When it's gone, it's gone.</p>
+      </div>
+      <div class="panel">
+        <p class="eyebrow">02</p>
+        <h3 class="h-display h-sm mt-8">Made in Tashkent</h3>
+        <p class="muted mt-16">Every piece sewn within walking distance of our studio.</p>
+      </div>
+      <div class="panel">
+        <p class="eyebrow">03</p>
+        <h3 class="h-display h-sm mt-8">No middlemen</h3>
+        <p class="muted mt-16">Direct from us to you. Honest pricing, no markup games.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% include "partials/_marquee.html" with reverse=True %}
+
+<section class="section">
+  <div class="wrap center-text">
+    <h2 class="h-display h-lg">Want to join?</h2>
+    <p class="muted mt-16">Subscribe for drop announcements. We don't spam.</p>
+    <form class="row mt-24" data-validate style="max-width: 480px; margin: 24px auto 0; gap: 8px;">
+      <input class="input" type="email" placeholder="your@email" required>
+      <button class="btn btn--solid">Subscribe</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

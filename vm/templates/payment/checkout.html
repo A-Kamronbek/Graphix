@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Checkout — VM Graphics{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="steps">
+      <span class="is-active">Cart</span>
+      <span class="is-active">Checkout</span>
+      <span>Payment</span>
+      <span>Status</span>
+    </div>
+
+    <p class="eyebrow">Order</p>
+    <h1 class="h-display h-lg mt-8 mb-32">Place your order.</h1>
+
+    <div class="checkout">
+      <form method="post" class="stack" data-validate style="gap: 16px;">
+        {% csrf_token %}
+
+        <div class="panel">
+          <p class="eyebrow mb-16">Contact</p>
+          <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="field">
+              <label>Name</label>
+              <input class="input" name="name" required value="{{ user.first_name|default:user.username }}">
+            </div>
+            <div class="field">
+              <label>Phone</label>
+              <input class="input" name="phone" type="tel" required placeholder="+998 ...">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p class="eyebrow mb-16">Delivery address</p>
+          <div class="field">
+            <label>Address</label>
+            <textarea class="textarea" name="address" required placeholder="Street, building, apt, district, city">{{ default_address|default:'' }}</textarea>
+          </div>
+          <div class="field mt-16">
+            <label>Notes (optional)</label>
+            <input class="input" name="notes" placeholder="Door code, time window...">
+          </div>
+        </div>
+
+        <div class="panel">
+          <p class="eyebrow mb-16">Payment</p>
+          <label class="checkbox" style="display:flex; gap:12px; padding: 14px; border:1px solid var(--line);">
+            <input type="radio" name="payment_method" value="click" checked>
+            <span>
+              <strong style="font-family: var(--f-display); text-transform: uppercase;">Click</strong><br>
+              <small class="muted mono" style="font-size: 11px; letter-spacing: .12em;">Pay online via Click. Redirects after order is placed.</small>
+            </span>
+          </label>
+          <label class="checkbox mt-8" style="display:flex; gap:12px; padding: 14px; border:1px solid var(--line); opacity: .5;">
+            <input type="radio" name="payment_method" value="cash" disabled>
+            <span>
+              <strong style="font-family: var(--f-display); text-transform: uppercase;">Cash on delivery</strong><br>
+              <small class="muted mono" style="font-size: 11px; letter-spacing: .12em;">Coming soon.</small>
+            </span>
+          </label>
+        </div>
+
+        <button class="btn btn--solid btn--block btn--lg" type="submit">Place order →</button>
+      </form>
+
+      <aside class="summary">
+        <h3>Your order</h3>
+        {% for it in items %}
+          <div class="row-between" style="padding: 8px 0; border-bottom: 1px solid var(--line);">
+            <div style="font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;">
+              {{ it.variant.product.name }}<br>
+              <small class="muted">{{ it.variant.colour.colour }} · {{ it.variant.size.size }} × {{ it.quantity }}</small>
+            </div>
+            <span class="mono">{{ it.line_total|floatformat:0 }}</span>
+          </div>
+        {% endfor %}
+
+        <div class="summary__row mt-16"><span>Subtotal</span><span>{{ subtotal|floatformat:0 }} UZS</span></div>
+        <div class="summary__row"><span>Delivery</span><span>{{ delivery|default:0|floatformat:0 }} UZS</span></div>
+        <div class="summary__row summary__row--total"><span>Total</span><span>{{ total|floatformat:0 }} UZS</span></div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

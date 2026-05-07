@@ -1,0 +1,59 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>{% block title %}ValleyMade{% endblock %} — ValleyMade</title>
+  <meta name="description" content="{% block meta_description %}VM Graphics — local supplier. Clothes, made to last.{% endblock %}">
+
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% include "partials/_marquee.html" with reverse=False %}
+
+  {% include "partials/_nav.html" %}
+
+  {# mobile drawer #}
+  <nav class="drawer" data-drawer aria-label="mobile">
+    <ul>
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li><a href="{% url 'shop' %}">Shop</a></li>
+      <li><a href="{% url 'about' %}">About</a></li>
+      <li><a href="{% url 'contact' %}">Contact</a></li>
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'account' %}">Account</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Log in</a></li>
+        <li><a href="{% url 'signup' %}">Sign up</a></li>
+      {% endif %}
+      <li><a href="{% url 'cart' %}">Cart</a></li>
+    </ul>
+  </nav>
+
+  {# global messages (django messages framework) #}
+  {% if messages %}
+    <div class="wrap mt-16">
+      <div class="msgs">
+        {% for m in messages %}
+          <div class="msg {% if 'error' in m.tags %}msg--err{% elif 'success' in m.tags %}msg--ok{% endif %}">{{ m }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "partials/_footer.html" %}
+
+  <script src="{% static 'js/main.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

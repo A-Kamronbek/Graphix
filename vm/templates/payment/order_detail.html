@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} — VM Graphics{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow"><a href="{% url 'account_orders' %}">Orders</a> · #{{ order.id }}</p>
+    <div class="row-between mt-8 mb-32" style="flex-wrap: wrap; gap: 16px;">
+      <h1 class="h-display h-lg">Order #{{ order.id }}</h1>
+      <span class="pill pill--{{ order.status|cut:'_' }}">{{ order.get_status_display }}</span>
+    </div>
+
+    <div class="checkout">
+      <div class="stack" style="gap: 24px;">
+        <div class="panel">
+          <p class="eyebrow mb-16">Items</p>
+          {% for it in order.cart.cart_items.all %}
+            <div class="cart__line" style="grid-template-columns: 80px 1fr auto;">
+              {% with it.variant.product.images.first as img %}
+                {% if img %}
+                  <img class="cart__thumb" src="{{ img.picture.url }}" alt="{{ it.variant.product.name }}" style="width: 80px;">
+                {% else %}
+                  <div class="cart__thumb tile__placeholder" style="width: 80px; aspect-ratio: 4/5;">No image</div>
+                {% endif %}
+              {% endwith %}
+              <div class="cart__info">
+                <a class="cart__name" href="{% url 'item' it.variant.product.id %}">{{ it.variant.product.name }}</a>
+                <span class="cart__meta">{{ it.variant.colour.colour }} · {{ it.variant.size.size }} × {{ it.quantity }}</span>
+                <span class="cart__meta">{{ it.price_stat|floatformat:0 }} UZS each</span>
+              </div>
+              <span class="mono">{{ it.line_total|floatformat:0 }} UZS</span>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="panel">
+          <p class="eyebrow mb-16">Delivery</p>
+          <p>{{ order.address }}</p>
+        </div>
+      </div>
+
+      <aside class="summary">
+        <h3>Summary</h3>
+        <div class="summary__row"><span>Placed</span><span>{{ order.created_at|date:"d M Y" }}</span></div>
+        <div class="summary__row"><span>Status</span><span class="pill pill--{{ order.status|cut:'_' }}">{{ order.get_status_display }}</span></div>
+        <div class="summary__row summary__row--total"><span>Total</span><span>{{ order.total_price|floatformat:0 }} UZS</span></div>
+
+        <a class="btn btn--solid btn--block btn--lg mt-24" href="{% url 'order_status' order.id %}">View tracking</a>
+        {% if order.status == 'active' or order.status == 'paying' %}
+          <a class="btn btn--ghost btn--block mt-8" href="{% url 'payment' order.id %}">Pay now</a>
+        {% endif %}
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

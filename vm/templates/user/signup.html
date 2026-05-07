@@ -1,0 +1,61 @@
+    {% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+
+{% block content %}
+<section class="auth">
+  <aside class="auth__art" aria-hidden="true">
+    <div class="auth__art-text">Account<br>yaratish</div>
+  </aside>
+
+  <div class="auth__form">
+    <div class="auth__form-inner">
+
+      {% if form.non_field_errors %}
+        <div class="msg msg--err mb-16">{{ form.non_field_errors|join:" · " }}</div>
+      {% endif %}
+
+      <form method="post" class="stack" data-validate>
+        {% csrf_token %}
+
+        <div class="field {% if form.username.errors %}field--error{% endif %}">
+          <label for="id_username">Username</label>
+          <input class="input" type="text" name="username" id="id_username" required value="{{ form.username.value|default:'' }}">
+          {% if form.username.errors %}<small class="field__err">{{ form.username.errors|join:" · " }}</small>{% endif %}
+          {% if form.username.help_text %}<small class="field__hint">{{ form.username.help_text }}</small>{% endif %}
+        </div>
+
+        <div class="field {% if form.first_name.errors %}field--error{% endif %}">
+          <label for="id_first_name">Ism</label>
+          <input class="input" type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default:'' }}">
+        </div>
+
+        <div class="field {% if form.phone.errors %}field--error{% endif %}">
+          <label for="id_phone">Telefon raqam</label>
+          <input class="input" type="tel" name="phone" id="id_phone" placeholder="+998 ..." value="{{ form.phone.value|default:'' }}">
+          {% if form.phone.errors %}<small class="field__err">{{ form.phone.errors|join:" · " }}</small>{% endif %}
+        </div>
+
+        <div class="field {% if form.password1.errors %}field--error{% endif %}">
+          <label for="id_password1">Parol</label>
+          <input class="input" type="password" name="password1" id="id_password1" required>
+          {% if form.password1.errors %}<small class="field__err">{{ form.password1.errors|join:" · " }}</small>{% endif %}
+        </div>
+
+        <div class="field {% if form.password2.errors %}field--error{% endif %}">
+          <label for="id_password2">Parol (qayta kiriting)</label>
+          <input class="input" type="password" name="password2" id="id_password2" required>
+          {% if form.password2.errors %}<small class="field__err">{{ form.password2.errors|join:" · " }}</small>{% endif %}
+        </div>
+
+        <label class="checkbox mt-8"><input type="checkbox" required> Barcha shartlarga rozilik beraman.</label>
+
+        <button class="btn btn--solid btn--block btn--lg mt-16" type="submit">Yaratish</button>
+      </form>
+
+      <p class="muted mt-32 mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">
+        Account bormi (Login)? <a href="{% url 'login' %}" style="color: var(--fg); text-decoration: underline; text-underline-offset: 4px;">Kirish</a>
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

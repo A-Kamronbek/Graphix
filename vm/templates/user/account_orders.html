@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load uzb_dates %}
+{% block title %}Buyurtmalarim{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1 class="h-display h-lg mt-8 mb-32">Buyurtmalar</h1>
+
+    <div class="account">
+      <aside class="account__nav">
+        <a href="{% url 'account' %}">Kabinet</a>
+        <a href="{% url 'account_orders' %}" class="is-active">Buyurtmalarim</a>
+        <a href="#">Sozlamalar</a>
+      </aside>
+
+      <div>
+        {% if orders %}
+          <table class="tbl">
+            <thead>
+                <tr><th>Buyurtma</th>
+                <th>Sana</th>
+                <th>Buyumlar</th>
+                <th>Status</th>
+                <th>Summa</th>
+                <th></th></tr>
+            </thead>
+            <tbody>
+              {% for o in orders %}
+                <tr>
+                  <td>#{{ o.id }}</td>
+                  <td>{{ o.created_at|date:"d M Y" }}</td>
+                  <td>{{ o.cart.cart_items.count }}</td>
+                  <td><span class="pill pill--{{ o.status|cut:'_' }}">{{ o.get_status_display }}</span></td>
+                  <td>{{ o.total_price|floatformat:0 }} UZS</td>
+                  <td><a class="mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;" href="{% url 'order_detail' o.id %}">Ko'rish →</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="empty">
+            <h1 style="font-size: 50px;">Buyurtma yo'q.</h1><br><br>
+            <a class="btn btn--solid" href="{% url 'shop' %}">Harid qilish</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
