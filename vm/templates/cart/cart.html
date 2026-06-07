@@ -1,44 +1,51 @@
 {% extends "base.html" %}
+{% load static %}
+{% load price_format %}
 {% block title %}Cart — VM Graphics{% endblock %}
 
 {% block content %}
-<section class="section">
+<section class="cart_section">
   <div class="wrap">
-    <p class="eyebrow">Cart</p>
+    {% if items %}
     <h1 class="h-display h-lg mt-8 mb-32">
-      Your cart{% if items %} <span class="muted">· {{ items|length }} item{{ items|length|pluralize }}</span>{% endif %}
+      Savatingiz
+    </h1>
+    <h1>
+        {% if items %} <span class="muted">{{ items|length }} narsa</span>{% endif %}
     </h1>
 
-    {% if items %}
       <div class="cart">
         <div class="cart__lines">
           {% for it in items %}
             <div class="cart__line">
               {% with it.variant.product.images.first as img %}
-                {% if img %}
-                  <img class="cart__thumb" src="{{ img.picture.url }}" alt="{{ it.variant.product.name }}">
+                {% if img and img.picture and img.picture.name %}
+                  <img class="cart__thumb" src="{{ img.picture.url }}" alt="{{ it.variant.product.name }}"
+                       onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
                 {% else %}
-                  <div class="cart__thumb tile__placeholder" style="aspect-ratio: 4/5;">No image</div>
+                  <img class="cart__thumb" src="{% static 'img/no-image.jpg' %}" alt="{{ it.variant.product.name }}">
                 {% endif %}
               {% endwith %}
 
               <div class="cart__info">
                 <a class="cart__name" href="{% url 'item' it.variant.product.id %}">{{ it.variant.product.name }}</a>
                 <span class="cart__meta">{{ it.variant.colour.colour }} · {{ it.variant.size.size }}</span>
-                <span class="cart__meta">{{ it.price_stat|floatformat:0 }} UZS each</span>
+                <span class="cart__meta">{{ it.price_stat|price }} UZS</span>
               </div>
 
               <div class="cart__line-actions">
                 <form method="post" action="{% url 'cart_update' it.id %}" class="qty" data-qty>
                   {% csrf_token %}
                   <button type="button" data-qty-dec aria-label="decrease">−</button>
-                  <input type="number" name="quantity" min="1" max="99" value="{{ it.quantity }}" onchange="this.form.submit()">
+                  <input type="text" name="quantity" value="{{ it.quantity }}" inputmode="numeric" pattern="[0-9]*" maxlength="2" onchange="this.form.submit()">
                   <button type="button" data-qty-inc aria-label="increase">+</button>
                 </form>
-                <span class="mono" style="font-size: 14px;">{{ it.line_total|floatformat:0 }} UZS</span>
+
+                <span class="mono" style="font-size: 14px;">{{ it.line_total|price }} UZS</span>
+
                 <form method="post" action="{% url 'cart_remove' it.id %}">
                   {% csrf_token %}
-                  <button class="cart__remove" type="submit">Remove</button>
+                  <button class="cart__remove" type="submit"><h3>Olib tashlash</h3></button>
                 </form>
               </div>
             </div>
@@ -46,25 +53,25 @@
         </div>
 
         <aside class="summary">
-          <h3>Summary</h3>
-          <div class="summary__row"><span>Subtotal</span><span>{{ subtotal|floatformat:0 }} UZS</span></div>
-          <div class="summary__row"><span>Delivery</span><span>{{ delivery|default:0|floatformat:0 }} UZS</span></div>
-          <div class="summary__row summary__row--total"><span>Total</span><span>{{ total|floatformat:0 }} UZS</span></div>
+          <h3>Umumiy</h3>
+          <div class="summary__row"><span>Savat</span><span>{{ subtotal|price }} UZS</span></div>
+          <div class="summary__row"><span>Qo'shimcha</span><span>0 UZS</span></div>
+          <div class="summary__row summary__row--total"><span>Jami</span><span>{{ total|price }} UZS</span></div>
 
-          <a class="btn btn--solid btn--block btn--lg mt-24" href="{% url 'checkout' %}">Checkout</a>
-          <a class="btn btn--ghost btn--block mt-8" href="{% url 'shop' %}">Continue shopping</a>
+          <a class="btn btn--solid btn--block btn--lg mt-24" href="{% url 'checkout' %}">To'lov qilish</a>
+          <a class="btn btn--ghost btn--block mt-8" href="{% url 'shop' %}">Do'konga qaytish</a>
 
-          <p class="muted mono mt-16" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">
-            Pay securely with <strong style="color:var(--fg)">Click</strong> at checkout.
-          </p>
+<!--          <p class="muted mono mt-16" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">-->
+<!--            Pay securely with <strong style="color:var(&#45;&#45;fg)">Click</strong> at checkout.-->
+<!--          </p>-->
         </aside>
       </div>
 
     {% else %}
       <div class="empty">
-        <h2>Empty cart.</h2>
-        <p>Add something nice.</p>
-        <a class="btn btn--solid btn--lg" href="{% url 'shop' %}">Shop the drop</a>
+        <h2>Savat bo'sh</h2>
+        <p>Narsa harid qilish.</p>
+        <a class="btn btn--solid btn--lg" href="{% url 'shop' %}">Do'kon</a>
       </div>
     {% endif %}
   </div>

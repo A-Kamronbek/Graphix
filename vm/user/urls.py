@@ -9,4 +9,7 @@ urlpatterns = [
 
     path('account/', views.account, name='account'),
     path('account/orders/', views.account_orders, name='account_orders'),
+    # phone validation
+    # settings
+    # forget password
 ]

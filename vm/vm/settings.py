@@ -81,8 +81,8 @@ AUTH_PASSWORD_VALIDATORS = [
     # {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 TIME_ZONE = 'Asia/Tashkent'
-LANGUAGE_CODE = 'uz'   # The active language — affects ALL translated strings
-USE_I18N = True        # Enables translation system (default: True)
+LANGUAGE_CODE = 'uz'
+USE_I18N = True
 USE_L10N = True
 
 # ---- static & media ----
@@ -97,5 +97,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ---- auth redirects ----
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'account'
+LOGIN_REDIRECT_URL = 'shop'
 LOGOUT_REDIRECT_URL = 'home'

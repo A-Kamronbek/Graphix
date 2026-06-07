@@ -14,8 +14,8 @@
 
   {% block extra_head %}{% endblock %}
 </head>
-<body>
-  {% include "partials/_marquee.html" with reverse=False %}
+<body class="{% block body_class %}{% endblock %}">
+  {% block marq %}{% endblock %}
 
   {% include "partials/_nav.html" %}
 

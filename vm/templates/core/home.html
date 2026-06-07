@@ -2,6 +2,10 @@
 {% load static %}
 {% block title %}ValleyMade{% endblock %}
 
+{% block marq %}
+{% include "partials/_marquee.html" with reverse=False %}
+{% endblock %}
+
 {% block content %}
 <section class="hero">
   <div class="hero__stars" aria-hidden="true"></div>
@@ -14,83 +18,6 @@
     </div>
   </div>
 </section>
-
-<!--{% include "partials/_marquee.html" with reverse=True %}-->
-
-<!--{# featured grid #}-->
-<!--<section class="section">-->
-<!--  <div class="wrap">-->
-<!--    <div class="row-between mb-24">-->
-<!--      <div>-->
-<!--        <p class="eyebrow">001 / Drop</p>-->
-<!--        <h2 class="h-display h-md mt-8">New In</h2>-->
-<!--      </div>-->
-<!--      <a class="btn btn&#45;&#45;ghost btn&#45;&#45;sm" href="{% url 'shop' %}">View all →</a>-->
-<!--    </div>-->
-
-<!--    <div class="shop__grid">-->
-<!--      {% for p in featured %}-->
-<!--        <a href="{% url 'item' p.id %}" class="tile">-->
-<!--          {% with p.images.first as img %}-->
-<!--            {% if img %}-->
-<!--              <img class="tile__img" src="{{ img.picture.url }}" alt="{{ p.name }}">-->
-<!--            {% else %}-->
-<!--              <div class="tile__placeholder">No image</div>-->
-<!--            {% endif %}-->
-<!--          {% endwith %}-->
-<!--          <div class="tile__meta">-->
-<!--            <span class="tile__name">{{ p.name }}</span>-->
-<!--            <span class="tile__price">{% with p.variants.first as v %}{% if v %}{{ v.price|floatformat:0 }} UZS{% endif %}{% endwith %}</span>-->
-<!--          </div>-->
-<!--        </a>-->
-<!--      {% empty %}-->
-<!--        {# placeholders so the page still feels alive on a fresh DB #}-->
-<!--        {% for i in "123456" %}-->
-<!--          <div class="tile">-->
-<!--            <div class="tile__placeholder">Coming soon</div>-->
-<!--            <div class="tile__meta"><span class="tile__name">— —</span><span class="tile__price">— UZS</span></div>-->
-<!--          </div>-->
-<!--        {% endfor %}-->
-<!--      {% endfor %}-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</section>-->
-
-<!--{# categories strip #}-->
-<!--<section class="section divide-top">-->
-<!--  <div class="wrap">-->
-<!--    <p class="eyebrow">002 / Categories</p>-->
-<!--    <h2 class="h-display h-md mt-8 mb-24">Browse by category</h2>-->
-<!--    <div class="cats">-->
-<!--      <a href="{% url 'shop' %}">All</a>-->
-<!--      {% for c in categories %}-->
-<!--        <a href="{% url 'shop' %}?category={{ c.id }}">{{ c.name }}</a>-->
-<!--      {% empty %}-->
-<!--        <a href="#">Tops</a><a href="#">Bottoms</a><a href="#">Outerwear</a><a href="#">Accessories</a>-->
-<!--      {% endfor %}-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</section>-->
-
-<!--{# manifesto strip #}-->
-<!--<section class="section divide-top">-->
-<!--  <div class="wrap">-->
-<!--    <div class="split">-->
-<!--      <div>-->
-<!--        <p class="eyebrow">003 / Manifesto</p>-->
-<!--        <h2 class="kicker mt-16">Cut.<br>Sewn.<br>Local.</h2>-->
-<!--      </div>-->
-<!--      <div>-->
-<!--        <p class="lede">-->
-<!--          We make small batches in our own studio. Every piece is cut, printed and stitched-->
-<!--          a few blocks from where you'll wear it. No big factories. No middlemen.-->
-<!--          Limited runs that sell out and don't come back.-->
-<!--        </p>-->
-<!--        <a class="btn mt-32" href="{% url 'about' %}">Read more</a>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</section>-->
 
 {% include "partials/_marquee.html" with reverse=False %}
 {% endblock %}

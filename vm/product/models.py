@@ -20,9 +20,13 @@ class Product(models.Model):
 class ImageP(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     picture = models.ImageField(upload_to="products/")
+    order = models.PositiveSmallIntegerField()
 
     def __str__(self):
-        return f"{self.id} | {self.product.name} | {self.picture.name.split('/')[-1]}"
+        return f"{self.id} | {self.product.name} | {self.order} | {self.picture.name.split('/')[-1]}"
+
+    class Meta:
+        ordering = ['order', 'id']
 
 class Size(models.Model):
     size = models.CharField(max_length=50)

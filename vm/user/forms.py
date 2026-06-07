@@ -6,6 +6,9 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import MinimumLengthValidator
 
 
+# phone validation
+# settings
+# forget password
 
 class LoginForm(AuthenticationForm):
     error_messages = {

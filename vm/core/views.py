@@ -1,18 +1,11 @@
 from django.shortcuts import render
 from django.contrib import messages
 from product.models import Product, Category
+from .models import msg
 
 
 def home(request):
-    featured = (
-        Product.objects
-        .prefetch_related('images', 'variants')
-        .order_by('-created_at')[:6]
-    )
-    return render(request, 'core/home.html', {
-        'featured': featured,
-        'categories': Category.objects.all()[:6],
-    })
+    return render(request, 'core/home.html')
 
 
 def about(request):
@@ -24,17 +17,18 @@ def contact(request):
     form_errors = False
     if request.method == 'POST':
         form_data = {
-            'name': request.POST.get('name', '').strip(),
-            'email': request.POST.get('email', '').strip(),
             'subject': request.POST.get('subject', '').strip(),
             'message': request.POST.get('message', '').strip(),
         }
-        if not form_data['name'] or not form_data['email'] or not form_data['message']:
+        if not form_data['message'] or not form_data['subject']:
             form_errors = True
-            messages.error(request, "Please fill in all required fields.")
+            messages.error(request, "Iltimos habar kiriting.")
         else:
-            # TODO: send email / save to a Message model
-            messages.success(request, "Message sent. We'll get back to you soon.")
+            msg.objects.create(user=request.user,
+                               phone_num=request.user.phone,
+                               topic=form_data['subject'],
+                               msg_text=form_data['message'])
+            messages.success(request, "Habar qabul qilindi.")
             form_data = {}
     return render(request, 'core/contact.html', {
         'form_data': form_data,

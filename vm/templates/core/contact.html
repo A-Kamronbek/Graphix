@@ -10,15 +10,18 @@
         <div class="mt-32 stack" style="gap: 24px;">
           <div>
             <p class="eyebrow">Email</p>
-            <a class="h-display h-sm mt-8" style="display:block" href="mailto:ValleyMade@gmail.com">ValleyMade@gmail.com</a>
+            <a class="h-display h-sm mt-8" style="display:block" href="mailto:ValleyMade@gmail.com">
+                abdurahmonboboyev.magic@gmail.com</a>
           </div>
           <div>
             <p class="eyebrow">Telefon</p>
-            <p class="h-display h-sm mt-8" style="display:block">+998 12 345 67 89</p>
+            <p class="h-display h-sm mt-8" style="display:block">
+                +998 50 788 84 36</p>
           </div>
           <div>
             <p class="eyebrow">Telegram</p>
-            <a class="h-display h-sm mt-8" style="display:block" href="https://t.me/ValleyMade">@ValleyMade</a>
+            <a class="h-display h-sm mt-8" style="display:block" href="https://t.me/Whowantstodap" target="_blank">
+                @Whowantstodap</a>
           </div>
         </div>
       </div>
@@ -28,14 +31,7 @@
           {% csrf_token %}
           {% if form_errors %}<div class="msg msg--err">Xatoliklarni to'girlang!</div>{% endif %}
 
-          <div class="field">
-            <label for="id_name">Ism</label>
-            <input class="input" id="id_name" name="name" required value="{{ form_data.name|default:'' }}">
-          </div>
-          <div class="field">
-            <label for="id_email">Telefon</label>
-            <input class="input" type="email" id="id_email" name="email" required value="{{ form_data.phone|default:'' }}">
-          </div>
+
           <div class="field">
             <label for="id_subject">Mavzu</label>
             <input class="input" id="id_subject" name="subject" value="{{ form_data.subject|default:'' }}">

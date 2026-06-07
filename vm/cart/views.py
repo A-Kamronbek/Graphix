@@ -30,12 +30,10 @@ def cart(request):
         .prefetch_related('variant__product__images')
     )
     subtotal = sum((it.line_total for it in items), Decimal('0'))
-    delivery = Decimal('0')  # free for now — set your rules
-    total = subtotal + delivery
+    total = subtotal
     return render(request, 'cart/cart.html', {
         'items': items,
         'subtotal': subtotal,
-        'delivery': delivery,
         'total': total,
     })
 
@@ -57,11 +55,11 @@ def cart_add(request, product_id):
     variant = variant_qs.first()
 
     if not variant:
-        messages.error(request, "Pick a colour and size first.")
+        messages.error(request, "Tovar noto'g'ri tanlangan")
         return redirect('item', pk=product_id)
 
     if not variant.available:
-        messages.error(request, "That variant is out of stock.")
+        messages.error(request, "Ushbu tovar sotuvda yo'q")
         return redirect('item', pk=product_id)
 
     cart = _get_active_cart(request.user)
@@ -74,8 +72,8 @@ def cart_add(request, product_id):
         # snapshot price stays as original for that line
         item.save(update_fields=['quantity'])
 
-    messages.success(request, f"Added {product.name} to cart.")
-    return redirect('cart')
+    messages.success(request, f"{product.name} savatga qo\'shildi.")
+    return redirect('shop')
 
 
 @login_required
@@ -96,5 +94,5 @@ def cart_update(request, item_id):
 def cart_remove(request, item_id):
     item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
     item.delete()
-    messages.success(request, "Item removed.")
+    messages.success(request, "Olib tashlandi.")
     return redirect('cart')

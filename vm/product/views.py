@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
 from django.db.models import Min, Q
+import json
 from .models import Product, Category, Size, Colour, Variant
 
 
@@ -9,14 +11,19 @@ def shop(request):
     size = request.GET.get('size')
     sort = request.GET.get('sort', 'new')
 
-    qs = Product.objects.prefetch_related('images', 'variants').all()
+    qs = (
+        Product.objects
+        .filter(variants__available=True)   # only products with at least one available variant
+        .prefetch_related('images', 'variants')
+        .distinct()
+    )
 
     if q:
         qs = qs.filter(Q(name__icontains=q) | Q(description__icontains=q))
     if category:
         qs = qs.filter(category_id=category)
     if size:
-        qs = qs.filter(variants__size_id=size).distinct()
+        qs = qs.filter(variants__size_id=size, variants__available=True).distinct()
 
     if sort == 'price_asc':
         qs = qs.annotate(min_price=Min('variants__price')).order_by('min_price')
@@ -25,8 +32,22 @@ def shop(request):
     else:
         qs = qs.order_by('-created_at')
 
+    # 5 columns x 4 rows = 20 per page
+    paginator = Paginator(qs, 20)
+    page_number = request.GET.get('page') or 1
+    page_obj = paginator.get_page(page_number)
+
+    # Rebuild querystring without 'page' so pagination links keep filters/sort/search
+    qd = request.GET.copy()
+    qd.pop('page', None)
+    base_query = qd.urlencode()
+
     return render(request, 'product/shop.html', {
-        'products': qs,
+        'products': page_obj.object_list,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'base_query': base_query,
+        'total_count': paginator.count,
         'categories': Category.objects.all(),
         'sizes': Size.objects.all(),
         'selected_category': category,
@@ -56,10 +77,27 @@ def item(request, pk):
     # Default selected variant: first available, or first of all
     selected_variant = product.variants.filter(available=True).first() or product.variants.first()
 
+    # True only if there's at least one purchasable variant
+    is_purchasable = product.variants.filter(available=True).exists()
+
+    # Build a JS-friendly map: { "<colour_id>:<size_id>": {price, available} }
+    # plus a per-colour list of available sizes, so the front-end can:
+    #   1. cross out sizes that are unavailable for the chosen colour
+    #   2. update the price when colour/size changes
+    variants_map = {}
+    for v in product.variants.all():
+        key = f"{v.colour_id or ''}:{v.size_id or ''}"
+        variants_map[key] = {
+            'price': float(v.price),
+            'available': bool(v.available),
+            'id': v.id,
+        }
+
     related = (
-        Product.objects.filter(category=product.category)
+        Product.objects.filter(category=product.category, variants__available=True)
         .exclude(id=product.id)
-        .prefetch_related('images', 'variants')[:4]
+        .prefetch_related('images', 'variants')
+        .distinct()[:4]
     )
 
     return render(request, 'product/item.html', {
@@ -68,5 +106,7 @@ def item(request, pk):
         'sizes': sizes,
         'unavailable_sizes': unavailable_sizes,
         'selected_variant': selected_variant,
+        'is_purchasable': is_purchasable,
+        'variants_json': json.dumps(variants_map),
         'related': related,
     })

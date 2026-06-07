@@ -12,8 +12,8 @@ def login_view(request):
     form = LoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         login(request, form.get_user())
-        messages.success(request, "Welcome back.")
-        return redirect(request.GET.get('next') or 'account')
+        messages.success(request, "Hush kelibsiz!.")
+        return redirect(request.GET.get('next') or 'shop')
     return render(request, 'user/login.html', {'form': form})
 
 
@@ -24,10 +24,13 @@ def signup_view(request):
     if request.method == 'POST' and form.is_valid():
         user = form.save()
         login(request, user)
-        messages.success(request, "Account created. Welcome.")
-        return redirect('account')
+        # messages.success(request, "Account yaratildi. Hush kelibsiz!.")
+        return redirect('#')  # validate tel number
     return render(request, 'user/signup.html', {'form': form})
 
+# phone validation
+# settings
+# forget password
 
 @login_required
 def account(request):
