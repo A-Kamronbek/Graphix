@@ -2,11 +2,13 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
 from django.db import transaction
 
 from cart.models import Cart
 from .models import Order
+from user.models import phone_regex
 
 
 # ---------- helpers ----------
@@ -30,7 +32,7 @@ def _annotate_lines(items):
 def checkout(request):
     cart = _get_open_cart(request.user)
     if not cart or not cart.cart_items.exists():
-        messages.error(request, "Your cart is empty.")
+        messages.error(request, "Savat bo'sh.")
         return redirect('cart')
 
     items_qs = (
@@ -48,10 +50,22 @@ def checkout(request):
         phone = request.POST.get('phone', '').strip()
         address = request.POST.get('address', '').strip()
 
+        # required fields
         if not name or not phone or not address:
-            messages.error(request, "Please fill in name, phone and address.")
+            messages.error(request, "Ma'lumot va manzilni to'ldiring.")
             return render(request, 'payment/checkout.html', {
                 'items': items, 'subtotal': subtotal, 'delivery': delivery, 'total': total,
+                'form_data': {'name': name, 'phone': phone, 'address': address},
+            })
+
+        # phone format (same validator as User.phone)
+        try:
+            phone_regex(phone)
+        except ValidationError as e:
+            messages.error(request, e.messages[0])
+            return render(request, 'payment/checkout.html', {
+                'items': items, 'subtotal': subtotal, 'delivery': delivery, 'total': total,
+                'form_data': {'name': name, 'phone': phone, 'address': address},
             })
 
         # Create the order atomically and close the cart so a fresh one is opened next time.
@@ -59,6 +73,7 @@ def checkout(request):
             order = Order.objects.create(
                 user=request.user,
                 cart=cart,
+                phone=phone,
                 address=address,
                 total_price=total,
                 status=Order.Status.PAYING,  # straight to "awaiting payment"
@@ -66,7 +81,7 @@ def checkout(request):
             cart.status = False
             cart.save(update_fields=['status'])
 
-        messages.success(request, f"Order #{order.id} placed. Now pay with Click.")
+        messages.success(request, f"Buyurtma qabul qilindi. To'lovni amalga oshiring.")
         return redirect('payment', order_id=order.id)
 
     return render(request, 'payment/checkout.html', {
@@ -135,7 +150,7 @@ def order_cancel(request, pk):
     if order.status in (Order.Status.ACTIVE, Order.Status.PAYING):
         order.status = Order.Status.CANCELLED
         order.save(update_fields=['status'])
-        messages.success(request, f"Order #{order.id} cancelled.")
+        messages.success(request, f"#{order.id} bekor qilindi.")
     else:
-        messages.error(request, "This order can't be cancelled at this stage.")
+        messages.error(request, "Buyurtmani bekor qilib bo'lmadi.")
     return redirect('order_status', pk=order.id)
