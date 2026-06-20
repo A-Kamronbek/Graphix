@@ -26,9 +26,13 @@ def shop(request):
         qs = qs.filter(variants__size_id=size, variants__available=True).distinct()
 
     if sort == 'price_asc':
-        qs = qs.annotate(min_price=Min('variants__price')).order_by('min_price')
+        qs = qs.annotate(
+            min_price=Min('variants__price', filter=Q(variants__available=True))
+        ).order_by('min_price')
     elif sort == 'price_desc':
-        qs = qs.annotate(min_price=Min('variants__price')).order_by('-min_price')
+        qs = qs.annotate(
+            min_price=Min('variants__price', filter=Q(variants__available=True))
+        ).order_by('-min_price')
     else:
         qs = qs.order_by('-created_at')
 
@@ -51,6 +55,7 @@ def shop(request):
         'categories': Category.objects.all(),
         'sizes': Size.objects.all(),
         'selected_category': category,
+        'selected_size': size,
         'q': q,
         'sort': sort,
     })

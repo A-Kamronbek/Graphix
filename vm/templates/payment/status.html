@@ -30,12 +30,12 @@
       <div class="panel">
         <h3 class="h-display h-sm mb-24">Holati</h3>
 
-        {# Status flow: active → paying → paid → processing → on_the_way → done (or cancelled) #}
+        {# Status flow: paying → paid → processing → on_the_way → done (or cancelled) #}
         {% if order.status == 'cancelled' %}
           <div class="msg msg--err">This order was cancelled.</div>
         {% else %}
           <div class="timeline">
-            <div class="timeline__item {% if order.status == 'active' %}is-current{% else %}is-done{% endif %}">
+            <div class="timeline__item is-done">
               <div class="timeline__title">Buyurtma yaratildi</div>
               <div class="timeline__time">{{ order.created_at|date:"d M Y · H:i" }}</div>
             </div>
@@ -72,7 +72,7 @@
 
         <div class="row mt-32" style="gap: 8px;">
           <a class="btn btn--ghost btn--sm" href="{% url 'account_orders' %}">Barcha buyurtmalar</a>
-          {% if order.status == 'active' or order.status == 'paying' %}
+          {% if order.status == 'paying' %}
             <a class="btn btn--sm" href="{% url 'payment' order.id %}">To'lov qilish →</a>
             <form method="post" action="{% url 'order_cancel' order.id %}" style="margin: 0;">
               {% csrf_token %}

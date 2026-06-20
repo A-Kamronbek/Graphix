@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Q
 from product.models import Variant
 
 
@@ -16,6 +16,20 @@ class Cart(models.Model):
 
     def __str__(self):
         return f"Cart {self.id}. {self.user.username}"
+
+    class Meta:
+        constraints = [
+            # At most one open cart (status=True) per user. Partial unique index
+            # — closed carts (status=False) are unconstrained, so a user keeps
+            # full order history. This makes _get_active_cart's get_or_create
+            # concurrency-safe: a racing INSERT hits IntegrityError, which
+            # get_or_create catches and retries as a .get().
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=Q(status=True),
+                name='unique_open_cart_per_user',
+            ),
+        ]
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="cart_items")

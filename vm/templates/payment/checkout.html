@@ -44,14 +44,14 @@
           </div>
           <div class="field mt-16">
             <label>Qo'shimcha ma'lumot</label>
-            <input class="input" name="notes" placeholder="Mo'ljal, ish joyi...">
+            <input class="input" name="notes" placeholder="Mo'ljal, ish joyi..." value="{{ form_data.notes|default_if_none:''|default:'' }}">
           </div>
         </div>
 
         <div class="panel">
           <p class="eyebrow mb-16">To'lov usuli</p>
           <label class="checkbox" style="display:flex; gap:12px; padding: 14px; border:1px solid var(--line);">
-            <input type="radio" name="payment_method" value="click" checked>
+            <input type="radio" name="payment_method" value="click" {% if form_data.payment_method == 'cash' %}{% else %}checked{% endif %}>
             <span>
               <strong style="font-family: var(--f-display); text-transform: uppercase;">Click</strong><br>
               <small class="muted mono" style="font-size: 11px; letter-spacing: .12em;">Click orqali to'lov qilish.</small>

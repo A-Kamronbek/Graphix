@@ -50,7 +50,7 @@
         <div class="summary__row summary__row--total"><span>Narxi</span><span>{{ order.total_price|price }} UZS</span></div>
 
         <a class="btn btn--solid btn--block btn--lg mt-24" href="{% url 'order_status' order.id %}">Holatni ko'rish</a>
-        {% if order.status == 'active' or order.status == 'paying' %}
+        {% if order.status == 'paying' %}
           <a class="btn btn--ghost btn--block mt-8" href="{% url 'payment' order.id %}">To'lov qilish</a>
         {% endif %}
       </aside>

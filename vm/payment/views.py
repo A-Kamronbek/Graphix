@@ -49,13 +49,20 @@ def checkout(request):
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
         address = request.POST.get('address', '').strip()
+        notes = request.POST.get('notes', '').strip()
+        payment_method = request.POST.get('payment_method', '').strip()
+        # Only accept a known method; anything else (or missing) falls back to Click,
+        # which is currently the only enabled option.
+        if payment_method not in Order.PaymentMethod.values:
+            payment_method = Order.PaymentMethod.CLICK
 
         # required fields
         if not name or not phone or not address:
             messages.error(request, "Ma'lumot va manzilni to'ldiring.")
             return render(request, 'payment/checkout.html', {
                 'items': items, 'subtotal': subtotal, 'delivery': delivery, 'total': total,
-                'form_data': {'name': name, 'phone': phone, 'address': address},
+                'form_data': {'name': name, 'phone': phone, 'address': address,
+                              'notes': notes, 'payment_method': payment_method},
             })
 
         # phone format (same validator as User.phone)
@@ -65,21 +72,45 @@ def checkout(request):
             messages.error(request, e.messages[0])
             return render(request, 'payment/checkout.html', {
                 'items': items, 'subtotal': subtotal, 'delivery': delivery, 'total': total,
-                'form_data': {'name': name, 'phone': phone, 'address': address},
+                'form_data': {'name': name, 'phone': phone, 'address': address,
+                              'notes': notes, 'payment_method': payment_method},
             })
 
         # Create the order atomically and close the cart so a fresh one is opened next time.
         with transaction.atomic():
+            # Lock the cart row. A second, near-simultaneous checkout on the same
+            # cart (e.g. a double-click) blocks here until the first transaction
+            # commits, then re-reads the now-closed status below — instead of both
+            # racing to Order.objects.create() and the second hitting an
+            # IntegrityError on the OneToOne cart field (a 500 for the user).
+            locked_cart = (
+                Cart.objects.select_for_update()
+                .filter(pk=cart.pk, user=request.user)
+                .first()
+            )
+
+            # Already checked out by the concurrent request -> don't create a
+            # second Order. Send the user to the order that already exists.
+            if locked_cart is None or not locked_cart.status:
+                existing = Order.objects.filter(cart_id=cart.pk).first()
+                if existing:
+                    messages.info(request, "Buyurtma allaqachon rasmiylashtirilgan.")
+                    return redirect('payment', order_id=existing.id)
+                messages.error(request, "Savat bo'sh.")
+                return redirect('cart')
+
             order = Order.objects.create(
                 user=request.user,
-                cart=cart,
+                cart=locked_cart,
                 phone=phone,
                 address=address,
+                notes=notes,
+                payment_method=payment_method,
                 total_price=total,
                 status=Order.Status.PAYING,  # straight to "awaiting payment"
             )
-            cart.status = False
-            cart.save(update_fields=['status'])
+            locked_cart.status = False
+            locked_cart.save(update_fields=['status'])
 
         messages.success(request, f"Buyurtma qabul qilindi. To'lovni amalga oshiring.")
         return redirect('payment', order_id=order.id)
@@ -147,7 +178,7 @@ def order_status(request, pk):
 @require_POST
 def order_cancel(request, pk):
     order = get_object_or_404(Order, pk=pk, user=request.user)
-    if order.status in (Order.Status.ACTIVE, Order.Status.PAYING):
+    if order.status == Order.Status.PAYING:
         order.status = Order.Status.CANCELLED
         order.save(update_fields=['status'])
         messages.success(request, f"#{order.id} bekor qilindi.")

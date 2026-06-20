@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import MinimumLengthValidator
 
 
-# phone validation
 # settings
 # forget password
 
@@ -15,6 +14,15 @@ class LoginForm(AuthenticationForm):
         'invalid_login': "Username yoki parol noto'g'ri.",
         'inactive': "Bu akkaunt faol emas.",
     }
+
+
+class OTPForm(forms.Form):
+    code = forms.CharField(
+        min_length=6,
+        max_length=6,
+        validators=[RegexValidator(regex=r'^\d{6}$', message="6 ta raqam kiriting.")],
+        error_messages={'required': "Kodni kiriting."},
+    )
 
 
 class SignupForm(UserCreationForm):
@@ -33,9 +41,6 @@ class SignupForm(UserCreationForm):
         user.first_name = self.cleaned_data.get('first_name', '')
         if commit:
             user.save()
-            # NOTE: phone is not stored on the default User model.
-            # When you add a UserProfile model, persist phone here:
-            #   UserProfile.objects.create(user=user, phone=self.cleaned_data.get('phone',''))
         return user
 
     def __init__(self, *args, **kwargs):

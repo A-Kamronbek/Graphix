@@ -2,7 +2,7 @@
 // keep it tiny, no frameworks
 
 (() => {
-  // ---- mobile drawer ----
+  // ---- mcd vmobile drawer ----
   const burger = document.querySelector('[data-burger]');
   const drawer = document.querySelector('[data-drawer]');
   if (burger && drawer) {
@@ -232,4 +232,106 @@
       if (bad) e.preventDefault();
     });
   });
+
+  // ---- OTP / phone verification page ----
+  (function initOtp() {
+    const wrap = document.querySelector('[data-otp]');
+    if (!wrap) return;
+    const cells = Array.from(wrap.querySelectorAll('.otp__cell'));
+    const hidden = document.getElementById('id_code');
+    const form = document.getElementById('otpForm');
+    if (!cells.length || !hidden || !form) return;
+
+    if (hidden.value) {
+      hidden.value.split('').slice(0, cells.length).forEach((ch, i) => {
+        cells[i].value = ch;
+        cells[i].classList.toggle('is-filled', !!ch);
+      });
+    }
+
+    const syncHidden = () => { hidden.value = cells.map(c => c.value).join(''); };
+    const focusCell = (i) => { if (i >= 0 && i < cells.length) cells[i].focus(); };
+
+    cells.forEach((cell, idx) => {
+      cell.addEventListener('input', () => {
+        cell.value = cell.value.replace(/\D/g, '').slice(-1);
+        cell.classList.toggle('is-filled', !!cell.value);
+        syncHidden();
+        if (cell.value && idx < cells.length - 1) focusCell(idx + 1);
+        if (cells.every(c => c.value)) form.requestSubmit();
+      });
+
+      cell.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          if (!cell.value && idx > 0) {
+            e.preventDefault();
+            cells[idx - 1].value = '';
+            cells[idx - 1].classList.remove('is-filled');
+            syncHidden();
+            focusCell(idx - 1);
+          }
+        } else if (e.key === 'ArrowLeft')  { e.preventDefault(); focusCell(idx - 1); }
+        else if   (e.key === 'ArrowRight') { e.preventDefault(); focusCell(idx + 1); }
+      });
+
+      cell.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+        const digits = text.replace(/\D/g, '').slice(0, cells.length);
+        if (!digits) return;
+        digits.split('').forEach((ch, i) => {
+          if (cells[i]) {
+            cells[i].value = ch;
+            cells[i].classList.add('is-filled');
+          }
+        });
+        syncHidden();
+        focusCell(Math.min(digits.length, cells.length - 1));
+        if (cells.every(c => c.value)) form.requestSubmit();
+      });
+    });
+
+    // Expiry countdown — server is source of truth, this is visual only.
+    const timerEl = document.getElementById('otpTimer');
+    if (timerEl) {
+      let left = parseInt(timerEl.dataset.ttl, 10) || 0;
+      let fired = false;
+      const expireForm = document.getElementById('otpExpireForm');
+      const tick = () => {
+        if (left < 0) {
+          timerEl.textContent = '00:00';
+          if (!fired && expireForm) {
+            fired = true;
+            expireForm.submit();
+          }
+          return;
+        }
+        const m = String(Math.floor(left / 60)).padStart(2, '0');
+        const s = String(left % 60).padStart(2, '0');
+        timerEl.textContent = `${m}:${s}`;
+        left -= 1;
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // Resend cooldown
+    const resendBtn = document.getElementById('otpResend');
+    if (resendBtn) {
+      let cd = parseInt(resendBtn.dataset.cooldown, 10) || 0;
+      if (cd > 0) {
+        const baseLabel = 'Qayta yuborish';
+        const iv = setInterval(() => {
+          if (cd <= 0) {
+            resendBtn.disabled = false;
+            resendBtn.textContent = baseLabel;
+            clearInterval(iv);
+            return;
+          }
+          resendBtn.textContent = `${baseLabel} (${cd}s)`;
+          cd -= 1;
+        }, 1000);
+      }
+    }
+  })();
 })();

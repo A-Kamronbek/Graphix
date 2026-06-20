@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load price_format %}
+{% load query_tags %}
 {% block title %}Shop — VM Graphics{% endblock %}
 {% block body_class %}is-shop{% endblock %}
 
@@ -32,22 +33,22 @@
           <ul>
             <li><a href="{% url 'shop' %}" class="{% if not selected_category %}is-active{% endif %}">Barchasi</a></li>
             {% for c in categories %}
-              <li><a href="?category={{ c.id }}" class="{% if selected_category == c.id|stringformat:'s' %}is-active{% endif %}">{{ c.name }}</a></li>
+              <li><a href="{% query_transform category=c.id %}" class="{% if selected_category == c.id|stringformat:'s' %}is-active{% endif %}">{{ c.name }}</a></li>
             {% endfor %}
           </ul>
 
           <h4>O'lcham</h4>
           <ul>
             {% for s in sizes %}
-              <li><a href="?size={{ s.id }}">{{ s.size }}</a></li>
+              <li><a href="{% query_transform size=s.id %}" class="{% if selected_size == s.id|stringformat:'s' %}is-active{% endif %}">{{ s.size }}</a></li>
             {% endfor %}
           </ul>
 
           <h4>Filter</h4>
           <ul>
-            <li><a href="?sort=new">Yangi</a></li>
-            <li><a href="?sort=price_asc">Narx ↑</a></li>
-            <li><a href="?sort=price_desc">Narx ↓</a></li>
+            <li><a href="{% query_transform sort='new' %}" class="{% if sort == 'new' %}is-active{% endif %}">Yangi</a></li>
+            <li><a href="{% query_transform sort='price_asc' %}" class="{% if sort == 'price_asc' %}is-active{% endif %}">Narx ↑</a></li>
+            <li><a href="{% query_transform sort='price_desc' %}" class="{% if sort == 'price_desc' %}is-active{% endif %}">Narx ↓</a></li>
           </ul>
         </div>
       </aside>
@@ -58,6 +59,9 @@
             {{ total_count }} narsa
           </span>
           <form method="get" class="row" style="gap: 8px;">
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+            {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
+            {% if sort and sort != 'new' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
             <input class="input" type="search" name="q" placeholder="Qidirish..." value="{{ q|default:'' }}" style="padding: 10px 14px;">
             <button class="btn btn--sm"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg></button>
           </form>

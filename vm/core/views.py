@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib import messages
 from product.models import Product, Category
@@ -11,7 +12,7 @@ def home(request):
 def about(request):
     return render(request, 'core/about.html')
 
-
+@login_required
 def contact(request):
     form_data = {}
     form_errors = False
