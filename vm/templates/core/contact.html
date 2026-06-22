@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Bog'lanish — VM Graphics{% endblock %}
+{% block title %}Bog'lanish{% endblock %}
 
 {% block content %}
 <section class="section">
@@ -29,7 +29,7 @@
       <div>
         <form method="post" class="stack" data-validate style="gap: 16px;">
           {% csrf_token %}
-          {% if form_errors %}<div class="msg msg--err">Xatoliklarni to'girlang!</div>{% endif %}
+          {% if form_errors %}<div class="Msg Msg--err">Xatoliklarni to'g'rilang!</div>{% endif %}
 
 
           <div class="field">
@@ -37,7 +37,7 @@
             <input class="input" id="id_subject" name="subject" value="{{ form_data.subject|default:'' }}">
           </div>
           <div class="field">
-            <label for="id_message">Habar</label>
+            <label for="id_message">Xabar</label>
             <textarea class="textarea" id="id_message" name="message" required>{{ form_data.message|default:'' }}</textarea>
           </div>
 

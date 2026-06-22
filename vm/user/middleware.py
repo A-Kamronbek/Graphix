@@ -1,5 +1,7 @@
+from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import reverse, NoReverseMatch
+from django.utils import timezone
 
 
 class PhoneVerificationMiddleware:
@@ -39,11 +41,39 @@ class PhoneVerificationMiddleware:
 
         path = request.path
 
-        # Allowlist check.
+        # Allowlist check (verify/resend/cancel/expire/logout, admin, static, media).
         if path in self._exempt_paths:
             return self.get_response(request)
         if any(path.startswith(p) for p in self.EXEMPT_PATH_PREFIXES):
             return self.get_response(request)
 
-        # Anything else -> back to OTP page.
+        # Unverified user on a gated page. If their OTP window has definitively
+        # expired (server clock), the account is a throwaway from an abandoned
+        # signup — delete it and send them to signup as a guest, rather than
+        # looping them back to the verify page. This is what cleans up accounts
+        # for someone who closed the browser mid-verification and returns later.
+        if self._otp_window_expired(request):
+            logout(request)            # flushes the session
+            try:
+                user.delete()
+            except Exception:
+                pass
+            return redirect(f"{reverse('signup')}?reason=expired")
+
+        # Window still alive (or never started) -> back to the OTP page.
         return redirect('verify_phone')
+
+    @staticmethod
+    def _otp_window_expired(request):
+        """
+        True only if an OTP window EXISTS and has passed. Absent window returns
+        False, so a freshly-logged-in unverified user (no otp_* in session yet)
+        is sent to verify_phone to get a code instead of being deleted.
+        """
+        raw = request.session.get('otp_expires_at')
+        if not raw:
+            return False
+        try:
+            return timezone.now() > timezone.datetime.fromisoformat(raw)
+        except (ValueError, TypeError):
+            return False

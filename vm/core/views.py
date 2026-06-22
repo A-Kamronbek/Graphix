@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib import messages
 from product.models import Product, Category
-from .models import msg
+from .models import Msg
 
 
 def home(request):
@@ -23,13 +23,13 @@ def contact(request):
         }
         if not form_data['message'] or not form_data['subject']:
             form_errors = True
-            messages.error(request, "Iltimos habar kiriting.")
+            messages.error(request, "Iltimos xabar kiriting.")
         else:
-            msg.objects.create(user=request.user,
+            Msg.objects.create(user=request.user,
                                phone_num=request.user.phone,
                                topic=form_data['subject'],
                                msg_text=form_data['message'])
-            messages.success(request, "Habar qabul qilindi.")
+            messages.success(request, "Xabar qabul qilindi.")
             form_data = {}
     return render(request, 'core/contact.html', {
         'form_data': form_data,

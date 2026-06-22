@@ -24,7 +24,7 @@ class Order(models.Model):
         max_length=17,
     )
     status = models.CharField(max_length=50, choices=Status.choices, default=Status.PAYING, db_index=True)
-    address = models.CharField(max_length=255)
+    address = models.TextField()
     notes = models.TextField(blank=True, default='')
     payment_method = models.CharField(
         max_length=20,

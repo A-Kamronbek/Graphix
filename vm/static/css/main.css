@@ -648,7 +648,9 @@ main { flex: 1 0 auto; }
 }
 .msg--err { border-color: var(--accent); color: var(--accent); }
 .msg--ok  { border-color: var(--ok); color: var(--ok); }
+.msg--warn { border-color: var(--warn); color: var(--warn); }
 .msgs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.msgs .msg { text-align: center; }
 
 /* ---------- ACCOUNT ---------- */
 .account {

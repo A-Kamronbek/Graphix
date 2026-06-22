@@ -32,7 +32,7 @@
 
         {# Status flow: paying → paid → processing → on_the_way → done (or cancelled) #}
         {% if order.status == 'cancelled' %}
-          <div class="msg msg--err">This order was cancelled.</div>
+          <div class="Msg Msg--err">Buyurtma bekor qilindi.</div>
         {% else %}
           <div class="timeline">
             <div class="timeline__item is-done">

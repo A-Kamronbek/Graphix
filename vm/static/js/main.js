@@ -2,7 +2,7 @@
 // keep it tiny, no frameworks
 
 (() => {
-  // ---- mcd vmobile drawer ----
+  // ---- mcd mobile drawer ----
   const burger = document.querySelector('[data-burger]');
   const drawer = document.querySelector('[data-drawer]');
   if (burger && drawer) {
@@ -291,7 +291,10 @@
       });
     });
 
-    // Expiry countdown — server is source of truth, this is visual only.
+    // Expiry countdown. Server is the source of truth; this is visual only.
+    // On hitting zero, submit the (CSRF-protected) expire form. The server
+    // re-checks the absolute expiry before doing anything, so a forged/early
+    // POST can't delete a user whose code is still valid.
     const timerEl = document.getElementById('otpTimer');
     if (timerEl) {
       let left = parseInt(timerEl.dataset.ttl, 10) || 0;

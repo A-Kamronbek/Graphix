@@ -8,7 +8,7 @@
 <section class="section">
   <div class="wrap">
     <p class="eyebrow mb-16">
-      <a href="{% url 'shop' %}">Dokon</a>
+      <a href="{% url 'shop' %}">Do'kon</a>
       {% if product.category %} · <a href="{% url 'shop' %}?category={{ product.category.id }}">{{ product.category.name }}</a>{% endif %}
       · {{ product.name }}
     </p>
@@ -67,7 +67,7 @@
 
           {# sizes #}
           <div class="item__row">
-            <h4>Razmer</h4>
+            <h4>O'lcham</h4>
             <div class="sizes">
               {% for s in sizes %}
                 <span class="size {% if selected_variant.size.id == s.id %}is-active{% endif %} {% if s.id in unavailable_sizes %}is-oos{% endif %}"

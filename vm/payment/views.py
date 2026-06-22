@@ -99,6 +99,19 @@ def checkout(request):
                 messages.error(request, "Savat bo'sh.")
                 return redirect('cart')
 
+            # Recompute the total from the LOCKED cart's lines. The `total`
+            # computed before the lock can be stale: a concurrent cart_add in
+            # another tab may have inserted a line between that read and the
+            # lock, which would otherwise persist an undercounted order.
+            locked_lines = locked_cart.cart_items.all()
+            if not locked_lines:
+                messages.error(request, "Savat bo'sh.")
+                return redirect('cart')
+            locked_total = sum(
+                ((it.price_stat or Decimal('0')) * it.quantity for it in locked_lines),
+                Decimal('0'),
+            ) + delivery
+
             order = Order.objects.create(
                 user=request.user,
                 cart=locked_cart,
@@ -106,7 +119,7 @@ def checkout(request):
                 address=address,
                 notes=notes,
                 payment_method=payment_method,
-                total_price=total,
+                total_price=locked_total,
                 status=Order.Status.PAYING,  # straight to "awaiting payment"
             )
             locked_cart.status = False

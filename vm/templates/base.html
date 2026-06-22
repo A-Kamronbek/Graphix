@@ -1,12 +1,12 @@
 {% load static %}
 <!doctype html>
-<html lang="en">
+<html lang="uz">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#000000" />
-  <title>{% block title %}ValleyMade{% endblock %} — ValleyMade</title>
-  <meta name="description" content="{% block meta_description %}VM Graphics — local supplier. Clothes, made to last.{% endblock %}">
+  <title>{% block title %}Bosh sahifa{% endblock %} — ValleyMade</title>
+  <meta name="description" content="{% block meta_description %}ValleyMade — mahalliy yetkazib beruvchi. Uzoq muddatga chidaydigan kiyimlar.{% endblock %}">
 
   <link rel="preconnect" href="https://rsms.me/">
   <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
@@ -22,17 +22,17 @@
   {# mobile drawer #}
   <nav class="drawer" data-drawer aria-label="mobile">
     <ul>
-      <li><a href="{% url 'home' %}">Home</a></li>
-      <li><a href="{% url 'shop' %}">Shop</a></li>
-      <li><a href="{% url 'about' %}">About</a></li>
-      <li><a href="{% url 'contact' %}">Contact</a></li>
+      <li><a href="{% url 'home' %}">Bosh sahifa</a></li>
+      <li><a href="{% url 'shop' %}">Do'kon</a></li>
+      <li><a href="{% url 'about' %}">Haqimizda</a></li>
+      <li><a href="{% url 'contact' %}">Bog'lanish</a></li>
       {% if user.is_authenticated %}
-        <li><a href="{% url 'account' %}">Account</a></li>
+        <li><a href="{% url 'account' %}">Hisobim</a></li>
       {% else %}
-        <li><a href="{% url 'login' %}">Log in</a></li>
-        <li><a href="{% url 'signup' %}">Sign up</a></li>
+        <li><a href="{% url 'login' %}">Kirish</a></li>
+        <li><a href="{% url 'signup' %}">Ro'yxatdan o'tish</a></li>
       {% endif %}
-      <li><a href="{% url 'cart' %}">Cart</a></li>
+      <li><a href="{% url 'cart' %}">Savat</a></li>
     </ul>
   </nav>
 
@@ -41,7 +41,7 @@
     <div class="wrap mt-16">
       <div class="msgs">
         {% for m in messages %}
-          <div class="msg {% if 'error' in m.tags %}msg--err{% elif 'success' in m.tags %}msg--ok{% endif %}">{{ m }}</div>
+          <div class="msg {% if 'error' in m.tags %}msg--err{% elif 'success' in m.tags %}msg--ok{% else %}msg--warn{% endif %}">{{ m }}</div>
         {% endfor %}
       </div>
     </div>

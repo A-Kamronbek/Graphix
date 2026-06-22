@@ -15,5 +15,11 @@ urlpatterns = [
     path('verify-phone/cancel/', views.cancel_verification, name='cancel_verification'),
     path('verify-phone/expire/', views.expire_verification, name='expire_verification'),
     # settings
-    # forget password
+
+    # password reset (phone OTP)
+    path('parolni-tiklash/', views.password_reset_request, name='password_reset_request'),
+    path('parolni-tiklash/kod/', views.password_reset_verify, name='password_reset_verify'),
+    path('parolni-tiklash/kod/qayta/', views.password_reset_resend, name='password_reset_resend'),
+    path('parolni-tiklash/kod/tugadi/', views.password_reset_expire, name='password_reset_expire'),
+    path('parolni-tiklash/yangi/', views.password_reset_set, name='password_reset_set'),
 ]
