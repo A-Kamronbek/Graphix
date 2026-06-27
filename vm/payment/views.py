@@ -3,8 +3,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.db import transaction
+from click_up.views import ClickWebhook
+from click_up import ClickUp
+from django.conf import settings
+from click_up.models import ClickTransaction
 
 from cart.models import Cart
 from .models import Order
@@ -147,22 +152,55 @@ def payment(request, order_id):
 @login_required
 @require_POST
 def payment_start(request, order_id):
-    """
-    TODO — Click integration goes here.
-
-    Typical flow with Click:
-      1. Build a payment request payload (merchant_id, service_id, amount, transaction_param)
-      2. Create a PENDING transaction record in your DB (link it to this Order)
-      3. Redirect the user to Click's hosted page, e.g.
-            https://my.click.uz/services/pay?...
-      4. Implement Prepare / Complete callback endpoints that Click will hit server-to-server
-         to confirm the payment, and on success update Order.status = Order.Status.PAID.
-
-    For now this is a stub — it just bounces back to the payment page.
-    """
+    """Generate a Click pay link for this order and
+    redirect the user to it."""
+    
     order = get_object_or_404(Order, pk=order_id, user=request.user)
-    messages.info(request, "Click integration not connected yet — payment endpoint pending.")
-    return redirect('payment', order_id=order.id)
+
+    # Don't start a new payment for an order that's no longer awaiting one.
+    if order.status != Order.Status.PAYING:
+        messages.info(request, "Bu buyurtma uchun to'lov holati allaqachon o'zgargan.")
+        return redirect('order_status', pk=order.id)
+
+    click_up = ClickUp(service_id=settings.CLICK_SERVICE_ID,
+                       merchant_id=settings.CLICK_MERCHANT_ID)
+    return_url = request.build_absolute_uri(reverse('order_detail', args=[order.id]))
+    paylink = click_up.initializer.generate_pay_link(
+        id=order.id,
+        amount=order.total_price,
+        return_url=return_url,
+    )
+    return redirect(paylink)
+
+
+class ClickWebhookAPIView(ClickWebhook):
+    """
+    Click calls this server-to-server (Prepare + Complete). The library verifies
+    the signature, checks the amount against CLICK_AMOUNT_FIELD, and records a
+    ClickTransaction. We only need to move the Order's status in the callbacks.
+    `params.merchant_trans_id` is the order id we passed as `id` to the pay link.
+    """
+    def successfully_payment(self, params):
+        """Click confirmed the payment -> mark the order PAID."""
+        transaction = ClickTransaction.objects.get(
+            transaction_id=params.Click_trans_id
+        )
+        order = Order.objects.get(id=transaction.account_id)
+        if order.status != Order.Status.PAID:
+            order.status = Order.Status.PAID
+            order.save(update_fields=['status', 'updated_at'])
+
+    def cancelled_payment(self, params):
+        """Click reported a cancelled/failed payment -> mark the order CANCELLED
+        (but never override an order that already completed)."""
+        transaction = ClickTransaction.objects.get(
+            transaction_id=params.Click_trans_id
+        )
+        if transaction.state == ClickTransaction.CANCELLED:
+            order = Order.objects.get(id=transaction.account_id)
+            if order.status not in (Order.Status.PAID, Order.Status.CANCELLED):
+                order.status = Order.Status.CANCELLED
+                order.save(update_fields=['status', 'updated_at'])
 
 
 # ---------- viewing an order ----------

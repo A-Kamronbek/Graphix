@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load price_format %}
+{% load query_tags %}
 {% block title %}{{ product.name }}{% endblock %}
 {% block body_class %}is-item{% endblock %}
 
@@ -9,7 +10,7 @@
   <div class="wrap">
     <p class="eyebrow mb-16">
       <a href="{% url 'shop' %}">Do'kon</a>
-      {% if product.category %} · <a href="{% url 'shop' %}?category={{ product.category.id }}">{{ product.category.name }}</a>{% endif %}
+      {% if product.category %} · <a href="{% url 'shop' %}{% query_transform category=product.category.id %}">{{ product.category.name }}</a>{% endif %}
       · {{ product.name }}
     </p>
 
@@ -30,8 +31,8 @@
               </div>
             {% endfor %}
           </div>
-          <button type="button" class="gallery__arrow gallery__arrow--prev" data-gallery-prev aria-label="previous image">‹</button>
-          <button type="button" class="gallery__arrow gallery__arrow--next" data-gallery-next aria-label="next image">›</button>
+          <button type="button" class="gallery__arrow gallery__arrow--prev" data-gallery-prev aria-label="oldingi">‹</button>
+          <button type="button" class="gallery__arrow gallery__arrow--next" data-gallery-next aria-label="keyingi">›</button>
         </div>
         <div class="gallery__dots" data-gallery-dots></div>
       </div>
@@ -125,7 +126,7 @@
           {% endwith %}
           <div class="tile__meta">
             <span class="tile__name">{{ p.name }}</span>
-            <span class="tile__price">{% with p.variants.first as v %}{% if v %}{{ v.price|price }} UZS{% endif %}{% endwith %}</span>
+            <span class="tile__price">{% if p.min_price is not None %}{{ p.min_price|price }} UZS{% endif %}</span>
           </div>
         </a>
       {% empty %}

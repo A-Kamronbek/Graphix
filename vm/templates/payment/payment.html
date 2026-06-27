@@ -33,7 +33,7 @@
 
         <form method="post" action="{% url 'payment_start' order.id %}" class="mt-24">
           {% csrf_token %}
-          <button class="btn btn--solid btn--block btn--lg" type="submit" disabled>
+          <button class="btn btn--solid btn--block btn--lg" type="submit" >
             Clickga o'tish →
           </button>
         </form>

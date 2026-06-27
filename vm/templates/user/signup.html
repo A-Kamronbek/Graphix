@@ -11,14 +11,14 @@
     <div class="auth__form-inner">
 
       {% if notice %}
-        <div class="Msg Msg--warn mb-16">{{ notice }}</div>
+        <div class="msg msg--warn mb-16">{{ notice }}</div>
       {% endif %}
 
       {% if form.non_field_errors %}
-        <div class="Msg Msg--err mb-16">{{ form.non_field_errors|join:" · " }}</div>
+        <div class="msg msg--err mb-16">{{ form.non_field_errors|join:" · " }}</div>
       {% endif %}
 
-      <form method="post" class="stack" data-validate>
+      <form method="post" class="stack" data-validate id="signupForm">
         {% csrf_token %}
 
         <div class="field {% if form.username.errors %}field--error{% endif %}">
@@ -51,7 +51,7 @@
           {% if form.password2.errors %}<small class="field__err">{{ form.password2.errors|join:" · " }}</small>{% endif %}
         </div>
 
-        <label class="checkbox mt-8"><input type="checkbox" required> Barcha shartlarga rozilik beraman.</label>
+        <label class="checkbox mt-8"><input type="checkbox" required> Barcha <a href="{% url 'terms' %}" class="terms">shartlar</a>ga rozilik beraman.</label>
 
         <button class="btn btn--solid btn--block btn--lg mt-16" type="submit">Yaratish</button>
       </form>

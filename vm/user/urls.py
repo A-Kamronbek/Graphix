@@ -9,6 +9,8 @@ urlpatterns = [
     
     path('account/', views.account, name='account'),
     path('account/orders/', views.account_orders, name='account_orders'),
+    path('account/settings/', views.account_settings, name='account_settings'),
+    path('account/forgot-password/', views.account_forgot_password, name='account_forgot_password'),
 
     path('verify-phone/', views.verify_phone, name='verify_phone'),
     path('verify-phone/resend/', views.resend_otp, name='resend_otp'),

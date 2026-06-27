@@ -27,7 +27,7 @@
       <li><a href="{% url 'about' %}">Haqimizda</a></li>
       <li><a href="{% url 'contact' %}">Bog'lanish</a></li>
       {% if user.is_authenticated %}
-        <li><a href="{% url 'account' %}">Hisobim</a></li>
+        <li><a href="{% url 'account' %}">Kabinet</a></li>
       {% else %}
         <li><a href="{% url 'login' %}">Kirish</a></li>
         <li><a href="{% url 'signup' %}">Ro'yxatdan o'tish</a></li>

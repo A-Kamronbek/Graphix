@@ -4,17 +4,20 @@ Django settings for vm project.
 Modified to wire up project-level templates, static, and auth redirects.
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = 'django-insecure-avepyk)^r29(fz90p-l3(84-10#@++$lq547!x$rtlw8l9c+gn'
+SECRET_KEY = os.environ["SECRET_KEY"]
 
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 AUTH_USER_MODEL = 'user.User'
 
-ALLOWED_HOSTS = ['*']  # tighten in production
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -29,6 +32,8 @@ INSTALLED_APPS = [
     'user',
     'cart',
     'colorfield',
+    'rest_framework',
+    'click_up',
 ]
 
 MIDDLEWARE = [
@@ -67,11 +72,11 @@ WSGI_APPLICATION = 'vm.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydb',
-        'USER': 'myuser',
-        'PASSWORD': 'mypassword',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        "NAME": os.environ["DB_NAME"],
+        "USER": os.environ["DB_USER"],
+        "PASSWORD": os.environ["DB_PASSWORD"],
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
@@ -100,3 +105,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'shop'
 LOGOUT_REDIRECT_URL = 'home'
+
+# ---- production security ----
+# Only enforced when DEBUG is False so local dev over http still works.
+if not DEBUG:
+    # SECURE_SSL_REDIRECT = True
+    # SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# --- click ---
+CLICK_SERVICE_ID = os.environ["CLICK_SERVICE_ID"]
+CLICK_MERCHANT_ID = os.environ["CLICK_MERCHANT_ID"]
+CLICK_SECRET_KEY = os.environ["CLICK_SECRET_KEY"]
+CLICK_ACCOUNT_MODEL = "payment.models.Order"
+CLICK_AMOUNT_FIELD = "total_price"

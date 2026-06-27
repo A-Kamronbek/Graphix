@@ -3,6 +3,13 @@ from django import template
 register = template.Library()
 
 
+class QueryDictFallback(dict):
+    """Minimal stand-in if request is somehow missing from context."""
+    def urlencode(self):
+        from urllib.parse import urlencode
+        return urlencode(self)
+
+
 @register.simple_tag(takes_context=True)
 def query_transform(context, **kwargs):
     """
@@ -35,9 +42,3 @@ def query_transform(context, **kwargs):
     # Nothing left -> point back at the bare shop URL.
     return request.path if request else '?'
 
-
-class QueryDictFallback(dict):
-    """Minimal stand-in if request is somehow missing from context."""
-    def urlencode(self):
-        from urllib.parse import urlencode
-        return urlencode(self)

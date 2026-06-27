@@ -12,7 +12,7 @@
       <aside class="account__nav">
         <a href="{% url 'account' %}" class="is-active">Kabinet</a>
         <a href="{% url 'account_orders' %}">Buyurtmalarim</a>
-        <a href="#">Sozlamalar</a>
+        <a href="{% url 'account_settings' %}">Sozlamalar</a>
         <form method="post" action="{% url 'logout' %}" style="margin-top: 16px;">
           {% csrf_token %}
           <button class="btn btn--ghost btn--block" type="submit">Chiqish</button>
@@ -41,6 +41,7 @@
           </div>
 
           {% if recent_orders %}
+            <div class="tbl-wrap">
             <table class="tbl">
               <thead>
                 <tr><th>Buyurtma</th>
@@ -63,6 +64,7 @@
                 {% endfor %}
               </tbody>
             </table>
+            </div>
           {% else %}
             <div class="panel center-text">
               <p class="muted">Buyurtma yo'q.</p>

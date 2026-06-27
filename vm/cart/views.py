@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.db.models import F, Value
 from django.db.models.functions import Least
@@ -50,9 +51,16 @@ def cart(request):
     })
 
 
-@login_required
 @require_POST
 def cart_add(request, product_id):
+    # Guests: send them to login, then back to the PRODUCT PAGE (a GET URL).
+    # This endpoint is POST-only, so it must never become the post-login `next`:
+    # a GET redirect to it 405s, and a back-button retry then fails CSRF because
+    # login() rotates the token. Returning to the item page avoids all of that.
+    if not request.user.is_authenticated:
+        item_url = reverse('item', kwargs={'pk': product_id})
+        return redirect(f"{reverse('login')}?next={item_url}")
+
     product = get_object_or_404(Product, pk=product_id)
     colour_id = request.POST.get('colour') or None
     size_id = request.POST.get('size') or None

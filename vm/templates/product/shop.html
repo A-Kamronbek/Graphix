@@ -18,38 +18,45 @@
       <aside class="shop__filters">
         <div class="shop__filters-inner">
 
-
-          <br>
-          <a href="{% url 'cart' %}" class="cart__filt">
-            Savat
-            {% if cart_count and cart_count > 0 %}
-              <span class="nav__cart-count">{{ cart_count }}</span>
+          <div class="shop__fbar">
+            <a href="{% url 'cart' %}" class="cart__filt">
+              Savat
+              {% if cart_count and cart_count > 0 %}
+                <span class="nav__cart-count">{{ cart_count }}</span>
+              {% endif %}
+            </a>
+            {% if selected_category or selected_size or q or sort and sort != 'new' %}
+              <a href="{% url 'shop' %}" class="shop__clear">Bekor qilish</a>
             {% endif %}
-          </a>
-          <br>
+          </div>
 
+          <div class="fgroup">
+            <h4 class="fgroup__head" data-fgroup>Bo'limlar</h4>
+            <ul class="fgroup__list">
+              <li><a href="{% url 'shop' %}" class="{% if not selected_category %}is-active{% endif %}">Barchasi</a></li>
+              {% for c in categories %}
+                <li><a href="{% query_transform category=c.id %}" class="{% if selected_category == c.id|stringformat:'s' %}is-active{% endif %}">{{ c.name }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
 
-          <h4>Bo'limlar</h4>
-          <ul>
-            <li><a href="{% url 'shop' %}" class="{% if not selected_category %}is-active{% endif %}">Barchasi</a></li>
-            {% for c in categories %}
-              <li><a href="{% query_transform category=c.id %}" class="{% if selected_category == c.id|stringformat:'s' %}is-active{% endif %}">{{ c.name }}</a></li>
-            {% endfor %}
-          </ul>
+          <div class="fgroup">
+            <h4 class="fgroup__head" data-fgroup>O'lcham</h4>
+            <ul class="fgroup__list">
+              {% for s in sizes %}
+                <li><a href="{% query_transform size=s.id %}" class="{% if selected_size == s.id|stringformat:'s' %}is-active{% endif %}">{{ s.size }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
 
-          <h4>O'lcham</h4>
-          <ul>
-            {% for s in sizes %}
-              <li><a href="{% query_transform size=s.id %}" class="{% if selected_size == s.id|stringformat:'s' %}is-active{% endif %}">{{ s.size }}</a></li>
-            {% endfor %}
-          </ul>
-
-          <h4>Filter</h4>
-          <ul>
-            <li><a href="{% query_transform sort='new' %}" class="{% if sort == 'new' %}is-active{% endif %}">Yangi</a></li>
-            <li><a href="{% query_transform sort='price_asc' %}" class="{% if sort == 'price_asc' %}is-active{% endif %}">Narx ↑</a></li>
-            <li><a href="{% query_transform sort='price_desc' %}" class="{% if sort == 'price_desc' %}is-active{% endif %}">Narx ↓</a></li>
-          </ul>
+          <div class="fgroup">
+            <h4 class="fgroup__head" data-fgroup>Filter</h4>
+            <ul class="fgroup__list">
+              <li><a href="{% query_transform sort='new' %}" class="{% if sort == 'new' %}is-active{% endif %}">Yangi</a></li>
+              <li><a href="{% query_transform sort='price_asc' %}" class="{% if sort == 'price_asc' %}is-active{% endif %}">Narx &#8593;</a></li>
+              <li><a href="{% query_transform sort='price_desc' %}" class="{% if sort == 'price_desc' %}is-active{% endif %}">Narx &#8595;</a></li>
+            </ul>
+          </div>
         </div>
       </aside>
 
@@ -82,7 +89,7 @@
               {% endwith %}
               <div class="tile__meta">
                 <span class="tile__name">{{ p.name }}</span>
-                <span class="tile__price">{% with p.variants.first as v %}{% if v %}{{ v.price|price }} UZS{% endif %}{% endwith %}</span>
+                <span class="tile__price">{% if p.min_price is not None %}{{ p.min_price|price }} UZS{% endif %}</span>
               </div>
             </a>
           {% empty %}

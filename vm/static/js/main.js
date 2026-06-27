@@ -2,12 +2,32 @@
 // keep it tiny, no frameworks
 
 (() => {
-  // ---- mcd mobile drawer ----
+  // ---- mobile drawer ----
   const burger = document.querySelector('[data-burger]');
   const drawer = document.querySelector('[data-drawer]');
+  const navEl  = document.querySelector('.nav');
   if (burger && drawer) {
-    burger.addEventListener('click', () => drawer.classList.toggle('is-open'));
-    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => drawer.classList.remove('is-open')));
+    // Anchor the drawer right below the nav. On the home page a marquee sits
+    // above the nav, so the nav bottom isn't a fixed offset from the top —
+    // measure it at open time instead of trusting a constant.
+    const positionDrawer = () => {
+      const bottom = navEl ? Math.max(0, Math.round(navEl.getBoundingClientRect().bottom)) : 80;
+      drawer.style.top = bottom + 'px';
+    };
+    const openDrawer = () => {
+      positionDrawer();
+      drawer.classList.add('is-open');
+      document.body.classList.add('drawer-open');
+    };
+    const closeDrawer = () => {
+      drawer.classList.remove('is-open');
+      document.body.classList.remove('drawer-open');
+    };
+    burger.addEventListener('click', () => {
+      if (drawer.classList.contains('is-open')) closeDrawer();
+      else openDrawer();
+    });
+    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
   }
 
   // ---- duplicate marquee track for seamless scroll ----
@@ -15,6 +35,15 @@
     if (track.dataset.dup === '1') return;
     track.dataset.dup = '1';
     track.innerHTML = track.innerHTML + track.innerHTML;
+  });
+
+  // ---- shop filter dropdowns (mobile) ----
+  // Tapping a group head (Bo'limlar / O'lcham / Filter) opens its options.
+  // On desktop the lists are always shown via CSS, so toggling does nothing.
+  document.querySelectorAll('[data-fgroup]').forEach(head => {
+    head.addEventListener('click', () => {
+      head.closest('.fgroup')?.classList.toggle('is-open');
+    });
   });
 
   // ---- qty steppers (item + cart) ----
@@ -336,5 +365,36 @@
         }, 1000);
       }
     }
+  })();
+
+  // ---- signup draft persistence -------------------------------------------
+  // Keep the non-sensitive fields (username, name, phone) when the user pops
+  // out to the Terms page and comes back. Passwords are deliberately NOT saved.
+  (function initSignupPersist() {
+    const form = document.getElementById('signupForm');
+    if (!form) return;
+
+    const KEY = 'vm_signup_draft';
+    const FIELDS = ['username', 'first_name', 'phone'];
+
+    // Restore — only into fields the server left empty, so values re-rendered
+    // after a validation error always take precedence over the saved draft.
+    let saved = {};
+    try { saved = JSON.parse(sessionStorage.getItem(KEY)) || {}; } catch (e) {}
+    FIELDS.forEach(name => {
+      const el = form.elements[name];
+      if (el && !el.value && saved[name]) el.value = saved[name];
+    });
+
+    // Save on every edit. (sessionStorage clears itself when the tab closes,
+    // so the draft never outlives the browsing session.)
+    form.addEventListener('input', () => {
+      const data = {};
+      FIELDS.forEach(name => {
+        const el = form.elements[name];
+        if (el) data[name] = el.value;
+      });
+      try { sessionStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+    });
   })();
 })();

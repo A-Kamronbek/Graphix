@@ -11,11 +11,12 @@
       <aside class="account__nav">
         <a href="{% url 'account' %}">Kabinet</a>
         <a href="{% url 'account_orders' %}" class="is-active">Buyurtmalarim</a>
-        <a href="#">Sozlamalar</a>
+        <a href="{% url 'account_settings' %}">Sozlamalar</a>
       </aside>
 
       <div>
         {% if orders %}
+          <div class="tbl-wrap">
           <table class="tbl">
             <thead>
                 <tr><th>Buyurtma</th>
@@ -38,6 +39,7 @@
               {% endfor %}
             </tbody>
           </table>
+          </div>
         {% else %}
           <div class="empty">
             <h1 style="font-size: 50px;">Buyurtma yo'q.</h1><br><br>

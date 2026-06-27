@@ -1,8 +1,16 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib import messages
+from django.urls import reverse
 from product.models import Product, Category
 from .models import Msg
+
+def terms(request):
+    # "Orqaga" returns to whatever page linked here (signup, footer, etc.).
+    # Fall back to home on a direct visit or if the referer is terms itself.
+    ref = request.META.get('HTTP_REFERER') or ''
+    back_url = ref if ref and reverse('terms') not in ref else reverse('home')
+    return render(request, 'terms.html', {'back_url': back_url})
 
 
 def home(request):

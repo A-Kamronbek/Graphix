@@ -14,6 +14,7 @@ def shop(request):
     qs = (
         Product.objects
         .filter(variants__available=True)   # only products with at least one available variant
+        .annotate(min_price=Min('variants__price', filter=Q(variants__available=True)))
         .prefetch_related('images', 'variants')
         .distinct()
     )
@@ -26,13 +27,9 @@ def shop(request):
         qs = qs.filter(variants__size_id=size, variants__available=True).distinct()
 
     if sort == 'price_asc':
-        qs = qs.annotate(
-            min_price=Min('variants__price', filter=Q(variants__available=True))
-        ).order_by('min_price')
+        qs = qs.order_by('min_price')
     elif sort == 'price_desc':
-        qs = qs.annotate(
-            min_price=Min('variants__price', filter=Q(variants__available=True))
-        ).order_by('-min_price')
+        qs = qs.order_by('-min_price')
     else:
         qs = qs.order_by('-created_at')
 
@@ -101,6 +98,7 @@ def item(request, pk):
     related = (
         Product.objects.filter(category=product.category, variants__available=True)
         .exclude(id=product.id)
+        .annotate(min_price=Min('variants__price', filter=Q(variants__available=True)))
         .prefetch_related('images', 'variants')
         .distinct()[:4]
     )

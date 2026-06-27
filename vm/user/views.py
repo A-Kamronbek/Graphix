@@ -2,14 +2,18 @@ import random
 from datetime import timedelta
 
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import LoginForm, SignupForm, OTPForm, ForgotPasswordForm, ResetPasswordForm
+from .forms import (
+    LoginForm, SignupForm, OTPForm, ForgotPasswordForm, ResetPasswordForm,
+    ProfileForm, ChangePasswordForm,
+)
 from .models import User
 from payment.models import Order
 
@@ -96,7 +100,13 @@ def login_view(request):
     if request.method == 'POST' and form.is_valid():
         login(request, form.get_user())
         messages.success(request, "Xush kelibsiz!")
-        return redirect(request.GET.get('next') or 'shop')
+        # Only honor a safe, internal `next`; otherwise fall back to shop.
+        nxt = request.GET.get('next') or request.POST.get('next')
+        if nxt and url_has_allowed_host_and_scheme(
+            nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
+            return redirect(nxt)
+        return redirect('shop')
     return render(request, 'user/login.html', {'form': form})
 
 
@@ -210,6 +220,47 @@ def account(request):
 def account_orders(request):
     orders = Order.objects.filter(user=request.user).select_related('cart').prefetch_related('cart__cart_items')
     return render(request, 'user/account_orders.html', {'orders': orders})
+
+
+@login_required
+def account_settings(request):
+    """Settings: change name + username (one form), change password (requires the
+    current password). A separate 'forgot password' escape exists for users who
+    don't remember their current password."""
+    profile_form = ProfileForm(instance=request.user)
+    password_form = ChangePasswordForm(request.user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'profile':
+            profile_form = ProfileForm(request.POST, instance=request.user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, "Ma'lumotlar yangilandi.")
+                return redirect('account_settings')
+        elif action == 'password':
+            password_form = ChangePasswordForm(request.user, request.POST)
+            if password_form.is_valid():
+                password_form.save()
+                # Keep the user logged in after a password change.
+                update_session_auth_hash(request, password_form.user)
+                messages.success(request, "Parol yangilandi.")
+                return redirect('account_settings')
+
+    return render(request, 'user/account_settings.html', {
+        'profile_form': profile_form,
+        'password_form': password_form,
+    })
+
+
+@login_required
+@require_POST
+def account_forgot_password(request):
+    """For a logged-in user who doesn't remember their current password: log them
+    out and send them into the phone-OTP reset flow (which requires being
+    anonymous)."""
+    logout(request)
+    return redirect('password_reset_request')
 
 
 # ============================================================================
