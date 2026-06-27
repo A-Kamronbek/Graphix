@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Kirish{% endblock %}
+
+{% block content %}
+<section class="auth">
+  <aside class="auth__art" aria-hidden="true">
+    <div class="auth__art-text">Hisobga<br>kirish</div>
+  </aside>
+
+  <div class="auth__form">
+    <div class="auth__form-inner">
+
+
+      {% if form.non_field_errors %}
+        <div class="msg msg--err mb-16">{{ form.non_field_errors|join:" · " }}</div>
+      {% endif %}
+
+      <form method="post" class="stack" data-validate>
+        {% csrf_token %}
+        <div class="field {% if form.username.errors %}field--error{% endif %}">
+          <label for="id_username">Foydalanuvchi nomi</label>
+          <input class="input" type="text" name="username" id="id_username" required autofocus value="{{ form.username.value|default:'' }}">
+          {% if form.username.errors %}<small class="field__err">{{ form.username.errors|join:" · " }}</small>{% endif %}
+        </div>
+        <div class="field {% if form.password.errors %}field--error{% endif %}">
+          <label for="id_password">Parol</label>
+          <input class="input" type="password" name="password" id="id_password" required>
+          {% if form.password.errors %}<small class="field__err">{{ form.password.errors|join:" · " }}</small>{% endif %}
+        </div>
+
+        <div class="row-between mt-8">
+<!--          <label class="checkbox"><input type="checkbox" name="remember"> Meni eslab qol</label>-->
+          <a class="mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;" href="{% url 'password_reset_request' %}">Foydalanuvchi nomi yoki parolni unutdingizmi?</a>
+        </div>
+
+        <button class="btn btn--solid btn--block btn--lg mt-16" type="submit">Kirish</button>
+      </form>
+
+      <p class="muted mt-32 mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">
+        Hisob yo'qmi? <a href="{% url 'signup' %}" style="color: var(--fg); text-decoration: underline; text-underline-offset: 4px;">Yaratish</a>
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

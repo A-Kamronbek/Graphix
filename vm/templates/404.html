@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}404 ERROR{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap center-text">
+    <p class="eyebrow">404</p>
+    <h1 class="h-display h-xl mt-8">Mavjud emas.</h1>
+    <p class="muted mt-16">Bunday sahifa mavjud emas</p>
+    <a class="btn btn--solid btn--lg mt-24" href="{% url 'home' %}">Bosh sahifaga qaytish!</a>
+  </div>
+</section>
+{% endblock %}

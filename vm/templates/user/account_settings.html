@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Sozlamalar{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1 class="h-display h-lg mt-8 mb-32">Sozlamalar</h1>
+
+    <div class="account">
+      <aside class="account__nav">
+        <a href="{% url 'account' %}">Kabinet</a>
+        <a href="{% url 'account_orders' %}">Buyurtmalarim</a>
+        <a href="{% url 'account_settings' %}" class="is-active">Sozlamalar</a>
+        <form method="post" action="{% url 'logout' %}" style="margin-top: 16px;">
+          {% csrf_token %}
+          <button class="btn btn--ghost btn--block" type="submit">Chiqish</button>
+        </form>
+      </aside>
+
+      <div class="stack" style="gap: 32px;">
+
+        {# ---- profile: name + username ---- #}
+        <div class="panel">
+          <h3 class="h-display h-sm mb-24">Profil</h3>
+
+          {% if profile_form.non_field_errors %}
+            <div class="msg msg--err mb-16">{{ profile_form.non_field_errors|join:" · " }}</div>
+          {% endif %}
+
+          <form method="post" class="stack" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="profile">
+
+            <div class="field {% if profile_form.first_name.errors %}field--error{% endif %}">
+              <label for="id_first_name">Ism</label>
+              <input class="input" type="text" name="first_name" id="id_first_name"
+                     value="{{ profile_form.first_name.value|default:'' }}">
+              {% if profile_form.first_name.errors %}<small class="field__err">{{ profile_form.first_name.errors|join:" · " }}</small>{% endif %}
+            </div>
+
+            <div class="field {% if profile_form.username.errors %}field--error{% endif %}">
+              <label for="id_username">Foydalanuvchi nomi</label>
+              <input class="input" type="text" name="username" id="id_username" required
+                     value="{{ profile_form.username.value|default:'' }}">
+              {% if profile_form.username.errors %}<small class="field__err">{{ profile_form.username.errors|join:" · " }}</small>{% endif %}
+            </div>
+
+            <button class="btn btn--solid mt-8" type="submit">Saqlash</button>
+          </form>
+        </div>
+
+        {# ---- password change ---- #}
+        <div class="panel">
+          <h3 class="h-display h-sm mb-24">Parolni o'zgartirish</h3>
+
+          {% if password_form.non_field_errors %}
+            <div class="msg msg--err mb-16">{{ password_form.non_field_errors|join:" · " }}</div>
+          {% endif %}
+
+          <form method="post" class="stack" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="password">
+
+            <div class="field {% if password_form.old_password.errors %}field--error{% endif %}">
+              <label for="id_old_password">Oldingi parol</label>
+              <input class="input" type="password" name="old_password" id="id_old_password" required>
+              {% if password_form.old_password.errors %}<small class="field__err">{{ password_form.old_password.errors|join:" · " }}</small>{% endif %}
+            </div>
+
+            <div class="field {% if password_form.new_password1.errors %}field--error{% endif %}">
+              <label for="id_new_password1">Yangi parol</label>
+              <input class="input" type="password" name="new_password1" id="id_new_password1" required>
+              {% if password_form.new_password1.errors %}<small class="field__err">{{ password_form.new_password1.errors|join:" · " }}</small>{% endif %}
+            </div>
+
+            <div class="field {% if password_form.new_password2.errors %}field--error{% endif %}">
+              <label for="id_new_password2">Yangi parolni qayta kiriting</label>
+              <input class="input" type="password" name="new_password2" id="id_new_password2" required>
+              {% if password_form.new_password2.errors %}<small class="field__err">{{ password_form.new_password2.errors|join:" · " }}</small>{% endif %}
+            </div>
+
+            <button class="btn btn--solid mt-8" type="submit">Parolni yangilash</button>
+          </form>
+
+          <div class="otp__restart-row muted mono" style="margin-top: 24px;">
+            <span>Parolni unutdingizmi?</span>
+            <form method="post" action="{% url 'account_forgot_password' %}" class="otp__inline-form">
+              {% csrf_token %}
+              <button type="submit" class="otp__linkbtn">Parolni tiklash</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
