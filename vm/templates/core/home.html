@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Bosh sahifa{% endblock %}
+
+{% block marq %}
+<!--{% include "partials/_marquee.html" with reverse=False %}-->
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__stars" aria-hidden="true"></div>
+  <div class="wrap">
+    <h1 class="hero__title">Valley<br>Made</h1>
+    <p class="hero__sub">Futbolkalar · Arzon · Dastavka</p>
+    <div class="row" style="justify-content:center; margin-top: 32px; gap: 12px;">
+      <a class="btn btn--solid btn--lg" href="{% url 'shop' %}">Do'kon</a>
+      <a class="btn btn--lg" href="{% url 'account' %}">Hisobim</a>
+    </div>
+  </div>
+</section>
+
+{% include "partials/_marquee.html" with reverse=False %}
+{% endblock %}

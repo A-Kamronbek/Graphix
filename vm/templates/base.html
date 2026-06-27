@@ -1,0 +1,59 @@
+{% load static %}
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>{% block title %}Bosh sahifa{% endblock %} — ValleyMade</title>
+  <meta name="description" content="{% block meta_description %}ValleyMade — mahalliy yetkazib beruvchi. Uzoq muddatga chidaydigan kiyimlar.{% endblock %}">
+
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% block marq %}{% endblock %}
+
+  {% include "partials/_nav.html" %}
+
+  {# mobile drawer #}
+  <nav class="drawer" data-drawer aria-label="mobile">
+    <ul>
+      <li><a href="{% url 'home' %}">Bosh sahifa</a></li>
+      <li><a href="{% url 'shop' %}">Do'kon</a></li>
+      <li><a href="{% url 'about' %}">Haqimizda</a></li>
+      <li><a href="{% url 'contact' %}">Bog'lanish</a></li>
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'account' %}">Kabinet</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Kirish</a></li>
+        <li><a href="{% url 'signup' %}">Ro'yxatdan o'tish</a></li>
+      {% endif %}
+      <li><a href="{% url 'cart' %}">Savat</a></li>
+    </ul>
+  </nav>
+
+  {# global messages (django messages framework) #}
+  {% if messages %}
+    <div class="wrap mt-16">
+      <div class="msgs">
+        {% for m in messages %}
+          <div class="msg {% if 'error' in m.tags %}msg--err{% elif 'success' in m.tags %}msg--ok{% else %}msg--warn{% endif %}">{{ m }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "partials/_footer.html" %}
+
+  <script src="{% static 'js/main.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

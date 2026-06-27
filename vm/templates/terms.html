@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Shartlar{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <article class="legal">
+
+      <p class="eyebrow">Huquqiy</p>
+      <h1 class="h-display h-lg legal__title">Foydalanish<br>shartlari</h1>
+      <p class="legal__meta">Oxirgi yangilanish: tez orada</p>
+
+      <div class="legal__body">
+        {# TODO: replace the lorem ipsum below with the real terms. #}
+
+        <h2>Lorem ipsum dolor</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus ad aspernatur debitis, et facilis fuga itaque labore nam praesentium provident quas, repudiandae sapiente vitae. Enim expedita quam qui ut voluptatem!</p>
+        <p>Accusantium, aliquam dicta dolorum eligendi explicabo molestiae necessitatibus optio. A aspernatur consectetur ea illo ipsam magni officia optio perferendis placeat, repellat velit voluptates.</p>
+
+        <h2>Consectetur adipisicing</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus aliquam commodi dolor eum fuga ipsa, laboriosam minima minus modi molestias nemo officiis porro qui recusandae, rerum tempore tenetur totam vitae.</p>
+        <p>Quas, repudiandae sapiente vitae enim expedita quam qui ut voluptatem. Dicta dolorum eligendi explicabo molestiae necessitatibus optio aspernatur consectetur.</p>
+
+        <h2>Sit amet elit</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium, aliquam dicta dolorum eligendi explicabo molestiae necessitatibus optio. A aspernatur consectetur ea illo ipsam magni officia optio perferendis placeat, repellat velit.</p>
+        <p>Facilis fuga itaque labore nam praesentium provident quas, repudiandae sapiente vitae enim expedita quam qui ut voluptatem laboriosam minima minus modi molestias.</p>
+      </div>
+
+      <div class="legal__back">
+        <a href="{{ back_url }}" class="btn btn--ghost">← Orqaga</a>
+      </div>
+
+    </article>
+  </div>
+</section>
+{% endblock %}

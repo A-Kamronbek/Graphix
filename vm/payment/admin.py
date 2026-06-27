@@ -11,7 +11,7 @@ admin.site.register(Order)
 #     read-only audit view — don't hand-edit transactions."""
 #     list_display = ('id', 'account_id', 'transaction_id', 'amount', 'state', 'created_at')
 #     list_filter = ('state', 'created_at')
-#     search_fields = ('transaction_id',)
+#     search_fields = ('account_id', 'transaction_id')
 #     ordering = ('-created_at',)
 #     readonly_fields = ('account_id', 'transaction_id', 'amount', 'state', 'created_at', 'updated_at')
 #
@@ -20,3 +20,4 @@ admin.site.register(Order)
 #
 #     def has_change_permission(self, request, obj=None):
 #         return False
+

@@ -3,4 +3,5 @@
 .venv/
 
 media/
+__pycache__
 __pycache__/
