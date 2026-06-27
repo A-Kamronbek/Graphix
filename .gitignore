@@ -1,6 +1,0 @@
-# Byte-compiled / optimized / DLL files
-.env
-.venv/
-
-media/
-migrations/
