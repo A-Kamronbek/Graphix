@@ -4,3 +4,4 @@
 
 media/
 migrations/
+__pycache__/
