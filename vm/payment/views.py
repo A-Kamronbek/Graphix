@@ -183,7 +183,7 @@ class ClickWebhookAPIView(ClickWebhook):
     def successfully_payment(self, params):
         """Click confirmed the payment -> mark the order PAID."""
         transaction = ClickTransaction.objects.get(
-            transaction_id=params.Click_trans_id
+            transaction_id=params.click_trans_id
         )
         order = Order.objects.get(id=transaction.account_id)
         if order.status != Order.Status.PAID:
@@ -194,7 +194,7 @@ class ClickWebhookAPIView(ClickWebhook):
         """Click reported a cancelled/failed payment -> mark the order CANCELLED
         (but never override an order that already completed)."""
         transaction = ClickTransaction.objects.get(
-            transaction_id=params.Click_trans_id
+            transaction_id=params.click_trans_id
         )
         if transaction.state == ClickTransaction.CANCELLED:
             order = Order.objects.get(id=transaction.account_id)
