@@ -4,10 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.views.decorators.http import require_POST
-from django.db.models import F, Value
-from django.db.models.functions import Least
-from .models import Cart, CartItem
-from product.models import Product, Variant
+
+from .models import CartItem
+from product.models import Product
+from . import services
 
 
 def _parse_qty(raw, default=1, lo=1, hi=99):
@@ -18,12 +18,6 @@ def _parse_qty(raw, default=1, lo=1, hi=99):
     except (TypeError, ValueError):
         n = default
     return max(lo, min(hi, n))
-
-
-def _get_active_cart(user):
-    """Return the user's open cart, creating one if needed."""
-    cart, _ = Cart.objects.get_or_create(user=user, status=True)
-    return cart
 
 
 def _annotate_lines(items):
@@ -37,7 +31,7 @@ def _annotate_lines(items):
 
 @login_required
 def cart(request):
-    cart = _get_active_cart(request.user)
+    cart = services.get_active_cart(request.user)
     items = _annotate_lines(
         cart.cart_items.select_related('variant__product', 'variant__size', 'variant__colour')
         .prefetch_related('variant__product__images')
@@ -66,41 +60,14 @@ def cart_add(request, product_id):
     size_id = request.POST.get('size') or None
     qty = _parse_qty(request.POST.get('quantity', 1))
 
-    # Resolve variant — must pin down to EXACTLY ONE variant.
-    # Never fall back to "first variant": a POST that omits colour/size (or
-    # sends a combination that doesn't exist) must fail loudly rather than
-    # silently adding a variant the user never selected.
-    variant_qs = product.variants.all()
-    if colour_id:
-        variant_qs = variant_qs.filter(colour_id=colour_id)
-    if size_id:
-        variant_qs = variant_qs.filter(size_id=size_id)
-
-    matches = list(variant_qs[:2])
-    if len(matches) != 1:
-        # 0 matches  -> invalid / nonexistent combination
-        # 2+ matches -> ambiguous: required colour/size not supplied
-        messages.error(request, "Tovar noto'g'ri tanlangan")
-        return redirect('item', pk=product_id)
-    variant = matches[0]
-
-    if not variant.available:
-        messages.error(request, "Ushbu tovar sotuvda yo'q")
+    try:
+        variant = services.resolve_variant(product, colour_id, size_id)
+    except services.CartError as e:
+        messages.error(request, str(e))
         return redirect('item', pk=product_id)
 
-    cart = _get_active_cart(request.user)
-    item, created = CartItem.objects.get_or_create(
-        cart=cart, variant=variant,
-        defaults={'quantity': qty, 'price_stat': variant.price},
-    )
-    if not created:
-        # Atomic, lost-update-safe increment performed entirely in the DB,
-        # capped at 99 via SQL LEAST. Two concurrent adds can't clobber each
-        # other the way a Python read-modify-write would.
-        # Price snapshot (price_stat) intentionally stays as the original.
-        CartItem.objects.filter(pk=item.pk).update(
-            quantity=Least(F('quantity') + qty, Value(99))
-        )
+    cart = services.get_active_cart(request.user)
+    services.add_variant(cart, variant, qty)
 
     messages.success(request, f"{product.name} savatga qo\'shildi.")
     return redirect('shop')
@@ -111,11 +78,7 @@ def cart_add(request, product_id):
 def cart_update(request, item_id):
     item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
     qty = _parse_qty(request.POST.get('quantity', 1), default=1, lo=0, hi=99)
-    if qty <= 0:
-        item.delete()
-    else:
-        item.quantity = qty
-        item.save(update_fields=['quantity'])
+    services.set_item_quantity(item, qty)
     return redirect('cart')
 
 

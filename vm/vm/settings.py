@@ -82,14 +82,13 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     # {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'user.forms.CustomMinimumLengthValidator'},
+    {'NAME': 'user.validators.CustomMinimumLengthValidator'},
     # {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     # {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 TIME_ZONE = 'Asia/Tashkent'
 LANGUAGE_CODE = 'uz'
 USE_I18N = True
-USE_L10N = True
 
 # ---- static & media ----
 STATIC_URL = 'static/'
@@ -129,3 +128,58 @@ CLICK_AMOUNT_FIELD = "total_price"
 ESKIZ_EMAIL = os.environ["ESKIZ_EMAIL"]
 ESKIZ_PASSWORD = os.environ["ESKIZ_PASSWORD"]
 ESKIZ_FROM = os.environ.get("ESKIZ_FROM", "4546")
+
+# ---- cache ----
+# Dev (default): in-process LocMemCache — same behavior as before. Production:
+# set REDIS_URL so the rate limiter and the Eskiz SMS-token cache are SHARED
+# across gunicorn workers (LocMemCache is per-process). Needs `pip install redis`.
+REDIS_URL = os.environ.get("REDIS_URL")
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+
+# ---- logging ----
+# Console everywhere; in production also a rotating file so SMS/payment errors
+# are retained. 'django.server' is left untouched so runserver request logs are
+# unchanged.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {'format': '{asctime} {levelname} {name}: {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'},
+    },
+    'loggers': {
+        'core':    {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'payment': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'user':    {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'cart':    {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'product': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'django':  {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}
+
+if not DEBUG:
+    LOG_DIR = BASE_DIR / 'logs'
+    LOG_DIR.mkdir(exist_ok=True)
+    LOGGING['handlers']['file'] = {
+        'class': 'logging.handlers.RotatingFileHandler',
+        'filename': str(LOG_DIR / 'app.log'),
+        'maxBytes': 5 * 1024 * 1024,
+        'backupCount': 5,
+        'formatter': 'verbose',
+    }
+    for _name in ('core', 'payment', 'user', 'cart', 'product', 'django'):
+        LOGGING['loggers'][_name]['handlers'] = ['console', 'file']

@@ -1,12 +1,8 @@
-import random
-from datetime import timedelta
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
@@ -15,63 +11,10 @@ from .forms import (
     ProfileForm, ChangePasswordForm,
 )
 from .models import User
+from . import otp
+from . import password_reset as pwreset
 from payment.models import Order
-from core.sms import send_sms
 from core.ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
-
-
-OTP_TTL_SECONDS = 5 * 60          # 5 minutes — absolute, not reset by resend
-OTP_RESEND_COOLDOWN = 60          # 60 seconds between resends
-
-
-def _generate_otp(request, reset_expiry):
-    """
-    Create a fresh 6-digit code.
-    - reset_expiry=True  -> start a brand new 5-minute window (used on signup)
-    - reset_expiry=False -> keep the existing absolute expiry (used on resend)
-    """
-    code = f"{random.randint(0, 999999):06d}"
-    if reset_expiry or 'otp_expires_at' not in request.session:
-        expires_at = timezone.now() + timedelta(seconds=OTP_TTL_SECONDS)
-        request.session['otp_expires_at'] = expires_at.isoformat()
-    request.session['otp_code'] = code
-    request.session['otp_last_sent_at'] = timezone.now().isoformat()
-    send_sms(request.user.phone,
-             f"Vallaymade saytida ro'yhatdan o'tish uchun kodingiz: {code}")
-    return code
-
-
-def _otp_expired(request):
-    raw = request.session.get('otp_expires_at')
-    if not raw:
-        return True
-    try:
-        return timezone.now() > timezone.datetime.fromisoformat(raw)
-    except ValueError:
-        return True
-
-
-def _ttl_remaining(request):
-    raw = request.session.get('otp_expires_at')
-    if not raw:
-        return 0
-    try:
-        exp = timezone.datetime.fromisoformat(raw)
-        return max(0, int((exp - timezone.now()).total_seconds()))
-    except ValueError:
-        return 0
-
-
-def _resend_cooldown(request):
-    raw = request.session.get('otp_last_sent_at')
-    if not raw:
-        return 0
-    try:
-        last = timezone.datetime.fromisoformat(raw)
-        elapsed = (timezone.now() - last).total_seconds()
-        return max(0, int(OTP_RESEND_COOLDOWN - elapsed))
-    except ValueError:
-        return 0
 
 
 def _cancel_and_delete(request, reason=None):
@@ -137,7 +80,7 @@ def signup_view(request):
         elif form.is_valid():
             user = form.save()
             login(request, user)
-            _generate_otp(request, reset_expiry=True)
+            otp.generate(request, reset_expiry=True)
             return redirect('verify_phone')
 
     # Explanation banner after an OTP flow ended (kept in the URL, not the
@@ -158,12 +101,12 @@ def verify_phone(request):
 
     # Expired window -> the account is a throwaway from an abandoned signup.
     # Delete it and bounce to signup (covers both GET landings and code submits).
-    if 'otp_expires_at' in request.session and _otp_expired(request):
+    if 'otp_expires_at' in request.session and otp.is_expired(request):
         return _cancel_and_delete(request, reason='expired')
 
     # Seed a code if there isn't one yet (e.g. existing unverified user logging in).
     if 'otp_code' not in request.session:
-        _generate_otp(request, reset_expiry=True)
+        otp.generate(request, reset_expiry=True)
 
     form = OTPForm(request.POST or None)
     if request.method == 'POST':
@@ -175,16 +118,15 @@ def verify_phone(request):
             else:
                 request.user.phone_verified = True
                 request.user.save(update_fields=['phone_verified'])
-                for k in ('otp_code', 'otp_expires_at', 'otp_last_sent_at'):
-                    request.session.pop(k, None)
+                otp.clear(request)
                 messages.success(request, "Telefon raqam tasdiqlandi.")
                 return redirect('account')
 
     return render(request, 'user/verify_phone.html', {
         'form': form,
         'phone': request.user.phone,
-        'resend_in': _resend_cooldown(request),
-        'ttl': _ttl_remaining(request),
+        'resend_in': otp.resend_cooldown(request),
+        'ttl': otp.ttl_remaining(request),
         'rate_limited': is_currently_limited(request, 'otp_verify', 12, ident=f"u{request.user.pk}"),
         'resend_limited': is_currently_limited(request, 'otp_resend', 8, ident=f"u{request.user.pk}"),
     })
@@ -201,14 +143,14 @@ def resend_otp(request):
         return redirect('verify_phone')
 
     # Window expired -> throwaway account from an abandoned signup; delete it.
-    if _otp_expired(request):
+    if otp.is_expired(request):
         return _cancel_and_delete(request, reason='expired')
 
-    if _resend_cooldown(request) > 0:
+    if otp.resend_cooldown(request) > 0:
         messages.error(request, "Iltimos biroz kuting.")
         return redirect('verify_phone')
 
-    _generate_otp(request, reset_expiry=False)
+    otp.generate(request, reset_expiry=False)
     messages.success(request, "Yangi kod yuborildi.")
     return redirect('verify_phone')
 
@@ -231,7 +173,7 @@ def expire_verification(request):
     """
     if request.user.phone_verified:
         return redirect('account')
-    if not _otp_expired(request):
+    if not otp.is_expired(request):
         # Server says the code is still alive — ignore and stay on the page.
         return redirect('verify_phone')
     return _cancel_and_delete(request, reason='expired')
@@ -294,67 +236,8 @@ def account_forgot_password(request):
 
 # ============================================================================
 # Password reset (phone OTP)  —  request phone -> verify code -> set new password
-# Uses its own pwreset_* session keys so it never collides with the signup OTP.
+# Session state + OTP rules live in user/password_reset.py (imported as pwreset).
 # ============================================================================
-
-PWRESET_TTL_SECONDS = 5 * 60
-PWRESET_RESEND_COOLDOWN = 60
-PWRESET_MAX_ATTEMPTS = 5          # wrong-code tries before the code is invalidated
-
-PWRESET_REASONS = {
-    'expired': "Kod muddati tugadi. Iltimos, qaytadan urinib ko'ring.",
-}
-
-
-def _pwreset_expired(request):
-    raw = request.session.get('pwreset_expires_at')
-    if not raw:
-        return True
-    try:
-        return timezone.now() > timezone.datetime.fromisoformat(raw)
-    except ValueError:
-        return True
-
-
-def _pwreset_ttl(request):
-    raw = request.session.get('pwreset_expires_at')
-    if not raw:
-        return 0
-    try:
-        exp = timezone.datetime.fromisoformat(raw)
-        return max(0, int((exp - timezone.now()).total_seconds()))
-    except ValueError:
-        return 0
-
-
-def _pwreset_cooldown(request):
-    raw = request.session.get('pwreset_last_sent_at')
-    if not raw:
-        return 0
-    try:
-        last = timezone.datetime.fromisoformat(raw)
-        return max(0, int(PWRESET_RESEND_COOLDOWN - (timezone.now() - last).total_seconds()))
-    except ValueError:
-        return 0
-
-
-def _pwreset_clear(request):
-    for k in ('pwreset_code', 'pwreset_expires_at', 'pwreset_last_sent_at',
-              'pwreset_user_id', 'pwreset_phone', 'pwreset_verified', 'pwreset_attempts'):
-        request.session.pop(k, None)
-
-
-def _pwreset_issue_code(request, user):
-    """Generate + 'send' a fresh code for an existing user, refreshing last_sent."""
-    code = f"{random.randint(0, 999999):06d}"
-    request.session['pwreset_code'] = code
-    request.session['pwreset_user_id'] = user.id
-    request.session['pwreset_last_sent_at'] = timezone.now().isoformat()
-    request.session['pwreset_attempts'] = 0   # fresh code -> reset the attempt counter
-    send_sms(user.phone,
-             f"Vallaymade saytida parolni tiklash uchun kodingiz: {code}")
-    return code
-
 
 def password_reset_request(request):
     if request.user.is_authenticated:
@@ -374,22 +257,19 @@ def password_reset_request(request):
 
             # Always clear any stale reset state first, so a previous (possibly
             # verified) attempt can't carry over and let someone skip the OTP step.
-            _pwreset_clear(request)
+            pwreset.clear(request)
 
             if not user:
                 # Per product decision, tell the user the number isn't registered.
                 # (Trade-off: this allows phone-number enumeration.)
                 form.add_error('phone', "Ushbu raqam ro'yxatdan o'tmagan.")
             else:
-                request.session['pwreset_expires_at'] = (
-                    timezone.now() + timedelta(seconds=PWRESET_TTL_SECONDS)
-                ).isoformat()
-                request.session['pwreset_phone'] = phone
-                _pwreset_issue_code(request, user)  # sets code, user_id, last_sent_at
+                pwreset.start_window(request, phone)
+                pwreset.issue_code(request, user)  # sets code, user_id, last_sent_at
                 messages.info(request, "Tasdiqlash kodi yuborildi.")
                 return redirect('password_reset_verify')
 
-    notice = PWRESET_REASONS.get(request.GET.get('reason'))
+    notice = pwreset.REASONS.get(request.GET.get('reason'))
     return render(request, 'user/password_reset_request.html', {'form': form, 'notice': notice, 'rate_limited': limited})
 
 
@@ -398,8 +278,8 @@ def password_reset_verify(request):
         return redirect('account')
     if 'pwreset_expires_at' not in request.session:
         return redirect('password_reset_request')
-    if _pwreset_expired(request):
-        _pwreset_clear(request)
+    if pwreset.is_expired(request):
+        pwreset.clear(request)
         return redirect(f"{reverse('password_reset_request')}?reason=expired")
 
     form = OTPForm(request.POST or None)
@@ -410,22 +290,15 @@ def password_reset_verify(request):
         elif form.is_valid():
             stored = request.session.get('pwreset_code')
             if stored and form.cleaned_data['code'] == stored:
-                # Code accepted. Grant a fresh window for the set-password step and
-                # retire the code so it can't be reused.
-                request.session['pwreset_verified'] = True
-                request.session['pwreset_expires_at'] = (
-                    timezone.now() + timedelta(seconds=PWRESET_TTL_SECONDS)
-                ).isoformat()
-                request.session.pop('pwreset_code', None)
-                request.session.pop('pwreset_attempts', None)
+                # Code accepted -> grant the set-password step and retire the code.
+                pwreset.mark_verified(request)
                 return redirect('password_reset_set')
 
             # Wrong code -> count the attempt; after too many, invalidate the code
             # so it can't be brute-forced within the window.
-            attempts = request.session.get('pwreset_attempts', 0) + 1
-            request.session['pwreset_attempts'] = attempts
-            if attempts >= PWRESET_MAX_ATTEMPTS:
-                _pwreset_clear(request)
+            attempts = pwreset.register_failed_attempt(request)
+            if attempts >= pwreset.MAX_ATTEMPTS:
+                pwreset.clear(request)
                 messages.error(request, "Juda ko'p urinish. Iltimos, qaytadan urinib ko'ring.")
                 return redirect('password_reset_request')
             form.add_error('code', "Kod noto'g'ri.")
@@ -434,8 +307,8 @@ def password_reset_verify(request):
     return render(request, 'user/password_reset_verify.html', {
         'form': form,
         'phone': request.session.get('pwreset_phone', ''),
-        'resend_in': _pwreset_cooldown(request),
-        'ttl': _pwreset_ttl(request),
+        'resend_in': pwreset.resend_cooldown(request),
+        'ttl': pwreset.ttl_remaining(request),
         'rate_limited': is_currently_limited(request, 'pwreset_verify', 20, ident=uid_peek),
         'resend_limited': is_currently_limited(request, 'pwreset_resend', 5, ident=uid_peek),
     })
@@ -445,10 +318,10 @@ def password_reset_verify(request):
 def password_reset_resend(request):
     if 'pwreset_expires_at' not in request.session:
         return redirect('password_reset_request')
-    if _pwreset_expired(request):
-        _pwreset_clear(request)
+    if pwreset.is_expired(request):
+        pwreset.clear(request)
         return redirect(f"{reverse('password_reset_request')}?reason=expired")
-    if _pwreset_cooldown(request) > 0:
+    if pwreset.resend_cooldown(request) > 0:
         messages.error(request, "Iltimos biroz kuting.")
         return redirect('password_reset_verify')
 
@@ -459,7 +332,7 @@ def password_reset_resend(request):
     if uid:
         user = User.objects.filter(pk=uid).first()
         if user:
-            _pwreset_issue_code(request, user)
+            pwreset.issue_code(request, user)
 
     messages.info(request, "Yangi kod yuborildi.")
     return redirect('password_reset_verify')
@@ -469,9 +342,9 @@ def password_reset_resend(request):
 def password_reset_expire(request):
     # Mirror of expire_verification: only act if the window has genuinely passed,
     # so a forged/early POST can't wipe an in-progress reset.
-    if 'pwreset_expires_at' in request.session and not _pwreset_expired(request):
+    if 'pwreset_expires_at' in request.session and not pwreset.is_expired(request):
         return redirect('password_reset_verify')
-    _pwreset_clear(request)
+    pwreset.clear(request)
     return redirect(f"{reverse('password_reset_request')}?reason=expired")
 
 
@@ -481,19 +354,19 @@ def password_reset_set(request):
     # Must have passed the OTP step.
     if not request.session.get('pwreset_verified') or 'pwreset_user_id' not in request.session:
         return redirect('password_reset_request')
-    if _pwreset_expired(request):
-        _pwreset_clear(request)
+    if pwreset.is_expired(request):
+        pwreset.clear(request)
         return redirect(f"{reverse('password_reset_request')}?reason=expired")
 
     user = User.objects.filter(pk=request.session['pwreset_user_id']).first()
     if not user:
-        _pwreset_clear(request)
+        pwreset.clear(request)
         return redirect('password_reset_request')
 
     form = ResetPasswordForm(user, request.POST or None)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        _pwreset_clear(request)
+        pwreset.clear(request)
         messages.success(request, "Parol yangilandi. Endi kirishingiz mumkin.")
         return redirect('login')
 

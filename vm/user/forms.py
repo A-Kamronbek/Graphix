@@ -3,7 +3,6 @@ from .models import User, phone_regex, normalize_uz_phone
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm, PasswordChangeForm
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-from django.contrib.auth.password_validation import MinimumLengthValidator
 
 
 USERNAME_REGEX = RegexValidator(regex=r'^[A-Za-z0-9_]+$', message="Harflar, raqamlar va _  mumkin")
@@ -120,16 +119,3 @@ class SignupForm(UserCreationForm):
         if User.objects.filter(phone=value).exists():
             raise ValidationError("Bu raqam ro'yxatdan o'tgan.")
         return value
-
-
-class CustomMinimumLengthValidator(MinimumLengthValidator):
-
-    def validate(self, password, user=None):
-        if len(password) < self.min_length:
-            raise ValidationError(
-                "Parol 8 belgidan kam bo'lmasligi kerak.",
-                code='password_too_short',
-            )
-
-    def get_help_text(self):
-        return "Parol 8 belgidan kam bo'lmasligi kerak."
