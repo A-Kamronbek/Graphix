@@ -1,7 +1,1 @@
-Django==6.0.4
-psycopg[binary]
-Pillow
-python-dotenv
-django-colorfield
-djangorestframework
-click-up
+

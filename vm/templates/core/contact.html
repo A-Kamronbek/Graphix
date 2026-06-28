@@ -30,7 +30,7 @@
       <div>
         <form method="post" class="stack" data-validate style="gap: 16px;">
           {% csrf_token %}
-          {% if form_errors %}<div class="Msg Msg--err">Xatoliklarni to'g'rilang!</div>{% endif %}
+          {% if form_errors %}<div class="msg msg--err">Xatoliklarni to'g'rilang!</div>{% endif %}
 
 
           <div class="field">
@@ -42,7 +42,8 @@
             <textarea class="textarea" id="id_message" name="message" required>{{ form_data.message|default:'' }}</textarea>
           </div>
 
-          <button class="btn btn--solid btn--block btn--lg" type="submit">Yuborish</button>
+          <button class="btn btn--solid btn--block btn--lg" type="submit"{% if rate_limited %} disabled{% endif %}>Yuborish</button>
+          {% if rate_limited %}<p class="rl-note">Juda ko'p urinish. Biroz kuting va qayta urining.</p>{% endif %}
         </form>
       </div>
     </div>

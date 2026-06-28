@@ -53,7 +53,8 @@
 
         <label class="checkbox mt-8"><input type="checkbox" required> Barcha <a href="{% url 'terms' %}" class="terms">shartlar</a>ga rozilik beraman.</label>
 
-        <button class="btn btn--solid btn--block btn--lg mt-16" type="submit">Yaratish</button>
+        <button class="btn btn--solid btn--block btn--lg mt-16" type="submit"{% if rate_limited %} disabled{% endif %}>Yaratish</button>
+        {% if rate_limited %}<p class="rl-note">Juda ko'p urinish. Biroz kuting va qayta urining.</p>{% endif %}
       </form>
 
       <p class="muted mt-32 mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">

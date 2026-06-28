@@ -110,6 +110,17 @@ class SignupForm(UserCreationForm):
         self.fields['username'].help_text = "Maximum 50ta belgi. Harflar, raqamlar va _"
         self.fields['username'].validators.append(USERNAME_REGEX)
 
+    def clean_phone(self):
+        # Normalize FIRST, then check format + uniqueness, so the check compares
+        # against the same canonical form the model stores (model.save() also
+        # normalizes). Without this, a number typed with different spacing slips
+        # past validation and blows up as an IntegrityError on save.
+        value = normalize_uz_phone(self.cleaned_data['phone'])
+        phone_regex(value)  # +998 format check
+        if User.objects.filter(phone=value).exists():
+            raise ValidationError("Bu raqam ro'yxatdan o'tgan.")
+        return value
+
 
 class CustomMinimumLengthValidator(MinimumLengthValidator):
 

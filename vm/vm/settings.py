@@ -123,3 +123,9 @@ CLICK_MERCHANT_ID = os.environ["CLICK_MERCHANT_ID"]
 CLICK_SECRET_KEY = os.environ["CLICK_SECRET_KEY"]
 CLICK_ACCOUNT_MODEL = "payment.models.Order"
 CLICK_AMOUNT_FIELD = "total_price"
+
+# --- SMS ---
+# --- eskiz sms ---
+ESKIZ_EMAIL = os.environ["ESKIZ_EMAIL"]
+ESKIZ_PASSWORD = os.environ["ESKIZ_PASSWORD"]
+ESKIZ_FROM = os.environ.get("ESKIZ_FROM", "4546")
