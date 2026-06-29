@@ -3,7 +3,6 @@ from .models import User, phone_regex, normalize_uz_phone
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm, PasswordChangeForm
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-from django.contrib.auth.password_validation import MinimumLengthValidator
 
 
 USERNAME_REGEX = RegexValidator(regex=r'^[A-Za-z0-9_]+$', message="Harflar, raqamlar va _  mumkin")
@@ -110,15 +109,13 @@ class SignupForm(UserCreationForm):
         self.fields['username'].help_text = "Maximum 50ta belgi. Harflar, raqamlar va _"
         self.fields['username'].validators.append(USERNAME_REGEX)
 
-
-class CustomMinimumLengthValidator(MinimumLengthValidator):
-
-    def validate(self, password, user=None):
-        if len(password) < self.min_length:
-            raise ValidationError(
-                "Parol 8 belgidan kam bo'lmasligi kerak.",
-                code='password_too_short',
-            )
-
-    def get_help_text(self):
-        return "Parol 8 belgidan kam bo'lmasligi kerak."
+    def clean_phone(self):
+        # Normalize FIRST, then check format + uniqueness, so the check compares
+        # against the same canonical form the model stores (model.save() also
+        # normalizes). Without this, a number typed with different spacing slips
+        # past validation and blows up as an IntegrityError on save.
+        value = normalize_uz_phone(self.cleaned_data['phone'])
+        phone_regex(value)  # +998 format check
+        if User.objects.filter(phone=value).exists():
+            raise ValidationError("Bu raqam ro'yxatdan o'tgan.")
+        return value

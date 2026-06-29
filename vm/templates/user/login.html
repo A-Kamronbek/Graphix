@@ -33,7 +33,8 @@
           <a class="mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;" href="{% url 'password_reset_request' %}">Foydalanuvchi nomi yoki parolni unutdingizmi?</a>
         </div>
 
-        <button class="btn btn--solid btn--block btn--lg mt-16" type="submit">Kirish</button>
+        <button class="btn btn--solid btn--block btn--lg mt-16" type="submit"{% if rate_limited %} disabled{% endif %}>Kirish</button>
+        {% if rate_limited %}<p class="rl-note">Juda ko'p urinish. Biroz kuting va qayta urining.</p>{% endif %}
       </form>
 
       <p class="muted mt-32 mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">

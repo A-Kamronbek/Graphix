@@ -871,3 +871,19 @@ body.drawer-open { overflow: hidden; }
 .terms {
 color: var(--ok);
 }
+
+/* ---------- rate-limit disabled state ---------- */
+.btn:disabled,
+.btn[disabled] {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.rl-note {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--warn, #e0a800);
+  text-align: center;
+}
