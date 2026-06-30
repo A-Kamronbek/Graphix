@@ -16,6 +16,7 @@ from core.sms import send_sms
 
 TTL_SECONDS = 5 * 60        # 5 minutes — absolute, not reset by resend
 RESEND_COOLDOWN = 60        # 60 seconds between resends
+MAX_ATTEMPTS = 7            # wrong-code tries before the throwaway account is dropped
 
 
 def generate(request, reset_expiry):
@@ -30,6 +31,7 @@ def generate(request, reset_expiry):
         request.session['otp_expires_at'] = expires_at.isoformat()
     request.session['otp_code'] = code
     request.session['otp_last_sent_at'] = timezone.now().isoformat()
+    request.session['otp_attempts'] = 0   # fresh code -> reset the wrong-try counter
     send_sms(request.user.phone,
              f"Vallaymade saytida ro'yhatdan o'tish uchun kodingiz: {code}")
     return code
@@ -70,5 +72,12 @@ def resend_cooldown(request):
 
 def clear(request):
     """Drop the signup OTP keys from the session (after a successful verify)."""
-    for k in ('otp_code', 'otp_expires_at', 'otp_last_sent_at'):
+    for k in ('otp_code', 'otp_expires_at', 'otp_last_sent_at', 'otp_attempts'):
         request.session.pop(k, None)
+
+
+def register_failed_attempt(request):
+    """Count a wrong-code try; returns the new attempt total."""
+    attempts = request.session.get('otp_attempts', 0) + 1
+    request.session['otp_attempts'] = attempts
+    return attempts

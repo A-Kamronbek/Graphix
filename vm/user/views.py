@@ -114,6 +114,12 @@ def verify_phone(request):
             messages.error(request, RATE_LIMIT_MESSAGE)
         elif form.is_valid():
             if form.cleaned_data['code'] != request.session.get('otp_code'):
+                # Wrong code -> count the attempt; after too many, the account is
+                # a brute-force target / abandoned signup, so drop it (same path
+                # as an expired window) rather than letting guessing continue.
+                attempts = otp.register_failed_attempt(request)
+                if attempts >= otp.MAX_ATTEMPTS:
+                    return _cancel_and_delete(request, reason='expired')
                 form.add_error('code', "Kod noto'g'ri.")
             else:
                 request.user.phone_verified = True
