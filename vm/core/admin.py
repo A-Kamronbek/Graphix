@@ -1,7 +1,7 @@
+"""Admin: global site branding and the read-only contact-message view."""
 from django.contrib import admin
 from .models import Msg
 
-# ---- panel branding ----
 admin.site.site_header = "ValleyMade boshqaruv paneli"
 admin.site.site_title = "ValleyMade admin"
 admin.site.index_title = "Boshqaruv"
@@ -9,7 +9,7 @@ admin.site.index_title = "Boshqaruv"
 
 @admin.register(Msg)
 class MsgAdmin(admin.ModelAdmin):
-    """Customer contact messages — read-only (they come from the public form)."""
+    """Read-only admin for contact-form messages (add/edit disabled)."""
     list_display = ('topic', 'user', 'phone_num', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('topic', 'msg_text', 'user__username', 'phone_num')

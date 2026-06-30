@@ -1,3 +1,4 @@
+"""Cart routes: view, add, update, remove."""
 from django.urls import path
 from . import views
 

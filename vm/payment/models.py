@@ -39,7 +39,6 @@ class Order(models.Model):
         return f"Order {self.id} | {self.user.username} | {self.get_status_display()}"
 
     def save(self, *args, **kwargs):
-        # Normalize phone the same way User does, so the stored value is canonical.
         self.phone = normalize_uz_phone(self.phone)
         super().save(*args, **kwargs)
 

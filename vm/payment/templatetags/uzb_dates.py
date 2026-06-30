@@ -12,7 +12,6 @@ UZ_MONTHS_SHORT = ['', 'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn',
 
 @register.filter
 def uz_date(value):
-    """Format: 07 May 2026"""
     if not value:
         return ''
     return f"{value.day:02d} {UZ_MONTHS_SHORT[value.month]} {value.year}"
@@ -20,7 +19,6 @@ def uz_date(value):
 
 @register.filter
 def uz_date_full(value):
-    """Format: 07 May 2026 with full month name"""
     if not value:
         return ''
     return f"{value.day:02d} {UZ_MONTHS_FULL[value.month]} {value.year}"

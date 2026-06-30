@@ -4,8 +4,7 @@ from django.utils.html import format_html_join
 from click_up.models import ClickTransaction
 from .models import Order
 
-# click_up registers its own ClickTransaction admin on import. Drop it so we
-# can register our read-only version below without an AlreadyRegistered error.
+
 try:
     admin.site.unregister(ClickTransaction)
 except NotRegistered:
@@ -14,11 +13,6 @@ except NotRegistered:
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    """
-    Order management. The admin's main job here is moving the status forward
-    (paying → processing → on_the_way → done) and seeing the delivery details.
-    Everything except status is read-only so checkout data can't be corrupted.
-    """
     list_display = ('id', 'user', 'status', 'payment_method', 'total_price', 'phone', 'created_at')
     list_editable = ('status',)            # change status straight from the list
     list_filter = ('status', 'payment_method', 'created_at')
@@ -53,20 +47,3 @@ class OrderAdmin(admin.ModelAdmin):
             ),
         )
         return rows or "—"
-
-
-# @admin.register(ClickTransaction)
-# class ClickTransactionAdmin(admin.ModelAdmin):
-#     """Click payment ledger. Rows are created by the webhook, so this is a
-#     read-only audit view — don't hand-edit transactions."""
-#     list_display = ('id', 'account_id', 'transaction_id', 'amount', 'state', 'created_at')
-#     list_filter = ('state', 'created_at')
-#     search_fields = ('transaction_id',)
-#     ordering = ('-created_at',)
-#     readonly_fields = ('account_id', 'transaction_id', 'amount', 'state', 'created_at', 'updated_at')
-#
-#     def has_add_permission(self, request):
-#         return False
-#
-#     def has_change_permission(self, request, obj=None):
-#         return False
