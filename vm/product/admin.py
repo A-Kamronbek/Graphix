@@ -1,18 +1,36 @@
+"""Admin for the catalog: products with inline images/variants, plus lookups."""
 from django.contrib import admin
 from django.db.models import Min, Count
+from django.utils.html import format_html
 from .models import Product, Category, Size, Colour, ImageP, Variant
 
 
+def _thumb(picture, size=60):
+    """Small <img> preview for an ImageField, or a dash when empty."""
+    if not picture:
+        return format_html('<span style="color:#999;">\u2014</span>')
+    return format_html(
+        '<img src="{}" style="height:{}px;width:{}px;object-fit:cover;'
+        'border-radius:6px;" />',
+        picture.url, size, size,
+    )
+
+
 class ImagePInline(admin.TabularInline):
-    """Manage a product's images right on the product page."""
+    """Inline editor for a product's images."""
     model = ImageP
     extra = 1
-    fields = ('picture', 'order')
+    fields = ('preview', 'picture', 'order')
+    readonly_fields = ('preview',)
     ordering = ('order', 'id')
+
+    @admin.display(description='Ko\'rinishi')
+    def preview(self, obj):
+        return _thumb(obj.picture)
 
 
 class VariantInline(admin.TabularInline):
-    """Manage a product's colour/size/price/stock right on the product page."""
+    """Inline editor for a product's variants."""
     model = Variant
     extra = 1
     fields = ('colour', 'size', 'price', 'available')
@@ -21,13 +39,21 @@ class VariantInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'variant_count', 'min_price', 'image_count', 'created_at')
+    """Product admin with image/variant inlines and annotated list columns."""
+    list_display = ('thumb', 'name', 'category', 'variant_count', 'min_price', 'image_count', 'created_at')
+    list_display_links = ('thumb', 'name')
     list_filter = ('category', 'created_at')
     search_fields = ('name', 'description')
     inlines = [ImagePInline, VariantInline]
     list_select_related = ('category',)
 
+    @admin.display(description='Rasm')
+    def thumb(self, obj):
+        first = obj.images.first()
+        return _thumb(first.picture if first else None, size=48)
+
     def get_queryset(self, request):
+        """Annotate variant/image counts and min price for the list columns."""
         qs = super().get_queryset(request)
         return qs.annotate(
             _variants=Count('variants', distinct=True),
@@ -50,7 +76,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Variant)
 class VariantAdmin(admin.ModelAdmin):
-    """Bulk-manage stock: edit price + availability straight from the list."""
+    """Variant admin with inline price/availability editing."""
     list_display = ('product', 'colour', 'size', 'price', 'available')
     list_editable = ('price', 'available')
     list_filter = ('available', 'size', 'colour')
@@ -61,24 +87,39 @@ class VariantAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    """Category lookup admin."""
     list_display = ('name',)
     search_fields = ('name',)
 
 
 @admin.register(Size)
 class SizeAdmin(admin.ModelAdmin):
+    """Size lookup admin."""
     list_display = ('size',)
     search_fields = ('size',)
 
 
 @admin.register(Colour)
 class ColourAdmin(admin.ModelAdmin):
+    """Colour lookup admin."""
     list_display = ('colour', 'hex_code')
     search_fields = ('colour',)
 
 
 @admin.register(ImageP)
 class ImagePAdmin(admin.ModelAdmin):
-    list_display = ('product', 'order')
+    """Standalone product-image admin with thumbnail previews."""
+    list_display = ('thumb', 'product', 'order')
+    list_display_links = ('thumb', 'product')
     search_fields = ('product__name',)
     autocomplete_fields = ('product',)
+    readonly_fields = ('preview',)
+    fields = ('product', 'picture', 'preview', 'order')
+
+    @admin.display(description='Rasm')
+    def thumb(self, obj):
+        return _thumb(obj.picture, size=48)
+
+    @admin.display(description='Ko\'rinishi')
+    def preview(self, obj):
+        return _thumb(obj.picture, size=200)

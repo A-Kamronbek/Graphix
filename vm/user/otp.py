@@ -1,11 +1,8 @@
-"""
-Signup phone-verification OTP.
+"""Signup OTP lifecycle, stored in the session.
 
-Owns the OTP session state for the signup -> verify flow: generating/sending the
-code, the absolute 5-minute expiry, and the resend cooldown. Views call into here
-instead of touching request.session directly, so the OTP rules live in one place.
-
-Session keys used: otp_code, otp_expires_at, otp_last_sent_at.
+A six-digit code is kept in the user's session with an expiry, a resend
+cooldown, and a failed-attempt counter. All timestamps are stored as ISO
+strings so they survive session serialisation.
 """
 import random
 from datetime import timedelta
@@ -14,16 +11,20 @@ from django.utils import timezone
 
 from core.sms import send_sms
 
-TTL_SECONDS = 5 * 60        # 5 minutes — absolute, not reset by resend
-RESEND_COOLDOWN = 60        # 60 seconds between resends
-MAX_ATTEMPTS = 7            # wrong-code tries before the throwaway account is dropped
+# Signup OTP policy: 5-minute validity, 60s between resends, 7 wrong guesses max.
+TTL_SECONDS = 5 * 60
+RESEND_COOLDOWN = 60
+MAX_ATTEMPTS = 7
 
 
 def generate(request, reset_expiry):
-    """
-    Create a fresh 6-digit code and SMS it.
-    - reset_expiry=True  -> start a brand new 5-minute window (used on signup)
-    - reset_expiry=False -> keep the existing absolute expiry (used on resend)
+    """Create a new OTP, store it in the session, and SMS it to the user.
+
+    Resets the failed-attempt counter on every new code. The expiry window is
+    (re)started only when ``reset_expiry`` is true or no window exists yet, so a
+    plain resend keeps the original deadline rather than extending it.
+
+    Returns the generated six-digit code.
     """
     code = f"{random.randint(0, 999999):06d}"
     if reset_expiry or 'otp_expires_at' not in request.session:
@@ -31,13 +32,14 @@ def generate(request, reset_expiry):
         request.session['otp_expires_at'] = expires_at.isoformat()
     request.session['otp_code'] = code
     request.session['otp_last_sent_at'] = timezone.now().isoformat()
-    request.session['otp_attempts'] = 0   # fresh code -> reset the wrong-try counter
+    request.session['otp_attempts'] = 0
     send_sms(request.user.phone,
              f"Vallaymade saytida ro'yhatdan o'tish uchun kodingiz: {code}")
     return code
 
 
 def is_expired(request):
+    """Return True if no OTP window exists or the current one has elapsed."""
     raw = request.session.get('otp_expires_at')
     if not raw:
         return True
@@ -48,6 +50,7 @@ def is_expired(request):
 
 
 def ttl_remaining(request):
+    """Return seconds left before the OTP expires (0 if expired/absent)."""
     raw = request.session.get('otp_expires_at')
     if not raw:
         return 0
@@ -59,6 +62,7 @@ def ttl_remaining(request):
 
 
 def resend_cooldown(request):
+    """Return seconds the user must still wait before a resend is allowed."""
     raw = request.session.get('otp_last_sent_at')
     if not raw:
         return 0
@@ -71,13 +75,13 @@ def resend_cooldown(request):
 
 
 def clear(request):
-    """Drop the signup OTP keys from the session (after a successful verify)."""
+    """Drop all OTP-related keys from the session."""
     for k in ('otp_code', 'otp_expires_at', 'otp_last_sent_at', 'otp_attempts'):
         request.session.pop(k, None)
 
 
 def register_failed_attempt(request):
-    """Count a wrong-code try; returns the new attempt total."""
+    """Increment and return the failed-attempt counter for the current code."""
     attempts = request.session.get('otp_attempts', 0) + 1
     request.session['otp_attempts'] = attempts
     return attempts

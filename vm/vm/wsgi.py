@@ -1,12 +1,4 @@
-"""
-WSGI config for vm project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
-"""
-
+"""WSGI entry point for the ValleyMade project (used by gunicorn in production)."""
 import os
 
 from django.core.wsgi import get_wsgi_application

@@ -1,3 +1,9 @@
+"""User model and Uzbek phone-number handling.
+
+Defines the custom :class:`User` (phone-based authentication, no email) together
+with the validator and normaliser that keep every stored phone number in the
+canonical ``+998 XX XXX XX XX`` format.
+"""
 import re
 
 from django.contrib.auth.models import AbstractUser
@@ -5,6 +11,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 
 
+# Accepts ``+998 XX XXX XX XX`` with optional spaces; ``message`` is user-facing.
 phone_regex = RegexValidator(
     regex=r'^\+998 ?\d{2} ?\d{3} ?\d{2} ?\d{2}$',
     message="format: +998 XX XXX XX XX"
@@ -12,27 +19,17 @@ phone_regex = RegexValidator(
 
 
 def normalize_uz_phone(value):
-    """
-    Normalize an Uzbek phone number to the canonical '+998 XX XXX XX XX' format,
-    independent of how the input was separated (spaces, dashes, dots, parens, etc).
+    """Return ``value`` in canonical ``+998 XX XXX XX XX`` form.
 
-    Accepts, e.g.:
-        +998-90-123-45-67
-        +998 (90) 123 45 67
-        998901234567
-        90 123 45 67          (national number, country code added)
-
-    Returns the input UNCHANGED if it can't be normalized to a 9-digit national
-    number, so the RegexValidator on the field still rejects genuinely invalid
-    input during full_clean(). This makes the result correct even for direct ORM
-    saves (shell, fixtures, admin) that bypass form-level validation.
+    Strips everything but digits, drops a leading ``998`` country code, and
+    reformats a bare 9-digit national number. Anything that doesn't look like a
+    valid UZ number is returned unchanged so the validator can reject it.
     """
     if not value:
         return value
 
     digits = re.sub(r'\D', '', value)  # keep digits only
 
-    # Drop a leading 998 country code if present (12 digits total).
     if len(digits) == 12 and digits.startswith('998'):
         digits = digits[3:]
 
@@ -43,6 +40,11 @@ def normalize_uz_phone(value):
 
 
 class User(AbstractUser):
+    """User authenticated by phone number instead of email.
+
+    ``phone`` is unique and validated against :data:`phone_regex`;
+    ``phone_verified`` records whether the number passed OTP confirmation.
+    """
     phone = models.CharField(
         validators=[phone_regex],
         max_length=17,
@@ -54,7 +56,11 @@ class User(AbstractUser):
     phone_verified = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # Canonicalize before saving so the stored value is always in the
-        # +998 XX XXX XX XX format regardless of input separators.
+        """Normalise the phone number before every save.
+
+        Normalising here (not only in the form) guarantees the stored value is
+        always canonical, so the ``unique`` constraint can't be bypassed by two
+        differently-spaced versions of the same number.
+        """
         self.phone = normalize_uz_phone(self.phone)
         super().save(*args, **kwargs)

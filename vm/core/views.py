@@ -1,3 +1,4 @@
+"""Static pages (home, about, terms), the contact form, and error handlers."""
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib import messages
@@ -6,23 +7,26 @@ from product.models import Product, Category
 from .models import Msg
 from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
+
 def terms(request):
-    # "Orqaga" returns to whatever page linked here (signup, footer, etc.).
-    # Fall back to home on a direct visit or if the referer is terms itself.
+    """Render the terms page, linking 'back' to the referring page when safe."""
     ref = request.META.get('HTTP_REFERER') or ''
     back_url = ref if ref and reverse('terms') not in ref else reverse('home')
     return render(request, 'terms.html', {'back_url': back_url})
 
 
 def home(request):
+    """Render the home page."""
     return render(request, 'core/home.html')
 
 
 def about(request):
+    """Render the about page."""
     return render(request, 'core/about.html')
 
 @login_required
 def contact(request):
+    """Show and handle the contact form, storing submissions as :class:`Msg`."""
     form_data = {}
     form_errors = False
     if request.method == 'POST':
@@ -53,8 +57,10 @@ def contact(request):
 
 # error handlers
 def handler404(request, exception):
+    """Render the custom 404 page."""
     return render(request, '404.html', status=404)
 
 
 def handler500(request):
+    """Render the custom 500 page."""
     return render(request, '500.html', status=500)

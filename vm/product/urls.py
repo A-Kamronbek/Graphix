@@ -1,3 +1,4 @@
+"""Storefront routes: shop listing and product detail."""
 from django.urls import path
 from . import views
 

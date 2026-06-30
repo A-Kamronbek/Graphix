@@ -21,7 +21,6 @@ def _annotate_lines(items):
         out.append(it)
     return out
 
-
 # ---------- checkout: cart → order ----------
 
 @login_required
@@ -47,12 +46,9 @@ def checkout(request):
         address = request.POST.get('address', '').strip()
         notes = request.POST.get('notes', '').strip()
         payment_method = request.POST.get('payment_method', '').strip()
-        # Only accept a known method; anything else (or missing) falls back to Click,
-        # which is currently the only enabled option.
         if payment_method not in Order.PaymentMethod.values:
             payment_method = Order.PaymentMethod.CLICK
 
-        # required fields
         if not name or not phone or not address:
             messages.error(request, "Ma'lumot va manzilni to'ldiring.")
             return render(request, 'payment/checkout.html', {
@@ -61,7 +57,6 @@ def checkout(request):
                               'notes': notes, 'payment_method': payment_method},
             })
 
-        # phone format (same validator as User.phone)
         try:
             phone_regex(phone)
         except ValidationError as e:
@@ -72,7 +67,6 @@ def checkout(request):
                               'notes': notes, 'payment_method': payment_method},
             })
 
-        # Create the order atomically and close the cart (see services).
         try:
             order = services.create_order_from_cart(
                 request.user, cart,
@@ -108,12 +102,8 @@ def payment(request, order_id):
 @login_required
 @require_POST
 def payment_start(request, order_id):
-    """Generate a Click pay link for this order and
-    redirect the user to it."""
-
     order = get_object_or_404(Order, pk=order_id, user=request.user)
 
-    # Don't start a new payment for an order that's no longer awaiting one.
     if order.status != Order.Status.PAYING:
         messages.info(request, "Bu buyurtma uchun to'lov holati allaqachon o'zgargan.")
         return redirect('order_status', pk=order.id)
@@ -124,11 +114,6 @@ def payment_start(request, order_id):
 
 
 class ClickWebhookAPIView(ClickWebhook):
-    """
-    Click calls this server-to-server (Prepare + Complete). The library verifies
-    the signature, checks the amount against CLICK_AMOUNT_FIELD, and records a
-    ClickTransaction. We only need to move the Order's status in the callbacks.
-    """
     def successfully_payment(self, params):
         services.apply_successful_payment(params.click_trans_id)
 
@@ -144,7 +129,6 @@ def order_detail(request, pk):
         Order.objects.select_related('cart').prefetch_related('cart__cart_items__variant__product__images'),
         pk=pk, user=request.user,
     )
-    # annotate line_total
     for it in order.cart.cart_items.all():
         it.line_total = (it.price_stat or Decimal('0')) * it.quantity
     return render(request, 'payment/order_detail.html', {'order': order})

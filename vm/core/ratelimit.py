@@ -1,33 +1,18 @@
-"""
-Lightweight, fail-open rate limiting built on Django's cache framework.
+"""Cache-backed rate limiting: dependency-free and fail-open.
 
-Why hand-rolled instead of a third-party package:
-  * No external dependency -> no version/compat risk with the Django release.
-  * FAIL OPEN: if the cache misbehaves or anything raises, requests are allowed
-    through. Rate limiting must never take the site down.
-
-It's a fixed-window counter keyed by an identity you choose (client IP, the
-authenticated user, or a submitted field like username/phone). Keying on the
-submitted account is deliberate: behind a reverse proxy every request can share
-one IP, so an IP-only limit could lock everyone out — account-keyed limits stay
-correct regardless of proxy setup.
-
-Production note: the default cache is per-process LocMemCache, so with multiple
-gunicorn workers each worker counts separately (limits become "per worker").
-For strict global limits, point the 'default' cache at Redis or the database
-cache. Until then this still works and still fails open.
+Counters live in the Django cache under hashed keys. Every check is wrapped so a
+cache outage never blocks a request (fail-open): if the backend errors, the hit
+is allowed through rather than denied.
 """
 from hashlib import md5
 from django.core.cache import cache
 
 
-# Shown to the user (via messages.error) when a limit trips.
 RATE_LIMIT_MESSAGE = "Juda ko'p urinish. Iltimos, birozdan so'ng qayta urinib ko'ring."
 
 
 def client_ip(request):
-    """Best-effort client IP. Honors the first hop of X-Forwarded-For when
-    present (what nginx passes once configured); otherwise REMOTE_ADDR."""
+    """Best-effort client IP, preferring the first X-Forwarded-For hop (set by nginx)."""
     xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
     if xff:
         return xff.split(',')[0].strip()
@@ -35,32 +20,25 @@ def client_ip(request):
 
 
 def _bucket_key(scope, ident):
+    """Build a hashed cache key for a (scope, identity) counter."""
     digest = md5(f"{scope}:{ident}".encode('utf-8', 'ignore')).hexdigest()
     return f"rl:{scope}:{digest}"
 
 
 def is_rate_limited(request, scope, limit, window, ident=None):
-    """
-    Returns True if this caller has EXCEEDED `limit` hits within `window`
-    seconds for `scope`. Always counts the current call.
+    """Count this hit and return True if it exceeds ``limit`` within ``window`` seconds.
 
-    ident: identity to bucket on (e.g. a username or phone). If None/empty,
-           the client IP is used.
-
-    Fails OPEN (returns False) on any error, so a cache problem can never break
-    a view.
+    Identity defaults to the client IP; pass ``ident`` to limit per user/phone.
+    Fails open: any cache error returns False (treated as not limited).
     """
     try:
         if not ident:
             ident = client_ip(request)
         key = _bucket_key(scope, ident)
-        # add() only sets the value+TTL if the key is absent, so the window is
-        # fixed from the first hit; incr() preserves that TTL.
         cache.add(key, 0, timeout=window)
         try:
             count = cache.incr(key)
         except ValueError:
-            # Key expired between add() and incr(); treat as a fresh window.
             cache.add(key, 0, timeout=window)
             count = cache.incr(key)
         return count > limit
@@ -69,12 +47,9 @@ def is_rate_limited(request, scope, limit, window, ident=None):
 
 
 def is_currently_limited(request, scope, limit, ident=None):
-    """
-    Read-only check: is this caller already AT/OVER the limit right now? Does
-    NOT increment the counter, so it's safe to call when rendering a page (e.g.
-    to disable a button). Returns True when the *next* attempt would be blocked.
+    """Read-only check of whether the counter is already at/over ``limit``.
 
-    Fails OPEN (returns False) on any error.
+    Used to render the disabled/limited UI state without incrementing the count.
     """
     try:
         if not ident:

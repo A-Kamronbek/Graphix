@@ -1,3 +1,4 @@
+"""Cart models: one open cart per user, with price-snapshotted line items."""
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Sum, Q
@@ -5,11 +6,17 @@ from product.models import Variant
 
 
 class Cart(models.Model):
+    """A user's cart.
+
+    A partial unique constraint allows only one open (``status=True``) cart per
+    user; checked-out carts are kept on record with ``status=False``.
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="carts")
     status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def price_calc(self):
+        """Return the cart total (sum of price_stat * quantity), or 0 if empty."""
         return self.cart_items.aggregate(
             total=Sum(F('price_stat') * F('quantity'))
         )['total'] or 0
@@ -19,11 +26,6 @@ class Cart(models.Model):
 
     class Meta:
         constraints = [
-            # At most one open cart (status=True) per user. Partial unique index
-            # — closed carts (status=False) are unconstrained, so a user keeps
-            # full order history. This makes _get_active_cart's get_or_create
-            # concurrency-safe: a racing INSERT hits IntegrityError, which
-            # get_or_create catches and retries as a .get().
             models.UniqueConstraint(
                 fields=['user'],
                 condition=Q(status=True),
@@ -32,6 +34,11 @@ class Cart(models.Model):
         ]
 
 class CartItem(models.Model):
+    """A line in a cart.
+
+    ``price_stat`` snapshots the variant price at the moment it was added, so a
+    later catalogue price change can't silently alter an existing cart or order.
+    """
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="cart_items")
     variant = models.ForeignKey(Variant, on_delete=models.PROTECT, related_name="cart_items")
     quantity = models.PositiveSmallIntegerField(default=1)
@@ -44,6 +51,3 @@ class CartItem(models.Model):
     class Meta:
         unique_together = ('cart', 'variant')
         indexes = [models.Index(fields=['cart']),]
-
-
-

@@ -1,3 +1,4 @@
+"""Auth and account forms: login, signup, OTP, password reset, profile."""
 from django import forms
 from .models import User, phone_regex, normalize_uz_phone
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm, PasswordChangeForm
@@ -5,10 +6,12 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
 
+# Allowed username characters: letters, digits, underscore.
 USERNAME_REGEX = RegexValidator(regex=r'^[A-Za-z0-9_]+$', message="Harflar, raqamlar va _  mumkin")
 
 
 class LoginForm(AuthenticationForm):
+    """Login form with Uzbek error messages."""
     error_messages = {
         'invalid_login': "Foydalanuvchi nomi yoki parol noto'g'ri.",
         'inactive': "Bu hisob faol emas.",
@@ -16,32 +19,29 @@ class LoginForm(AuthenticationForm):
 
 
 class OTPForm(forms.Form):
+    """Six-digit OTP entry."""
     code = forms.CharField(
-        # The regex enforces exactly 6 digits, so one clear message covers every
-        # bad length/format; 'required' handles the empty case. (min_length is
-        # intentionally omitted — it would emit an untranslated English error.)
         validators=[RegexValidator(regex=r'^\d{6}$', message="6 ta raqam kiriting.")],
         error_messages={'required': "Kodni kiriting."},
     )
 
 
 class ForgotPasswordForm(forms.Form):
-    """Phone-entry step of the password reset. Normalizes then validates the
-    number so '+998-90-...' style input is accepted the same way as signup."""
+    """Phone-number entry that starts a password reset."""
     phone = forms.CharField(
         max_length=20,
         error_messages={'required': "Telefon raqamni kiriting."},
     )
 
     def clean_phone(self):
+        """Normalise then validate the phone number."""
         value = normalize_uz_phone(self.cleaned_data['phone'])
-        phone_regex(value)  # raises ValidationError with the +998 format message
+        phone_regex(value)
         return value
 
 
 class ResetPasswordForm(SetPasswordForm):
-    """SetPasswordForm with Uzbek labels. Inherits the password-match check and
-    runs AUTH_PASSWORD_VALIDATORS (incl. CustomMinimumLengthValidator)."""
+    """New-password form shown once the reset code is verified."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['new_password1'].label = "Yangi parol"
@@ -50,7 +50,7 @@ class ResetPasswordForm(SetPasswordForm):
 
 
 class ProfileForm(forms.ModelForm):
-    """Edit display name + username from the settings page."""
+    """Edit display name and username on the account page."""
     class Meta:
         model = User
         fields = ('first_name', 'username')
@@ -64,8 +64,7 @@ class ProfileForm(forms.ModelForm):
         self.fields['username'].validators.append(USERNAME_REGEX)
 
     def clean_username(self):
-        # Manual uniqueness check (excluding self) so we control the message and
-        # so saving with an unchanged username doesn't false-positive.
+        """Reject a username already taken by another user."""
         username = self.cleaned_data['username']
         if User.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
             raise ValidationError("Bu foydalanuvchi nomi band.")
@@ -73,8 +72,7 @@ class ProfileForm(forms.ModelForm):
 
 
 class ChangePasswordForm(PasswordChangeForm):
-    """PasswordChangeForm with Uzbek labels. Requires the current password,
-    checks the new pair matches, and runs AUTH_PASSWORD_VALIDATORS."""
+    """Change-password form with Uzbek labels and messages."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['old_password'].label = "Joriy parol"
@@ -85,6 +83,7 @@ class ChangePasswordForm(PasswordChangeForm):
 
 
 class SignupForm(UserCreationForm):
+    """Registration form; creates the User and triggers phone verification."""
     first_name = forms.CharField(max_length=150, required=False)
 
     class Meta:
@@ -96,6 +95,7 @@ class SignupForm(UserCreationForm):
     }
 
     def save(self, commit=True):
+        """Save the user, copying the optional first name."""
         user = super().save(commit=False)
         user.first_name = self.cleaned_data.get('first_name', '')
         if commit:
@@ -110,12 +110,13 @@ class SignupForm(UserCreationForm):
         self.fields['username'].validators.append(USERNAME_REGEX)
 
     def clean_phone(self):
-        # Normalize FIRST, then check format + uniqueness, so the check compares
-        # against the same canonical form the model stores (model.save() also
-        # normalizes). Without this, a number typed with different spacing slips
-        # past validation and blows up as an IntegrityError on save.
+        """Normalise, validate, and reject an already-registered phone.
+
+        Normalising before the uniqueness check stops a differently-spaced
+        duplicate from slipping through and raising an IntegrityError later.
+        """
         value = normalize_uz_phone(self.cleaned_data['phone'])
-        phone_regex(value)  # +998 format check
+        phone_regex(value)
         if User.objects.filter(phone=value).exists():
             raise ValidationError("Bu raqam ro'yxatdan o'tgan.")
         return value

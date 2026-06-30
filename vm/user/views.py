@@ -1,3 +1,9 @@
+"""Auth, phone-verification, account, and password-reset views.
+
+Signup creates the user immediately and gates access behind an SMS OTP (enforced
+by PhoneVerificationMiddleware); unverified accounts are deleted once the OTP
+window lapses. Sensitive endpoints are rate limited via :mod:`core.ratelimit`.
+"""
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -39,6 +45,7 @@ def _cancel_and_delete(request, reason=None):
 
 
 def login_view(request):
+    """Authenticate a user; honour a safe internal ``next``, else go to the shop."""
     if request.user.is_authenticated:
         return redirect('account')
     form = LoginForm(request, data=request.POST or None)
@@ -67,6 +74,7 @@ def login_view(request):
 
 
 def signup_view(request):
+    """Register a user, issue a signup OTP, and send them to verification."""
     if request.user.is_authenticated:
         return redirect('account')
     form = SignupForm(request.POST or None)
@@ -96,6 +104,7 @@ def signup_view(request):
 
 @login_required
 def verify_phone(request):
+    """Verify the signup OTP; delete the account on expiry or too many wrong tries."""
     if request.user.phone_verified:
         return redirect('account')
 
@@ -141,6 +150,7 @@ def verify_phone(request):
 @login_required
 @require_POST
 def resend_otp(request):
+    """Reissue the signup OTP, subject to cooldown and rate limits."""
     if request.user.phone_verified:
         return redirect('account')
 
@@ -164,6 +174,7 @@ def resend_otp(request):
 @login_required
 @require_POST
 def cancel_verification(request):
+    """Abort signup verification and delete the unverified account."""
     return _cancel_and_delete(request, reason='cancelled')
 
 
@@ -187,6 +198,7 @@ def expire_verification(request):
 
 @login_required
 def account(request):
+    """Account home: show the five most recent orders."""
     recent_orders = Order.objects.filter(user=request.user).select_related('cart')[:5]
     return render(request, 'user/account.html', {
         'recent_orders': recent_orders,
@@ -195,6 +207,7 @@ def account(request):
 
 @login_required
 def account_orders(request):
+    """List all of the user's orders."""
     orders = Order.objects.filter(user=request.user).select_related('cart').prefetch_related('cart__cart_items')
     return render(request, 'user/account_orders.html', {'orders': orders})
 
@@ -246,6 +259,7 @@ def account_forgot_password(request):
 # ============================================================================
 
 def password_reset_request(request):
+    """Step 1: take a phone number and SMS a reset code to that user."""
     if request.user.is_authenticated:
         return redirect('account')
 
@@ -280,6 +294,7 @@ def password_reset_request(request):
 
 
 def password_reset_verify(request):
+    """Step 2: check the reset code; invalidate it after too many wrong tries."""
     if request.user.is_authenticated:
         return redirect('account')
     if 'pwreset_expires_at' not in request.session:
@@ -322,6 +337,7 @@ def password_reset_verify(request):
 
 @require_POST
 def password_reset_resend(request):
+    """Reissue the reset code, subject to cooldown and rate limits."""
     if 'pwreset_expires_at' not in request.session:
         return redirect('password_reset_request')
     if pwreset.is_expired(request):
@@ -346,6 +362,7 @@ def password_reset_resend(request):
 
 @require_POST
 def password_reset_expire(request):
+    """Server-verified expiry for the reset flow (ignores premature POSTs)."""
     # Mirror of expire_verification: only act if the window has genuinely passed,
     # so a forged/early POST can't wipe an in-progress reset.
     if 'pwreset_expires_at' in request.session and not pwreset.is_expired(request):
@@ -355,6 +372,7 @@ def password_reset_expire(request):
 
 
 def password_reset_set(request):
+    """Step 3: set the new password once the code has been verified."""
     if request.user.is_authenticated:
         return redirect('account')
     # Must have passed the OTP step.

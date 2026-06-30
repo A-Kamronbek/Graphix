@@ -1,3 +1,4 @@
+"""Public site routes: home, about, contact, terms."""
 from django.urls import path
 from . import views
 

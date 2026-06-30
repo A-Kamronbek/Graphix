@@ -1,9 +1,9 @@
-"""
-Django settings for vm project.
+"""Django settings for the ValleyMade project.
 
-Modified to wire up project-level templates, static, and auth redirects.
+Secrets and environment-specific values are read from a ``.env`` file (loaded
+below); required keys use ``os.environ[...]`` so a missing one fails loudly at
+startup rather than running with an unsafe default.
 """
-
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -52,7 +52,6 @@ ROOT_URLCONF = 'vm.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # project-level templates folder (where base.html lives)
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -60,7 +59,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                # custom — exposes cart_count to all templates for the nav badge
                 'cart.context_processors.cart_count',
             ],
         },
@@ -81,11 +79,9 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    # {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'user.validators.CustomMinimumLengthValidator'},
-    # {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    # {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
 TIME_ZONE = 'Asia/Tashkent'
 LANGUAGE_CODE = 'uz'
 USE_I18N = True
@@ -93,7 +89,7 @@ USE_I18N = True
 # ---- static & media ----
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # for `collectstatic` in production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -106,7 +102,9 @@ LOGIN_REDIRECT_URL = 'shop'
 LOGOUT_REDIRECT_URL = 'home'
 
 # ---- production security ----
-# Only enforced when DEBUG is False so local dev over http still works.
+# Enforced only when DEBUG is off. SECURE_PROXY_SSL_HEADER is required because
+# nginx terminates TLS and proxies to gunicorn over plain HTTP; without it
+# SECURE_SSL_REDIRECT would loop forever (Django would never see "https").
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -118,22 +116,24 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # --- click ---
+# click_up validates each payment callback's amount against the account model's
+# amount field below (Order.total_price, stored in whole so'm).
 CLICK_SERVICE_ID = os.environ["CLICK_SERVICE_ID"]
 CLICK_MERCHANT_ID = os.environ["CLICK_MERCHANT_ID"]
 CLICK_SECRET_KEY = os.environ["CLICK_SECRET_KEY"]
 CLICK_ACCOUNT_MODEL = "payment.models.Order"
 CLICK_AMOUNT_FIELD = "total_price"
 
-# --- SMS ---
-# --- eskiz sms ---
+# --- eskiz SMS ---
+# ESKIZ_FROM defaults to Eskiz's test sender (4546); set the approved sender in prod.
 ESKIZ_EMAIL = os.environ["ESKIZ_EMAIL"]
 ESKIZ_PASSWORD = os.environ["ESKIZ_PASSWORD"]
 ESKIZ_FROM = os.environ.get("ESKIZ_FROM", "4546")
 
 # ---- cache ----
-# Dev (default): in-process LocMemCache — same behavior as before. Production:
-# set REDIS_URL so the rate limiter and the Eskiz SMS-token cache are SHARED
-# across gunicorn workers (LocMemCache is per-process). Needs `pip install redis`.
+# Use Redis when REDIS_URL is set: it's shared across gunicorn workers, which the
+# rate limiter needs to count correctly. Otherwise fall back to per-process memory
+# (fine for a single worker / local dev, but counters aren't shared).
 REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHES = {
@@ -150,9 +150,7 @@ else:
     }
 
 # ---- logging ----
-# Console everywhere; in production also a rotating file so SMS/payment errors
-# are retained. 'django.server' is left untouched so runserver request logs are
-# unchanged.
+# Console logging always; in production also write a rotating file in logs/.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
