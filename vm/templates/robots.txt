@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /shop/
+Allow: /item/
+
+# Private / transactional areas — not for indexing.
+Disallow: /admin/
+Disallow: /cart/
+Disallow: /account/
+Disallow: /verify-phone/
+Disallow: /parolni-tiklash/
+Disallow: /checkout/
+Disallow: /payment/
+Disallow: /order/
+
+Sitemap: https://valleymade.uz/sitemap.xml

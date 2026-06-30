@@ -1,3 +1,4 @@
+"""Checkout, Click payment start/webhook, and order views."""
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -15,6 +16,7 @@ from . import services
 # ---------- presentation helper ----------
 
 def _annotate_lines(items):
+    """Attach a ``line_total`` (price_stat * quantity) to each line for templates."""
     out = []
     for it in items:
         it.line_total = (it.price_stat or Decimal('0')) * it.quantity
@@ -25,6 +27,7 @@ def _annotate_lines(items):
 
 @login_required
 def checkout(request):
+    """Collect delivery details, validate them, and turn the cart into an Order."""
     cart = services.get_open_cart(request.user)
     if not cart or not cart.cart_items.exists():
         messages.error(request, "Savat bo'sh.")
@@ -92,6 +95,7 @@ def checkout(request):
 
 @login_required
 def payment(request, order_id):
+    """Show the payment page for an order."""
     order = get_object_or_404(
         Order.objects.select_related('cart').prefetch_related('cart__cart_items__variant__product'),
         pk=order_id, user=request.user,
@@ -102,6 +106,7 @@ def payment(request, order_id):
 @login_required
 @require_POST
 def payment_start(request, order_id):
+    """Generate a Click pay link and redirect to it (only while still PAYING)."""
     order = get_object_or_404(Order, pk=order_id, user=request.user)
 
     if order.status != Order.Status.PAYING:
@@ -114,6 +119,7 @@ def payment_start(request, order_id):
 
 
 class ClickWebhookAPIView(ClickWebhook):
+    """Single Click callback endpoint; click_up routes Prepare/Complete internally."""
     def successfully_payment(self, params):
         services.apply_successful_payment(params.click_trans_id)
 
@@ -125,6 +131,7 @@ class ClickWebhookAPIView(ClickWebhook):
 
 @login_required
 def order_detail(request, pk):
+    """Order detail page, with per-line totals computed for the template."""
     order = get_object_or_404(
         Order.objects.select_related('cart').prefetch_related('cart__cart_items__variant__product__images'),
         pk=pk, user=request.user,
@@ -136,6 +143,7 @@ def order_detail(request, pk):
 
 @login_required
 def order_status(request, pk):
+    """Lightweight order-status page (used for post-payment status checks)."""
     order = get_object_or_404(Order, pk=pk, user=request.user)
     return render(request, 'payment/status.html', {'order': order})
 
@@ -145,6 +153,7 @@ def order_status(request, pk):
 @login_required
 @require_POST
 def order_cancel(request, pk):
+    """Cancel an order that is still awaiting payment."""
     order = get_object_or_404(Order, pk=pk, user=request.user)
     if services.cancel_order(order):
         messages.success(request, f"#{order.id} bekor qilindi.")
