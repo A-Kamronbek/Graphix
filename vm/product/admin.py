@@ -2,13 +2,15 @@
 from django.contrib import admin
 from django.db.models import Min, Count
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+
 from .models import Product, Category, Size, Colour, ImageP, Variant
 
 
 def _thumb(picture, size=60):
     """Small <img> preview for an ImageField, or a dash when empty."""
     if not picture:
-        return format_html('<span style="color:#999;">\u2014</span>')
+        return mark_safe('<span style="color:#999;">\u2014</span>')
     return format_html(
         '<img src="{}" style="height:{}px;width:{}px;object-fit:cover;'
         'border-radius:6px;" />',
