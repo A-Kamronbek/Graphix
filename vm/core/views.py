@@ -1,6 +1,5 @@
 """Static pages (home, about, terms), the contact form, and error handlers."""
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 from product.models import Product, Category
@@ -24,12 +23,18 @@ def about(request):
     """Render the about page."""
     return render(request, 'core/about.html')
 
-@login_required
 def contact(request):
-    """Show and handle the contact form, storing submissions as :class:`Msg`."""
+    """Show and handle the contact form, storing submissions as :class:`Msg`.
+
+    Viewing is open to everyone; sending a message requires an account. An
+    anonymous POST is bounced to login and returned here afterwards, so Msg.user
+    always stays a real user (no nullable-FK migration needed)."""
     form_data = {}
     form_errors = False
     if request.method == 'POST':
+        # Anyone can view the page, but only logged-in users can send.
+        if not request.user.is_authenticated:
+            return redirect(f"{reverse('login')}?next={reverse('contact')}")
         if is_rate_limited(request, 'contact', 10, 3600, ident=f"u{request.user.pk}"):
             messages.error(request, RATE_LIMIT_MESSAGE)
             form_errors = True
@@ -51,7 +56,8 @@ def contact(request):
     return render(request, 'core/contact.html', {
         'form_data': form_data,
         'form_errors': form_errors,
-        'rate_limited': is_currently_limited(request, 'contact', 10, ident=f"u{request.user.pk}"),
+        'rate_limited': (request.user.is_authenticated and
+                         is_currently_limited(request, 'contact', 10, ident=f"u{request.user.pk}")),
     })
 
 

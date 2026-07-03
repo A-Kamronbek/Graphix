@@ -766,6 +766,9 @@ body.drawer-open { overflow: hidden; }
 .legal__body p { color: #c9c9c9; line-height: 1.85; margin-bottom: 18px; font-size: 15px; }
 .legal__back { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 32px; }
 
+/* About page: slightly larger body text than the legal/terms default */
+.is-about .legal__body p { font-size: 17px; line-height: 1.9; }
+
 /* ---------- utilities ---------- */
 .hide { display: none !important; }
 .center-text { text-align: center; }
