@@ -19,6 +19,13 @@ AUTH_USER_MODEL = 'user.User'
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
+# Full origins (scheme + host) allowed to send state-changing POSTs. Needed once
+# nginx terminates TLS: Django compares the Origin header against this list, and
+# an empty list rejects every form submission on the live HTTPS domain.
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -61,6 +68,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'cart.context_processors.cart_count',
+                'product.context_processors.nav_categories',
             ],
         },
     },

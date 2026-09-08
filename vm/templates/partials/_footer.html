@@ -12,9 +12,9 @@
         <h4>Do'kon</h4>
         <ul>
           <li><a href="{% url 'shop' %}">Barcha mahsulotlar</a></li>
-          <li><a href="{% url 'shop' %}?category=tops">Ustki kiyim</a></li>
-          <li><a href="{% url 'shop' %}?category=bottoms">Pastki kiyim</a></li>
-          <li><a href="{% url 'shop' %}?category=outer">Tashqi kiyim</a></li>
+          {% for c in nav_categories %}
+            <li><a href="{% url 'shop' %}?category={{ c.id }}">{{ c.name }}</a></li>
+          {% endfor %}
         </ul>
       </div>
       <div>
