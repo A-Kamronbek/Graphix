@@ -1,3 +1,4 @@
+"""Order model: a checked-out cart with delivery details and payment status."""
 from django.conf import settings
 from django.db import models
 from cart.models import Cart
@@ -5,6 +6,12 @@ from user.models import phone_regex, normalize_uz_phone  # reuse same validator 
 
 
 class Order(models.Model):
+    """A placed order, created from a cart at checkout.
+
+    Linked one-to-one to the (now closed) Cart it was made from. ``address`` is a
+    TextField so it can hold real multi-line addresses, and ``total_price`` is in
+    whole so'm — the value Click validates the payment amount against.
+    """
     class Status(models.TextChoices):
         PAYING = 'paying', 'To\'lanmoqda'
         PAID = 'paid', 'To\'langan'
@@ -39,10 +46,9 @@ class Order(models.Model):
         return f"Order {self.id} | {self.user.username} | {self.get_status_display()}"
 
     def save(self, *args, **kwargs):
+        """Normalise the phone to canonical form before saving (matches User.phone)."""
         self.phone = normalize_uz_phone(self.phone)
         super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['-created_at']
-
-

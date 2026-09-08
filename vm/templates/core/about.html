@@ -1,68 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Haqimizda{% endblock %}
+{% block body_class %}is-about{% endblock %}
 
 {% block content %}
 <section class="section">
   <div class="wrap">
-    <h1 class="ticker mt-16">Mahalliy<br>brend.</h1>
-  </div>
-</section>
+    <article class="legal">
 
-<section class="section divide-top">
-  <div class="wrap">
-    <div class="split">
-      <div>
-        <p class="eyebrow">Bizning hikoyamiz</p>
-        <h2 class="h-display h-md mt-16">Fabrika emas,<br>studiya.</h2>
-      </div>
-      <div>
-        <p class="lede">
-          ValleyMade bitta xonada, bitta tikuv mashinasi va bitta bosma stanok bilan
-          boshlangan. Maqsad oddiy edi: do'stlarimiz kiyishni xohlagan kiyimlarni,
-          o'z shahrimizda, hech qanday murosasiz tikish.
-        </p>
-        <p class="lede mt-16">
-          Bu yerdagi har bir mahsulot o'z ustaxonamizda, kichik partiyalarda, biz
-          tanigan insonlar tomonidan dizayn qilinadi, bichiladi, bosiladi va
-          yakuniga yetkaziladi.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+      <h1 class="h-display h-lg legal__title">Haqimizda</h1>
 
-<section class="section divide-top">
-  <div class="wrap">
-    <div class="grid-3">
-      <div class="panel">
-        <p class="eyebrow">01</p>
-        <h3 class="h-display h-sm mt-8">Cheklangan to'plamlar</h3>
-        <p class="muted mt-16">Faqat kichik partiyalar. Tugagach, tugadi.</p>
-      </div>
-      <div class="panel">
-        <p class="eyebrow">02</p>
-        <h3 class="h-display h-sm mt-8">Toshkentda tayyorlangan</h3>
-        <p class="muted mt-16">Har bir mahsulot studiyamizdan piyoda yetib boradigan masofada tikiladi.</p>
-      </div>
-      <div class="panel">
-        <p class="eyebrow">03</p>
-        <h3 class="h-display h-sm mt-8">Vositachilarsiz</h3>
-        <p class="muted mt-16">To'g'ridan-to'g'ri bizdan sizga. Halol narx, qo'shimcha ustamasiz.</p>
-      </div>
-    </div>
-  </div>
-</section>
+      <div class="legal__body">
+        <p>Siz istagan yuqori sifatli grafik futbolkalar faqat bizda.</p>
 
-{% include "partials/_marquee.html" with reverse=True %}
+        <p>Ma’lum bir grafik yoki dizayndagi futbolkani izlash qanchalik vaqt
+        olishini yaxshi bilamiz. Shuning uchun bu ishni siz uchun yengillashtirdik.
+        Tashkentning o‘zida yetkazib berishga tayyor bo‘lgan ko‘plab zamonaviy
+        dizaynlarimiz bor. Saytimizdagi har bir mahsulot sifat jihatidan tekshirilgan:
+        sifatsiz printlar ham, arzon matolar ham yo‘q. Do‘konimizga qo‘yilgan har
+        bir futbolka — o‘zimiz ham bemalol kiyadigan darajadagi mahsulot.</p>
 
-<section class="section">
-  <div class="wrap center-text">
-    <h2 class="h-display h-lg">Bizga qo'shilasizmi?</h2>
-    <p class="muted mt-16">Yangi to'plamlar haqida xabardor bo'lish uchun obuna bo'ling. Biz spam yubormaymiz.</p>
-    <form class="row mt-24" data-validate style="max-width: 480px; margin: 24px auto 0; gap: 8px;">
-      <input class="input" type="email" placeholder="Email manzilingiz" required>
-      <button class="btn btn--solid">Obuna bo'lish</button>
-    </form>
+        <p>Boshqa dizayn xohlaysizmi? Agar sizda o‘zingiz xohlagan rasm yoki
+        g‘oya bo‘lsa-yu, bizning kolleksiyamizda u bo‘lmasa, boshqa joydan qidirib
+        vaqt yo‘qotmang. Bizga shunchaki xabar yuboring. Biz buyurtma asosida
+        individual dizaynli futbolkalar tayyorlaymiz. Qanday grafik dizayn
+        izlayotgan bo‘lsangiz ham, uni siz uchun amalga oshirib bera olamiz.</p>
+      </div>
+
+      <div class="legal__back">
+        <a href="{% url 'contact' %}" class="btn btn--solid btn--lg">Bog'lanish</a>
+      </div>
+
+    </article>
   </div>
 </section>
 {% endblock %}
