@@ -23,14 +23,6 @@
           so'ng buyurtmalar bo'limiga qayting.
         </p>
 
-        {# ---- TODO: replace with actual Click integration ---- #}
-        {# Below is a placeholder. When wiring up Click, generate the merchant URL/form #}
-        {# server-side and either render its <form action="..."> here, or redirect from #}
-        {# the view. See payment/views.py — `payment` view has a TODO marker. #}
-<!--        <div class="Msg mt-24">-->
-<!--          ⚠ Click integration not connected yet. Endpoint pending.-->
-<!--        </div>-->
-
         <form method="post" action="{% url 'payment_start' order.id %}" class="mt-24">
           {% csrf_token %}
           <button class="btn btn--solid btn--block btn--lg" type="submit" >
