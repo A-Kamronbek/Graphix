@@ -1,8 +1,27 @@
-# Byte-compiled / optimized / DLL files
+# --- secrets ---
 .env
-.venv/
+.env.*
+!.env.example
 
-media/
-__pycache__
+# --- python ---
 __pycache__/
-.docs
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+
+# --- virtualenvs ---
+.venv/
+venv/
+
+# --- django ---
+/vm/media/
+/vm/staticfiles/
+/vm/logs/
+*.sqlite3
+
+# --- editors / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
