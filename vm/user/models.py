@@ -9,12 +9,13 @@ import re
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 # Accepts ``+998 XX XXX XX XX`` with optional spaces; ``message`` is user-facing.
 phone_regex = RegexValidator(
     regex=r'^\+998 ?\d{2} ?\d{3} ?\d{2} ?\d{2}$',
-    message="format: +998 XX XXX XX XX"
+    message=_("format: +998 XX XXX XX XX")
 )
 
 

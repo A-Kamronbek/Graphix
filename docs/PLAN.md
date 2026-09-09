@@ -4,8 +4,8 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.8 · created 2026-09-08 · last amended 2026-09-09
-**Status:** Phases 0, 1a and 2 complete · Phase 1b parked (no VPS yet) · **Phase 3 (i18n) next**
+**Plan version:** 1.10 · created 2026-09-08 · last amended 2026-09-09
+**Status:** Phases 0, 1a, 2 and 3 complete · Phase 1b parked (no VPS yet) · **Phase 4 (data model) next**
 
 ---
 
@@ -834,36 +834,64 @@ token clears 4.5:1** · fonts self-hosted, subset and preloaded · **CSS 8.5 KB 
 the first line.* **Deliberately before the page rebuild** — adding i18n afterwards means editing
 every template twice.
 
-1. Settings: `LANGUAGES = [('uz', "O'zbekcha"), ('ru', 'Русский'), ('en', 'English')]`,
+1. ✅ Settings: `LANGUAGES = [('uz', "Oʻzbekcha"), ('ru', 'Русский'), ('en', 'English')]`,
    `LANGUAGE_CODE = 'uz'`, `LOCALE_PATHS`. `LocaleMiddleware` **after** `SessionMiddleware`, **before**
-   `CommonMiddleware`.
-2. Wrap the public URL tree in `i18n_patterns(..., prefix_default_language=False)`. Keep the webhook,
-   admin, sitemap, robots, media and static routes **outside** it (§6). Verify the Click webhook still
-   resolves at exactly `/payment/click/update/`.
-3. Add `set_language` and the language switcher (POST, preserves the current page).
-4. `<html lang>` and `hreflang` alternates in `base.html`; sitemap emits all three language URLs.
-5. Translation model fields and the `tfield` helper + `|t` filter (§7).
-6. Django admin groups translation fields clearly per language.
-7. `locale/uz|ru|en/LC_MESSAGES/`; `makemessages`; wire `compilemessages` into deployment.
+   `CommonMiddleware`. A one-year `graphix_lang` cookie is the fallback; the URL prefix decides.
+2. ✅ Public URL tree wrapped in `i18n_patterns(..., prefix_default_language=False)`. Admin, sitemap,
+   robots, manifest, `set_language`, media and static stay **outside** it (§6) — **and so does the
+   Click webhook**, which now lives in its own `webhook_urlpatterns` list in `payment/urls.py` that
+   `vm/urls.py` includes before the prefixed block (§17 #52).
+   **Five tests guard it**: `reverse('click_webhook')` is `/payment/click/update/` under uz, ru *and*
+   en; the path resolves to the webhook view; and `/ru/…` and `/en/…` variants both 404.
+3. ✅ `set_language` wired at `/i18n/setlang/` plus a POST language switcher in the footer. Verified:
+   posting `language=ru, next=/shop/` redirects to `/ru/shop/` — the visitor stays on the page they
+   were reading.
+4. ✅ `<html lang="{{ LANGUAGE_CODE }}">` and `hreflang` alternates for all three languages plus
+   `x-default`, both fed by the same context processor as the switcher so they cannot disagree.
+   Sitemaps set `i18n`/`alternates`/`x_default`: **21 `<url>` entries, 84 `xhtml:link` alternates.**
+5. ✅ Translation fields (`name_ru/_en`, `description_ru/_en`, `colour_ru/_en`) with migration
+   `product.0009_i18n_fields`, plus `core/i18n.py::tfield` and the `{{ obj|t:"name" }}` filter.
+   **Uzbek stays in the base field**, so every existing row keeps working with no backfill (§17 #8),
+   and a *blank* translation falls back rather than rendering an empty product name.
+6. ✅ Django admin groups the fields into one fieldset per language, Uzbek first, each non-Uzbek
+   fieldset labelled "blank falls back to Uzbek".
+7. ✅ `locale/{uz,ru,en}/LC_MESSAGES/`, `makemessages`, `compilemessages`. **25 strings, all three
+   catalogues compiled.** gettext is already installed on the development machine.
 
 **Translation quality standard** — this decides whether the site reads professional or machine-made:
 
 - **Uzbek** is the source of truth. Latin script. Correct `oʻ` / `gʻ` (U+02BB) — never a plain ASCII
-  apostrophe in body copy. **Phase 3 converts the whole codebase in one pass.** Phase 1a deliberately
-  kept ASCII apostrophes in the templates rather than half-converting them: the existing ~40 Uzbek
-  strings all use `'`, and a file with both conventions is worse than a file with one. The strings
-  move into `.po` files here anyway, which is the moment to fix them all at once. The only place the
-  correct character is already in use is the OG image, which is a rendered asset, not sweepable text.
+  apostrophe in body copy. Every string Phase 3 touched was corrected on the way through; the
+  remaining ASCII apostrophes are all in templates that Phase 5 replaces, and are corrected there as
+  each page is rebuilt (§17 #50).
 - **Russian** written in natural commercial register, *not* word-for-word from the Uzbek. The two
   languages differ enough structurally that literal translation reads as broken.
 - **English** written for a fluent reader, not translated.
 - **Never** bulk-machine-translate into `.po` files. Every string reviewed before `compilemessages`.
 - Translator comments on any string ambiguous out of context.
 
+> **Scope call — template copy moves to Phase 5 (§17 #50).** Phase 3 delivers the machinery and
+> every **Python-side** string: form labels and errors, validator messages, rate-limit and checkout
+> messages — 25 strings, written in three languages, compiled and tested. It does **not** wrap the
+> current templates, because Phase 5 rebuilds all 25 of them from scratch; wrapping them now means
+> translating copy that Phase 5 deletes, which is the exact "written twice" waste this phase exists
+> to prevent. Phase 5's per-page checklist already requires all three languages, so each page is
+> written once, in three languages, against the finished design.
+
 **Definition of Done:** all three languages resolve and render · switching preserves the current page
-· the Click webhook resolves and completes a test payment · sitemap emits three URLs per page with
-correct `hreflang` · translation fields editable in the admin · every existing string translated to
-native quality.
+· the Click webhook resolves unprefixed under every language · sitemap emits three URLs per page with
+correct `hreflang` · translation fields editable in the admin · every Python-side string translated
+to native quality.
+
+**Verified 2026-09-09:** `/`, `/ru/`, `/en/` and `/shop/`, `/ru/shop/`, `/en/shop/` all return 200 ·
+`set_language` moves `/shop/` → `/ru/shop/` · **`/payment/click/update/` resolves unprefixed (405 to
+a GET, i.e. the view is there) while `/ru/payment/click/update/` 404s** · sitemap emits 21 `<url>`
+entries with 84 alternates and 21 `x-default` · 4 `hreflang` tags on every page · translation
+fieldsets render in the admin · `check` and `check --deploy` clean · **23 tests pass** (4 smoke + 19
+new).
+
+*The remaining DoD clause — a **completed** test payment — needs a live Click endpoint and is
+carried to Phase 1b, where the webhook is registered against the real domain.*
 
 ---
 
@@ -871,7 +899,8 @@ native quality.
 
 *Goal: every schema change landed and migrated, so the UI phases build against a final model.*
 
-1. Write all migrations from §7 — product (slug, translations, tags, `likes_count`, rating denorm,
+1. Write all migrations from §7 — product (slug, ~~translations~~ *(landed in Phase 3 as
+   `product.0009_i18n_fields`)*, tags, `likes_count`, rating denorm,
    spec fields, `size_chart`, `is_active`), `Tag`, category, colour, variant stock, `SizeChart` +
    `SizeChartRow`, `ProductLike`, `Review` + `ReviewImage`, `DeliveryOption`, `PickupPoint`, order
    (`order_no`, lat/lng, delivery option + price, pickup point + snapshot), and the cart changes
@@ -1449,7 +1478,7 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 | 1a Rebrand | ✅ Done | `phase-1-rebrand` | 2026-09-09 | 2026-09-09 | Mark, icons, OG, all copy, canonical contacts |
 | 1b Deployment | ⛔ Blocked | `phase-1b-deploy` | — | — | **Waiting on the VPS purchase.** Runs after Phase 10, before launch (§13) |
 | 2 Design system | ✅ Done | `phase-2-design` | 2026-09-09 | 2026-09-09 | Round one rejected, round two signed off. Tokens, fonts, base, components, style guide, icons, lockups all shipped. Item 10's measurement carried to Phase 5 |
-| 3 i18n foundation | ⬜ Not started | `phase-3-i18n` | — | — | |
+| 3 i18n foundation | ✅ Done | `phase-3-i18n` | 2026-09-09 | 2026-09-09 | Machinery + 25 Python strings in 3 languages. Template copy moves to Phase 5, per page (§17 #50) |
 | 4 Data model | ⬜ Not started | `phase-4-models` | — | — | Needs the pickup-point CSV |
 | 5 Frontend rebuild | ⬜ Not started | `phase-5-frontend` | — | — | |
 | 6 Features | ⬜ Not started | `phase-6-features` | — | — | Needs Yandex licence + Telegram token |
@@ -1478,6 +1507,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-09 | Task | 2 | **Phase 2 started.** Typeface screening run against 31 families by reading cmaps — 22 fail on U+02BB; shortlist and evidence in `docs/design/typeface-screening.md`. No product photography exists, so a garment-mockup generator was built (`docs/design/mockup/`) and eight products composed. Three directions delivered as one self-contained file, `docs/design/directions.html` | **Kamronbek picks a direction**, then tokens, base.css, components.css, style guide |
 | 2026-09-09 | Task | 2 | v1.7: **round one rejected, round two built.** Kamronbek: type "thin and sharp, looks like hand made cheap", desktop "nothing" with wrong metrics, wants dark-but-not-black. Root causes found and recorded (§17 #44): the shortlist came from one type register, and the desktop page had an uncapped image height plus a 900 px breakpoint — a bug shipped as a design. Screened 35 editorial/fashion faces; **Playfair Display** is the only premium display serif that contains U+02BB. Rebuilt as one dark direction — warm charcoal layers, brass accent, Playfair + Onest 500 min — covering product page **and** shop, verified by screenshot at 390 px and 1280 px before publishing | Sign-off on the design, then tokens and components |
 | 2026-09-09 | Task | 2 | v1.8: **Phase 2 complete.** Design signed off, then built into the real system: `tokens.css` (every foreground token contrast-checked against all four grounds — lowest 3.34:1 on a decorative token), `base.css`, `components.css` (22 blocks, the full §8 inventory), 28-symbol inline icon sprite, and the living style guide at `/boshqaruv/style/` (staff-only, verified 302/302/200). Fonts subset and self-hosted as variable WOFF2 — Playfair 293→56 KB, Onest 188→54 KB — killing the third-party `rsms.me` request. Wordmark lockups outlined from Playfair. **CSS 8.5 KB gzipped against a 60 KB budget.** New system deliberately loads only on the style guide until Phase 5, so it cannot collide with `main.css` (§17 #48) | Phase 3 — i18n foundation |
+| 2026-09-09 | Task | 3 | v1.9: **Phase 3 complete.** uz unprefixed, `/ru/` and `/en/` prefixed; `LocaleMiddleware`, `set_language` + footer switcher, `hreflang` + `x-default`, trilingual sitemap (21 urls, 84 alternates). **The Click webhook moved into its own `webhook_urlpatterns` list outside `i18n_patterns`, with five tests asserting it never moves** — risk #2 is where the failure is silent. `tfield` + `\|t` filter with blank-translation fallback, `product.0009_i18n_fields`, admin grouped one fieldset per language. 25 Python-side strings written in ru and en and compiled. Template copy moved to Phase 5 per page (§17 #50). 23 tests pass | Phase 4 — data model |
 
 ---
 
@@ -1534,6 +1564,9 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 47 | 2026-09-09 | **Desktop product-page contract: two columns from 860 px, sticky gallery with a vertical thumbnail rail, main image capped at `min(76vh, 760px)`** | Written as a rule because the underlying requirement is *one photograph must never take more than one screen*. The round-one page failed it by leaving the image unconstrained, and the 900 px breakpoint meant any frame narrower than that silently fell back to a single column. Both are easy to reintroduce in Phase 5, so the numbers are recorded here rather than left to judgement |
 | 48 | 2026-09-09 | **The new stylesheets are loaded only by the style guide until Phase 5** | `main.css` and `components.css` both define `.btn`, `.wrap`, `.nav`, `.foot` and more. Wiring the new system into `base.html` now would have every storefront page loading two conflicting stylesheets for three phases, with whichever loaded last silently winning. The style guide is standalone, loads the new system alone, and `base.html` switches over in Phase 5 when the pages are rebuilt and `main.css` is deleted |
 | 49 | 2026-09-09 | **Fonts are subset and self-hosted as variable WOFF2; monospace is declared but never preloaded** | Subsetting to the ranges the site actually prints cuts Playfair 293→56 KB and Onest 188→54 KB while keeping the weight axis, so one file serves every weight. Mono is in `@font-face` but no storefront page sets `--f-mono`, so the browser never downloads it — it costs nothing until Phase 7's admin panel uses it. This also removes the third-party `rsms.me` request that blocked rendering on every page of the old site |
+| 50 | 2026-09-09 | **Phase 3 ships the i18n machinery and every Python-side string; template copy moves to Phase 5, per page** | Phase 5 rebuilds all 25 templates from scratch. Wrapping the current ones in `{% trans %}` and writing three languages of copy for them means translating text that Phase 5 deletes — the exact "every template gets written twice" waste this phase exists to prevent. Python strings are different: form labels, validator messages and checkout messages survive the rebuild untouched, so they are translated now (25 strings, three languages, compiled and tested). Phase 5's per-page checklist already demands all three languages, so each page is written once against the finished design |
+| 51 | 2026-09-09 | **SMS bodies stay Uzbek-only** | Eskiz moderates message *text*, so three languages means three templates through moderation and three to keep in sync. The password-reset flow also has no language context to work from — it starts from a phone number typed by someone who is not logged in. One moderated Uzbek template is the correct trade until there is evidence of Russian-speaking signup drop-off |
+| 52 | 2026-09-09 | **The Click webhook lives in its own `webhook_urlpatterns` list, included outside `i18n_patterns`** | `payment/urls.py` held the callback next to the human-facing checkout pages, which cannot both go in and stay out of the language prefix. Splitting the list makes the boundary explicit at the point someone would edit it, rather than relying on a comment. Five tests assert the path is identical under uz, ru and en and that the prefixed variants 404 — this is risk #2, where the failure is silent |
 
 ---
 
@@ -1553,6 +1586,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 7 | **Instagram and TikTok links — need the real handles** | 2026-09-09 | Both were `href="#"` in the footer and were removed in Phase 1a rather than shipped dead. Instagram matters: §9 Phase 9 calls it out as a primary sharing surface alongside Telegram. Give me the handles and they go back in — Phase 5 at the latest, when the footer is rebuilt |
 | 8 | Redraw the OG card once the display typeface exists | 2026-09-09 | The Phase 1a card is set in Poppins Bold, which is a placeholder — and which lacks U+02BB, so the tagline had to be set in a second face. Phase 2 picks the real face; regenerate the card then |
 | 9 | Rename the GitHub repository `ValleyMade` → `graphix` | 2026-09-09 | Cosmetic, and it changes the clone URL and every local remote. Pair it with the `vm/` → `graphix` package rename already parked in Phase 11 |
+| 10 | **Dev PostgreSQL dies with the laptop's sleep cycle** | 2026-09-09 | Diagnosed during the Phase 3 verification pass. The Windows event log shows sleep/resume and kernel-shutdown events that line up exactly with PostgreSQL restarting; its own log shows **clean shutdowns, no crash, no FATAL**. Anything holding a connection across a sleep — a test run, a `runserver` — dies with *"server closed the connection unexpectedly"*. It is environmental and a retry always works. If it becomes annoying, set the machine not to sleep while a dev server is up, or point local dev at a PostgreSQL in Docker that restarts with the daemon. **Not a code defect — do not chase it as one.** |
 
 ---
 
@@ -1578,7 +1612,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 16 | Instagram and TikTok handles for the footer (§18 #7) | Phase 5 | ⏳ Open |
 | 17 | Confirm the Eskiz sender name is approved as exactly `GRAPHIX`, and that the two SMS templates were re-moderated after the rebrand — Eskiz moderates message *text*, and both bodies changed in Phase 1a | Phase 1b | ⏳ Open — worth checking before it blocks a live signup |
 | 19 | Product photography — when can real shots exist? Not blocking now (§17 #42), but it gates Phase 11 and it is what decides whether the chosen direction actually looks professional. | Phase 11 | ⏳ Open |
-| 20 | The style guide is at `/boshqaruv/style/` and needs a **staff account** to open. Does one exist on your machine, or should I add a `createsuperuser` step to the README? | Phase 2 | ⏳ Minor |
+| 21 | The dev machine sleeps and takes PostgreSQL down with it, so a command that spans a sleep dies with *"server closed the connection unexpectedly"*. Harmless — retry. Worth knowing before someone debugs it as a code fault (§18 #10). | — | ℹ️ Environment, not a defect |
 
 **Resolved:**
 
@@ -1605,6 +1639,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | Who runs the server commands? | ✅ Kamronbek has shell access and I can drive it from his machine when the time comes |
 | Wordmark lockups in Phase 1? | ✅ No — moved to Phase 2, after the display typeface is chosen (§17 #38) |
 | "100+ designs" before the catalogue exists? | ✅ Hardcoded now; Phase 11 item 2 is the launch gate (§17 #39) |
+| Is there a staff account for `/boshqaruv/style/`? | ✅ Yes — the existing `admin` account. No README change needed |
 
 ---
 

@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.utils.translation import gettext as _
 from click_up.views import ClickWebhook
 
 from .models import Order
@@ -30,7 +31,7 @@ def checkout(request):
     """Collect delivery details, validate them, and turn the cart into an Order."""
     cart = services.get_open_cart(request.user)
     if not cart or not cart.cart_items.exists():
-        messages.error(request, "Savat bo'sh.")
+        messages.error(request, _("Savat boʻsh."))
         return redirect('cart')
 
     items_qs = (
@@ -53,7 +54,7 @@ def checkout(request):
             payment_method = Order.PaymentMethod.CLICK
 
         if not name or not phone or not address:
-            messages.error(request, "Ma'lumot va manzilni to'ldiring.")
+            messages.error(request, _("Maʻlumot va manzilni toʻldiring."))
             return render(request, 'payment/checkout.html', {
                 'items': items, 'subtotal': subtotal, 'delivery': delivery, 'total': total,
                 'form_data': {'name': name, 'phone': phone, 'address': address,
@@ -77,13 +78,13 @@ def checkout(request):
                 payment_method=payment_method, delivery=delivery,
             )
         except services.CartAlreadyCheckedOut as e:
-            messages.info(request, "Buyurtma allaqachon rasmiylashtirilgan.")
+            messages.info(request, _("Buyurtma allaqachon rasmiylashtirilgan."))
             return redirect('payment', order_id=e.existing_order.id)
         except services.EmptyCart:
-            messages.error(request, "Savat bo'sh.")
+            messages.error(request, _("Savat boʻsh."))
             return redirect('cart')
 
-        messages.success(request, f"Buyurtma qabul qilindi. To'lovni amalga oshiring.")
+        messages.success(request, _("Buyurtma qabul qilindi. Toʻlovni amalga oshiring."))
         return redirect('payment', order_id=order.id)
 
     return render(request, 'payment/checkout.html', {

@@ -103,6 +103,8 @@ Provisioning is Phase 1b of the rebuild and has not happened yet:
 1. Push code; clone on the server; create the venv and `pip install -r requirements.txt`.
 2. Create the production `.env` (with `DEBUG=False`) and the PostgreSQL database.
 3. `python manage.py migrate && python manage.py collectstatic --noinput`.
+   Also `python manage.py compilemessages` — .mo files are build output and are not
+   in the repository, so the site falls back to Uzbek everywhere without this step.
 4. Run gunicorn under systemd, reverse-proxied by nginx (sockets, static/media).
 5. Issue HTTPS certificates with certbot; the security settings in `settings.py`
    switch on automatically when `DEBUG=False`.
