@@ -4,8 +4,8 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.7 · created 2026-09-08 · last amended 2026-09-09
-**Status:** Phases 0 and 1a complete · Phase 1b parked (no VPS yet) · **Phase 2 in progress — a direction needs choosing (§19 Q18)**
+**Plan version:** 1.8 · created 2026-09-08 · last amended 2026-09-09
+**Status:** Phases 0, 1a and 2 complete · Phase 1b parked (no VPS yet) · **Phase 3 (i18n) next**
 
 ---
 
@@ -736,8 +736,14 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
      `min(76vh, 760px)`**, so one photograph never exceeds one screen (§17 #47).
    - **Shop:** 2 columns at 390 px, 3 from 720 px, 4 from 860 px; filter chips and a sort control.
 
-   **Awaiting Kamronbek's sign-off (§19 Q18)** before it is turned into tokens and components.
-3. Fill in every token value in `tokens.css`. **Blocked on item 2.**
+   **Signed off 2026-09-09** — turned into tokens and components below.
+3. ✅ Fill in every token value in `tokens.css` — colour, space, type, radius, shadow, motion,
+   layout, z-index. No `TODO` remains. **Every foreground token was contrast-checked against all
+   four grounds: the lowest ratio in the whole system is 3.34:1 on `--c-fg-subtle` (decorative,
+   needs 3.0), and every text token clears 4.5:1 with room to spare.**
+   Two layout constants live here as tokens rather than in a component, because they are contracts:
+   `--ar-product: 4/5` (one ratio for the whole catalogue) and `--pdp-image-max: min(76vh, 760px)`
+   (§17 #47).
 4. Self-host the typefaces. Subset to Latin + Latin Extended (Uzbek needs `oʻ` and `gʻ`) + Cyrillic.
 
    > **Check U+02BB before choosing a face — it is a real elimination criterion.** Uzbek Latin
@@ -769,17 +775,38 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
 
    **Chosen (round two): Playfair Display display + Onest UI + IBM Plex Mono where data needs it.**
 
-   WOFF2 only, `font-display: swap`, preload the display face. *The current site pulls Inter from
-   `rsms.me` — a third-party render-blocking request on every page load.*
-5. Build `base.css` — reset, typography scale, layout primitives, utilities.
-6. Build `components.css` — the full §8 inventory, every state (default, hover, focus-visible,
-   active, disabled, loading, error).
-7. Build a **living style guide** at `/boshqaruv/style/` (staff-only) rendering every component in
-   every state. The reference for every later phase and the fastest way to catch drift.
-8. Motion: standard transitions; the `prefers-reduced-motion` guard wired once, globally.
-9. Icons: one consistent set as an inline SVG sprite. No icon fonts.
-10. **Verify the above-the-fold rule**: on a 390 × 844 viewport the home hero must leave at least one
-   partially visible row of product cards. This is a measured check, not a judgement call.
+   ✅ **Self-hosted and subset.** `pyftsubset` to Latin + Latin Ext-A/B + U+02BB/02BC + Cyrillic +
+   the punctuation and symbols the storefront actually prints, then WOFF2. The variable axes
+   survive, so one file covers every weight: **Playfair 293 KB → 56 KB, Onest 188 KB → 54 KB,
+   IBM Plex Mono 132 KB → 21 KB.** `font-display: swap`; the two storefront faces are preloaded.
+   Mono is declared but **not** preloaded — no storefront page sets it, so the browser never fetches
+   it until the admin panel does in Phase 7. The third-party `rsms.me` request is gone.
+
+   ✅ **Wordmark lockups delivered** (§17 #38): `logo-full.svg` and `logo-stacked.svg`, outlined from
+   Playfair Display 700 at 0.055 em tracking and cap-height-aligned to the mark, `currentColor` so
+   one file serves both light and dark.
+5. ✅ Build `base.css` — `@font-face`, reset, typography scale, layout primitives, utilities,
+   focus ring, the global reduced-motion guard.
+6. ✅ Build `components.css` — the full §8 inventory in 22 numbered blocks: buttons (4 variants ×
+   3 sizes × disabled/loading), inputs, textarea, select, checkbox, radio, quantity stepper, OTP
+   cells, search field, product card, gallery, size selector, spec strip, star rating (display and
+   input), review card, heart with count, share, badges, modal/mobile sheet, toast, breadcrumb,
+   pagination, empty state, skeleton, the table that stacks into cards, filter chips, the
+   list-first pickup picker, tabs, accordion, nav + drawer, footer, language switcher, messages,
+   product grid, mobile buy-bar and the height-capped hero.
+7. ✅ **Living style guide at `/boshqaruv/style/`**, `staff_member_required` and `noindex`.
+   Verified: anonymous → 302, non-staff → 302, staff → 200.
+   It is deliberately **standalone rather than extending `base.html`** — the storefront still runs
+   on the old `main.css` until Phase 5, and loading both stylesheets together would let their class
+   names collide (§17 #48). This is the only page loading the new system until then.
+8. ✅ Motion tokens plus one global `prefers-reduced-motion` guard in `base.css`.
+9. ✅ Icons: 28 symbols in one inline SVG sprite, `templates/partials/_icons.svg.html`, inheriting
+   `currentColor`. No icon fonts.
+10. **Verify the above-the-fold rule** — on a 390 × 844 viewport the home hero must leave at least
+   one partially visible row of product cards. The `.hero` component enforces it with
+   `max-height: 58vh` on mobile, so the rule is structural rather than a judgement call. **The
+   measurement itself moves to Phase 5**, where the home page is actually built; there is no home
+   hero to measure yet.
 
 > **Photography note.** The directions are built on **drawn garment mockups**, not photographs —
 > there is no product photography yet, and Kamronbek chose to proceed rather than wait (§17 #42).
@@ -790,6 +817,14 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
 **Definition of Done:** a direction is chosen and recorded in §17 · `tokens.css` has no `TODO` ·
 every component exists in the style guide with all states · contrast passes on every token pairing ·
 fonts self-hosted and preloaded · CSS under budget · the style guide renders at all six breakpoints.
+
+**Verified 2026-09-09:** direction recorded (§17 #44–47) · no `TODO` in `tokens.css` · every
+component renders at `/boshqaruv/style/`, which returns 302 for anonymous, 302 for non-staff and 200
+for staff · **lowest contrast anywhere in the system is 3.34:1 on a decorative token; every text
+token clears 4.5:1** · fonts self-hosted, subset and preloaded · **CSS 8.5 KB gzipped against a
+60 KB budget** · `manage.py check` clean · `makemigrations --check` clean · 4 smoke tests pass.
+
+**Still open:** item 10's measurement, which needs the Phase 5 home page.
 
 ---
 
@@ -1413,7 +1448,7 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 | 0 Stabilise | ✅ Done | `phase-0-stabilise` | 2026-09-08 | 2026-09-08 | Items 7 and 9 moved to Phase 1b (new VPS) |
 | 1a Rebrand | ✅ Done | `phase-1-rebrand` | 2026-09-09 | 2026-09-09 | Mark, icons, OG, all copy, canonical contacts |
 | 1b Deployment | ⛔ Blocked | `phase-1b-deploy` | — | — | **Waiting on the VPS purchase.** Runs after Phase 10, before launch (§13) |
-| 2 Design system | 🟨 In progress | `phase-2-design` | 2026-09-09 | — | Round one rejected; **round two built — waiting on sign-off (§19 Q18)**. Items 3 and 5–10 blocked on it |
+| 2 Design system | ✅ Done | `phase-2-design` | 2026-09-09 | 2026-09-09 | Round one rejected, round two signed off. Tokens, fonts, base, components, style guide, icons, lockups all shipped. Item 10's measurement carried to Phase 5 |
 | 3 i18n foundation | ⬜ Not started | `phase-3-i18n` | — | — | |
 | 4 Data model | ⬜ Not started | `phase-4-models` | — | — | Needs the pickup-point CSV |
 | 5 Frontend rebuild | ⬜ Not started | `phase-5-frontend` | — | — | |
@@ -1442,6 +1477,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-09 | Task | 1a | v1.5: **Phase 1a complete.** Mark redrawn geometrically (1.9 KB traced path → 225 B, true 60°, IoU 0.943 against the original); full icon set, manifest and OG card; every ValleyMade string replaced; canonical contacts fixed; hero de-"Arzon"-ed; sitewide OG/Twitter meta. Phase 1 split into 1a/1b, 1b moved to just before launch, and the valleymade.uz 301 requirement deleted. Found: Poppins lacks U+02BB — a Phase 2 elimination criterion (risk #23) | Phase 2 — design system |
 | 2026-09-09 | Task | 2 | **Phase 2 started.** Typeface screening run against 31 families by reading cmaps — 22 fail on U+02BB; shortlist and evidence in `docs/design/typeface-screening.md`. No product photography exists, so a garment-mockup generator was built (`docs/design/mockup/`) and eight products composed. Three directions delivered as one self-contained file, `docs/design/directions.html` | **Kamronbek picks a direction**, then tokens, base.css, components.css, style guide |
 | 2026-09-09 | Task | 2 | v1.7: **round one rejected, round two built.** Kamronbek: type "thin and sharp, looks like hand made cheap", desktop "nothing" with wrong metrics, wants dark-but-not-black. Root causes found and recorded (§17 #44): the shortlist came from one type register, and the desktop page had an uncapped image height plus a 900 px breakpoint — a bug shipped as a design. Screened 35 editorial/fashion faces; **Playfair Display** is the only premium display serif that contains U+02BB. Rebuilt as one dark direction — warm charcoal layers, brass accent, Playfair + Onest 500 min — covering product page **and** shop, verified by screenshot at 390 px and 1280 px before publishing | Sign-off on the design, then tokens and components |
+| 2026-09-09 | Task | 2 | v1.8: **Phase 2 complete.** Design signed off, then built into the real system: `tokens.css` (every foreground token contrast-checked against all four grounds — lowest 3.34:1 on a decorative token), `base.css`, `components.css` (22 blocks, the full §8 inventory), 28-symbol inline icon sprite, and the living style guide at `/boshqaruv/style/` (staff-only, verified 302/302/200). Fonts subset and self-hosted as variable WOFF2 — Playfair 293→56 KB, Onest 188→54 KB — killing the third-party `rsms.me` request. Wordmark lockups outlined from Playfair. **CSS 8.5 KB gzipped against a 60 KB budget.** New system deliberately loads only on the style guide until Phase 5, so it cannot collide with `main.css` (§17 #48) | Phase 3 — i18n foundation |
 
 ---
 
@@ -1496,6 +1532,8 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 45 | 2026-09-09 | **Palette: warm charcoal layers plus a single brass accent. Never pure black, never pure white** | Kamronbek: *"dark colours including black"* — not `#000`. Ground `#100E0C` with `#17140F` and `#211C15` above it lets panels separate by material instead of by outline, which is what reads as expensive. Ink is warm off-white `#EFE9DE`: pure white on near-black halates and makes type look brittle. Brass `#C6A44E` is confined to price, chosen size and the buy button — one accent, spent in one place |
 | 46 | 2026-09-09 | **Type: Playfair Display for display, Onest 500–600 for UI. Body weight is 500 and never 400** | Playfair is the only high-contrast fashion serif found that contains U+02BB, so it is effectively the only way to get a premium editorial voice *and* set `Oʻzbekiston`. Onest stays for UI because it is sturdy at 500+, has tight U+02BB spacing and real Cyrillic. The 500-minimum is a hard rule, not a preference: it is the direct fix for the "thin" complaint |
 | 47 | 2026-09-09 | **Desktop product-page contract: two columns from 860 px, sticky gallery with a vertical thumbnail rail, main image capped at `min(76vh, 760px)`** | Written as a rule because the underlying requirement is *one photograph must never take more than one screen*. The round-one page failed it by leaving the image unconstrained, and the 900 px breakpoint meant any frame narrower than that silently fell back to a single column. Both are easy to reintroduce in Phase 5, so the numbers are recorded here rather than left to judgement |
+| 48 | 2026-09-09 | **The new stylesheets are loaded only by the style guide until Phase 5** | `main.css` and `components.css` both define `.btn`, `.wrap`, `.nav`, `.foot` and more. Wiring the new system into `base.html` now would have every storefront page loading two conflicting stylesheets for three phases, with whichever loaded last silently winning. The style guide is standalone, loads the new system alone, and `base.html` switches over in Phase 5 when the pages are rebuilt and `main.css` is deleted |
+| 49 | 2026-09-09 | **Fonts are subset and self-hosted as variable WOFF2; monospace is declared but never preloaded** | Subsetting to the ranges the site actually prints cuts Playfair 293→56 KB and Onest 188→54 KB while keeping the weight axis, so one file serves every weight. Mono is in `@font-face` but no storefront page sets `--f-mono`, so the browser never downloads it — it costs nothing until Phase 7's admin panel uses it. This also removes the third-party `rsms.me` request that blocked rendering on every page of the old site |
 
 ---
 
@@ -1539,8 +1577,8 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 15 | **When is the VPS bought?** Specs are settled (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD, upgradeable to 26.04), and Phase 1b is the only thing waiting on it. Ask again when Phase 10 finishes. | Phase 1b | ⏳ Open — not urgent |
 | 16 | Instagram and TikTok handles for the footer (§18 #7) | Phase 5 | ⏳ Open |
 | 17 | Confirm the Eskiz sender name is approved as exactly `GRAPHIX`, and that the two SMS templates were re-moderated after the rebrand — Eskiz moderates message *text*, and both bodies changed in Phase 1a | Phase 1b | ⏳ Open — worth checking before it blocks a live signup |
-| 18 | **Does the round-two design hold?** Open `docs/design/directions.html` — product page and shop, at 390 px and desktop. Round one was rejected outright (§17 #44); this is the rebuild. If it holds, it becomes tokens and components; if a part is still wrong, name the part. | Phase 2 | ⏳ **Open — blocking Phase 2 items 3 and 5–10** |
 | 19 | Product photography — when can real shots exist? Not blocking now (§17 #42), but it gates Phase 11 and it is what decides whether the chosen direction actually looks professional. | Phase 11 | ⏳ Open |
+| 20 | The style guide is at `/boshqaruv/style/` and needs a **staff account** to open. Does one exist on your machine, or should I add a `createsuperuser` step to the README? | Phase 2 | ⏳ Minor |
 
 **Resolved:**
 
@@ -1560,6 +1598,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | Like vs favourite? | ✅ Merged into one heart |
 | Guest checkout? | ✅ Anonymous cart; login required at checkout |
 | Is there data in the current production database to preserve? | ✅ No — it holds no items. A new VPS is being provisioned; nothing needs migrating (§17 #34) |
+| Which visual direction? | ✅ Round one (three directions) rejected; the round-two dark premium direction signed off 2026-09-09 (§17 #44–47) |
 | Which branch is the integration branch? | ✅ `main`. `Kamron's` merged into it before Phase 0; phase branches cut from `main` (§17 #32) |
 | What happens to valleymade.uz? | ✅ Abandoned outright — no 301s, no old server, no Change of Address (§17 #35) |
 | New VPS specs? | ✅ Ubuntu 24.04 (upgradeable to 26.04), 2 vCPU, 4 GB RAM, 40 GB SSD — anything can be installed on it |
