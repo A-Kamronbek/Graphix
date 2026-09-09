@@ -1,7 +1,7 @@
 <header class="nav">
   <div class="nav__inner">
     <div class="nav__left">
-      <a href="{% url 'home' %}" class="nav__brand">ValleyMade</a>
+      <a href="{% url 'home' %}" class="nav__brand">GRAPHIX</a>
       {% if user.is_authenticated %}
         <a href="{% url 'account' %}" class="nav__user-mobile">{{user.username}}</a>
       {% else %}

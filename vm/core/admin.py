@@ -2,8 +2,8 @@
 from django.contrib import admin
 from .models import Msg
 
-admin.site.site_header = "ValleyMade boshqaruv paneli"
-admin.site.site_title = "ValleyMade admin"
+admin.site.site_header = "GRAPHIX boshqaruv paneli"
+admin.site.site_title = "GRAPHIX admin"
 admin.site.index_title = "Boshqaruv"
 
 

@@ -84,7 +84,7 @@ def issue_code(request, user):
     request.session['pwreset_last_sent_at'] = timezone.now().isoformat()
     request.session['pwreset_attempts'] = 0   # fresh code -> reset the attempt counter
     send_sms(user.phone,
-             f"Valleymade saytida parolni tiklash uchun kodingiz: {code}")
+             f"GRAPHIX saytida parolni tiklash uchun kodingiz: {code}")
     return code
 
 

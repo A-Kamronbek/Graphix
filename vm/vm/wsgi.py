@@ -1,4 +1,4 @@
-"""WSGI entry point for the ValleyMade project (used by gunicorn in production)."""
+"""WSGI entry point for the GRAPHIX project (used by gunicorn in production)."""
 import os
 
 from django.core.wsgi import get_wsgi_application

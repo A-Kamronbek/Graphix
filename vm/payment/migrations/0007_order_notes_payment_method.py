@@ -1,4 +1,4 @@
-# Generated for ValleyMade — persist checkout notes and payment method.
+# Generated for GRAPHIX — persist checkout notes and payment method.
 
 from django.db import migrations, models
 

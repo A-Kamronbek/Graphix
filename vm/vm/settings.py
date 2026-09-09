@@ -1,4 +1,4 @@
-"""Django settings for the ValleyMade project.
+"""Django settings for the GRAPHIX project.
 
 Secrets and environment-specific values are read from a ``.env`` file (loaded
 below); required keys use ``os.environ[...]`` so a missing one fails loudly at

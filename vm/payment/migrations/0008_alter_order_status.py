@@ -1,4 +1,4 @@
-# Generated for ValleyMade — remove unreachable ACTIVE status; default is now PAYING.
+# Generated for GRAPHIX — remove unreachable ACTIVE status; default is now PAYING.
 
 from django.db import migrations, models
 

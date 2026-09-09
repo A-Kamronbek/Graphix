@@ -34,7 +34,7 @@ def generate(request, reset_expiry):
     request.session['otp_last_sent_at'] = timezone.now().isoformat()
     request.session['otp_attempts'] = 0
     send_sms(request.user.phone,
-             f"Valleymade saytida ro'yhatdan o'tish uchun kodingiz: {code}")
+             f"GRAPHIX saytida ro'yxatdan o'tish uchun kodingiz: {code}")
     return code
 
 

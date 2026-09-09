@@ -13,4 +13,4 @@ Disallow: /checkout/
 Disallow: /payment/
 Disallow: /order/
 
-Sitemap: https://valleymade.uz/sitemap.xml
+Sitemap: https://graphix.uz/sitemap.xml
