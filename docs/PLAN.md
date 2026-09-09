@@ -4,7 +4,7 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.9 · created 2026-09-08 · last amended 2026-09-09
+**Plan version:** 1.10 · created 2026-09-08 · last amended 2026-09-09
 **Status:** Phases 0, 1a, 2 and 3 complete · Phase 1b parked (no VPS yet) · **Phase 4 (data model) next**
 
 ---
@@ -1586,6 +1586,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 7 | **Instagram and TikTok links — need the real handles** | 2026-09-09 | Both were `href="#"` in the footer and were removed in Phase 1a rather than shipped dead. Instagram matters: §9 Phase 9 calls it out as a primary sharing surface alongside Telegram. Give me the handles and they go back in — Phase 5 at the latest, when the footer is rebuilt |
 | 8 | Redraw the OG card once the display typeface exists | 2026-09-09 | The Phase 1a card is set in Poppins Bold, which is a placeholder — and which lacks U+02BB, so the tagline had to be set in a second face. Phase 2 picks the real face; regenerate the card then |
 | 9 | Rename the GitHub repository `ValleyMade` → `graphix` | 2026-09-09 | Cosmetic, and it changes the clone URL and every local remote. Pair it with the `vm/` → `graphix` package rename already parked in Phase 11 |
+| 10 | **Dev PostgreSQL dies with the laptop's sleep cycle** | 2026-09-09 | Diagnosed during the Phase 3 verification pass. The Windows event log shows sleep/resume and kernel-shutdown events that line up exactly with PostgreSQL restarting; its own log shows **clean shutdowns, no crash, no FATAL**. Anything holding a connection across a sleep — a test run, a `runserver` — dies with *"server closed the connection unexpectedly"*. It is environmental and a retry always works. If it becomes annoying, set the machine not to sleep while a dev server is up, or point local dev at a PostgreSQL in Docker that restarts with the daemon. **Not a code defect — do not chase it as one.** |
 
 ---
 
@@ -1611,7 +1612,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 16 | Instagram and TikTok handles for the footer (§18 #7) | Phase 5 | ⏳ Open |
 | 17 | Confirm the Eskiz sender name is approved as exactly `GRAPHIX`, and that the two SMS templates were re-moderated after the rebrand — Eskiz moderates message *text*, and both bodies changed in Phase 1a | Phase 1b | ⏳ Open — worth checking before it blocks a live signup |
 | 19 | Product photography — when can real shots exist? Not blocking now (§17 #42), but it gates Phase 11 and it is what decides whether the chosen direction actually looks professional. | Phase 11 | ⏳ Open |
-| 20 | The style guide is at `/boshqaruv/style/` and needs a **staff account** to open. Does one exist on your machine, or should I add a `createsuperuser` step to the README? | Phase 2 | ⏳ Minor |
+| 21 | The dev machine sleeps and takes PostgreSQL down with it, so a command that spans a sleep dies with *"server closed the connection unexpectedly"*. Harmless — retry. Worth knowing before someone debugs it as a code fault (§18 #10). | — | ℹ️ Environment, not a defect |
 
 **Resolved:**
 
@@ -1638,6 +1639,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | Who runs the server commands? | ✅ Kamronbek has shell access and I can drive it from his machine when the time comes |
 | Wordmark lockups in Phase 1? | ✅ No — moved to Phase 2, after the display typeface is chosen (§17 #38) |
 | "100+ designs" before the catalogue exists? | ✅ Hardcoded now; Phase 11 item 2 is the launch gate (§17 #39) |
+| Is there a staff account for `/boshqaruv/style/`? | ✅ Yes — the existing `admin` account. No README change needed |
 
 ---
 
