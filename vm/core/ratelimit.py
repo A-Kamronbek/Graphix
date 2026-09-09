@@ -6,9 +6,10 @@ is allowed through rather than denied.
 """
 from hashlib import md5
 from django.core.cache import cache
+from django.utils.translation import gettext_lazy as _
 
 
-RATE_LIMIT_MESSAGE = "Juda ko'p urinish. Iltimos, birozdan so'ng qayta urinib ko'ring."
+RATE_LIMIT_MESSAGE = _("Juda koʻp urinish. Iltimos, birozdan soʻng qayta urinib koʻring.")
 
 
 def client_ip(request):

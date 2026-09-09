@@ -1,0 +1,121 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-09 18:08+0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
+"(n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: .\core\ratelimit.py:12
+msgid "Juda koʻp urinish. Iltimos, birozdan soʻng qayta urinib koʻring."
+msgstr "Слишком много попыток. Пожалуйста, повторите чуть позже."
+
+#: .\core\views.py:51
+msgid "Iltimos, xabar kiriting."
+msgstr "Пожалуйста, введите сообщение."
+
+#: .\core\views.py:57
+msgid "Xabar qabul qilindi."
+msgstr "Сообщение отправлено."
+
+#: .\payment\views.py:34 .\payment\views.py:84
+msgid "Savat boʻsh."
+msgstr "Корзина пуста."
+
+#: .\payment\views.py:57
+msgid "Maʻlumot va manzilni toʻldiring."
+msgstr "Заполните контактные данные и адрес."
+
+#: .\payment\views.py:81
+msgid "Buyurtma allaqachon rasmiylashtirilgan."
+msgstr "Заказ уже оформлен."
+
+#: .\payment\views.py:87
+msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
+msgstr "Заказ принят. Перейдите к оплате."
+
+#: .\user\forms.py:11
+msgid "Harflar, raqamlar va _ mumkin"
+msgstr "Разрешены буквы, цифры и _"
+
+#: .\user\forms.py:17
+msgid "Foydalanuvchi nomi yoki parol notoʻgʻri."
+msgstr "Неверное имя пользователя или пароль."
+
+#: .\user\forms.py:18
+msgid "Bu hisob faol emas."
+msgstr "Этот аккаунт неактивен."
+
+#: .\user\forms.py:25
+msgid "6 ta raqam kiriting."
+msgstr "Введите 6 цифр."
+
+#: .\user\forms.py:26
+msgid "Kodni kiriting."
+msgstr "Введите код."
+
+#: .\user\forms.py:34
+msgid "Telefon raqamni kiriting."
+msgstr "Введите номер телефона."
+
+#: .\user\forms.py:48 .\user\forms.py:80
+msgid "Yangi parol"
+msgstr "Новый пароль"
+
+#: .\user\forms.py:49 .\user\forms.py:81
+msgid "Yangi parolni qayta kiriting"
+msgstr "Повторите новый пароль"
+
+#: .\user\forms.py:50 .\user\forms.py:83 .\user\forms.py:95
+msgid "Parollar mos kelmadi."
+msgstr "Пароли не совпадают."
+
+#: .\user\forms.py:62
+msgid "Ism"
+msgstr "Имя"
+
+#: .\user\forms.py:63
+msgid "Foydalanuvchi nomi"
+msgstr "Имя пользователя"
+
+#: .\user\forms.py:71
+msgid "Bu foydalanuvchi nomi band."
+msgstr "Это имя пользователя занято."
+
+#: .\user\forms.py:79
+msgid "Joriy parol"
+msgstr "Текущий пароль"
+
+#: .\user\forms.py:82
+msgid "Joriy parol notoʻgʻri."
+msgstr "Текущий пароль неверный."
+
+#: .\user\forms.py:110
+msgid "Koʻpi bilan 50 ta belgi. Harflar, raqamlar va _"
+msgstr "Не более 50 символов. Буквы, цифры и _"
+
+#: .\user\forms.py:122
+msgid "Bu raqam roʻyxatdan oʻtgan."
+msgstr "Этот номер уже зарегистрирован."
+
+#: .\user\models.py:18
+msgid "format: +998 XX XXX XX XX"
+msgstr "формат: +998 XX XXX XX XX"
+
+#: .\user\validators.py:18 .\user\validators.py:24
+msgid "Parol 8 belgidan kam boʻlmasligi kerak."
+msgstr "Пароль должен содержать не менее 8 символов."

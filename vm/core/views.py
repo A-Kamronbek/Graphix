@@ -1,6 +1,7 @@
 """Static pages (home, about, terms), the contact form, the staff style guide,
 and error handlers."""
 from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.translation import gettext as _
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
@@ -47,13 +48,13 @@ def contact(request):
             }
             if not form_data['message'] or not form_data['subject']:
                 form_errors = True
-                messages.error(request, "Iltimos xabar kiriting.")
+                messages.error(request, _("Iltimos, xabar kiriting."))
             else:
                 Msg.objects.create(user=request.user,
                                    phone_num=request.user.phone,
                                    topic=form_data['subject'],
                                    msg_text=form_data['message'])
-                messages.success(request, "Xabar qabul qilindi.")
+                messages.success(request, _("Xabar qabul qilindi."))
                 form_data = {}
     return render(request, 'core/contact.html', {
         'form_data': form_data,
