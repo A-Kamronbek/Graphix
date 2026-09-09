@@ -87,6 +87,34 @@ Two deserve special mention because they look like safe bets and are not:
 
 The lesson for the rest of the project: **check the cmap, don't trust the family's reputation.**
 
+## Second batch — editorial and fashion faces
+
+Round one of the design was rejected as *"thin and sharp, looks like hand made cheap design"*. The
+cause was upstream of the design: **every family in the first batch was a modern grotesque**, so all
+three directions inherited one voice. A shortlist drawn from a single register cannot produce three
+different answers.
+
+So a second batch of 35 editorial, serif and fashion faces was screened the same way. **18 pass.**
+
+| Family | Role | Note |
+|---|---|---|
+| **Playfair Display** | **Display — chosen** | High-contrast fashion serif, Cyrillic, 294 KB variable. The one face that delivers a premium editorial voice *and* sets Uzbek. |
+| Cormorant / Cormorant Garamond | Display | Beautiful, but very high-contrast and light — it would reintroduce the "thin" problem. |
+| EB Garamond, Spectral, Literata, Lora, Source Serif 4, Alegreya, Bona Nova, Merriweather, Noto Serif | Text serif | Available if a reading face is ever needed. |
+| Montserrat, Raleway, Nunito, Fira Sans, Exo 2, Comfortaa | Sans | Montserrat is the sturdiest, and the most over-used. |
+
+### Failing — and this is the useful part
+
+**Every conventional Cyrillic fashion display face fails:** **Prata, Forum, Tenor Sans, Bodoni Moda,
+Marcellus.** These are the faces a designer reaches for when asked for "premium" on a Russian- or
+Uzbek-language site, and not one of them can spell `Oʻzbekiston`.
+
+Also failing: PT Serif, PT Sans, Philosopher, Oranienbaum, Arsenal, Cuprum, Jura, Play, Russo One,
+Alumni Sans, Fraunces, Unna.
+
+**There is very little premium display type that can set Uzbek.** That is the finding, and it is why
+the check has to come before a face is proposed rather than after it is chosen.
+
 ## Reproducing this
 
 ```python

@@ -4,7 +4,7 @@
 
 | File | What it is |
 |---|---|
-| `directions.html` | **The three directions.** One self-contained file — open it in any browser, no server, no network. Switch between A / B / C and between 390 px and desktop. Each direction renders in an iframe at its true width, so the media queries really run. |
+| `directions.html` | **The design.** One self-contained file — open it in any browser, no server, no network. Switch between the product page and the shop, and between 390 px and desktop; each renders in an iframe at its true width so the media queries really run. Round one offered three directions and all were rejected (plan §17 #44); this is the rebuild. |
 | `typeface-screening.md` | Which typefaces can actually set Uzbek, and the evidence. Read this before proposing a face. |
 | `mockup/` | The garment-mockup generator. |
 

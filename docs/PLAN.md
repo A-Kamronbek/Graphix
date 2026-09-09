@@ -4,7 +4,7 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.6 · created 2026-09-08 · last amended 2026-09-09
+**Plan version:** 1.7 · created 2026-09-08 · last amended 2026-09-09
 **Status:** Phases 0 and 1a complete · Phase 1b parked (no VPS yet) · **Phase 2 in progress — a direction needs choosing (§19 Q18)**
 
 ---
@@ -706,23 +706,39 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
 
 *Goal: one agreed visual language, expressed as tokens and components, before any page is rebuilt.*
 
-1. ✅ **Three directions**, reviewed at 390 px and 1440 px. **Built — awaiting Kamronbek's choice
-   (§19 Q18).** They live in `docs/design/directions.html`: one self-contained file, no server, no
-   network. Each renders in an iframe at its true width so the media queries actually run.
-   - **A · Galereya** — the shop as a gallery. Bone ground, one ink, no accent, a lot of air;
-     Unbounded very large for the product name, Onest for everything else, sizes as underlined
-     text rather than boxes.
-   - **B · Bosma** — the page as a print shop's spec sheet. Ruled rows, every value labelled,
-     Oswald condensed uppercase for display, IBM Plex Mono for all data, one signal red used
-     *only* for stock state.
-   - **C · Tungi** — evolves the current darkness. Near-black ground, garment lit as a panel,
-     Unbounded 800, and a single amber accent carrying price, stock and every CTA.
+1. **Round one — three directions, all rejected.** A · Galereya (light gallery), B · Bosma (print
+   spec sheet), C · Tungi (near-black). Kamronbek's verdict, in his words: the type was *"thin and
+   sharp, looks like hand made cheap design"*, the desktop layout was *"nothing"* with *"metrics
+   wrong"* — one image filling the page and three or four scrolls to reach the bottom of it — and
+   the customer wants **dark, but not pure black**. Archived in git history; superseded.
 
-   Each is the *same* product page — gallery, title, price, size row with a sold-out state, size-guide
-   link, spec strip, heart and share, delivery lines, description, related row, and a mobile sticky
-   add-to-cart — so the comparison is treatment, not content.
-2. Fill in every token value in `tokens.css`. **Blocked on item 1.**
-3. Self-host the typefaces. Subset to Latin + Latin Extended (Uzbek needs `oʻ` and `gʻ`) + Cyrillic.
+   **What was actually wrong, so it doesn't repeat (§17 #44):**
+   - *The desktop layout was broken, not merely plain.* The product image had no height cap and the
+     two-column breakpoint sat at 900 px, so at any narrower frame the page collapsed to one column
+     and the image ran to its natural height. That is a bug that got shipped as a design.
+   - *The typography was thin because the shortlist was biased.* Every candidate came from one
+     register — modern grotesques — so all three directions inherited the same tech-sans voice.
+     Screening never covered editorial or fashion faces at all.
+   - *Light text on a dark ground reads thinner than it measures.* 400-weight and pure white on
+     near-black is exactly the combination that looks brittle.
+
+2. ✅ **Round two — one direction, built properly.** `docs/design/directions.html`, still one
+   self-contained file, now showing **two pages** (product and shop) at 390 px and desktop.
+   - **Ground:** warm charcoal, not black — `#100E0C` with `#17140F` and `#211C15` layered above,
+     so panels separate by material rather than by outline.
+   - **Accent:** brass `#C6A44E`, carrying the price, the chosen size and the buy button. Nothing else.
+   - **Ink:** warm off-white `#EFE9DE`, never pure white — it stops the halation that thins white
+     text on dark.
+   - **Type:** Playfair Display 600–700 for display, Onest 500–600 for UI. **Body weight is 500 and
+     never 400.**
+   - **Desktop product page:** two columns from 860 px — gallery left with a vertical thumbnail
+     rail, buy panel right at 430–470 px, sticky gallery. **The main image is capped at
+     `min(76vh, 760px)`**, so one photograph never exceeds one screen (§17 #47).
+   - **Shop:** 2 columns at 390 px, 3 from 720 px, 4 from 860 px; filter chips and a sort control.
+
+   **Awaiting Kamronbek's sign-off (§19 Q18)** before it is turned into tokens and components.
+3. Fill in every token value in `tokens.css`. **Blocked on item 2.**
+4. Self-host the typefaces. Subset to Latin + Latin Extended (Uzbek needs `oʻ` and `gʻ`) + Cyrillic.
 
    > **Check U+02BB before choosing a face — it is a real elimination criterion.** Uzbek Latin
    > spells `oʻ` and `gʻ` with U+02BB MODIFIER LETTER TURNED COMMA. Phase 1a found that **Poppins
@@ -737,19 +753,32 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
    Onest, Inter, IBM Plex Sans, Commissioner, Mulish, Noto Sans, IBM Plex Mono.** A second filter on
    spacing drops IBM Plex Sans and Mulish, which both render a visible gap as `O ʻzbekiston`.
    **IBM Plex Mono is the only monospace that passes, so `--f-mono` is settled** (§17 #43).
-   The three directions each commit to a different pairing from this set; choosing a direction
-   chooses the type.
+
+   ✅ **A second batch was screened after round one was rejected as "thin and sharp"** — 35 more
+   families, this time editorial, serif and fashion faces, because the first shortlist had been
+   drawn entirely from modern grotesques and that bias *was* the problem (§17 #44). 18 more pass.
+   The one that matters: **Playfair Display** — a high-contrast fashion serif that contains U+02BB
+   and Cyrillic, at 294 KB variable. Also passing: Cormorant, EB Garamond, Spectral, Literata,
+   Lora, Source Serif 4, Alegreya, Bona Nova, Merriweather, Noto Serif, Montserrat, Raleway,
+   Nunito, Fira Sans, Exo 2, Comfortaa.
+
+   **Failing, and worth knowing** — every conventional Cyrillic fashion display face:
+   **Prata, Forum, Tenor Sans, Bodoni Moda, Marcellus**, plus PT Serif, PT Sans, Philosopher,
+   Oranienbaum, Arsenal, Cuprum and Fraunces. There is very little premium display type that can
+   set Uzbek, which is exactly why this has to be checked before a face is proposed.
+
+   **Chosen (round two): Playfair Display display + Onest UI + IBM Plex Mono where data needs it.**
 
    WOFF2 only, `font-display: swap`, preload the display face. *The current site pulls Inter from
    `rsms.me` — a third-party render-blocking request on every page load.*
-4. Build `base.css` — reset, typography scale, layout primitives, utilities.
-5. Build `components.css` — the full §8 inventory, every state (default, hover, focus-visible,
+5. Build `base.css` — reset, typography scale, layout primitives, utilities.
+6. Build `components.css` — the full §8 inventory, every state (default, hover, focus-visible,
    active, disabled, loading, error).
-6. Build a **living style guide** at `/boshqaruv/style/` (staff-only) rendering every component in
+7. Build a **living style guide** at `/boshqaruv/style/` (staff-only) rendering every component in
    every state. The reference for every later phase and the fastest way to catch drift.
-7. Motion: standard transitions; the `prefers-reduced-motion` guard wired once, globally.
-8. Icons: one consistent set as an inline SVG sprite. No icon fonts.
-9. **Verify the above-the-fold rule**: on a 390 × 844 viewport the home hero must leave at least one
+8. Motion: standard transitions; the `prefers-reduced-motion` guard wired once, globally.
+9. Icons: one consistent set as an inline SVG sprite. No icon fonts.
+10. **Verify the above-the-fold rule**: on a 390 × 844 viewport the home hero must leave at least one
    partially visible row of product cards. This is a measured check, not a judgement call.
 
 > **Photography note.** The directions are built on **drawn garment mockups**, not photographs —
@@ -1308,7 +1337,8 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 | 20 | Legal documents wrong under Uzbek law | Medium — regulatory exposure | Written carefully in Phase 8; independent review recommended in Phase 11 |
 | 21 | Task chats drift from the plan or each other | Medium — inconsistent codebase | §0 cross-chat protocol; every task chat reads the plan and updates §15–§17 |
 | 22 | Tags never get filled in, so Phase 13 has no signal | Medium — the recommender is worthless | Tags are a required field in the Phase 7 product form, not optional |
-| 23 | The chosen typeface lacks U+02BB, so Uzbek renders as tofu | Medium — `Oʻzbekiston` breaks in the brand's own language | Check the cmap of every candidate face in Phase 2 before shortlisting. Poppins already failed this test |
+| 23 | The chosen typeface lacks U+02BB, so Uzbek renders as tofu | Medium — `Oʻzbekiston` breaks in the brand's own language | Check the cmap of every candidate face in Phase 2 before shortlisting. Poppins already failed this test; so did Prata, Forum, Tenor Sans and Bodoni Moda, i.e. every conventional Cyrillic fashion display face |
+| 24 | A layout bug ships as a design decision | Medium — wasted review rounds and lost trust | Round one's desktop page was rejected as a design when the real fault was an uncapped image height and a 900 px breakpoint. Screenshot every page at 390 px **and** at desktop width before showing it, and hold it against §17 #47 |
 
 ---
 
@@ -1383,7 +1413,7 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 | 0 Stabilise | ✅ Done | `phase-0-stabilise` | 2026-09-08 | 2026-09-08 | Items 7 and 9 moved to Phase 1b (new VPS) |
 | 1a Rebrand | ✅ Done | `phase-1-rebrand` | 2026-09-09 | 2026-09-09 | Mark, icons, OG, all copy, canonical contacts |
 | 1b Deployment | ⛔ Blocked | `phase-1b-deploy` | — | — | **Waiting on the VPS purchase.** Runs after Phase 10, before launch (§13) |
-| 2 Design system | 🟨 In progress | `phase-2-design` | 2026-09-09 | — | **Three directions built + typeface screened. Waiting on Kamronbek to pick a direction (§19 Q18)** — items 2, 4–9 are blocked on it |
+| 2 Design system | 🟨 In progress | `phase-2-design` | 2026-09-09 | — | Round one rejected; **round two built — waiting on sign-off (§19 Q18)**. Items 3 and 5–10 blocked on it |
 | 3 i18n foundation | ⬜ Not started | `phase-3-i18n` | — | — | |
 | 4 Data model | ⬜ Not started | `phase-4-models` | — | — | Needs the pickup-point CSV |
 | 5 Frontend rebuild | ⬜ Not started | `phase-5-frontend` | — | — | |
@@ -1411,6 +1441,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-08 | Task | 0 | v1.4: **Phase 0 complete.** `Kamron's` merged into `main`; `phase-0-stabilise` cut from `main`. Settings restored + `CSRF_TRUSTED_ORIGINS` added; 48 `.pyc` files and `.idea/` untracked and `.gitignore` rewritten; simplejwt, cors-headers and PyJWT removed and `requirements.txt` re-encoded UTF-8; footer categories rendered from a context processor; stale Click TODO deleted; four smoke tests added and passing. Redis and backup-restore moved to Phase 1 with the new VPS | Phase 1 — rebrand + new VPS |
 | 2026-09-09 | Task | 1a | v1.5: **Phase 1a complete.** Mark redrawn geometrically (1.9 KB traced path → 225 B, true 60°, IoU 0.943 against the original); full icon set, manifest and OG card; every ValleyMade string replaced; canonical contacts fixed; hero de-"Arzon"-ed; sitewide OG/Twitter meta. Phase 1 split into 1a/1b, 1b moved to just before launch, and the valleymade.uz 301 requirement deleted. Found: Poppins lacks U+02BB — a Phase 2 elimination criterion (risk #23) | Phase 2 — design system |
 | 2026-09-09 | Task | 2 | **Phase 2 started.** Typeface screening run against 31 families by reading cmaps — 22 fail on U+02BB; shortlist and evidence in `docs/design/typeface-screening.md`. No product photography exists, so a garment-mockup generator was built (`docs/design/mockup/`) and eight products composed. Three directions delivered as one self-contained file, `docs/design/directions.html` | **Kamronbek picks a direction**, then tokens, base.css, components.css, style guide |
+| 2026-09-09 | Task | 2 | v1.7: **round one rejected, round two built.** Kamronbek: type "thin and sharp, looks like hand made cheap", desktop "nothing" with wrong metrics, wants dark-but-not-black. Root causes found and recorded (§17 #44): the shortlist came from one type register, and the desktop page had an uncapped image height plus a 900 px breakpoint — a bug shipped as a design. Screened 35 editorial/fashion faces; **Playfair Display** is the only premium display serif that contains U+02BB. Rebuilt as one dark direction — warm charcoal layers, brass accent, Playfair + Onest 500 min — covering product page **and** shop, verified by screenshot at 390 px and 1280 px before publishing | Sign-off on the design, then tokens and components |
 
 ---
 
@@ -1461,6 +1492,10 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 41 | 2026-09-09 | **`site.webmanifest` is a rendered template, not a static file** | It has to name the icon files, and Phase 9 introduces `ManifestStaticFilesStorage`, which hashes their filenames. Serving it through `TemplateView` + `{% static %}` — the same pattern `robots.txt` already uses — means the paths keep resolving instead of silently 404ing after that change |
 | 42 | 2026-09-09 | **Phase 2 proceeds on drawn garment mockups instead of waiting for photography** | Kamronbek's call, with the trade-off stated. `media/products/` contains no photograph of a t-shirt, and the alternative was parking Phase 2 for an unknown time. A generator (`docs/design/mockup/`) draws a garment with real oversize-tee proportions, fabric shading and a consistent 4:5 crop on one backdrop. **What this buys and what it does not:** layout, crop, hierarchy and typography are judgeable; *"does this shop look professional"* is not, because that question is answered by the photography. §8's warning stands and Phase 11 stays gated on real shots |
 | 43 | 2026-09-09 | **The typeface shortlist is fixed to the nine families that contain U+02BB and Cyrillic; `--f-mono` is settled as IBM Plex Mono** | Measured, not assumed: 31 families were downloaded and their cmaps read. 22 fail, including Manrope, Figtree, Outfit, Plus Jakarta Sans, Sora, Space Grotesk, Bricolage, Archivo and Rubik — and Golos Text, which is a Cyrillic-first family built for Russian. IBM Plex Mono is the **only** monospace that passes, so there is no choice to make there. IBM Plex Sans and Mulish pass on coverage but set `O ʻzbekiston` with a visible gap, so they are out on spacing |
+| 44 | 2026-09-09 | **All three round-one directions rejected; replaced by a single dark, premium direction rather than another set of three** | Kamronbek rejected all three — thin, sharp type that read "hand made cheap", a desktop layout that was actually broken, and a wish for dark-but-not-black. His feedback was specific enough to design *to*, so offering another menu would have spent his time re-judging instead of getting one thing right. **Three lessons recorded so they don't repeat:** (1) a shortlist drawn from a single type register produces three directions with one voice — screen across registers before shortlisting; (2) an unconstrained product image with a 900 px breakpoint is a bug shipped as a design, not a stylistic choice; (3) light text on a dark ground reads thinner than it measures, so weight and warmth must be raised deliberately |
+| 45 | 2026-09-09 | **Palette: warm charcoal layers plus a single brass accent. Never pure black, never pure white** | Kamronbek: *"dark colours including black"* — not `#000`. Ground `#100E0C` with `#17140F` and `#211C15` above it lets panels separate by material instead of by outline, which is what reads as expensive. Ink is warm off-white `#EFE9DE`: pure white on near-black halates and makes type look brittle. Brass `#C6A44E` is confined to price, chosen size and the buy button — one accent, spent in one place |
+| 46 | 2026-09-09 | **Type: Playfair Display for display, Onest 500–600 for UI. Body weight is 500 and never 400** | Playfair is the only high-contrast fashion serif found that contains U+02BB, so it is effectively the only way to get a premium editorial voice *and* set `Oʻzbekiston`. Onest stays for UI because it is sturdy at 500+, has tight U+02BB spacing and real Cyrillic. The 500-minimum is a hard rule, not a preference: it is the direct fix for the "thin" complaint |
+| 47 | 2026-09-09 | **Desktop product-page contract: two columns from 860 px, sticky gallery with a vertical thumbnail rail, main image capped at `min(76vh, 760px)`** | Written as a rule because the underlying requirement is *one photograph must never take more than one screen*. The round-one page failed it by leaving the image unconstrained, and the 900 px breakpoint meant any frame narrower than that silently fell back to a single column. Both are easy to reintroduce in Phase 5, so the numbers are recorded here rather than left to judgement |
 
 ---
 
@@ -1504,7 +1539,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 15 | **When is the VPS bought?** Specs are settled (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD, upgradeable to 26.04), and Phase 1b is the only thing waiting on it. Ask again when Phase 10 finishes. | Phase 1b | ⏳ Open — not urgent |
 | 16 | Instagram and TikTok handles for the footer (§18 #7) | Phase 5 | ⏳ Open |
 | 17 | Confirm the Eskiz sender name is approved as exactly `GRAPHIX`, and that the two SMS templates were re-moderated after the rebrand — Eskiz moderates message *text*, and both bodies changed in Phase 1a | Phase 1b | ⏳ Open — worth checking before it blocks a live signup |
-| 18 | **Which direction — A · Galereya, B · Bosma, or C · Tungi?** Open `docs/design/directions.html`, ideally on a phone. Everything else in Phase 2 depends on this: tokens, `base.css`, `components.css`, the style guide, the wordmark lockups, and the palette the icons may be re-skinned to. A mix is allowed — say which parts of which. | Phase 2 | ⏳ **Open — blocking Phase 2 items 2 and 4–9** |
+| 18 | **Does the round-two design hold?** Open `docs/design/directions.html` — product page and shop, at 390 px and desktop. Round one was rejected outright (§17 #44); this is the rebuild. If it holds, it becomes tokens and components; if a part is still wrong, name the part. | Phase 2 | ⏳ **Open — blocking Phase 2 items 3 and 5–10** |
 | 19 | Product photography — when can real shots exist? Not blocking now (§17 #42), but it gates Phase 11 and it is what decides whether the chosen direction actually looks professional. | Phase 11 | ⏳ Open |
 
 **Resolved:**
