@@ -2,10 +2,10 @@
 
 **Project:** ValleyMade → **GRAPHIX** — online graphic t-shirt store for Uzbekistan
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
-**Production:** valleymade.uz → **graphix.uz** (domain secured)
+**Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.4 · created 2026-09-08 · last amended 2026-09-08
-**Status:** Phase 0 complete · Phase 1 next
+**Plan version:** 1.5 · created 2026-09-08 · last amended 2026-09-09
+**Status:** Phase 0 complete · Phase 1a complete · Phase 1b blocked on the VPS · Phase 2 next
 
 ---
 
@@ -108,8 +108,9 @@ an inspection of the live site.
    (`djangorestframework` must stay — `click_up` imports `rest_framework.views` and
    `rest_framework.exceptions` even though its package metadata doesn't declare it.)
    → *Removed in Phase 0, along with `PyJWT`, which existed only for simplejwt.*
-6. **Contact details are inconsistent** — the contact page shows two different email addresses (one
-   a placeholder) and a Telegram handle that no longer matches the canonical one. → Phase 1.
+6. ✅ **Contact details are inconsistent** — the contact page shows two different email addresses (one
+   a placeholder) and a Telegram handle that no longer matches the canonical one.
+   → *Fixed in Phase 1a; the phone and email are now `tel:` / `mailto:` links too.*
 
 Found during Phase 0, not in the original audit:
 
@@ -622,46 +623,82 @@ three-feature-icons layout, decorative emoji, stock lifestyle imagery that isn't
 
 Domain secured. Eskiz sender approved under the GRAPHIX name.
 
-1. **Redraw the brand mark geometrically** (§8); produce `logo-mark.svg`, `logo-full.svg`,
-   `logo-stacked.svg`, light and dark lockups.
-2. Generate `favicon.svg`, `favicon.ico` (32 px), `apple-touch-icon.png` (180 px), `icon-192.png`,
-   `icon-512.png`, `site.webmanifest`, OG share image (1200 × 630).
-3. Replace every user-facing "ValleyMade" / "Valleymade" / "VM" string: templates, `<title>`, meta
+**Phase 1 is split (§17 #36).** Everything that can be done locally is **1a**; everything that needs
+a running server is **1b**. Kamronbek is buying a new VPS (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD)
+and will not deploy until the site is worth deploying, so 1b is deliberately parked. The rest of the
+plan does **not** wait for it: Phase 2 starts as soon as 1a is done.
+
+---
+
+#### Phase 1a — brand and code *(complete, 2026-09-09)*
+
+1. ✅ **Redraw the brand mark geometrically** (§8) → `static/img/logo-mark.svg`, **225 bytes**,
+   `0 0 24 24`, `currentColor`, down from a 1.9 KB traced path with hundreds of nodes.
+   The lockups (`logo-full.svg`, `logo-stacked.svg`) **move to Phase 2** — they need the display
+   typeface, which Phase 2 chooses (§17 #38).
+2. ✅ **Icon set**, all one identity — a white mark on a black tile (§17 #40): `favicon.svg` (271 B),
+   `favicon.ico` (16/32/48), `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png`,
+   OG share image (1200 × 630). `site.webmanifest` is rendered as a **template** through
+   `{% static %}`, like `robots.txt`, so the icon paths survive Phase 9's hashed static files.
+3. ✅ Replace every user-facing "ValleyMade" / "Valleymade" / "VM" string: templates, `<title>`, meta
    description, footer, admin site header, SMS bodies in `user/otp.py` and `user/password_reset.py`,
-   `about.html`, `contact.html`, `terms.html`, `robots.txt`.
-4. **Set the canonical contact details** everywhere, replacing the current inconsistent pair:
+   `contact.html`, `robots.txt`, `README.md`, the wsgi/asgi/settings docstrings, and two migration
+   comments. The signup-OTP SMS typo `ro'yhatdan` → `ro'yxatdan` was fixed in passing.
+4. ✅ **Set the canonical contact details** everywhere, replacing the inconsistent pair:
    - Email — `abdurahmonboboyev.magic@gmail.com`
    - Phone — `+998 50 788 84 36`
    - Telegram — [@greatestamal](https://t.me/greatestamal)
 
    *Recommended alongside this: a branded `info@graphix.uz` forwarding to the Gmail address. It costs
-   nothing with the domain and reads considerably more credible on a store's contact page.*
-5. Replace the home tagline with **"premium quality · 100+ designs · delivery within Uzbekistan"**,
-   in all three languages. **The design count must be true at launch** — render it from the live
-   product count rather than hardcoding it, or hold the line until the catalogue reaches it. It is
-   the first sentence a visitor reads; an inflated number is a bad first impression.
-6. **Provision the new VPS** and cut over to it: nginx `server_name`, certbot for graphix.uz + www,
-   gunicorn + systemd, PostgreSQL, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, and the `.env`. Two
-   items moved here from Phase 0 (§17 #31):
+   nothing with the domain and reads considerably more credible on a store's contact page (§18 #2).*
+5. ✅ Home hero and tagline: `Valley/Made` → `GRAPHIX`, and the sub-line
+   `Futbolkalar · Arzon · Dastavka` → **"Premium sifat · 100+ dizayn · O'zbekiston bo'ylab yetkazib
+   berish"**. *"Arzon" (cheap) directly contradicted the §2 positioning and is gone.*
+   **The design count is hardcoded and is not yet true** — Kamronbek's call (§17 #39).
+   Risk #14 stays open and **Phase 11 item 2 is now a hard launch gate.**
+6. ✅ **Social meta** in `base.html` — `og:site_name/type/title/description/url/image`,
+   `og:image:width/height`, and `twitter:card`, each overridable per page by a template block.
+   Phase 9 adds the per-page and per-product values; this is the sitewide default.
+7. ✅ Dead footer links removed — "Yetkazib berish" and "Qaytarish" pointed at `#` (their pages
+   arrive in Phase 8), as did Instagram and TikTok (§18 #7). The footer now carries the real
+   Telegram, phone and email.
+
+**Phase 1a Definition of Done:** zero occurrences of "ValleyMade" in `templates/`, `static/` or any
+`.py` · one canonical email, phone and Telegram handle sitewide · every icon and the manifest serve
+200 · the smoke tests still pass · `manage.py check` clean.
+
+**Verified 2026-09-09:** the only remaining "ValleyMade" strings are four deliberate ones in
+`README.md` (the repository name and the rebrand note) · all nine assets serve 200 ·
+`logo-mark.svg` 225 B, `favicon.svg` 271 B · manifest serves as `application/manifest+json` ·
+4 smoke tests pass · `manage.py check` reports no issues.
+
+---
+
+#### Phase 1b — deployment *(blocked: the VPS has not been bought yet)*
+
+Do **not** start this until there is a server. Nothing else in the plan depends on it, and the site
+is not worth deploying until Phases 2–6 have run.
+
+8. **Provision the new VPS** (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD) and deploy to it as a fresh
+   install — there is nothing to migrate (§17 #34): nginx `server_name`, certbot for graphix.uz +
+   www, gunicorn + systemd, PostgreSQL, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, the `.env`.
+   Two items moved here from Phase 0 (§17 #31):
    - **Redis** — install it, set `REDIS_URL`, and confirm the rate limiter counts correctly across
      more than one gunicorn worker. Without it, risk #15 is live from the first day of traffic.
    - **Backups** — nightly `pg_dump` plus a `media/` copy, both off-server, and a **verified
      restore** into a scratch database with row counts checked, before the site takes a real order.
      An untested backup is not a backup.
-7. **Permanent 301 from every valleymade.uz URL to the same path on graphix.uz.** Keep the old
-   certificate and the redirect alive indefinitely — link equity and Telegram-shared links depend on it.
-8. **Re-register the Click webhook** at `https://graphix.uz/payment/click/update/`; verify with a real
+9. **Register the Click webhook** at `https://graphix.uz/payment/click/update/`; verify with a real
    1 000 so'm payment end to end. *The single highest-risk step in the project — a wrong webhook URL
    means silent payment failures.*
-9. Confirm an OTP SMS arrives with the GRAPHIX sender name.
-10. Google Search Console: add graphix.uz, verify, submit the sitemap, use Change of Address.
+10. Confirm an OTP SMS arrives with the GRAPHIX sender name.
+11. Google Search Console: add graphix.uz, verify, submit the sitemap. *No Change of Address — there
+    is no old property to move from (§17 #35).*
 
-**Definition of Done:** graphix.uz serves over HTTPS · every valleymade.uz path 301s correctly · a
-real Click payment completes and the order flips to `paid` · an OTP SMS arrives branded GRAPHIX ·
-zero occurrences of "ValleyMade" in `templates/`, `static/` or any `.py` · one canonical email, phone
-and Telegram handle sitewide · the OG image renders correctly when pasted into Telegram ·
-**Redis is live and the rate limiter counts correctly across multiple gunicorn workers** ·
-**a `pg_dump` + `media/` backup has been restored off-server with row counts checked.**
+**Phase 1b Definition of Done:** graphix.uz serves over HTTPS · a real Click payment completes and
+the order flips to `paid` · an OTP SMS arrives branded GRAPHIX · the OG image renders correctly when
+pasted into Telegram · **Redis is live and the rate limiter counts correctly across multiple gunicorn
+workers** · **a `pg_dump` + `media/` backup has been restored off-server with row counts checked.**
 
 ---
 
@@ -672,6 +709,15 @@ and Telegram handle sitewide · the OG image renders correctly when pasted into 
 1. **Three directions**, reviewed at 390 px and 1440 px. One chosen; the other two archived.
 2. Fill in every token value in `tokens.css`.
 3. Self-host the typefaces. Subset to Latin + Latin Extended (Uzbek needs `oʻ` and `gʻ`) + Cyrillic.
+
+   > **Check U+02BB before choosing a face — it is a real elimination criterion.** Uzbek Latin
+   > spells `oʻ` and `gʻ` with U+02BB MODIFIER LETTER TURNED COMMA. Phase 1a found that **Poppins
+   > does not contain it** (it has U+02BC but not U+02BB), so every `Oʻzbekiston` set in Poppins
+   > renders as tofu. Verify the cmap of every candidate — display face, body face and mono — for
+   > U+02BB, U+02BC and U+00B7 before shortlisting it, not after. Also produce the wordmark
+   > lockups here, once the display face is settled (§17 #38): `logo-full.svg` and
+   > `logo-stacked.svg`, light and dark.
+
    WOFF2 only, `font-display: swap`, preload the display face. *The current site pulls Inter from
    `rsms.me` — a third-party render-blocking request on every page load.*
 4. Build `base.css` — reset, typography scale, layout primitives, utilities.
@@ -710,8 +756,12 @@ every template twice.
 
 **Translation quality standard** — this decides whether the site reads professional or machine-made:
 
-- **Uzbek** is the source of truth. Latin script. Correct `oʻ` / `gʻ` — never a plain ASCII apostrophe
-  in body copy.
+- **Uzbek** is the source of truth. Latin script. Correct `oʻ` / `gʻ` (U+02BB) — never a plain ASCII
+  apostrophe in body copy. **Phase 3 converts the whole codebase in one pass.** Phase 1a deliberately
+  kept ASCII apostrophes in the templates rather than half-converting them: the existing ~40 Uzbek
+  strings all use `'`, and a file with both conventions is worse than a file with one. The strings
+  move into `.po` files here anyway, which is the moment to fix them all at once. The only place the
+  correct character is already in use is the OG image, which is a rendered asset, not sweepable text.
 - **Russian** written in natural commercial register, *not* word-for-word from the Uzbek. The two
   languages differ enough structurally that literal translation reads as broken.
 - **English** written for a fluent reader, not translated.
@@ -1208,7 +1258,7 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 
 | # | Risk | Impact | Mitigation |
 |---|---|---|---|
-| 1 | Click webhook URL wrong after the domain move | **Critical** — silent payment failures | Re-register in Phase 1, verify with a real payment, uptime monitoring on the endpoint, keep the old 301 forever |
+| 1 | Click webhook URL wrong on the new domain | **Critical** — silent payment failures | Register in Phase 1b, verify with a real 1 000 so'm payment, uptime monitoring on the endpoint. *(The old-domain 301 mitigation is gone — valleymade.uz is abandoned, §17 #35.)* |
 | 2 | `i18n_patterns` prefixes the webhook path | **Critical** — every Click callback 404s | Explicitly excluded in §6; a dedicated test asserts the unprefixed path resolves |
 | 3 | A migration corrupts production data | **Critical** | Verified backup before every deploy; migrations rehearsed on a restored copy |
 | 4 | `_cancel_and_delete` deletes a user who now has an order or claimed cart | **Critical** — data loss | Guard plus a dedicated test in Phase 6g; called out in the Phase 6 Definition of Done |
@@ -1221,8 +1271,8 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 | 11 | Review photos are abused (offensive or irrelevant content on a public page) | High — brand damage | Moderation queue; nothing is public until approved; Telegram alert on every pending review |
 | 12 | Selling designs that reproduce other brands' trademarks | High — legal exposure and payment-processor risk | If the mockup artwork was placeholder, no issue. If any are intended products, they should be reviewed before listing (§19 Q8) |
 | 13 | Scope creep across a long project | High — nothing ships | §10 procedure; one phase at a time; §11 out-of-scope list |
-| 14 | "100+ designs" is untrue at launch | Medium — a false claim in the first line a visitor reads | Render from the live product count, or hold the tagline (Phase 1 item 5, Phase 11 item 2) |
-| 15 | Rate limiting wrong across gunicorn workers without Redis | Medium — brute-force window | Redis in Phase 1, on the new VPS (§17 #31). `settings.py` already reads `REDIS_URL` and falls back to LocMemCache, so only the server side is outstanding |
+| 14 | "100+ designs" is untrue at launch | Medium — a false claim in the first line a visitor reads | **Live and unmitigated.** Kamronbek chose to hardcode the claim (§17 #39), so the only remaining guard is **Phase 11 item 2, now a hard launch gate**: either the catalogue has 100+ designs or the line changes before launch |
+| 15 | Rate limiting wrong across gunicorn workers without Redis | Medium — brute-force window | Redis in Phase 1b, on the new VPS (§17 #31). `settings.py` already reads `REDIS_URL` and falls back to LocMemCache, so only the server side is outstanding |
 | 16 | Stock decrement races on a popular drop | Medium — oversell | Decrement inside the existing payment transaction; `select_for_update` on the variant row |
 | 17 | Telegram outage or bad token breaks checkout | Medium | `on_commit` + catch-everything, mirroring `core/sms.py`; a test asserts failure doesn't break the request |
 | 18 | Guest cart merge loses items or duplicates them | Medium — direct revenue loss | Merge inside a transaction with both carts locked; three dedicated tests |
@@ -1230,6 +1280,7 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 | 20 | Legal documents wrong under Uzbek law | Medium — regulatory exposure | Written carefully in Phase 8; independent review recommended in Phase 11 |
 | 21 | Task chats drift from the plan or each other | Medium — inconsistent codebase | §0 cross-chat protocol; every task chat reads the plan and updates §15–§17 |
 | 22 | Tags never get filled in, so Phase 13 has no signal | Medium — the recommender is worthless | Tags are a required field in the Phase 7 product form, not optional |
+| 23 | The chosen typeface lacks U+02BB, so Uzbek renders as tofu | Medium — `Oʻzbekiston` breaks in the brand's own language | Check the cmap of every candidate face in Phase 2 before shortlisting. Poppins already failed this test |
 
 ---
 
@@ -1238,8 +1289,14 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 **Execution order:**
 
 ```
-0 → 1 → 2 → 3 → 4 → 5 → 6 → 12 → 7 → 8 → 9 → 10 → 11 → 13
+0 → 1a → 2 → 3 → 4 → 5 → 6 → 12 → 7 → 8 → 9 → 10 → 1b → 11 → 13
 ```
+
+**Phase 1b (deployment) moved to just before launch (§17 #36).** It was originally early because a
+domain move has external lead times — but there is no domain move any more: valleymade.uz is
+abandoned and graphix.uz is a fresh deployment onto a VPS that hasn't been bought (§17 #35). Standing
+up a server months before there is anything worth serving buys nothing and costs rent. It still runs
+*before* Phase 11, because Phase 11's live payment tests and 72-hour watch need a live site.
 
 Phase 12 (reviews) runs before Phase 7 so review moderation ships with the rest of the admin panel.
 Phase 13 (recommendations) runs after launch, once there is like data worth reading.
@@ -1248,7 +1305,9 @@ Phase 13 (recommendations) runs after launch, once there is like data worth read
 
 - **Stabilise before building.** A broken `settings.py` and a dirty git tree make every later step
   harder to reason about.
-- **Rebrand early.** Domain moves, SSL and webhook re-registration have external lead times.
+- **Rebrand early, deploy late.** The brand work (1a) is early because every template written after
+  it would otherwise be written twice. The server work (1b) is late because nothing else depends on
+  it and an idle VPS is pure cost.
 - **Design system before pages.** Building pages first and extracting a system afterwards produces a
   system that fits the first three pages and fights the next ten.
 - **i18n before the page rebuild.** Otherwise every template gets written twice.
@@ -1293,8 +1352,9 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 
 | Phase | Status | Branch | Started | Finished | Notes |
 |---|---|---|---|---|---|
-| 0 Stabilise | ✅ Done | `phase-0-stabilise` | 2026-09-08 | 2026-09-08 | Items 7 and 9 moved to Phase 1 (new VPS) |
-| 1 Rebrand | ⬜ Not started | `phase-1-rebrand` | — | — | Domain secured; Eskiz approved. Now also provisions the new VPS, Redis and backups |
+| 0 Stabilise | ✅ Done | `phase-0-stabilise` | 2026-09-08 | 2026-09-08 | Items 7 and 9 moved to Phase 1b (new VPS) |
+| 1a Rebrand | ✅ Done | `phase-1-rebrand` | 2026-09-09 | 2026-09-09 | Mark, icons, OG, all copy, canonical contacts |
+| 1b Deployment | ⛔ Blocked | `phase-1b-deploy` | — | — | **Waiting on the VPS purchase.** Runs after Phase 10, before launch (§13) |
 | 2 Design system | ⬜ Not started | `phase-2-design` | — | — | Three directions before any CSS |
 | 3 i18n foundation | ⬜ Not started | `phase-3-i18n` | — | — | |
 | 4 Data model | ⬜ Not started | `phase-4-models` | — | — | Needs the pickup-point CSV |
@@ -1321,6 +1381,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-08 | Planning | — | v1.2: customer requests reviewed and folded in; Uzpost research; Phases 12–13 added | Project instructions, then Phase 0 |
 | 2026-09-08 | Planning | — | v1.3: cross-chat rule corrected (a chat may span several phases); project instructions written to `docs/PROJECT_INSTRUCTIONS.md` | Phase 0 |
 | 2026-09-08 | Task | 0 | v1.4: **Phase 0 complete.** `Kamron's` merged into `main`; `phase-0-stabilise` cut from `main`. Settings restored + `CSRF_TRUSTED_ORIGINS` added; 48 `.pyc` files and `.idea/` untracked and `.gitignore` rewritten; simplejwt, cors-headers and PyJWT removed and `requirements.txt` re-encoded UTF-8; footer categories rendered from a context processor; stale Click TODO deleted; four smoke tests added and passing. Redis and backup-restore moved to Phase 1 with the new VPS | Phase 1 — rebrand + new VPS |
+| 2026-09-09 | Task | 1a | v1.5: **Phase 1a complete.** Mark redrawn geometrically (1.9 KB traced path → 225 B, true 60°, IoU 0.943 against the original); full icon set, manifest and OG card; every ValleyMade string replaced; canonical contacts fixed; hero de-"Arzon"-ed; sitewide OG/Twitter meta. Phase 1 split into 1a/1b, 1b moved to just before launch, and the valleymade.uz 301 requirement deleted. Found: Poppins lacks U+02BB — a Phase 2 elimination criterion (risk #23) | Phase 2 — design system |
 
 ---
 
@@ -1362,6 +1423,13 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 32 | 2026-09-08 | **`main` is the integration branch.** `Kamron's` was merged into `main` before Phase 0; every phase branch is cut from `main` and merges back into it | `Kamron's` and `origin/main` had diverged (8 commits vs 4 PR merges). One integration branch removes the ambiguity about which branch production follows, and keeps the one-branch-per-phase convention meaningful |
 | 33 | 2026-09-08 | **Footer categories render from a `product.context_processors.nav_categories` context processor**, not hardcoded values | `Category` has no slug until Phase 4 and `shop()` filters on `category_id`, so any hardcoded link is either wrong or a guess at primary keys. Reading the real rows is correct today and stays correct as categories change. Costs one query per page; the footer is rebuilt in Phase 5 anyway |
 | 34 | 2026-09-08 | **The previous production database is treated as empty** | Kamronbek confirmed it holds no items. Phase 4's slug and `order_no` backfill migrations must still be written and correct, but there is no legacy data to rescue, and no catalogue to migrate |
+| 35 | 2026-09-09 | **valleymade.uz is abandoned outright. No 301s, no old server, no Change of Address.** GRAPHIX launches as a brand-new site on graphix.uz | Kamronbek: *"we won't use previous domain never."* The old site has no catalogue, no orders and no meaningful search presence, so there is no link equity to preserve — the redirect infrastructure would have been cost and complexity protecting nothing. Phase 1 item 7 is deleted and risk #1 loses its 301 mitigation |
+| 36 | 2026-09-09 | **Phase 1 splits into 1a (brand and code) and 1b (deployment), and 1b moves to just before Phase 11** | Kamronbek's push-back was correct: the VPS isn't bought, the work is local, and nothing between here and Phase 10 needs a server. The original "rebrand early" rationale was about external lead times for a *domain move* — and there is no domain move any more (#35). An idle VPS is rent paid for nothing. 1b still runs before Phase 11, whose live payment tests need a live site |
+| 37 | 2026-09-09 | **The mark is redrawn at a true 60° hexagonal asterisk, symmetrising the original** | Measuring the source PNG showed the two diagonals at different slopes — 0.594 and 0.543 dx/dy — which is hand-trace error, not intent; their mean is within 1.5 % of 60°. The redraw uses exact 60°, equal bar weights and a common centre. IoU against the original is 0.943, and the whole residual is a hair-thin sliver along the diagonal edges. 1.9 KB and hundreds of nodes → **225 bytes and three straight-edged subpaths** |
+| 38 | 2026-09-09 | **The wordmark lockups move from Phase 1 to Phase 2** | `logo-full.svg` and `logo-stacked.svg` are the mark *set with the wordmark*, and Phase 2 chooses the display typeface. Drawing them in Phase 1 means drawing them in a face we are about to replace, then drawing them again. Nothing in Phase 1 needs them — every icon and the favicon use the mark alone |
+| 39 | 2026-09-09 | **"100+ dizayn" is hardcoded in the tagline, not rendered from the live product count** | Kamronbek's call, made with the trade-off stated: the catalogue is currently empty, so the claim is untrue today. Recorded because it is the first sentence a visitor reads. Risk #14 stays open and **Phase 11 item 2 becomes a hard launch gate** — 100+ real designs, or the line changes before launch |
+| 40 | 2026-09-09 | **Every raster icon is one identity: a white mark on a solid black tile** | Favicon, apple-touch, both PWA icons and the OG card all read as the same object at every size, and white-on-black is legible on light and dark browser chrome alike. It also matches the existing `theme-color: #000000`. Phase 2 may re-skin them once the palette is chosen; black and white is the lowest-regret choice to ship before that decision exists |
+| 41 | 2026-09-09 | **`site.webmanifest` is a rendered template, not a static file** | It has to name the icon files, and Phase 9 introduces `ManifestStaticFilesStorage`, which hashes their filenames. Serving it through `TemplateView` + `{% static %}` — the same pattern `robots.txt` already uses — means the paths keep resolving instead of silently 404ing after that change |
 
 ---
 
@@ -1378,6 +1446,9 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 4 | Drop `django-environ` from `requirements.txt` | 2026-09-08 | Pinned but never imported — the project reads `.env` through `python-dotenv`. Left in during Phase 0 because it was outside the two packages the plan named. One-line removal whenever Kamronbek confirms |
 | 5 | Rename the git branch `Kamron's` | 2026-09-08 | The apostrophe needs quoting in every shell command and breaks some tooling. `main` is now the integration branch (§17 #32), so the branch can simply be deleted once nothing depends on it |
 | 6 | Give the commit history real messages going forward | 2026-09-08 | Most existing commits are literally `.`. The `<phase>: <imperative summary>` convention (§4) starts with Phase 0; history before that stays as-is |
+| 7 | **Instagram and TikTok links — need the real handles** | 2026-09-09 | Both were `href="#"` in the footer and were removed in Phase 1a rather than shipped dead. Instagram matters: §9 Phase 9 calls it out as a primary sharing surface alongside Telegram. Give me the handles and they go back in — Phase 5 at the latest, when the footer is rebuilt |
+| 8 | Redraw the OG card once the display typeface exists | 2026-09-09 | The Phase 1a card is set in Poppins Bold, which is a placeholder — and which lacks U+02BB, so the tagline had to be set in a second face. Phase 2 picks the real face; regenerate the card then |
+| 9 | Rename the GitHub repository `ValleyMade` → `graphix` | 2026-09-09 | Cosmetic, and it changes the clone URL and every local remote. Pair it with the `vm/` → `graphix` package rename already parked in Phase 11 |
 
 ---
 
@@ -1399,9 +1470,9 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 12 | Legal entity name and details for the terms and privacy policy | Phase 8 | ⏳ Open |
 | 13 | Cash-on-delivery limits — any order-value cap, or regions excluded? | Phase 6e | ⏳ Open |
 | 14 | Earlier notes said "BTS pochta"; the current answer says Uzpost for everything. One carrier or two? | Phase 8 | ⏳ Open |
-| 15 | **New VPS — provider, specs, OS, and when it will be ready.** Phase 1 now provisions it (nginx, gunicorn, PostgreSQL, Redis, certbot, backups), so Phase 1 can't finish without it. | Phase 1 | ⏳ Open |
-| 16 | **Does the old valleymade.uz server stay alive to serve the 301s, or does valleymade.uz's DNS point at the new box with a redirect-only nginx block?** The second is simpler and cheaper, and it's what §12 risk #1 assumes ("keep the redirect alive indefinitely"). | Phase 1 | ⏳ Open — recommend pointing both domains at the new server |
-| 17 | Will I have shell access to the new VPS (SSH from Kamronbek's PC), or does he run the server commands himself from written instructions? | Phase 1 | ⏳ Open |
+| 15 | **When is the VPS bought?** Specs are settled (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD, upgradeable to 26.04), and Phase 1b is the only thing waiting on it. Ask again when Phase 10 finishes. | Phase 1b | ⏳ Open — not urgent |
+| 16 | Instagram and TikTok handles for the footer (§18 #7) | Phase 5 | ⏳ Open |
+| 17 | Confirm the Eskiz sender name is approved as exactly `GRAPHIX`, and that the two SMS templates were re-moderated after the rebrand — Eskiz moderates message *text*, and both bodies changed in Phase 1a | Phase 1b | ⏳ Open — worth checking before it blocks a live signup |
 
 **Resolved:**
 
@@ -1422,6 +1493,11 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | Guest checkout? | ✅ Anonymous cart; login required at checkout |
 | Is there data in the current production database to preserve? | ✅ No — it holds no items. A new VPS is being provisioned; nothing needs migrating (§17 #34) |
 | Which branch is the integration branch? | ✅ `main`. `Kamron's` merged into it before Phase 0; phase branches cut from `main` (§17 #32) |
+| What happens to valleymade.uz? | ✅ Abandoned outright — no 301s, no old server, no Change of Address (§17 #35) |
+| New VPS specs? | ✅ Ubuntu 24.04 (upgradeable to 26.04), 2 vCPU, 4 GB RAM, 40 GB SSD — anything can be installed on it |
+| Who runs the server commands? | ✅ Kamronbek has shell access and I can drive it from his machine when the time comes |
+| Wordmark lockups in Phase 1? | ✅ No — moved to Phase 2, after the display typeface is chosen (§17 #38) |
+| "100+ designs" before the catalogue exists? | ✅ Hardcoded now; Phase 11 item 2 is the launch gate (§17 #39) |
 
 ---
 
