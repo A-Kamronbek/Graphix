@@ -20,6 +20,9 @@ venv/
 /vm/logs/
 *.sqlite3
 
+# --- files the Claude desktop app drops here when delivering images ---
+/Claude outputs/
+
 # --- editors / OS ---
 .idea/
 .vscode/
