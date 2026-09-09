@@ -47,6 +47,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # Must sit after SessionMiddleware (it reads the language from the session)
+    # and before CommonMiddleware (which appends slashes using the active URLconf).
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -67,8 +70,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
                 'cart.context_processors.cart_count',
                 'product.context_processors.nav_categories',
+                'core.context_processors.languages',
             ],
         },
     },
@@ -92,8 +97,26 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 TIME_ZONE = 'Asia/Tashkent'
+
+# ---- languages ----
+# Uzbek is the source of truth and is served unprefixed (/), Russian at /ru/ and
+# English at /en/ - see vm/urls.py, where i18n_patterns is applied with
+# prefix_default_language=False. Uzbek Latin is written with U+02BB (oʻ, gʻ),
+# never an ASCII apostrophe.
 LANGUAGE_CODE = 'uz'
+LANGUAGES = [
+    ('uz', "Oʻzbekcha"),
+    ('ru', 'Русский'),
+    ('en', 'English'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 USE_I18N = True
+
+# The language cookie is only a fallback - the URL prefix decides the language.
+# A year keeps a returning visitor on the language they chose.
+LANGUAGE_COOKIE_NAME = 'graphix_lang'
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
+LANGUAGE_COOKIE_SAMESITE = 'Lax'
 
 # ---- static & media ----
 STATIC_URL = 'static/'
