@@ -1,0 +1,359 @@
+{% load static %}<!doctype html>
+{# Living style guide. Staff only.
+
+   Deliberately standalone rather than extending base.html: the storefront still
+   runs on the old main.css until Phase 5 rebuilds the pages, and loading both
+   stylesheets together would let their class names collide. This page is the one
+   place the new system is loaded, and it is the reference every later phase
+   builds against. #}
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Dizayn tizimi — GRAPHIX</title>
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{% static 'fonts/playfair-display-var.woff2' %}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{% static 'fonts/onest-var.woff2' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <style>
+    /* Style-guide chrome only — not part of the system. */
+    .sg { padding-bottom: var(--s-10); }
+    .sg__hd { padding: var(--s-7) var(--pad-x) var(--s-5); border-bottom: 1px solid var(--c-line); }
+    .sg__sec { padding: var(--s-7) var(--pad-x); border-bottom: 1px solid var(--c-line); }
+    .sg__sec > h2 { font-family: var(--f-display); font-size: var(--fs-2xl);
+      font-weight: var(--fw-bold); margin-bottom: var(--s-2); }
+    .sg__sec > .lede { margin-bottom: var(--s-5); font-size: var(--fs-sm); }
+    .sg__demo { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: flex-start; }
+    .sg__box { border: 1px dashed var(--c-line-strong); border-radius: var(--r-sm);
+      padding: var(--s-4); min-width: 0; }
+    .sg__cap { font-size: var(--fs-xs); color: var(--c-fg-subtle); letter-spacing: var(--ls-wide);
+      text-transform: uppercase; margin-bottom: var(--s-3); }
+    .sg__swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+      gap: var(--s-3); }
+    .sg__sw { border: 1px solid var(--c-line); border-radius: var(--r-sm); overflow: hidden; }
+    .sg__sw i { display: block; height: 62px; }
+    .sg__sw b { display: block; padding: var(--s-2) var(--s-3) 0; font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold); }
+    .sg__sw code { display: block; padding: 0 var(--s-3) var(--s-3); font-size: var(--fs-xs);
+      color: var(--c-fg-subtle); font-family: var(--f-mono); }
+    .sg__scale > * { margin-bottom: var(--s-3); }
+    .sg__nav { display: flex; flex-wrap: wrap; gap: var(--s-3); padding: var(--s-3) var(--pad-x);
+      border-bottom: 1px solid var(--c-line); font-size: var(--fs-sm); color: var(--c-fg-muted);
+      position: sticky; top: 0; z-index: var(--z-sticky);
+      background: color-mix(in srgb, var(--c-bg) 94%, transparent); backdrop-filter: blur(8px); }
+    .sg__nav a:hover { color: var(--c-fg); }
+    .sg__icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      gap: var(--s-3); }
+    .sg__icon { display: grid; gap: var(--s-2); justify-items: center; padding: var(--s-3);
+      border: 1px solid var(--c-line); border-radius: var(--r-sm); font-size: 10px;
+      color: var(--c-fg-subtle); text-align: center; }
+  </style>
+</head>
+<body>
+{% include "partials/_icons.svg.html" %}
+
+<header class="sg__hd">
+  <p class="eyebrow">GRAPHIX · dizayn tizimi</p>
+  <h1 class="h1" style="margin-top:var(--s-3)">Style guide</h1>
+  <p class="lede" style="margin-top:var(--s-4);max-width:60ch">
+    Every component in every state. If a page needs something that is not on this
+    page, it is added here first — then used. Contrast on every token pairing
+    passes WCAG AA.
+  </p>
+</header>
+
+<nav class="sg__nav">
+  <a href="#colour">Rang</a><a href="#type">Tipografika</a><a href="#buttons">Tugmalar</a>
+  <a href="#fields">Maydonlar</a><a href="#product">Mahsulot</a><a href="#feedback">Xabarlar</a>
+  <a href="#nav">Navigatsiya</a><a href="#icons">Ikonkalar</a>
+</nav>
+
+<main class="sg">
+
+  <section class="sg__sec" id="colour">
+    <h2>Rang</h2>
+    <p class="lede">Dark, never pure black. Three surfaces above the ground so panels separate by
+      material, not outline. One accent, spent only on price, the chosen size and the primary action.</p>
+    <div class="sg__swatches">
+      {% for name, val in swatches %}
+        <div class="sg__sw"><i style="background:{{ val }}"></i><b>{{ name }}</b><code>{{ val }}</code></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="sg__sec" id="type">
+    <h2>Tipografika</h2>
+    <p class="lede">Playfair Display for display, Onest for everything else — the only premium serif
+      that contains U+02BB, so <b>Oʻzbekiston</b> and <b>gʻalati</b> set correctly. Body weight is
+      500 and never 400.</p>
+    <div class="sg__scale">
+      <p class="h1">Oʻzbekiston boʻylab</p>
+      <p class="h2">Oʻxshash dizaynlar</p>
+      <p class="h3">Oʻlcham jadvali</p>
+      <p class="lede">Lede — qalin 200 g/m² paxta, bir necha yuvishdan keyin ham choʻzilmaydi.</p>
+      <p class="body">Body — har bir dona joʻnatishdan oldin qoʻlda koʻrikdan oʻtadi.
+        Футболкалар · Доставка по Узбекистану · Premium quality shirts.</p>
+      <p class="small muted">Small muted — 12 oy kafolat</p>
+      <p class="eyebrow">Eyebrow / label</p>
+      <p class="num" style="font-size:var(--fs-2xl);font-weight:var(--fw-semibold)">189 000 soʻm</p>
+    </div>
+  </section>
+
+  <section class="sg__sec" id="buttons">
+    <h2>Tugmalar</h2>
+    <div class="sg__demo">
+      <div class="sg__box"><p class="sg__cap">Variants</p>
+        <div class="row row--wrap">
+          <button class="btn btn--primary">Savatga qoʻshish</button>
+          <button class="btn btn--secondary">Bekor qilish</button>
+          <button class="btn btn--ghost">Batafsil</button>
+          <button class="btn btn--danger">Oʻchirish</button>
+        </div>
+      </div>
+      <div class="sg__box"><p class="sg__cap">Sizes</p>
+        <div class="row row--wrap">
+          <button class="btn btn--primary btn--sm">Small</button>
+          <button class="btn btn--primary">Medium</button>
+          <button class="btn btn--primary btn--lg">Large</button>
+          <button class="btn btn--secondary btn--icon" aria-label="Saqlash">
+            <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg></button>
+        </div>
+      </div>
+      <div class="sg__box"><p class="sg__cap">States</p>
+        <div class="row row--wrap">
+          <button class="btn btn--primary" disabled>Disabled</button>
+          <button class="btn btn--primary btn--loading">Yuborilmoqda</button>
+          <button class="btn btn--secondary" disabled>Disabled</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg__sec" id="fields">
+    <h2>Maydonlar</h2>
+    <div class="sg__demo">
+      <div class="sg__box" style="flex:1 1 300px">
+        <p class="sg__cap">Text, select, textarea</p>
+        <div class="stack">
+          <div class="field">
+            <label class="label" for="f1">Ism</label>
+            <input class="input" id="f1" placeholder="Ismingiz">
+          </div>
+          <div class="field field--error">
+            <label class="label" for="f2">Telefon</label>
+            <input class="input" id="f2" value="+998 90 000">
+            <p class="field__error">format: +998 XX XXX XX XX</p>
+          </div>
+          <div class="field">
+            <label class="label" for="f3">Viloyat</label>
+            <select class="select" id="f3"><option>Toshkent shahri</option><option>Samarqand</option></select>
+          </div>
+          <div class="field">
+            <label class="label" for="f4">Izoh</label>
+            <textarea class="textarea" id="f4" placeholder="Qoʻshimcha maʼlumot"></textarea>
+            <p class="field__hint">Ixtiyoriy</p>
+          </div>
+        </div>
+      </div>
+      <div class="sg__box" style="flex:1 1 260px">
+        <p class="sg__cap">Choice, stepper, OTP, search</p>
+        <div class="stack">
+          <label class="check"><input type="checkbox" checked>
+            <span>Shartlarga roziman</span></label>
+          <label class="check"><input type="radio" name="d" checked>
+            <span>Pochta boʻlimiga — 15 000 soʻm</span></label>
+          <label class="check"><input type="radio" name="d">
+            <span>Eshikkacha — 30 000 soʻm</span></label>
+          <div class="stepper">
+            <button aria-label="Kamaytirish"><svg class="i i--sm"><use href="#i-minus"></use></svg></button>
+            <span class="stepper__val">2</span>
+            <button aria-label="Koʻpaytirish"><svg class="i i--sm"><use href="#i-plus"></use></svg></button>
+          </div>
+          <div class="otp">
+            <input value="4" inputmode="numeric"><input value="8" inputmode="numeric">
+            <input value="1" inputmode="numeric"><input inputmode="numeric">
+          </div>
+          <div class="search">
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input placeholder="Dizayn qidirish" aria-label="Qidiruv">
+          </div>
+          <div class="lang" role="group" aria-label="Til">
+            <button aria-pressed="true">UZ</button><button aria-pressed="false">RU</button>
+            <button aria-pressed="false">EN</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg__sec" id="product">
+    <h2>Mahsulot</h2>
+    <div class="sg__demo">
+      <div class="sg__box" style="flex:1 1 260px">
+        <p class="sg__cap">Card · badge · like</p>
+        <article class="card" style="max-width:240px">
+          <a href="#">
+            <div class="card__media">
+              <img src="{% static 'img/no-image.jpg' %}" alt="" width="240" height="300">
+              <span class="badge badge--brand card__badge">Yangi</span>
+              <button class="like like--float" aria-label="Saqlash" aria-pressed="false">
+                <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg></button>
+            </div>
+            <p class="card__name">Rampage</p>
+            <p class="card__price num">189 000 soʻm</p>
+          </a>
+        </article>
+      </div>
+      <div class="sg__box" style="flex:1 1 260px">
+        <p class="sg__cap">Sizes · specs · rating</p>
+        <div class="stack">
+          <ul class="sizes">
+            <li><button class="sizes__btn" aria-pressed="false">S</button></li>
+            <li><button class="sizes__btn" aria-pressed="true">M</button></li>
+            <li><button class="sizes__btn" aria-pressed="false">L</button></li>
+            <li><button class="sizes__btn" disabled>XL</button></li>
+          </ul>
+          <dl class="spec">
+            <div class="spec__row"><dt>Mato</dt><dd>100% paxta</dd></div>
+            <div class="spec__row"><dt>Zichlik</dt><dd class="num">200 g/m²</dd></div>
+            <div class="spec__row"><dt>Fason</dt><dd>Oversize</dd></div>
+          </dl>
+          <div class="rating">
+            <span class="stars" aria-label="5 dan 4">
+              <svg class="i"><use href="#i-star"></use></svg><svg class="i"><use href="#i-star"></use></svg>
+              <svg class="i"><use href="#i-star"></use></svg><svg class="i"><use href="#i-star"></use></svg>
+              <svg class="i stars__empty"><use href="#i-star"></use></svg>
+            </span>
+            <span class="rating__count">4,0 · 12 sharh</span>
+          </div>
+          <div class="row">
+            <button class="like" aria-pressed="true">
+              <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
+              <span class="like__count">37</span></button>
+            <button class="like" aria-label="Ulashish">
+              <svg class="i" aria-hidden="true"><use href="#i-share"></use></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="sg__box" style="flex:1 1 260px">
+        <p class="sg__cap">Skeleton · empty</p>
+        <div class="skel skel--media" style="max-width:180px"></div>
+        <div class="skel skel--line" style="max-width:180px"></div>
+        <div class="skel skel--line is-short" style="max-width:180px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg__sec" id="feedback">
+    <h2>Xabarlar va holatlar</h2>
+    <div class="sg__demo">
+      <div class="sg__box" style="flex:1 1 320px">
+        <p class="sg__cap">Messages</p>
+        <div class="stack stack--sm">
+          <p class="msg msg--ok">Buyurtma qabul qilindi.</p>
+          <p class="msg msg--warn">Juda koʻp urinish. Biroz kuting.</p>
+          <p class="msg msg--err">Savat boʻsh.</p>
+        </div>
+      </div>
+      <div class="sg__box" style="flex:1 1 260px">
+        <p class="sg__cap">Badges</p>
+        <div class="row row--wrap">
+          <span class="badge">Odatiy</span><span class="badge badge--brand">Ommabop</span>
+          <span class="badge badge--success">Yetkazildi</span>
+          <span class="badge badge--warning">Jarayonda</span>
+          <span class="badge badge--danger">Tugadi</span>
+          <span class="badge badge--info">Yoʻlda</span>
+        </div>
+      </div>
+      <div class="sg__box" style="flex:1 1 260px">
+        <p class="sg__cap">Empty state</p>
+        <div class="empty" style="padding:var(--s-5) 0">
+          <svg class="i" aria-hidden="true"><use href="#i-box"></use></svg>
+          <h3>Savat boʻsh</h3>
+          <p>Hali hech narsa qoʻshilmagan.</p>
+          <a class="btn btn--secondary" href="#">Doʻkonga oʻtish</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg__sec" id="nav">
+    <h2>Navigatsiya</h2>
+    <div class="sg__demo">
+      <div class="sg__box" style="flex:1 1 240px"><p class="sg__cap">Breadcrumb</p>
+        <ul class="crumbs"><li><a href="#">Doʻkon</a></li><li><a href="#">Futbolkalar</a></li><li>Rampage</li></ul>
+      </div>
+      <div class="sg__box" style="flex:1 1 260px"><p class="sg__cap">Pagination</p>
+        <nav class="pager"><a href="#">‹</a><span class="is-current">1</span><a href="#">2</a>
+          <span class="is-gap">…</span><a href="#">9</a><a href="#">›</a></nav>
+      </div>
+      <div class="sg__box" style="flex:1 1 260px"><p class="sg__cap">Chips</p>
+        <div class="chips"><button aria-pressed="true">Hammasi</button>
+          <button aria-pressed="false">Yangi</button><button aria-pressed="false">Oversize</button></div>
+      </div>
+      <div class="sg__box" style="flex:1 1 300px"><p class="sg__cap">Tabs · accordion</p>
+        <div class="tabs" role="tablist">
+          <button role="tab" aria-selected="true">Tavsif</button>
+          <button role="tab" aria-selected="false">Sharhlar</button>
+          <button role="tab" aria-selected="false">Yetkazish</button>
+        </div>
+        <div class="acc" style="margin-top:var(--s-3)">
+          <div class="acc__item">
+            <button class="acc__btn" aria-expanded="true">Oʻlcham jadvali
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+            <div class="acc__panel">Oʻlchamlar taxminiy, ±1 sm.</div>
+          </div>
+          <div class="acc__item">
+            <button class="acc__btn" aria-expanded="false">Qaytarish
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="sg__box" style="flex:1 1 100%"><p class="sg__cap">Pickup picker — list first, map second</p>
+        <div class="picker">
+          <div class="picker__list">
+            <button class="picker__item" aria-pressed="true">
+              <span class="picker__name">Pochta boʻlimi №7</span>
+              <span class="picker__meta">Toshkent · Shayxontohur · 100007 · 09:00–18:00</span></button>
+            <button class="picker__item" aria-pressed="false">
+              <span class="picker__name">Pochta boʻlimi №43</span>
+              <span class="picker__meta">Toshkent · Yunusobod · 100043 · 09:00–17:00</span></button>
+          </div>
+          <div class="picker__map"><span class="small">Xarita — ixtiyoriy, checkout usiz ham ishlaydi</span></div>
+        </div>
+      </div>
+      <div class="sg__box" style="flex:1 1 100%"><p class="sg__cap">Order table — stacks into cards below 720 px</p>
+        <div class="scroll-x">
+          <table class="table">
+            <thead><tr><th>Buyurtma</th><th>Sana</th><th>Holat</th><th class="num">Summa</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Buyurtma">GX-260908-0042</td><td data-label="Sana">8-sentabr</td>
+                  <td data-label="Holat"><span class="badge badge--success">Bajarildi</span></td>
+                  <td class="num" data-label="Summa">219 000 soʻm</td></tr>
+              <tr><td data-label="Buyurtma">GX-260907-0041</td><td data-label="Sana">7-sentabr</td>
+                  <td data-label="Holat"><span class="badge badge--warning">Jarayonda</span></td>
+                  <td class="num" data-label="Summa">189 000 soʻm</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg__sec" id="icons">
+    <h2>Ikonkalar</h2>
+    <p class="lede">One inline sprite, inherits <code>currentColor</code>. No icon fonts.</p>
+    <div class="sg__icons">
+      {% for name in icons %}
+        <div class="sg__icon"><svg class="i i--lg" aria-hidden="true"><use href="#i-{{ name }}"></use></svg>{{ name }}</div>
+      {% endfor %}
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

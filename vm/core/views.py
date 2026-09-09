@@ -1,4 +1,6 @@
-"""Static pages (home, about, terms), the contact form, and error handlers."""
+"""Static pages (home, about, terms), the contact form, the staff style guide,
+and error handlers."""
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
@@ -58,6 +60,42 @@ def contact(request):
         'form_errors': form_errors,
         'rate_limited': (request.user.is_authenticated and
                          is_currently_limited(request, 'contact', 10, ident=f"u{request.user.pk}")),
+    })
+
+
+# ---------- design system ----------
+
+# The palette, listed once here so the style guide and tokens.css cannot drift
+# apart silently: if a token is added to tokens.css it has to be added here to
+# appear on the page, which is the prompt to check its contrast.
+STYLE_SWATCHES = [
+    ('--c-bg', '#100E0C'), ('--c-surface', '#17140F'), ('--c-surface-2', '#211C15'),
+    ('--c-surface-3', '#2A241B'), ('--c-fg', '#EFE9DE'), ('--c-fg-muted', '#B0A697'),
+    ('--c-fg-subtle', '#7D7466'), ('--c-line', '#2C2620'), ('--c-line-strong', '#453D31'),
+    ('--c-brand', '#C6A44E'), ('--c-brand-hover', '#D6B662'), ('--c-brand-fg', '#171205'),
+    ('--c-success', '#86BE72'), ('--c-warning', '#D9A441'), ('--c-danger', '#E07A62'),
+    ('--c-info', '#8AB4CE'),
+]
+
+STYLE_ICONS = [
+    'mark', 'search', 'heart', 'cart', 'user', 'share', 'menu', 'close', 'check',
+    'minus', 'plus', 'chevron-down', 'chevron-right', 'arrow-left', 'arrow-right',
+    'star', 'filter', 'sort', 'truck', 'box', 'pin', 'phone', 'telegram', 'info',
+    'warning', 'image', 'trash', 'ruler',
+]
+
+
+@staff_member_required
+def style_guide(request):
+    """Render every component in every state — the design-system reference.
+
+    Staff-only and ``noindex``. It is the first page in the project to load
+    tokens/base/components; the storefront keeps running on the old ``main.css``
+    until Phase 5 rebuilds the pages, so the two stylesheets never meet.
+    """
+    return render(request, 'boshqaruv/style.html', {
+        'swatches': STYLE_SWATCHES,
+        'icons': STYLE_ICONS,
     })
 
 

@@ -7,4 +7,8 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('terms/', views.terms, name='terms'),
+
+    # Staff-only design-system reference. The rest of /boshqaruv/ arrives in
+    # Phase 7; this is the first page under it.
+    path('boshqaruv/style/', views.style_guide, name='style_guide'),
 ]
