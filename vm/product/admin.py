@@ -45,9 +45,21 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('thumb', 'name', 'category', 'variant_count', 'min_price', 'image_count', 'created_at')
     list_display_links = ('thumb', 'name')
     list_filter = ('category', 'created_at')
-    search_fields = ('name', 'description')
+    search_fields = ('name', 'name_ru', 'name_en', 'description')
     inlines = [ImagePInline, VariantInline]
     list_select_related = ('category',)
+
+    # One fieldset per language, Uzbek first, so it is obvious which box is
+    # which and that Uzbek is the source the other two are written from.
+    # Russian and English may be left blank: |t falls back to the Uzbek field.
+    fieldsets = (
+        (None, {'fields': ('category',)}),
+        ('Oʻzbekcha', {'fields': ('name', 'description')}),
+        ('Русский', {'fields': ('name_ru', 'description_ru'),
+                      'description': "Boʻsh qoldirilsa, oʻzbekcha matn koʻrsatiladi."}),
+        ('English', {'fields': ('name_en', 'description_en'),
+                     'description': "Boʻsh qoldirilsa, oʻzbekcha matn koʻrsatiladi."}),
+    )
 
     @admin.display(description='Rasm')
     def thumb(self, obj):
@@ -90,8 +102,13 @@ class VariantAdmin(admin.ModelAdmin):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """Category lookup admin."""
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('name', 'name_ru', 'name_en')
+    search_fields = ('name', 'name_ru', 'name_en')
+    fieldsets = (
+        ('Oʻzbekcha', {'fields': ('name',)}),
+        ('Русский', {'fields': ('name_ru',)}),
+        ('English', {'fields': ('name_en',)}),
+    )
 
 
 @admin.register(Size)
@@ -103,9 +120,19 @@ class SizeAdmin(admin.ModelAdmin):
 
 @admin.register(Colour)
 class ColourAdmin(admin.ModelAdmin):
-    """Colour lookup admin."""
-    list_display = ('colour', 'hex_code')
-    search_fields = ('colour',)
+    """Colour lookup admin.
+
+    Colour is hidden from the storefront UI but kept in the data model (§17 #23),
+    so these translations exist for the admin and for a future re-enable.
+    """
+    list_display = ('colour', 'colour_ru', 'colour_en', 'hex_code')
+    search_fields = ('colour', 'colour_ru', 'colour_en')
+    fieldsets = (
+        (None, {'fields': ('hex_code',)}),
+        ('Oʻzbekcha', {'fields': ('colour',)}),
+        ('Русский', {'fields': ('colour_ru',)}),
+        ('English', {'fields': ('colour_en',)}),
+    )
 
 
 @admin.register(ImageP)
