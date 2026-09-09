@@ -4,8 +4,8 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.5 · created 2026-09-08 · last amended 2026-09-09
-**Status:** Phase 0 complete · Phase 1a complete · Phase 1b blocked on the VPS · Phase 2 next
+**Plan version:** 1.6 · created 2026-09-08 · last amended 2026-09-09
+**Status:** Phases 0 and 1a complete · Phase 1b parked (no VPS yet) · **Phase 2 in progress — a direction needs choosing (§19 Q18)**
 
 ---
 
@@ -706,8 +706,22 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
 
 *Goal: one agreed visual language, expressed as tokens and components, before any page is rebuilt.*
 
-1. **Three directions**, reviewed at 390 px and 1440 px. One chosen; the other two archived.
-2. Fill in every token value in `tokens.css`.
+1. ✅ **Three directions**, reviewed at 390 px and 1440 px. **Built — awaiting Kamronbek's choice
+   (§19 Q18).** They live in `docs/design/directions.html`: one self-contained file, no server, no
+   network. Each renders in an iframe at its true width so the media queries actually run.
+   - **A · Galereya** — the shop as a gallery. Bone ground, one ink, no accent, a lot of air;
+     Unbounded very large for the product name, Onest for everything else, sizes as underlined
+     text rather than boxes.
+   - **B · Bosma** — the page as a print shop's spec sheet. Ruled rows, every value labelled,
+     Oswald condensed uppercase for display, IBM Plex Mono for all data, one signal red used
+     *only* for stock state.
+   - **C · Tungi** — evolves the current darkness. Near-black ground, garment lit as a panel,
+     Unbounded 800, and a single amber accent carrying price, stock and every CTA.
+
+   Each is the *same* product page — gallery, title, price, size row with a sold-out state, size-guide
+   link, spec strip, heart and share, delivery lines, description, related row, and a mobile sticky
+   add-to-cart — so the comparison is treatment, not content.
+2. Fill in every token value in `tokens.css`. **Blocked on item 1.**
 3. Self-host the typefaces. Subset to Latin + Latin Extended (Uzbek needs `oʻ` and `gʻ`) + Cyrillic.
 
    > **Check U+02BB before choosing a face — it is a real elimination criterion.** Uzbek Latin
@@ -717,6 +731,14 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
    > U+02BB, U+02BC and U+00B7 before shortlisting it, not after. Also produce the wordmark
    > lockups here, once the display face is settled (§17 #38): `logo-full.svg` and
    > `logo-stacked.svg`, light and dark.
+
+   ✅ **The screening has run** — `docs/design/typeface-screening.md`. 31 families tested by reading
+   their `cmap` directly, **22 failed**. Only these can set Uzbek *and* Russian: **Unbounded, Oswald,
+   Onest, Inter, IBM Plex Sans, Commissioner, Mulish, Noto Sans, IBM Plex Mono.** A second filter on
+   spacing drops IBM Plex Sans and Mulish, which both render a visible gap as `O ʻzbekiston`.
+   **IBM Plex Mono is the only monospace that passes, so `--f-mono` is settled** (§17 #43).
+   The three directions each commit to a different pairing from this set; choosing a direction
+   chooses the type.
 
    WOFF2 only, `font-display: swap`, preload the display face. *The current site pulls Inter from
    `rsms.me` — a third-party render-blocking request on every page load.*
@@ -729,6 +751,12 @@ workers** · **a `pg_dump` + `media/` backup has been restored off-server with r
 8. Icons: one consistent set as an inline SVG sprite. No icon fonts.
 9. **Verify the above-the-fold rule**: on a 390 × 844 viewport the home hero must leave at least one
    partially visible row of product cards. This is a measured check, not a judgement call.
+
+> **Photography note.** The directions are built on **drawn garment mockups**, not photographs —
+> there is no product photography yet, and Kamronbek chose to proceed rather than wait (§17 #42).
+> Layout, crop, hierarchy and type are judgeable from them. *Whether the shop looks professional*
+> is not — that question belongs to the photography, and §8 is explicit that no CSS rescues bad
+> photos. The generator lives in `docs/design/mockup/`; real shots drop straight in.
 
 **Definition of Done:** a direction is chosen and recorded in §17 · `tokens.css` has no `TODO` ·
 every component exists in the style guide with all states · contrast passes on every token pairing ·
@@ -1355,7 +1383,7 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 | 0 Stabilise | ✅ Done | `phase-0-stabilise` | 2026-09-08 | 2026-09-08 | Items 7 and 9 moved to Phase 1b (new VPS) |
 | 1a Rebrand | ✅ Done | `phase-1-rebrand` | 2026-09-09 | 2026-09-09 | Mark, icons, OG, all copy, canonical contacts |
 | 1b Deployment | ⛔ Blocked | `phase-1b-deploy` | — | — | **Waiting on the VPS purchase.** Runs after Phase 10, before launch (§13) |
-| 2 Design system | ⬜ Not started | `phase-2-design` | — | — | Three directions before any CSS |
+| 2 Design system | 🟨 In progress | `phase-2-design` | 2026-09-09 | — | **Three directions built + typeface screened. Waiting on Kamronbek to pick a direction (§19 Q18)** — items 2, 4–9 are blocked on it |
 | 3 i18n foundation | ⬜ Not started | `phase-3-i18n` | — | — | |
 | 4 Data model | ⬜ Not started | `phase-4-models` | — | — | Needs the pickup-point CSV |
 | 5 Frontend rebuild | ⬜ Not started | `phase-5-frontend` | — | — | |
@@ -1382,6 +1410,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-08 | Planning | — | v1.3: cross-chat rule corrected (a chat may span several phases); project instructions written to `docs/PROJECT_INSTRUCTIONS.md` | Phase 0 |
 | 2026-09-08 | Task | 0 | v1.4: **Phase 0 complete.** `Kamron's` merged into `main`; `phase-0-stabilise` cut from `main`. Settings restored + `CSRF_TRUSTED_ORIGINS` added; 48 `.pyc` files and `.idea/` untracked and `.gitignore` rewritten; simplejwt, cors-headers and PyJWT removed and `requirements.txt` re-encoded UTF-8; footer categories rendered from a context processor; stale Click TODO deleted; four smoke tests added and passing. Redis and backup-restore moved to Phase 1 with the new VPS | Phase 1 — rebrand + new VPS |
 | 2026-09-09 | Task | 1a | v1.5: **Phase 1a complete.** Mark redrawn geometrically (1.9 KB traced path → 225 B, true 60°, IoU 0.943 against the original); full icon set, manifest and OG card; every ValleyMade string replaced; canonical contacts fixed; hero de-"Arzon"-ed; sitewide OG/Twitter meta. Phase 1 split into 1a/1b, 1b moved to just before launch, and the valleymade.uz 301 requirement deleted. Found: Poppins lacks U+02BB — a Phase 2 elimination criterion (risk #23) | Phase 2 — design system |
+| 2026-09-09 | Task | 2 | **Phase 2 started.** Typeface screening run against 31 families by reading cmaps — 22 fail on U+02BB; shortlist and evidence in `docs/design/typeface-screening.md`. No product photography exists, so a garment-mockup generator was built (`docs/design/mockup/`) and eight products composed. Three directions delivered as one self-contained file, `docs/design/directions.html` | **Kamronbek picks a direction**, then tokens, base.css, components.css, style guide |
 
 ---
 
@@ -1430,6 +1459,8 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 39 | 2026-09-09 | **"100+ dizayn" is hardcoded in the tagline, not rendered from the live product count** | Kamronbek's call, made with the trade-off stated: the catalogue is currently empty, so the claim is untrue today. Recorded because it is the first sentence a visitor reads. Risk #14 stays open and **Phase 11 item 2 becomes a hard launch gate** — 100+ real designs, or the line changes before launch |
 | 40 | 2026-09-09 | **Every raster icon is one identity: a white mark on a solid black tile** | Favicon, apple-touch, both PWA icons and the OG card all read as the same object at every size, and white-on-black is legible on light and dark browser chrome alike. It also matches the existing `theme-color: #000000`. Phase 2 may re-skin them once the palette is chosen; black and white is the lowest-regret choice to ship before that decision exists |
 | 41 | 2026-09-09 | **`site.webmanifest` is a rendered template, not a static file** | It has to name the icon files, and Phase 9 introduces `ManifestStaticFilesStorage`, which hashes their filenames. Serving it through `TemplateView` + `{% static %}` — the same pattern `robots.txt` already uses — means the paths keep resolving instead of silently 404ing after that change |
+| 42 | 2026-09-09 | **Phase 2 proceeds on drawn garment mockups instead of waiting for photography** | Kamronbek's call, with the trade-off stated. `media/products/` contains no photograph of a t-shirt, and the alternative was parking Phase 2 for an unknown time. A generator (`docs/design/mockup/`) draws a garment with real oversize-tee proportions, fabric shading and a consistent 4:5 crop on one backdrop. **What this buys and what it does not:** layout, crop, hierarchy and typography are judgeable; *"does this shop look professional"* is not, because that question is answered by the photography. §8's warning stands and Phase 11 stays gated on real shots |
+| 43 | 2026-09-09 | **The typeface shortlist is fixed to the nine families that contain U+02BB and Cyrillic; `--f-mono` is settled as IBM Plex Mono** | Measured, not assumed: 31 families were downloaded and their cmaps read. 22 fail, including Manrope, Figtree, Outfit, Plus Jakarta Sans, Sora, Space Grotesk, Bricolage, Archivo and Rubik — and Golos Text, which is a Cyrillic-first family built for Russian. IBM Plex Mono is the **only** monospace that passes, so there is no choice to make there. IBM Plex Sans and Mulish pass on coverage but set `O ʻzbekiston` with a visible gap, so they are out on spacing |
 
 ---
 
@@ -1473,6 +1504,8 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 15 | **When is the VPS bought?** Specs are settled (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD, upgradeable to 26.04), and Phase 1b is the only thing waiting on it. Ask again when Phase 10 finishes. | Phase 1b | ⏳ Open — not urgent |
 | 16 | Instagram and TikTok handles for the footer (§18 #7) | Phase 5 | ⏳ Open |
 | 17 | Confirm the Eskiz sender name is approved as exactly `GRAPHIX`, and that the two SMS templates were re-moderated after the rebrand — Eskiz moderates message *text*, and both bodies changed in Phase 1a | Phase 1b | ⏳ Open — worth checking before it blocks a live signup |
+| 18 | **Which direction — A · Galereya, B · Bosma, or C · Tungi?** Open `docs/design/directions.html`, ideally on a phone. Everything else in Phase 2 depends on this: tokens, `base.css`, `components.css`, the style guide, the wordmark lockups, and the palette the icons may be re-skinned to. A mix is allowed — say which parts of which. | Phase 2 | ⏳ **Open — blocking Phase 2 items 2 and 4–9** |
+| 19 | Product photography — when can real shots exist? Not blocking now (§17 #42), but it gates Phase 11 and it is what decides whether the chosen direction actually looks professional. | Phase 11 | ⏳ Open |
 
 **Resolved:**
 
