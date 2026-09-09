@@ -13,6 +13,10 @@ urlpatterns = [
     # SEO
     path('sitemap.xml', sitemap, {'sitemaps': site_maps}, name='sitemap'),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
+    # Rendered as a template so the icon paths come from {% static %} and keep
+    # working once static files are hashed.
+    path('site.webmanifest', TemplateView.as_view(template_name='site.webmanifest',
+                                                  content_type='application/manifest+json')),
 
     path('', include('core.urls')),
     path('', include('user.urls')),
