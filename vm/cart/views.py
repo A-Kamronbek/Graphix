@@ -58,14 +58,15 @@ def cart_add(request, product_id):
     size_id = request.POST.get('size') or None
     qty = _parse_qty(request.POST.get('quantity', 1))
 
+    # Both calls can fail on stock: resolve_variant if the size has run out,
+    # add_variant if it ran out between the page load and the POST.
     try:
         variant = services.resolve_variant(product, colour_id, size_id)
+        cart = services.get_active_cart(request.user)
+        services.add_variant(cart, variant, qty)
     except services.CartError as e:
         messages.error(request, str(e))
         return redirect('item', pk=product_id)
-
-    cart = services.get_active_cart(request.user)
-    services.add_variant(cart, variant, qty)
 
     messages.success(request, f"{product.name} savatga qo\'shildi.")
     return redirect('shop')
@@ -77,7 +78,10 @@ def cart_update(request, item_id):
     """Update a line's quantity (a quantity of 0 removes it)."""
     item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
     qty = _parse_qty(request.POST.get('quantity', 1), default=1, lo=0, hi=99)
-    services.set_item_quantity(item, qty)
+    try:
+        services.set_item_quantity(item, qty)
+    except services.CartError as e:
+        messages.error(request, str(e))
     return redirect('cart')
 
 

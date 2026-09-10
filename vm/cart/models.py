@@ -1,4 +1,5 @@
-"""Cart models: one open cart per user, with price-snapshotted line items."""
+"""Cart models: one open cart per user (or per guest session), with
+price-snapshotted line items."""
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Sum, Q
@@ -6,12 +7,16 @@ from product.models import Variant
 
 
 class Cart(models.Model):
-    """A user's cart.
+    """A cart, owned either by a user or — before login — by a session.
 
-    A partial unique constraint allows only one open (``status=True``) cart per
-    user; checked-out carts are kept on record with ``status=False``.
+    Two partial unique constraints allow one open (``status=True``) cart per
+    signed-in user and one per anonymous session; checked-out carts are kept on
+    record with ``status=False``. A guest cart is merged into the user's open
+    cart on login, or simply claimed by setting ``user`` if there is none.
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="carts")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             null=True, blank=True, related_name="carts")
+    session_key = models.CharField(max_length=40, null=True, blank=True, db_index=True)
     status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -22,14 +27,20 @@ class Cart(models.Model):
         )['total'] or 0
 
     def __str__(self):
-        return f"Cart {self.id}. {self.user.username}"
+        owner = self.user.username if self.user_id else f"guest {self.session_key or '?'}"
+        return f"Cart {self.id}. {owner}"
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['user'],
-                condition=Q(status=True),
+                condition=Q(status=True) & Q(user__isnull=False),
                 name='unique_open_cart_per_user',
+            ),
+            models.UniqueConstraint(
+                fields=['session_key'],
+                condition=Q(status=True) & Q(user__isnull=True),
+                name='unique_open_cart_per_session',
             ),
         ]
 
