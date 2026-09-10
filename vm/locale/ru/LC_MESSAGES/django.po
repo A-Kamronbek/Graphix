@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 18:08+0500\n"
+"POT-Creation-Date: 2026-09-10 13:02+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,6 +32,14 @@ msgstr "Пожалуйста, введите сообщение."
 msgid "Xabar qabul qilindi."
 msgstr "Сообщение отправлено."
 
+#: .\payment\models.py:164
+msgid "Bu yetkazib berish turi uchun pochta boʻlimi tanlanishi shart."
+msgstr "Для этого способа доставки нужно выбрать отделение почты."
+
+#: .\payment\models.py:166
+msgid "Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi."
+msgstr "При доставке до двери отделение почты не выбирается."
+
 #: .\payment\views.py:34 .\payment\views.py:84
 msgid "Savat boʻsh."
 msgstr "Корзина пуста."
@@ -47,6 +55,50 @@ msgstr "Заказ уже оформлен."
 #: .\payment\views.py:87
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
 msgstr "Заказ принят. Перейдите к оплате."
+
+#: .\product\models.py:45
+msgid "Uslub"
+msgstr "Стиль"
+
+#: .\product\models.py:46
+msgid "Mavzu"
+msgstr "Тема"
+
+#: .\product\models.py:47
+msgid "Kolleksiya"
+msgstr "Коллекция"
+
+#: .\product\models.py:109
+msgid "Trafaret"
+msgstr "Трафаретная печать"
+
+#: .\product\models.py:110
+msgid "Naqsh"
+msgstr "Вышивка"
+
+#: .\product\models.py:113
+msgid "Oddiy"
+msgstr "Обычный"
+
+#: .\product\models.py:114
+msgid "Oversize"
+msgstr "Оверсайз"
+
+#: .\product\models.py:115
+msgid "Boxy"
+msgstr "Бокси"
+
+#: .\product\models.py:296
+msgid "Kutilmoqda"
+msgstr "На модерации"
+
+#: .\product\models.py:297
+msgid "Tasdiqlangan"
+msgstr "Одобрен"
+
+#: .\product\models.py:298
+msgid "Rad etilgan"
+msgstr "Отклонён"
 
 #: .\user\forms.py:11
 msgid "Harflar, raqamlar va _ mumkin"

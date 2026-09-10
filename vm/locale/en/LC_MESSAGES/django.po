@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 18:08+0500\n"
+"POT-Creation-Date: 2026-09-10 13:02+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,6 +30,14 @@ msgstr "Please enter a message."
 msgid "Xabar qabul qilindi."
 msgstr "Message sent."
 
+#: .\payment\models.py:164
+msgid "Bu yetkazib berish turi uchun pochta boʻlimi tanlanishi shart."
+msgstr "This delivery option requires a post office branch."
+
+#: .\payment\models.py:166
+msgid "Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi."
+msgstr "Door delivery does not take a post office branch."
+
 #: .\payment\views.py:34 .\payment\views.py:84
 msgid "Savat boʻsh."
 msgstr "Your cart is empty."
@@ -45,6 +53,50 @@ msgstr "This order has already been placed."
 #: .\payment\views.py:87
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
 msgstr "Order received. Please complete payment."
+
+#: .\product\models.py:45
+msgid "Uslub"
+msgstr "Style"
+
+#: .\product\models.py:46
+msgid "Mavzu"
+msgstr "Theme"
+
+#: .\product\models.py:47
+msgid "Kolleksiya"
+msgstr "Collection"
+
+#: .\product\models.py:109
+msgid "Trafaret"
+msgstr "Screen print"
+
+#: .\product\models.py:110
+msgid "Naqsh"
+msgstr "Embroidery"
+
+#: .\product\models.py:113
+msgid "Oddiy"
+msgstr "Regular"
+
+#: .\product\models.py:114
+msgid "Oversize"
+msgstr "Oversize"
+
+#: .\product\models.py:115
+msgid "Boxy"
+msgstr "Boxy"
+
+#: .\product\models.py:296
+msgid "Kutilmoqda"
+msgstr "Pending"
+
+#: .\product\models.py:297
+msgid "Tasdiqlangan"
+msgstr "Approved"
+
+#: .\product\models.py:298
+msgid "Rad etilgan"
+msgstr "Rejected"
 
 #: .\user\forms.py:11
 msgid "Harflar, raqamlar va _ mumkin"

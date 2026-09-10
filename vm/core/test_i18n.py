@@ -133,3 +133,91 @@ class TfieldTests(TestCase):
         tpl = Template('{% load i18n_fields %}{{ p|t:"name" }}')
         with translation.override('ru'):
             self.assertEqual(tpl.render(Context({'p': self.filled})), "Чёрная футболка")
+
+
+class CatalogueCompletenessTests(TestCase):
+    """Every string marked for translation is actually translated in ru and en.
+
+    This exists because of a real miss: Phase 4 wrapped thirteen new labels in
+    ``gettext_lazy`` and never ran ``makemessages``, so they rendered Uzbek in all
+    three languages. Nothing failed — the site just quietly stopped being
+    trilingual in those places, which is the hardest kind of regression to notice.
+
+    Uzbek is the source language, so its ``msgstr`` entries stay empty on purpose:
+    gettext falls back to the msgid, which *is* the Uzbek copy.
+    """
+    #: Untranslated by design — acronyms and words that are identical in all three.
+    SAME_IN_EVERY_LANGUAGE = {'Oversize', 'Boxy', 'Email', 'Telegram', 'GRAPHIX'}
+
+    def _entries(self, lang):
+        """Return (msgid, msgstr) pairs from a catalogue, skipping the header.
+
+        Parses continuation lines rather than matching one-line entries: gettext
+        wraps anything long across several quoted strings, and a regex that only
+        saw single-line entries would silently skip exactly the long strings most
+        likely to be left untranslated.
+        """
+        entries, key, parts = [], None, {'msgid': [], 'msgstr': []}
+        for raw in self._catalogue_path(lang).read_text(encoding='utf-8').splitlines():
+            line = raw.strip()
+            if line.startswith('msgid "'):
+                if key:                                 # flush the previous entry
+                    entries.append((''.join(parts['msgid']), ''.join(parts['msgstr'])))
+                parts = {'msgid': [line[7:-1]], 'msgstr': []}
+                key = 'msgid'
+            elif line.startswith('msgstr "'):
+                parts['msgstr'] = [line[8:-1]]
+                key = 'msgstr'
+            elif line.startswith('"') and key:          # a wrapped continuation
+                parts[key].append(line[1:-1])
+        if key:
+            entries.append((''.join(parts['msgid']), ''.join(parts['msgstr'])))
+        return [(mid, mstr) for mid, mstr in entries if mid]
+
+    @staticmethod
+    def _catalogue_path(lang):
+        from pathlib import Path
+        from django.conf import settings
+        return Path(settings.LOCALE_PATHS[0]) / lang / 'LC_MESSAGES' / 'django.po'
+
+    def test_the_parser_actually_finds_the_entries(self):
+        """Guards the two tests below from passing vacuously on a parse failure."""
+        for lang in ('uz', 'ru', 'en'):
+            with self.subTest(lang=lang):
+                self.assertGreaterEqual(
+                    len(self._entries(lang)), 30,
+                    f"only parsed {len(self._entries(lang))} entries from the {lang} "
+                    "catalogue - the parser, not the catalogue, is probably broken",
+                )
+
+    def test_russian_and_english_catalogues_have_no_empty_translations(self):
+        for lang in ('ru', 'en'):
+            with self.subTest(lang=lang):
+                empty = [mid for mid, mstr in self._entries(lang)
+                         if not mstr and mid not in self.SAME_IN_EVERY_LANGUAGE]
+                self.assertEqual(
+                    empty, [],
+                    f"{len(empty)} msgid(s) have no {lang} translation and will render "
+                    f"Uzbek instead: {empty[:5]}",
+                )
+
+    def test_the_catalogues_cover_the_same_strings(self):
+        """A string present in one catalogue and missing from another is a stale run."""
+        ids = {lang: {mid for mid, _ in self._entries(lang)} for lang in ('uz', 'ru', 'en')}
+        self.assertEqual(ids['ru'], ids['en'], 'ru and en catalogues are out of step')
+        self.assertEqual(ids['uz'], ids['ru'], 'uz catalogue is out of step')
+
+    def test_the_phase_4_choice_labels_translate(self):
+        """Spot-check the labels that were missed, so the fix can't be undone."""
+        from product.models import Product, Tag
+        from product.models import Review
+        expected = {
+            'ru': ['Обычный', 'Стиль', 'На модерации'],
+            'en': ['Regular', 'Style', 'Pending'],
+        }
+        for lang, wanted in expected.items():
+            with self.subTest(lang=lang), translation.override(lang):
+                rendered = [str(dict(Product.Fit.choices)[Product.Fit.REGULAR]),
+                            str(dict(Tag.Kind.choices)[Tag.Kind.STYLE]),
+                            str(dict(Review.Status.choices)[Review.Status.PENDING])]
+                self.assertEqual(rendered, wanted)

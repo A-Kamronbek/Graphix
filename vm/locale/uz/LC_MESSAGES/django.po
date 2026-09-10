@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 18:08+0500\n"
+"POT-Creation-Date: 2026-09-10 13:02+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,6 +30,14 @@ msgstr ""
 msgid "Xabar qabul qilindi."
 msgstr ""
 
+#: .\payment\models.py:164
+msgid "Bu yetkazib berish turi uchun pochta boʻlimi tanlanishi shart."
+msgstr ""
+
+#: .\payment\models.py:166
+msgid "Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi."
+msgstr ""
+
 #: .\payment\views.py:34 .\payment\views.py:84
 msgid "Savat boʻsh."
 msgstr ""
@@ -44,6 +52,50 @@ msgstr ""
 
 #: .\payment\views.py:87
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
+msgstr ""
+
+#: .\product\models.py:45
+msgid "Uslub"
+msgstr ""
+
+#: .\product\models.py:46
+msgid "Mavzu"
+msgstr ""
+
+#: .\product\models.py:47
+msgid "Kolleksiya"
+msgstr ""
+
+#: .\product\models.py:109
+msgid "Trafaret"
+msgstr ""
+
+#: .\product\models.py:110
+msgid "Naqsh"
+msgstr ""
+
+#: .\product\models.py:113
+msgid "Oddiy"
+msgstr ""
+
+#: .\product\models.py:114
+msgid "Oversize"
+msgstr ""
+
+#: .\product\models.py:115
+msgid "Boxy"
+msgstr ""
+
+#: .\product\models.py:296
+msgid "Kutilmoqda"
+msgstr ""
+
+#: .\product\models.py:297
+msgid "Tasdiqlangan"
+msgstr ""
+
+#: .\product\models.py:298
+msgid "Rad etilgan"
 msgstr ""
 
 #: .\user\forms.py:11
