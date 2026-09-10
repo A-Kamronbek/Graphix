@@ -34,13 +34,13 @@ class ProductSitemap(Sitemap):
     x_default = True
 
     def items(self):
-        return Product.objects.filter(variants__available=True).distinct()
+        return Product.objects.filter(is_active=True, variants__available=True).distinct()
 
     def lastmod(self, obj):
         return obj.created_at
 
     def location(self, obj):
-        return reverse('item', kwargs={'pk': obj.pk})
+        return reverse('item', kwargs={'slug': obj.slug})
 
 
 # Registered in vm/urls.py under the sitemap view.

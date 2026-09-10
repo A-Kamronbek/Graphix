@@ -1,5 +1,5 @@
 """Storefront views: the shop listing (search / filter / sort) and product detail."""
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Min, Q
 import json
@@ -7,7 +7,12 @@ from .models import Product, Category, Size, Colour, Variant
 
 
 def shop(request):
-    """List purchasable products with search, category/size filters, sort, and paging."""
+    """List products with search, category/size filters, sort, and paging.
+
+    Listing requires ``available``, not purchasability: a sold-out design stays
+    browsable and keeps its page, and the cart is where stock is enforced. What
+    does hide a product is ``is_active=False`` — the owner's explicit switch.
+    """
     q = request.GET.get('q', '').strip()
     category = request.GET.get('category')
     size = request.GET.get('size')
@@ -15,7 +20,7 @@ def shop(request):
 
     qs = (
         Product.objects
-        .filter(variants__available=True)
+        .filter(is_active=True, variants__available=True)
         .annotate(min_price=Min('variants__price', filter=Q(variants__available=True)))
         .prefetch_related('images', 'variants')
         .distinct()
@@ -59,11 +64,18 @@ def shop(request):
     })
 
 
-def item(request, pk):
+def item_legacy_redirect(request, pk):
+    """301 the pre-Phase-4 ``/item/<pk>/`` URL to the product's slug URL."""
+    product = get_object_or_404(Product, pk=pk)
+    return redirect('item', slug=product.slug, permanent=True)
+
+
+def item(request, slug):
     """Product detail: variants, availability, a price map for JS, and related items."""
     product = get_object_or_404(
         Product.objects.prefetch_related('images', 'variants__size', 'variants__colour'),
-        pk=pk,
+        slug=slug,
+        is_active=True,
     )
 
     colour_ids = product.variants.values_list('colour_id', flat=True).distinct()
@@ -71,28 +83,32 @@ def item(request, pk):
     colours = Colour.objects.filter(id__in=colour_ids)
     sizes = Size.objects.filter(id__in=size_ids)
 
-    available_size_ids = set(
-        product.variants.filter(available=True).values_list('size_id', flat=True)
-    )
+    # Purchasable, not merely available: a size the owner still sells but has run
+    # out of has to read as unpickable, or the customer hits an error on submit.
+    purchasable = product.variants.filter(available=True, stock__gt=0)
+    available_size_ids = set(purchasable.values_list('size_id', flat=True))
     unavailable_sizes = [s.id for s in sizes if s.id not in available_size_ids]
 
-    selected_variant = product.variants.filter(available=True).first() or product.variants.first()
+    selected_variant = purchasable.first() or product.variants.first()
 
-    is_purchasable = product.variants.filter(available=True).exists()
+    is_purchasable = purchasable.exists()
 
     # "colour_id:size_id" -> price/availability/id, consumed by the product-page JS
-    # to update price and the add-to-cart state as the user picks options.
+    # to update price and the add-to-cart state as the user picks options. The key
+    # stays 'available' so the existing picker keeps working unchanged (§17 #23);
+    # it now carries purchasability, which is what the button actually depends on.
     variants_map = {}
     for v in product.variants.all():
         key = f"{v.colour_id or ''}:{v.size_id or ''}"
         variants_map[key] = {
             'price': float(v.price),
-            'available': bool(v.available),
+            'available': bool(v.is_purchasable),
             'id': v.id,
         }
 
     related = (
-        Product.objects.filter(category=product.category, variants__available=True)
+        Product.objects.filter(is_active=True, category=product.category,
+                               variants__available=True)
         .exclude(id=product.id)
         .annotate(min_price=Min('variants__price', filter=Q(variants__available=True)))
         .prefetch_related('images', 'variants')

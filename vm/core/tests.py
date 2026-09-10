@@ -42,6 +42,7 @@ class SmokeTests(TestCase):
             colour=Colour.objects.create(colour='Qora'),
             price=Decimal('150000'),
             available=True,
+            stock=10,
         )
 
     def test_home_renders(self):
