@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Yetkazib berish" %}{% endblock %}
+
+{% block content %}
+<div class="wrap section">
+  <article class="prose stack stack--lg">
+    <h1 class="h1">{% trans "Yetkazib berish" %}</h1>
+    <p class="lede">{% trans "Butun Oʻzbekiston boʻylab, Oʻzbekiston pochtasi orqali — Toshkentda ham, viloyatlarda ham." %}</p>
+
+    <dl class="spec">
+      <div class="spec__row">
+        <dt>
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-box"></use></svg>
+          {% trans "Pochta boʻlimiga" %}
+        </dt>
+        <dd class="num">15 000 {% trans "soʻm" %}</dd>
+      </div>
+      <div class="spec__row">
+        <dt>
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-truck"></use></svg>
+          {% trans "Eshikkacha" %}
+        </dt>
+        <dd class="num">30 000 {% trans "soʻm" %}</dd>
+      </div>
+    </dl>
+
+    <p class="body">{% trans "Boʻlimga yetkazishda buyurtmani oʻzingiz tanlagan pochta boʻlimidan olib ketasiz. Eshikkacha yetkazishda kuryer koʻrsatilgan manzilga olib boradi." %}</p>
+    <p class="body">{% trans "Toʻlovni Click orqali onlayn yoki buyurtmani olganda naqd pulda amalga oshirishingiz mumkin." %}</p>
+
+    <div class="row row--wrap">
+      <a class="btn btn--secondary" href="{% url 'contact' %}">{% trans "Savolingiz bormi?" %}</a>
+    </div>
+  </article>
+</div>
+{% endblock %}

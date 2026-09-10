@@ -1,79 +1,94 @@
-{% extends "base_legacy.html" %}
-{% load static %}
-{% load price_format %}
-{% block title %}Savat{% endblock %}
+{% extends "base.html" %}
+{% load static i18n i18n_fields price_format %}
+
+{% block title %}{% trans "Savat" %}{% endblock %}
 
 {% block content %}
-<section class="cart_section">
-  <div class="wrap">
-    {% if items %}
-    <h1 class="h-display h-lg mt-8 mb-32">
-      Savatingiz
-    </h1>
-    <h1>
-        {% if items %} <span class="muted">{{ items|length }} narsa</span>{% endif %}
-    </h1>
+<div class="wrap section stack stack--lg">
+  <h1 class="h1">{% trans "Savat" %}</h1>
 
-      <div class="cart">
-        <div class="cart__lines">
-          {% for it in items %}
-            <div class="cart__line">
+  {% if items %}
+    <div class="cartpage">
+      <div class="stack">
+        {% for it in items %}
+          <article class="cartline">
+            <a class="cartline__thumb" href="{% url 'item' it.variant.product.slug %}">
               {% with it.variant.product.images.first as img %}
                 {% if img and img.picture and img.picture.name %}
-                  <img class="cart__thumb" src="{{ img.picture.url }}" alt="{{ it.variant.product.name }}"
+                  <img src="{{ img.picture.url }}" alt="{{ it.variant.product|t:'name' }}" loading="lazy"
                        onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
                 {% else %}
-                  <img class="cart__thumb" src="{% static 'img/no-image.jpg' %}" alt="{{ it.variant.product.name }}">
+                  <img src="{% static 'img/no-image.jpg' %}" alt="{{ it.variant.product|t:'name' }}" loading="lazy">
                 {% endif %}
               {% endwith %}
+            </a>
 
-              <div class="cart__info">
-                <a class="cart__name" href="{% url 'item' it.variant.product.slug %}">{{ it.variant.product.name }}</a>
-                <span class="cart__meta">{{ it.variant.colour.colour }} · {{ it.variant.size.size }}</span>
-                <span class="cart__meta">{{ it.price_stat|price }} UZS</span>
-              </div>
-
-              <div class="cart__line-actions">
-                <form method="post" action="{% url 'cart_update' it.id %}" class="qty" data-qty>
-                  {% csrf_token %}
-                  <button type="button" data-qty-dec aria-label="decrease">−</button>
-                  <input type="text" name="quantity" value="{{ it.quantity }}" inputmode="numeric" pattern="[0-9]*" maxlength="2" onchange="this.form.submit()">
-                  <button type="button" data-qty-inc aria-label="increase">+</button>
-                </form>
-
-                <span class="mono" style="font-size: 14px;">{{ it.line_total|price }} UZS</span>
-
-                <form method="post" action="{% url 'cart_remove' it.id %}">
-                  {% csrf_token %}
-                  <button class="cart__remove" type="submit"><h3>Olib tashlash</h3></button>
-                </form>
-              </div>
+            <div class="cartline__info stack stack--sm">
+              <a class="card__name" href="{% url 'item' it.variant.product.slug %}">{{ it.variant.product|t:"name" }}</a>
+              <span class="small muted">{% trans "Oʻlcham" %}: {{ it.variant.size.size }}</span>
+              <span class="small muted num">{{ it.price_stat|price }} {% trans "soʻm" %}</span>
             </div>
-          {% endfor %}
-        </div>
 
-        <aside class="summary">
-          <h3>Umumiy</h3>
-          <div class="summary__row"><span>Savat</span><span>{{ subtotal|price }} UZS</span></div>
-          <div class="summary__row"><span>Qo'shimcha</span><span>0 UZS</span></div>
-          <div class="summary__row summary__row--total"><span>Jami</span><span>{{ total|price }} UZS</span></div>
+            <div class="cartline__actions">
+              {# The stepper submits on change, so it works without JavaScript. #}
+              <form method="post" action="{% url 'cart_update' it.id %}" class="stepper"
+                    data-qty data-qty-max="{{ it.variant.stock|default:99 }}">
+                {% csrf_token %}
+                <button type="button" data-qty-dec aria-label="{% trans 'Kamaytirish' %}">
+                  <svg class="i i--sm" aria-hidden="true"><use href="#i-minus"></use></svg>
+                </button>
+                <input class="stepper__val num" type="text" name="quantity" value="{{ it.quantity }}"
+                       inputmode="numeric" pattern="[0-9]*" maxlength="2"
+                       aria-label="{% trans 'Soni' %}" onchange="this.form.submit()">
+                <button type="button" data-qty-inc aria-label="{% trans 'Koʻpaytirish' %}">
+                  <svg class="i i--sm" aria-hidden="true"><use href="#i-plus"></use></svg>
+                </button>
+                <noscript><button class="btn btn--sm btn--secondary" type="submit">{% trans "Yangilash" %}</button></noscript>
+              </form>
 
-          <a class="btn btn--solid btn--block btn--lg mt-24" href="{% url 'checkout' %}">To'lov qilish</a>
-          <a class="btn btn--ghost btn--block mt-8" href="{% url 'shop' %}">Do'konga qaytish</a>
+              <span class="cartline__total num">{{ it.line_total|price }} {% trans "soʻm" %}</span>
 
-<!--          <p class="muted mono mt-16" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">-->
-<!--            Pay securely with <strong style="color:var(&#45;&#45;fg)">Click</strong> at checkout.-->
-<!--          </p>-->
-        </aside>
+              <form method="post" action="{% url 'cart_remove' it.id %}">
+                {% csrf_token %}
+                <button class="btn btn--ghost btn--icon" type="submit"
+                        aria-label="{% blocktrans with name=it.variant.product.name %}{{ name }} — olib tashlash{% endblocktrans %}">
+                  <svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg>
+                </button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
       </div>
 
-    {% else %}
-      <div class="empty">
-        <h2>Savat bo'sh</h2>
-<!--        <p>Xarid qilish.</p>-->
-        <a class="btn btn--solid btn--lg" href="{% url 'shop' %}">Do'kon</a>
-      </div>
-    {% endif %}
-  </div>
-</section>
+      <aside class="cartpage__summary panel stack">
+        <h2 class="h3">{% trans "Buyurtma" %}</h2>
+        <dl class="spec">
+          <div class="spec__row">
+            <dt>{% trans "Mahsulotlar" %}</dt>
+            <dd class="num">{{ subtotal|price }} {% trans "soʻm" %}</dd>
+          </div>
+          <div class="spec__row">
+            <dt>{% trans "Yetkazib berish" %}</dt>
+            <dd class="muted small">{% trans "Keyingi qadamda" %}</dd>
+          </div>
+          <div class="spec__row cartpage__total">
+            <dt>{% trans "Jami" %}</dt>
+            <dd class="num">{{ total|price }} {% trans "soʻm" %}</dd>
+          </div>
+        </dl>
+
+        <a class="btn btn--primary btn--lg btn--block" href="{% url 'checkout' %}">{% trans "Rasmiylashtirish" %}</a>
+        <a class="link" href="{% url 'shop' %}">{% trans "Xaridni davom ettirish" %}</a>
+      </aside>
+    </div>
+
+  {% else %}
+    <div class="empty">
+      <svg class="i" aria-hidden="true"><use href="#i-cart"></use></svg>
+      <h3>{% trans "Savat boʻsh" %}</h3>
+      <p>{% trans "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi." %}</p>
+      <a class="btn btn--primary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+    </div>
+  {% endif %}
+</div>
 {% endblock %}

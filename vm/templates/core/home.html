@@ -1,23 +1,87 @@
-{% extends "base_legacy.html" %}
-{% load static %}
-{% block title %}Bosh sahifa{% endblock %}
+{% extends "base.html" %}
+{% load static i18n i18n_fields price_format %}
 
-{% block marq %}
-<!--{% include "partials/_marquee.html" with reverse=False %}-->
-{% endblock %}
+{% block title %}{% trans "Grafik futbolkalar" %}{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <div class="hero__stars" aria-hidden="true"></div>
-  <div class="wrap">
-    <h1 class="hero__title">GRAPHIX</h1>
-    <p class="hero__sub">Premium sifat · 100+ dizayn · O'zbekiston bo'ylab yetkazib berish</p>
-    <div class="row" style="justify-content:center; margin-top: 32px; gap: 12px;">
-      <a class="btn btn--solid btn--lg" href="{% url 'shop' %}">Do'kon</a>
-      <a class="btn btn--lg" href="{% url 'account' %}">Hisobim</a>
+
+{# Hero. Height-capped in CSS so a product row is always partly visible at #}
+{# 390 x 844 without scrolling — a full-viewport hero on a shop is a known #}
+{# conversion killer (§17 #29). It leads with a real design that is in stock, #}
+{# not a fixed marketing image. #}
+<section class="home__hero">
+  <div class="wrap home__hero-inner">
+    <div class="stack">
+      <span class="eyebrow">{% trans "Toshkentdan, omborda mavjud" %}</span>
+      <h1 class="home__title">{% trans "Kiyishga arziydigan grafika." %}</h1>
+      <p class="lede">{% trans "Premium sifat · 100+ dizayn · Oʻzbekiston boʻylab yetkazib berish" %}</p>
+      <div class="row row--wrap">
+        <a class="btn btn--primary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+        <a class="btn btn--secondary btn--lg" href="{% url 'contact' %}">{% trans "Oʻz dizayningiz" %}</a>
+      </div>
     </div>
+
+    {% if featured %}
+      <a class="home__hero-art" href="{% url 'item' featured.slug %}"
+         aria-label="{{ featured|t:'name' }}">
+        {% with featured.images.first as img %}
+          {% if img and img.picture and img.picture.name %}
+            <img src="{{ img.picture.url }}" alt="{{ featured|t:'name' }}" decoding="async"
+                 onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
+          {% else %}
+            <img src="{% static 'img/no-image.jpg' %}" alt="{{ featured|t:'name' }}" decoding="async">
+          {% endif %}
+        {% endwith %}
+      </a>
+    {% endif %}
   </div>
 </section>
 
-{% include "partials/_marquee.html" with reverse=False %}
+{% if newest %}
+  <section class="section">
+    <div class="wrap stack stack--lg">
+      <div class="row row--between">
+        <h2 class="h2">{% trans "Yangi kelganlar" %}</h2>
+        <a class="link" href="{% url 'shop' %}">{% trans "Barchasi" %}</a>
+      </div>
+      <div class="grid-products">
+        {% for p in newest %}{% include "product/_card.html" with p=p %}{% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% if popular %}
+  {# "Siz uchun" is most-liked until Phase 13 ships the real recommender. #}
+  <section class="section">
+    <div class="wrap stack stack--lg">
+      <h2 class="h2">{% trans "Siz uchun" %}</h2>
+      <div class="grid-products">
+        {% for p in popular %}{% include "product/_card.html" with p=p %}{% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% if categories %}
+  <section class="section">
+    <div class="wrap stack stack--lg">
+      <h2 class="h2">{% trans "Kategoriyalar" %}</h2>
+      <div class="chips">
+        {% for c in categories %}
+          <a class="badge" href="{% url 'shop' %}?category={{ c.id }}">{{ c|t:"name" }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<section class="section">
+  <div class="wrap home__statement">
+    <p class="h3">
+      {% trans "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada." %}
+    </p>
+    <a class="link" href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a>
+  </div>
+</section>
 {% endblock %}

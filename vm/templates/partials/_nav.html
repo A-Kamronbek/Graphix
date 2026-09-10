@@ -14,8 +14,8 @@
     <a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="is-active" aria-current="page"{% endif %}>{% trans "Bogʻlanish" %}</a>
   </nav>
 
-  {# Posts to the shop's existing ?q= until Phase 5 item 5 ships /qidiruv/. #}
-  <form class="nav__search" method="get" action="{% url 'shop' %}" role="search">
+  {# The header field is the site's search entry; /shop/ keeps its own ?q=. #}
+  <form class="nav__search" method="get" action="{% url 'search' %}" role="search">
     <label class="search">
       <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
       <span class="sr-only">{% trans "Qidirish" %}</span>
@@ -30,8 +30,8 @@
       <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
     </button>
 
-    {# Count only: the toggle itself is Phase 6b. #}
-    <a href="{% if user.is_authenticated %}{% url 'account' %}{% else %}{% url 'login' %}{% endif %}"
+    {# The count and the page are Phase 5; the toggle that fills it is 6b. #}
+    <a href="{% if user.is_authenticated %}{% url 'liked' %}{% else %}{% url 'login' %}{% endif %}"
        aria-label="{% trans 'Saqlanganlar' %}">
       <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
       {% if liked_count %}<span class="nav__count">{{ liked_count }}</span>{% endif %}

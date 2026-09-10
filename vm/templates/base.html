@@ -1,6 +1,7 @@
 {% load static i18n %}<!doctype html>
-{# The Phase 5 shell. Loads the design system only - never main.css, which is #}
-{# what base_legacy.html is for until the last page is rebuilt (§17 #48, #61). #}
+{# The site shell. Every page extends this and the design system is the only #}
+{# stylesheet on the site — main.css and its legacy shim were deleted when the #}
+{# last page moved across at the end of Phase 5 (§17 #48, #61). #}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">

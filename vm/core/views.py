@@ -18,8 +18,53 @@ def terms(request):
 
 
 def home(request):
-    """Render the home page."""
-    return render(request, 'core/home.html')
+    """Render the home page.
+
+    A product row has to be at least partly visible at 390 x 844 without
+    scrolling (§17 #29), so the hero is height-capped in CSS and the newest
+    designs sit immediately under it. Three short queries, all annotated the same
+    way the shop annotates, so the cards render identically wherever they appear.
+    """
+    from product.views import annotate_cards
+
+    live = Product.objects.filter(is_active=True, variants__available=True)
+
+    newest = annotate_cards(live.prefetch_related('images', 'variants')).distinct()
+    return render(request, 'core/home.html', {
+        # The hero photograph is the newest design, so the page leads with stock
+        # that is actually for sale rather than a fixed marketing image.
+        'featured': newest.order_by('-created_at').first(),
+        'newest': list(newest.order_by('-created_at')[:8]),
+        # "Siz uchun" is most-liked until Phase 13 replaces it with the real
+        # recommender — the plan's own stand-in, not a placeholder.
+        'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:4]),
+        'categories': Category.objects.all()[:6],
+    })
+
+
+def delivery(request):
+    """Delivery terms as their own page.
+
+    §7 requires the two tiers to be stated everywhere a customer might look —
+    checkout, the confirmation, this page and the terms — so nobody is surprised
+    at checkout about who delivers or what it costs. The prices live in
+    DeliveryOption rows, but this page states them as copy: it has to read
+    correctly even before the rows are seeded on a fresh deploy.
+    """
+    return render(request, 'core/delivery.html')
+
+
+def size_guide(request):
+    """Standalone size guide, for search engines and the footer (plan §9 6a).
+
+    The modal on the product page is Phase 6a; this page is its indexable twin.
+    With no charts uploaded yet (§19 Q9) it says so plainly and offers the
+    contact form rather than rendering an empty table.
+    """
+    from product.models import SizeChart
+    return render(request, 'core/size_guide.html', {
+        'charts': SizeChart.objects.prefetch_related('rows__size'),
+    })
 
 
 def about(request):
@@ -90,9 +135,9 @@ STYLE_ICONS = [
 def style_guide(request):
     """Render every component in every state — the design-system reference.
 
-    Staff-only and ``noindex``. It is the first page in the project to load
-    tokens/base/components; the storefront keeps running on the old ``main.css``
-    until Phase 5 rebuilds the pages, so the two stylesheets never meet.
+    Staff-only and ``noindex``. Standalone rather than extending ``base.html``,
+    because it renders every component in every state — including ones no
+    storefront page uses — so it stays a reference as the pages change.
     """
     return render(request, 'boshqaruv/style.html', {
         'swatches': STYLE_SWATCHES,

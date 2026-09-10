@@ -1,53 +1,26 @@
-{% extends "base_legacy.html" %}
-{% load uzb_dates %}
-{% block title %}Buyurtmalarim{% endblock %}
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Buyurtmalarim" %}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <h1 class="h-display h-lg mt-8 mb-32">Buyurtmalar</h1>
+<div class="wrap section stack stack--lg">
+  <h1 class="h1">{% trans "Buyurtmalarim" %}</h1>
 
-    <div class="account">
-      <aside class="account__nav">
-        <a href="{% url 'account' %}">Kabinet</a>
-        <a href="{% url 'account_orders' %}" class="is-active">Buyurtmalarim</a>
-        <a href="{% url 'account_settings' %}">Sozlamalar</a>
-      </aside>
+  <div class="account">
+    {% include "partials/_account_nav.html" with active='orders' %}
 
-      <div>
-        {% if orders %}
-          <div class="tbl-wrap">
-          <table class="tbl">
-            <thead>
-                <tr><th>Buyurtma</th>
-                <th>Sana</th>
-                <th>Buyumlar</th>
-                <th>Status</th>
-                <th>Summa</th>
-                <th></th></tr>
-            </thead>
-            <tbody>
-              {% for o in orders %}
-                <tr>
-                  <td>#{{ o.id }}</td>
-                  <td>{{ o.created_at|date:"d M Y" }}</td>
-                  <td>{{ o.cart.cart_items.count }}</td>
-                  <td><span class="pill pill--{{ o.status|cut:'_' }}">{{ o.get_status_display }}</span></td>
-                  <td>{{ o.total_price|floatformat:0 }} UZS</td>
-                  <td><a class="mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;" href="{% url 'order_detail' o.id %}">Ko'rish →</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          </div>
-        {% else %}
-          <div class="empty">
-            <h1 style="font-size: 50px;">Buyurtma yo'q.</h1><br><br>
-            <a class="btn btn--solid" href="{% url 'shop' %}">Xarid qilish</a>
-          </div>
-        {% endif %}
-      </div>
+    <div class="stack stack--lg">
+      {% if orders %}
+        {% include "partials/_orders_table.html" with orders=orders %}
+      {% else %}
+        <div class="empty">
+          <svg class="i" aria-hidden="true"><use href="#i-box"></use></svg>
+          <h3>{% trans "Hali buyurtma yoʻq" %}</h3>
+          <p>{% trans "Birinchi buyurtmangiz shu yerda koʻrinadi." %}</p>
+          <a class="btn btn--primary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+        </div>
+      {% endif %}
     </div>
   </div>
-</section>
+</div>
 {% endblock %}

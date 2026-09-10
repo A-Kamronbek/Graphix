@@ -1,11 +1,9 @@
 {% load static %}<!doctype html>
 {# Living style guide. Staff only. #}
 {# #}
-{# Deliberately standalone rather than extending base.html: the storefront still #}
-{# runs on the old main.css until Phase 5 rebuilds the pages, and loading both #}
-{# stylesheets together would let their class names collide. This page is the one #}
-{# place the new system is loaded, and it is the reference every later phase #}
-{# builds against. #}
+{# Deliberately standalone rather than extending base.html: this page renders #}
+{# every component in every state, including ones no storefront page uses, so it #}
+{# stays useful as a reference even as the pages change around it. #}
 <html lang="uz">
 <head>
   <meta charset="utf-8">

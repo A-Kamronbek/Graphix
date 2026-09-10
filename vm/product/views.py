@@ -3,6 +3,7 @@ import json
 
 from django.core.paginator import Paginator
 from django.db.models import Exists, Min, OuterRef, Q
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Category, Colour, Product, Size, Tag, Variant
@@ -26,6 +27,23 @@ def annotate_cards(qs):
 
 
 def shop(request):
+    """The full catalogue with filters, sort and paging."""
+    return _listing(request)
+
+
+def search(request):
+    """Global search results at /qidiruv/.
+
+    Same matching and the same template as the shop — a second implementation of
+    the query would be a second thing to keep in step, and the shop page already
+    knows how to render a result set. What differs is the entry point: the header
+    field posts here, and the page introduces itself as a search rather than as
+    the catalogue.
+    """
+    return _listing(request, search_page=True)
+
+
+def _listing(request, search_page=False):
     """List products with search, filters, sort, and paging.
 
     Listing requires ``available``, not purchasability: a sold-out design stays
@@ -92,7 +110,25 @@ def shop(request):
         'filter_count': len(tags) + (1 if category else 0) + (1 if size else 0),
         'q': q,
         'sort': sort,
+        'search_page': search_page,
     })
+
+
+@login_required
+def liked(request):
+    """The visitor's saved designs — the private half of the heart (§17 #3).
+
+    Reading the list is Phase 5; the toggle that adds to it is Phase 6b, so until
+    then this fills from likes created in the admin. Same grid and same card as
+    the shop, because a saved design should look identical to a browsed one.
+    """
+    products = annotate_cards(
+        Product.objects
+        .filter(is_active=True, likes__user=request.user)
+        .prefetch_related('images', 'variants')
+    ).order_by('-likes__created_at').distinct()
+
+    return render(request, 'product/liked.html', {'products': products})
 
 
 def item_legacy_redirect(request, pk):

@@ -1,9 +1,11 @@
-"""Storefront routes: shop listing and product detail."""
+"""Storefront routes: shop listing, search, saved items and product detail."""
 from django.urls import path
 from . import views
 
 urlpatterns = [
     path('shop/', views.shop, name='shop'),
+    path('qidiruv/', views.search, name='search'),
+    path('saqlanganlar/', views.liked, name='liked'),
     path('mahsulot/<slug:slug>/', views.item, name='item'),
     # The old integer URL keeps working with a 301: links, bookmarks and search
     # results pointing at /item/<pk>/ exist in the wild. The URL *name* 'item'

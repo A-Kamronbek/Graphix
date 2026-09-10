@@ -16,7 +16,7 @@
         </ol>
       </nav>
 
-      <h1 class="h1">{% if q %}{% blocktrans %}“{{ q }}” uchun natijalar{% endblocktrans %}{% else %}{% trans "Barcha dizaynlar" %}{% endif %}</h1>
+      <h1 class="h1">{% if q %}{% blocktrans %}“{{ q }}” uchun natijalar{% endblocktrans %}{% elif search_page %}{% trans "Qidiruv" %}{% else %}{% trans "Barcha dizaynlar" %}{% endif %}</h1>
 
       <div class="shop__bar">
         {# "Topildi: 12" rather than a pluralised noun — Russian has four plural #}

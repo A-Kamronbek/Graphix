@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Saqlanganlar" %}{% endblock %}
+
+{% block content %}
+<div class="wrap section stack stack--lg">
+  <nav aria-label="{% trans 'Yoʻnalish' %}">
+    <ol class="crumbs">
+      <li><a href="{% url 'home' %}">{% trans "Bosh sahifa" %}</a></li>
+      <li aria-current="page">{% trans "Saqlanganlar" %}</li>
+    </ol>
+  </nav>
+
+  <h1 class="h1">{% trans "Saqlanganlar" %}</h1>
+
+  {% if products %}
+    <div class="grid-products">
+      {% for p in products %}{% include "product/_card.html" with p=p %}{% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
+      <h3>{% trans "Hali hech narsa saqlanmagan" %}</h3>
+      <p>{% trans "Yoqqan dizaynni yurakcha bilan belgilang — u shu yerda toʻplanadi." %}</p>
+      <a class="btn btn--secondary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

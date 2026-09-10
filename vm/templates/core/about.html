@@ -1,36 +1,25 @@
-{% extends "base_legacy.html" %}
-{% block title %}Haqimizda{% endblock %}
-{% block body_class %}is-about{% endblock %}
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Biz haqimizda" %}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <article class="legal">
+<div class="wrap section">
+  <article class="prose stack stack--lg">
+    <h1 class="h1">{% trans "Biz haqimizda" %}</h1>
 
-      <h1 class="h-display h-lg legal__title">Haqimizda</h1>
+    <p class="lede">{% trans "Siz izlagan grafik futbolkalar — bir joyda, omborda, yetkazishga tayyor." %}</p>
 
-      <div class="legal__body">
-        <p>Siz istagan yuqori sifatli grafik futbolkalar faqat bizda.</p>
+    <p class="body">{% trans "Maʻlum bir grafika yoki dizayndagi futbolkani izlash qancha vaqt olishini bilamiz. Shuning uchun bu ishni siz uchun yengillashtirdik: saytdagi har bir dizayn Toshkentda, omborda turadi va bugunoq joʻnatilishi mumkin." %}</p>
 
-        <p>Ma’lum bir grafik yoki dizayndagi futbolkani izlash qanchalik vaqt
-        olishini yaxshi bilamiz. Shuning uchun bu ishni siz uchun yengillashtirdik.
-        Tashkentning o‘zida yetkazib berishga tayyor bo‘lgan ko‘plab zamonaviy
-        dizaynlarimiz bor. Saytimizdagi har bir mahsulot sifat jihatidan tekshirilgan:
-        sifatsiz printlar ham, arzon matolar ham yo‘q. Do‘konimizga qo‘yilgan har
-        bir futbolka — o‘zimiz ham bemalol kiyadigan darajadagi mahsulot.</p>
+    <p class="body">{% trans "Har bir mahsulot sifat jihatidan tekshiriladi — sifatsiz print ham, arzon mato ham yoʻq. Doʻkonga qoʻyilgan har bir futbolka oʻzimiz ham kiyadigan darajada." %}</p>
 
-        <p>Boshqa dizayn xohlaysizmi? Agar sizda o‘zingiz xohlagan rasm yoki
-        g‘oya bo‘lsa-yu, bizning kolleksiyamizda u bo‘lmasa, boshqa joydan qidirib
-        vaqt yo‘qotmang. Bizga shunchaki xabar yuboring. Biz buyurtma asosida
-        individual dizaynli futbolkalar tayyorlaymiz. Qanday grafik dizayn
-        izlayotgan bo‘lsangiz ham, uni siz uchun amalga oshirib bera olamiz.</p>
-      </div>
+    <h2 class="h2">{% trans "Oʻz dizayningiz" %}</h2>
+    <p class="body">{% trans "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual dizaynli futbolka tayyorlaymiz." %}</p>
 
-      <div class="legal__back">
-        <a href="{% url 'contact' %}" class="btn btn--solid btn--lg">Bog'lanish</a>
-      </div>
-
-    </article>
-  </div>
-</section>
+    <div class="row row--wrap">
+      <a class="btn btn--primary btn--lg" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
+      <a class="btn btn--secondary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+    </div>
+  </article>
+</div>
 {% endblock %}

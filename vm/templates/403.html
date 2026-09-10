@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Ruxsat yoʻq" %}{% endblock %}
+
+{% block content %}
+<div class="wrap section">
+  <div class="empty">
+    <svg class="i" aria-hidden="true"><use href="#i-warning"></use></svg>
+    <h1 class="h1">{% trans "Bu sahifaga ruxsat yoʻq" %}</h1>
+    <p>{% trans "Hisobingizga kirgan boʻlsangiz ham, bu sahifa siz uchun ochiq emas." %}</p>
+    <div class="row row--wrap">
+      <a class="btn btn--primary" href="{% url 'login' %}">{% trans "Kirish" %}</a>
+      <a class="btn btn--ghost" href="{% url 'home' %}">{% trans "Bosh sahifa" %}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

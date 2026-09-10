@@ -1,13 +1,14 @@
-{% extends "base_legacy.html" %}
-{% block title %}500 ERROR{% endblock %}
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Xatolik" %}{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <div class="wrap center-text">
-    <p class="eyebrow">500</p>
-    <h1 class="h-display h-xl mt-8">Xatolik.</h1>
-    <p class="muted mt-16">Saytda nosozlik. Keyinroq urinib ko'ring.</p>
-    <a class="btn btn--solid btn--lg mt-24" href="/">Bosh sahifaga qaytish!</a>
+<div class="wrap section">
+  <div class="empty">
+    <svg class="i" aria-hidden="true"><use href="#i-warning"></use></svg>
+    <h1 class="h1">{% trans "Nimadir notoʻgʻri ketdi" %}</h1>
+    <p>{% trans "Xatolik bizning tomonda. Biroz kutib, qayta urinib koʻring." %}</p>
+    <a class="btn btn--primary" href="{% url 'home' %}">{% trans "Bosh sahifa" %}</a>
   </div>
-</section>
+</div>
 {% endblock %}

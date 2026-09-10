@@ -1,13 +1,17 @@
-{% extends "base_legacy.html" %}
-{% block title %}404 ERROR{% endblock %}
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sahifa topilmadi" %}{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <div class="wrap center-text">
-    <p class="eyebrow">404</p>
-    <h1 class="h-display h-xl mt-8">Mavjud emas.</h1>
-    <p class="muted mt-16">Bunday sahifa mavjud emas</p>
-    <a class="btn btn--solid btn--lg mt-24" href="{% url 'home' %}">Bosh sahifaga qaytish!</a>
+<div class="wrap section">
+  <div class="empty">
+    <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
+    <h1 class="h1">{% trans "Bunday sahifa yoʻq" %}</h1>
+    <p>{% trans "Havola eskirgan boʻlishi mumkin. Doʻkondan boshlang." %}</p>
+    <div class="row row--wrap">
+      <a class="btn btn--primary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+      <a class="btn btn--ghost" href="{% url 'home' %}">{% trans "Bosh sahifa" %}</a>
+    </div>
   </div>
-</section>
+</div>
 {% endblock %}

@@ -1,79 +1,38 @@
-{% extends "base_legacy.html" %}
-{% load uzb_dates %}
-
-{% block title %}Hisobim{% endblock %}
+{% extends "base.html" %}
+{% load i18n price_format uzb_dates %}
+{% block title %}{% trans "Kabinet" %}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <h1 class="h-display h-lg mt-8 mb-32">{{ user.username }}</h1>
-    <br>
-    <div class="account">
-      <aside class="account__nav">
-        <a href="{% url 'account' %}" class="is-active">Kabinet</a>
-        <a href="{% url 'account_orders' %}">Buyurtmalarim</a>
-        <a href="{% url 'account_settings' %}">Sozlamalar</a>
-        <form method="post" action="{% url 'logout' %}" style="margin-top: 16px;">
-          {% csrf_token %}
-          <button class="btn btn--ghost btn--block" type="submit">Chiqish</button>
-        </form>
-      </aside>
+<div class="wrap section stack stack--lg">
+  <h1 class="h1">{{ user.get_full_name|default:user.username }}</h1>
 
-      <div class="stack" style="gap: 32px;">
-        {# profile card #}
-        <div class="panel">
-          <div class="row-between">
-            <div>
-              <h2 class="h-display h-sm mt-8">{{ user.get_full_name|default:user.username }}</h2>
-              <p class="muted mt-16 mono" style="font-size: 16px; letter-spacing: .08em;">
-                {{ user.phone|default:"+998 XX XXX XX XX" }}
-              </p>
-            </div>
-<!--            <a class="btn btn&#45;&#45;sm" href="#">Edit</a>-->
-          </div>
+  <div class="account">
+    {% include "partials/_account_nav.html" with active='home' %}
+
+    <div class="stack stack--lg">
+      <div class="panel stack stack--sm">
+        <span class="label">{% trans "Hisob" %}</span>
+        <span class="h3">{{ user.username }}</span>
+        <span class="num muted">{{ user.phone|default:"—" }}</span>
+      </div>
+
+      <div class="stack">
+        <div class="row row--between">
+          <h2 class="h3">{% trans "Soʻnggi buyurtmalar" %}</h2>
+          <a class="link" href="{% url 'account_orders' %}">{% trans "Barchasi" %}</a>
         </div>
 
-        {# recent orders #}
-        <div>
-          <div class="row-between mb-16">
-            <h3 class="h-display h-sm">Buyurtmalarim</h3>
-            <a class="btn btn--sm btn--ghost" href="{% url 'account_orders' %}">Barchasi</a>
+        {% if recent_orders %}
+          {% include "partials/_orders_table.html" with orders=recent_orders %}
+        {% else %}
+          <div class="empty">
+            <svg class="i" aria-hidden="true"><use href="#i-box"></use></svg>
+            <h3>{% trans "Hali buyurtma yoʻq" %}</h3>
+            <a class="btn btn--primary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
           </div>
-
-          {% if recent_orders %}
-            <div class="tbl-wrap">
-            <table class="tbl">
-              <thead>
-                <tr><th>Buyurtma</th>
-                <th>Sana</th>
-                <th>Status</th>
-                <th>Summa</th>
-                <th></th></tr>
-              </thead>
-              <tbody>
-                {% for o in recent_orders %}
-                  <tr>
-                    <td>#{{ o.id }}</td>
-                    <td>{{ o.created_at|uz_date }}</td>
-                    <td>
-                      <span class="pill pill--{{ o.status|cut:'_' }}">{{ o.get_status_display }}</span>
-                    </td>
-                    <td>{{ o.total_price|floatformat:0 }} UZS</td>
-                    <td><a class="mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;" href="{% url 'order_detail' o.id %}">Ko'rish →</a></td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            </div>
-          {% else %}
-            <div class="panel center-text">
-              <p class="muted">Buyurtma yo'q.</p>
-              <a class="btn btn--solid mt-16" href="{% url 'shop' %}">Do'konga o'tish</a>
-            </div>
-          {% endif %}
-        </div>
+        {% endif %}
       </div>
     </div>
   </div>
-</section>
+</div>
 {% endblock %}

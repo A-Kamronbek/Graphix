@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n i18n_fields %}
+{% block title %}{% trans "Oʻlcham jadvali" %}{% endblock %}
+
+{% block content %}
+<div class="wrap section">
+  <article class="prose stack stack--lg">
+    <h1 class="h1">{% trans "Oʻlcham jadvali" %}</h1>
+
+    {% if charts %}
+      {% for chart in charts %}
+        <section class="stack">
+          <h2 class="h3">{{ chart.name }}</h2>
+          {% if chart.image %}
+            <img src="{{ chart.image.url }}" alt="{{ chart.name }}" loading="lazy" decoding="async">
+          {% endif %}
+          {% if chart|t:"note" %}<p class="body">{{ chart|t:"note" }}</p>{% endif %}
+
+          {% if chart.rows.exists %}
+            <div class="scroll-x">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>{% trans "Oʻlcham" %}</th>
+                    <th class="num">{% trans "Koʻkrak, sm" %}</th>
+                    <th class="num">{% trans "Uzunlik, sm" %}</th>
+                    <th class="num">{% trans "Yelka, sm" %}</th>
+                    <th class="num">{% trans "Yeng, sm" %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in chart.rows.all %}
+                    <tr>
+                      <td data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</td>
+                      <td data-label="{% trans 'Koʻkrak, sm' %}" class="num">{{ row.chest_cm }}</td>
+                      <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm }}</td>
+                      <td data-label="{% trans 'Yelka, sm' %}" class="num">{{ row.shoulder_cm|default:"—" }}</td>
+                      <td data-label="{% trans 'Yeng, sm' %}" class="num">{{ row.sleeve_cm|default:"—" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </section>
+      {% endfor %}
+    {% else %}
+      <p class="lede">{% trans "Oʻlcham jadvallari tayyorlanmoqda." %}</p>
+      <p class="body">{% trans "Ayni paytda oʻlchamni tanlashda ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz." %}</p>
+      <a class="btn btn--primary" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
+    {% endif %}
+  </article>
+</div>
+{% endblock %}

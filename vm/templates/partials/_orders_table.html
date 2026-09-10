@@ -1,0 +1,28 @@
+{% load i18n price_format uzb_dates %}
+{# Stacks into cards below 720 px — every cell carries its own label. #}
+<div class="scroll-x">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>{% trans "Buyurtma" %}</th>
+        <th>{% trans "Sana" %}</th>
+        <th>{% trans "Holati" %}</th>
+        <th class="num">{% trans "Summa" %}</th>
+        <th><span class="sr-only">{% trans "Amallar" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+        <tr>
+          <td data-label="{% trans 'Buyurtma' %}" class="num">{{ o.order_no|default:o.id }}</td>
+          <td data-label="{% trans 'Sana' %}">{{ o.created_at|uz_date }}</td>
+          <td data-label="{% trans 'Holati' %}">
+            <span class="badge {% if o.status == 'done' %}badge--success{% elif o.status == 'cancelled' %}badge--danger{% elif o.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ o.get_status_display }}</span>
+          </td>
+          <td data-label="{% trans 'Summa' %}" class="num">{{ o.total_price|price }} {% trans "soʻm" %}</td>
+          <td data-label=""><a class="link" href="{% url 'order_detail' o.id %}">{% trans "Koʻrish" %}</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
