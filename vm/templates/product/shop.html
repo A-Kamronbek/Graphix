@@ -78,7 +78,7 @@
 
         <div class="shop__grid">
           {% for p in products %}
-            <a href="{% url 'item' p.id %}" class="tile">
+            <a href="{% url 'item' p.slug %}" class="tile">
               {% with p.images.first as img %}
                 {% if img and img.picture and img.picture.name %}
                   <img class="tile__img" src="{{ img.picture.url }}" alt="{{ p.name }}"

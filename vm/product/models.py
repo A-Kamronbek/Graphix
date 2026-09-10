@@ -200,6 +200,26 @@ class Colour(models.Model):
         return self.colour
 
 
+#: The one colourway every design ships in. Kept as a row rather than removing the
+#: column, because dropping Colour would be a destructive migration for no gain
+#: (§17 #23), and the product page's variant picker still keys on a colour id.
+DEFAULT_COLOUR_NAME = 'Standart'
+
+
+def default_colour():
+    """Return (creating if needed) the colour the admin assigns automatically.
+
+    The storefront renders no colour picker, so the owner should never have to
+    choose one. Every variant gets this row unless an existing variant already
+    has a different colour, which is left alone.
+    """
+    colour, _ = Colour.objects.get_or_create(
+        colour=DEFAULT_COLOUR_NAME,
+        defaults={'colour_ru': 'Стандарт', 'colour_en': 'Standard'},
+    )
+    return colour
+
+
 class Variant(models.Model):
     """A buyable variant (product + size + colour) with its own price and stock.
 

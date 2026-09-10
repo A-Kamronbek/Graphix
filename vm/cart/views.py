@@ -49,11 +49,14 @@ def cart(request):
 @require_POST
 def cart_add(request, product_id):
     """Add a product variant to the cart; anonymous users are sent to login first."""
+    # Fetched before the auth check because the product's slug is what both the
+    # login ?next= and the error redirect need.
+    product = get_object_or_404(Product, pk=product_id)
+
     if not request.user.is_authenticated:
-        item_url = reverse('item', kwargs={'pk': product_id})
+        item_url = reverse('item', kwargs={'slug': product.slug})
         return redirect(f"{reverse('login')}?next={item_url}")
 
-    product = get_object_or_404(Product, pk=product_id)
     colour_id = request.POST.get('colour') or None
     size_id = request.POST.get('size') or None
     qty = _parse_qty(request.POST.get('quantity', 1))
@@ -66,7 +69,7 @@ def cart_add(request, product_id):
         services.add_variant(cart, variant, qty)
     except services.CartError as e:
         messages.error(request, str(e))
-        return redirect('item', pk=product_id)
+        return redirect('item', slug=product.slug)
 
     messages.success(request, f"{product.name} savatga qo\'shildi.")
     return redirect('shop')

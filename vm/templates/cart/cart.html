@@ -28,7 +28,7 @@
               {% endwith %}
 
               <div class="cart__info">
-                <a class="cart__name" href="{% url 'item' it.variant.product.id %}">{{ it.variant.product.name }}</a>
+                <a class="cart__name" href="{% url 'item' it.variant.product.slug %}">{{ it.variant.product.name }}</a>
                 <span class="cart__meta">{{ it.variant.colour.colour }} · {{ it.variant.size.size }}</span>
                 <span class="cart__meta">{{ it.price_stat|price }} UZS</span>
               </div>
