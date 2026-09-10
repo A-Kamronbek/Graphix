@@ -27,9 +27,9 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
 
-  {# One alternate per language, plus x-default pointing at Uzbek. The URLs
-     come from the same context processor as the switcher, so the two can
-     never disagree about where a language lives. #}
+  {# One alternate per language, plus x-default pointing at Uzbek. The URLs #}
+  {# come from the same context processor as the switcher, so the two can #}
+  {# never disagree about where a language lives. #}
   {% for l in languages %}
   <link rel="alternate" hreflang="{{ l.code }}" href="{{ request.scheme }}://{{ request.get_host }}{{ l.url }}">
   {% endfor %}

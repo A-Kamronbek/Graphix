@@ -35,9 +35,9 @@
       </div>
     </div>
 
-    {# Language switcher. POSTs to set_language, which redirects to the
-       translated version of the page the visitor was on rather than home.
-       Phase 5 restyles this with the .lang component; the behaviour is final. #}
+    {# Language switcher. POSTs to set_language, which redirects to the #}
+    {# translated version of the page the visitor was on rather than home. #}
+    {# Phase 5 restyles this with the .lang component; the behaviour is final. #}
     <form action="{% url 'set_language' %}" method="post" class="foot__lang">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
