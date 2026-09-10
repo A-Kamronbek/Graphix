@@ -1,26 +1,29 @@
+{% load i18n %}
 {% if page_obj.paginator.num_pages > 1 %}
   {% with qs=base_query %}
-  <nav class="pager pager--{{ position }}" aria-label="pagination">
+  <nav class="pager" aria-label="{% trans 'Sahifalar' %}">
     {% if page_obj.has_previous %}
-      <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="previous">&lsaquo;</a>
-    {% else %}
-      <span class="pager__num is-disabled" aria-hidden="true">&lsaquo;</span>
+      <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.previous_page_number }}"
+         aria-label="{% trans 'Oldingi sahifa' %}">
+        <svg class="i i--sm i--flip" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+      </a>
     {% endif %}
 
     {% for num in page_obj.paginator.page_range %}
       {% if num == page_obj.number %}
-        <span class="pager__num is-current">{{ num }}</span>
+        <span class="is-current" aria-current="page">{{ num }}</span>
       {% elif num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
         <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ num }}">{{ num }}</a>
       {% elif num == page_obj.number|add:-3 or num == page_obj.number|add:3 %}
-        <span class="pager__gap">&hellip;</span>
+        <span class="is-gap" aria-hidden="true">&hellip;</span>
       {% endif %}
     {% endfor %}
 
     {% if page_obj.has_next %}
-      <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="next">&rsaquo;</a>
-    {% else %}
-      <span class="pager__num is-disabled" aria-hidden="true">&rsaquo;</span>
+      <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.next_page_number }}"
+         aria-label="{% trans 'Keyingi sahifa' %}">
+        <svg class="i i--sm" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+      </a>
     {% endif %}
   </nav>
   {% endwith %}

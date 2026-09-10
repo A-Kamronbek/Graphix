@@ -33,3 +33,4 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
+docs/design/phase5/

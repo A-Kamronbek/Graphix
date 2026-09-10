@@ -72,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',
                 'cart.context_processors.cart_count',
+                'cart.context_processors.liked_count',
                 'product.context_processors.nav_categories',
                 'core.context_processors.languages',
             ],

@@ -1,0 +1,39 @@
+{% load i18n %}
+{# Mobile menu. Hidden from assistive tech and from tab order while closed via #}
+{# the hidden attribute on the backdrop, so a closed drawer can never trap focus. #}
+<div class="drawer__backdrop" data-drawer-backdrop hidden></div>
+
+<nav id="gx-drawer" class="drawer" data-drawer aria-label="{% trans 'Menyu' %}" aria-hidden="true">
+  <div class="row row--between drawer__hd">
+    <span class="eyebrow">{% trans "Menyu" %}</span>
+    <button type="button" data-drawer-close aria-label="{% trans 'Yopish' %}">
+      <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
+    </button>
+  </div>
+
+  <ul>
+    <li><a href="{% url 'shop' %}">{% trans "Doʻkon" %}</a></li>
+    <li><a href="{% url 'cart' %}">{% trans "Savat" %}{% if cart_count %} ({{ cart_count }}){% endif %}</a></li>
+    {% if user.is_authenticated %}
+      <li><a href="{% url 'account' %}">{% trans "Kabinet" %}</a></li>
+      <li><a href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a></li>
+    {% else %}
+      <li><a href="{% url 'login' %}">{% trans "Kirish" %}</a></li>
+      <li><a href="{% url 'signup' %}">{% trans "Roʻyxatdan oʻtish" %}</a></li>
+    {% endif %}
+    <li><a href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a></li>
+    <li><a href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a></li>
+  </ul>
+
+  <form action="{% url 'set_language' %}" method="post" class="drawer__lang">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <span class="label">{% trans "Til" %}</span>
+    <div class="lang">
+      {% for l in languages %}
+        <button type="submit" name="language" value="{{ l.code }}"
+                aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}">{{ l.name }}</button>
+      {% endfor %}
+    </div>
+  </form>
+</nav>

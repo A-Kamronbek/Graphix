@@ -1,56 +1,73 @@
+{% load i18n i18n_fields %}
 <footer class="foot">
   <div class="wrap">
     <div class="foot__grid">
       <div>
-        <h4>Studiya</h4>
-        <p class="muted" style="font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em;">
-          GRAPHIX — grafik futbolkalar do'koni.<br>
-          Toshkent, O'zbekiston.
-        </p>
-      </div>
-      <div>
-        <h4>Do'kon</h4>
+        <h4>{% trans "Doʻkon" %}</h4>
         <ul>
-          <li><a href="{% url 'shop' %}">Barcha mahsulotlar</a></li>
+          <li><a href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a></li>
           {% for c in nav_categories %}
-            <li><a href="{% url 'shop' %}?category={{ c.id }}">{{ c.name }}</a></li>
+            <li><a href="{% url 'shop' %}?category={{ c.id }}">{{ c|t:"name" }}</a></li>
           {% endfor %}
         </ul>
       </div>
+
       <div>
-        <h4>Yordam</h4>
+        <h4>{% trans "Yordam" %}</h4>
         <ul>
-          <li><a href="{% url 'contact' %}">Bog'lanish</a></li>
-          <li><a href="{% url 'about' %}">Haqimizda</a></li>
-          <li><a href="{% url 'terms' %}">Foydalanish shartlari</a></li>
+          <li><a href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a></li>
+          <li><a href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a></li>
+          <li><a href="{% url 'terms' %}">{% trans "Shartlar" %}</a></li>
         </ul>
       </div>
+
       <div>
-        <h4>Ijtimoiy tarmoqlar</h4>
+        <h4>{% trans "Yetkazib berish" %}</h4>
+        {# The two tiers, stated everywhere a customer might look for them, so #}
+        {# nobody is surprised at checkout about who delivers or what it costs. #}
         <ul>
-          <li><a href="https://t.me/greatestamal" target="_blank" rel="noopener">Telegram</a></li>
-          <li><a href="tel:+998507888436">+998 50 788 84 36</a></li>
-          <li><a href="mailto:abdurahmonboboyev.magic@gmail.com">Email</a></li>
+          <li>{% trans "Pochta boʻlimiga — 15 000 soʻm" %}</li>
+          <li>{% trans "Eshikkacha — 30 000 soʻm" %}</li>
+          <li class="subtle">{% trans "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi" %}</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>{% trans "Aloqa" %}</h4>
+        <ul>
+          <li>
+            <a href="tel:+998507888436" class="foot__link">
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-phone"></use></svg>
+              <span class="num">+998 50 788 84 36</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://t.me/greatestamal" target="_blank" rel="noopener" class="foot__link">
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-telegram"></use></svg>
+              <span>Telegram</span>
+            </a>
+          </li>
+          <li><a href="mailto:abdurahmonboboyev.magic@gmail.com">{% trans "Elektron pochta" %}</a></li>
         </ul>
       </div>
     </div>
 
-    {# Language switcher. POSTs to set_language, which redirects to the #}
-    {# translated version of the page the visitor was on rather than home. #}
-    {# Phase 5 restyles this with the .lang component; the behaviour is final. #}
-    <form action="{% url 'set_language' %}" method="post" class="foot__lang">
-      {% csrf_token %}
-      <input type="hidden" name="next" value="{{ request.get_full_path }}">
-      {% for l in languages %}
-        <button type="submit" name="language" value="{{ l.code }}"
-                aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}"
-                {% if l.is_active %}aria-current="true"{% endif %}>{{ l.name }}</button>
-      {% endfor %}
-    </form>
-
     <div class="foot__bot">
-      <span>© {% now "Y" %} GRAPHIX. Barcha huquqlar himoyalangan.</span>
-      <span>O'zbekiston bo'ylab yetkazib berish</span>
+      <span>© {% now "Y" %} GRAPHIX. {% trans "Barcha huquqlar himoyalangan." %}</span>
+
+      {# Language switcher. POSTs to set_language, which redirects to the #}
+      {# translated version of the page the visitor was on rather than home. #}
+      <form action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="lang">
+          {% for l in languages %}
+            <button type="submit" name="language" value="{{ l.code }}"
+                    aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}"
+                    {% if l.is_active %}aria-current="true"{% endif %}>{{ l.name }}</button>
+          {% endfor %}
+        </div>
+      </form>
     </div>
   </div>
 </footer>

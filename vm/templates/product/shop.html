@@ -1,107 +1,138 @@
 {% extends "base.html" %}
-{% load static %}
-{% load price_format %}
-{% load query_tags %}
-{% block title %}Do'kon{% endblock %}
-{% block body_class %}is-shop{% endblock %}
+{% load i18n i18n_fields %}
+
+{% block title %}{% trans "Doʻkon" %}{% endblock %}
+{% block og_title %}{% trans "Doʻkon" %} — GRAPHIX{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <h1 class="h-display h-lg mt-8">Mahsulotlar</h1>
-  </div>
-</section>
+<div class="wrap section">
+  <div class="shop">
 
-<section class="divide-top" style="padding: 24px 0;">
-  <div class="wrap">
-    <div class="shop">
-      <aside class="shop__filters">
-        <div class="shop__filters-inner">
+    <div class="shop__head stack">
+      <nav aria-label="{% trans 'Yoʻnalish' %}">
+        <ol class="crumbs">
+          <li><a href="{% url 'home' %}">{% trans "Bosh sahifa" %}</a></li>
+          <li aria-current="page">{% trans "Doʻkon" %}</li>
+        </ol>
+      </nav>
 
-          <div class="shop__fbar">
-            <a href="{% url 'cart' %}" class="cart__filt">
-              Savat
-              {% if cart_count and cart_count > 0 %}
-                <span class="nav__cart-count">{{ cart_count }}</span>
-              {% endif %}
-            </a>
-            {% if selected_category or selected_size or q or sort and sort != 'new' %}
-              <a href="{% url 'shop' %}" class="shop__clear">Bekor qilish</a>
-            {% endif %}
-          </div>
+      <h1 class="h1">{% if q %}{% blocktrans %}“{{ q }}” uchun natijalar{% endblocktrans %}{% else %}{% trans "Barcha dizaynlar" %}{% endif %}</h1>
 
-          <div class="fgroup">
-            <h4 class="fgroup__head" data-fgroup>Bo'limlar</h4>
-            <ul class="fgroup__list">
-              <li><a href="{% url 'shop' %}" class="{% if not selected_category %}is-active{% endif %}">Barchasi</a></li>
-              {% for c in categories %}
-                <li><a href="{% query_transform category=c.id %}" class="{% if selected_category == c.id|stringformat:'s' %}is-active{% endif %}">{{ c.name }}</a></li>
-              {% endfor %}
-            </ul>
-          </div>
+      <div class="shop__bar">
+        {# "Topildi: 12" rather than a pluralised noun — Russian has four plural #}
+        {# forms and this phrasing is natural commercial register in all three. #}
+        <span class="shop__count">{% trans "Topildi" %}: <span class="num">{{ total_count }}</span></span>
 
-          <div class="fgroup">
-            <h4 class="fgroup__head" data-fgroup>O'lcham</h4>
-            <ul class="fgroup__list">
-              {% for s in sizes %}
-                <li><a href="{% query_transform size=s.id %}" class="{% if selected_size == s.id|stringformat:'s' %}is-active{% endif %}">{{ s.size }}</a></li>
-              {% endfor %}
-            </ul>
-          </div>
+        {# Mobile only: opens the same filter markup as a bottom sheet. #}
+        <button type="button" class="btn btn--secondary btn--sm shop__filter-toggle"
+                data-filters-toggle aria-expanded="false" aria-controls="gx-filters">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-filter"></use></svg>
+          {% trans "Filtrlar" %}{% if filter_count %} ({{ filter_count }}){% endif %}
+        </button>
 
-          <div class="fgroup">
-            <h4 class="fgroup__head" data-fgroup>Filter</h4>
-            <ul class="fgroup__list">
-              <li><a href="{% query_transform sort='new' %}" class="{% if sort == 'new' %}is-active{% endif %}">Yangi</a></li>
-              <li><a href="{% query_transform sort='price_asc' %}" class="{% if sort == 'price_asc' %}is-active{% endif %}">Narx &#8593;</a></li>
-              <li><a href="{% query_transform sort='price_desc' %}" class="{% if sort == 'price_desc' %}is-active{% endif %}">Narx &#8595;</a></li>
-            </ul>
-          </div>
-        </div>
-      </aside>
-
-      <div>
-        <div class="shop__top">
-          <span class="muted mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">
-            {{ total_count }} narsa
-          </span>
-          <form method="get" class="row" style="gap: 8px;">
-            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-            {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
-            {% if sort and sort != 'new' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
-            <input class="input" type="search" name="q" placeholder="Qidirish..." value="{{ q|default:'' }}" style="padding: 10px 14px;">
-            <button class="btn btn--sm"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg></button>
-          </form>
-        </div>
-
-        {% include "product/_pager.html" with page_obj=page_obj base_query=base_query position='top' %}
-
-        <div class="shop__grid">
-          {% for p in products %}
-            <a href="{% url 'item' p.slug %}" class="tile">
-              {% with p.images.first as img %}
-                {% if img and img.picture and img.picture.name %}
-                  <img class="tile__img" src="{{ img.picture.url }}" alt="{{ p.name }}"
-                       onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-                {% else %}
-                  <img class="tile__img" src="{% static 'img/no-image.jpg' %}" alt="{{ p.name }}">
-                {% endif %}
-              {% endwith %}
-              <div class="tile__meta">
-                <span class="tile__name">{{ p.name }}</span>
-                <span class="tile__price">{% if p.min_price is not None %}{{ p.min_price|price }} UZS{% endif %}</span>
-              </div>
-            </a>
-          {% empty %}
-            <div class="empty" style="grid-column: 1 / -1;">
-              <h2>Mahsulot yo'q.</h2>
-            </div>
-          {% endfor %}
-        </div>
-
-        {% include "product/_pager.html" with page_obj=page_obj base_query=base_query position='bottom' %}
+        <form method="get" class="shop__sort">
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+          {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+          {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
+          {% for t in selected_tags %}<input type="hidden" name="tag" value="{{ t }}">{% endfor %}
+          <label class="sr-only" for="gx-sort">{% trans "Tartiblash" %}</label>
+          {# Ommabop and Reyting join this list in Phase 6b, with the sorts. #}
+          <select class="select" id="gx-sort" name="sort" onchange="this.form.submit()">
+            <option value="new" {% if sort == 'new' %}selected{% endif %}>{% trans "Yangilari" %}</option>
+            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>{% trans "Narx: arzondan" %}</option>
+            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>{% trans "Narx: qimmatdan" %}</option>
+          </select>
+          <noscript><button class="btn btn--secondary btn--sm" type="submit">{% trans "Tartiblash" %}</button></noscript>
+        </form>
       </div>
     </div>
+
+    {# Filters. One set of markup: sidebar on desktop, bottom sheet on mobile. #}
+    <form method="get" id="gx-filters" class="shop__filters" data-filters
+          aria-label="{% trans 'Filtrlar' %}">
+      {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+      {% if sort and sort != 'new' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+
+      <div class="row row--between shop__filters-hd">
+        <span class="eyebrow">{% trans "Filtrlar" %}</span>
+        <button type="button" class="shop__filter-toggle" data-filters-close
+                aria-label="{% trans 'Yopish' %}">
+          <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+
+      {% for kind_label, tags in tag_groups %}
+        {% if tags %}
+          <div class="filters__group">
+            <span class="label">{{ kind_label }}</span>
+            <div class="chips">
+              {% for tag in tags %}
+                <button type="submit" name="tag" value="{{ tag.slug }}"
+                        aria-pressed="{% if tag.slug in selected_tags %}true{% else %}false{% endif %}">{{ tag|t:"name" }}</button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      {% if categories %}
+        <div class="filters__group">
+          <span class="label">{% trans "Kategoriya" %}</span>
+          <div class="chips">
+            {% for c in categories %}
+              <button type="submit" name="category" value="{{ c.id }}"
+                      aria-pressed="{% if selected_category == c.id|stringformat:'s' %}true{% else %}false{% endif %}">{{ c|t:"name" }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if sizes %}
+        <div class="filters__group">
+          <span class="label">{% trans "Oʻlcham" %}</span>
+          <div class="chips">
+            {% for s in sizes %}
+              <button type="submit" name="size" value="{{ s.id }}"
+                      aria-pressed="{% if selected_size == s.id|stringformat:'s' %}true{% else %}false{% endif %}">{{ s.size }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if filter_count %}
+        <div class="filters__group shop__clear">
+          <a class="link" href="{% url 'shop' %}{% if q %}?q={{ q }}{% endif %}">{% trans "Filtrlarni tozalash" %}</a>
+        </div>
+      {% endif %}
+    </form>
+
+    {# Results. #}
+    <div class="stack stack--lg">
+      {% if products %}
+        <div class="grid-products">
+          {% for p in products %}
+            {% include "product/_card.html" with p=p %}
+          {% endfor %}
+        </div>
+        {% include "product/_pager.html" with page_obj=page_obj base_query=base_query %}
+      {% else %}
+        <div class="empty">
+          <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
+          <h3>{% trans "Hech narsa topilmadi" %}</h3>
+          <p>
+            {% if q or filter_count %}
+              {% trans "Soʻrovingizga mos dizayn yoʻq. Filtrlarni kamaytirib koʻring." %}
+            {% else %}
+              {% trans "Hozircha dizaynlar qoʻshilmagan. Tez orada qaytib kelib koʻring." %}
+            {% endif %}
+          </p>
+          {% if q or filter_count %}
+            <a class="btn btn--secondary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
   </div>
-</section>
+</div>
 {% endblock %}

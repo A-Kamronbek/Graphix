@@ -1,0 +1,184 @@
+/* GRAPHIX page layouts — the grids that are specific to one page.
+
+   components.css owns every reusable block. This file owns only composition:
+   where the blocks sit relative to each other on a given page. If a rule here
+   would be useful on a second page, it belongs in components.css instead.
+
+   Depends on tokens.css. Loads last. */
+
+/* ------------------------------------------------------------- skip link */
+/* First focusable element on every page, so a keyboard user can jump the nav. */
+.skip {
+  position: absolute;
+  left: var(--s-4);
+  top: -100%;
+  z-index: calc(var(--z-drawer) + 1);
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-brand);
+  color: var(--c-brand-fg);
+  font-weight: var(--fw-semibold);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+}
+.skip:focus { top: 0; }
+
+/* ----------------------------------------------------------------- shell */
+/* The search field is the widest thing in the header on desktop, because
+   finding a design is the main job here. Below 860 px it is hidden and the
+   magnifier in the actions row reveals it as a second row, so the brand, the
+   cart and the burger never get squeezed. */
+.nav { flex-wrap: wrap; }
+.nav__search { display: none; flex: 1; min-width: 0; max-width: 440px; margin-left: var(--s-5); }
+.nav__search.is-open { display: block; order: 10; flex-basis: 100%; max-width: none; margin: var(--s-3) 0 0; }
+.nav__search-toggle { display: grid; }
+.nav__account { display: none; }
+
+@media (min-width: 860px) {
+  .nav__search { display: block; }
+  .nav__search.is-open { order: 0; flex-basis: auto; margin: 0 0 0 var(--s-5); }
+  .nav__search-toggle { display: none; }
+  .nav__account { display: grid; }
+}
+
+/* The drawer's backdrop. Carries the click-to-close target and dims the page. */
+.drawer__backdrop {
+  position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1);
+  background: color-mix(in srgb, #000 58%, transparent);
+}
+
+/* ------------------------------------------------------- product detail */
+/* Two columns from 860 px, with the gallery sticky and the buy column scrolling
+   beside it. The single rule this layout exists to enforce: one photograph must
+   never take more than one screen (§17 #47). */
+.pdp { display: grid; gap: var(--s-5); }
+
+.pdp__gallery { min-width: 0; }
+.pdp__buy { min-width: 0; display: flex; flex-direction: column; gap: var(--s-5); }
+
+.pdp__title {
+  font-family: var(--f-display);
+  font-size: clamp(var(--fs-2xl), 7vw, var(--fs-4xl));
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  text-wrap: balance;
+}
+.pdp__price {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--c-brand);
+  font-variant-numeric: tabular-nums;
+}
+.pdp__actions { display: flex; gap: var(--s-2); }
+
+/* Mobile keeps the buy bar fixed to the bottom, so the page needs room under it. */
+.pdp__pad { height: 84px; }
+
+@media (min-width: 860px) {
+  .pdp {
+    grid-template-columns: minmax(0, 1fr) var(--pdp-buy-col);
+    gap: var(--s-7);
+    align-items: start;
+  }
+  .pdp__gallery { position: sticky; top: calc(var(--s-8) + var(--s-2)); }
+  .pdp__pad { display: none; }
+}
+
+/* The gallery: main image capped in height, thumbnails below on mobile and in a
+   vertical rail beside the image on desktop. */
+.pdp__frame {
+  position: relative;
+  aspect-ratio: var(--ar-product);
+  max-height: var(--pdp-image-max);
+  margin-inline: auto;
+  overflow: hidden;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+}
+.pdp__frame img { width: 100%; height: 100%; object-fit: cover; }
+
+.pdp__rail { display: flex; gap: var(--s-2); margin-top: var(--s-2); }
+.pdp__rail button {
+  flex: 0 0 64px;
+  aspect-ratio: var(--ar-product);
+  overflow: hidden;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  opacity: .55;
+  transition: opacity var(--t-fast), border-color var(--t-fast);
+}
+.pdp__rail button:hover { opacity: .85; }
+.pdp__rail button[aria-current="true"] { opacity: 1; border-color: var(--c-brand); }
+.pdp__rail img { width: 100%; height: 100%; object-fit: cover; }
+
+@media (min-width: 1024px) {
+  /* Vertical thumbnail rail to the left of the image (§17 #47). */
+  .pdp__gallery { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--s-3); }
+  .pdp__rail { flex-direction: column; margin-top: 0; order: -1; }
+}
+
+/* ------------------------------------------------------------------ shop */
+/* Filters are a sidebar on desktop and a bottom sheet on mobile — the same
+   markup either way, so there is only one set of controls to keep in step. */
+.shop { display: grid; gap: var(--s-5); }
+.shop__bar { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
+.shop__bar .shop__count { color: var(--c-fg-muted); font-size: var(--fs-sm); }
+.shop__sort { margin-left: auto; }
+
+.shop__filters { display: none; }
+.shop__filters.is-open {
+  display: block;
+  position: fixed; inset: auto 0 0 0; z-index: var(--z-modal);
+  max-height: 82vh; overflow-y: auto;
+  padding: var(--s-5) var(--pad-x) var(--s-6);
+  background: var(--c-surface);
+  border-top: 1px solid var(--c-line-strong);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: var(--sh-lg);
+}
+
+@media (min-width: 860px) {
+  .shop { grid-template-columns: 248px minmax(0, 1fr); gap: var(--s-7); align-items: start; }
+  .shop__head { grid-column: 1 / -1; }
+  .shop__filters, .shop__filters.is-open {
+    display: block; position: sticky; top: calc(var(--s-8) + var(--s-2));
+    inset: auto; max-height: none; padding: 0; overflow: visible;
+    background: none; border: 0; border-radius: 0; box-shadow: none;
+  }
+  .shop__filter-toggle { display: none; }
+}
+
+/* --------------------------------------------- page-level helper classes */
+/* These exist so no template carries a style attribute. A value used on two
+   pages belongs in components.css instead; these are each used once. */
+
+.msgs { padding-top: var(--s-4); }
+
+.nav__search-row { flex-basis: 100%; }
+
+.drawer__hd { margin-bottom: var(--s-5); }
+.drawer__lang { margin-top: var(--s-5); }
+.drawer__lang .label { display: block; margin-bottom: var(--s-2); }
+
+.foot__link { display: inline-flex; align-items: center; gap: var(--s-2); }
+
+.crumbs--page { margin-bottom: var(--s-5); }
+
+/* Quantity stepper beside the heart and share buttons. The stack has to stop
+   stretching or the stepper grows to fill the row and pushes the actions off the
+   side of a 390 px screen — which is exactly what it did the first time. */
+.pdp__qty { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: flex-end; }
+.pdp__qty > .stack { align-items: flex-start; flex: 0 0 auto; }
+.pdp__qty > .pdp__actions { margin-left: auto; }
+
+/* The rating links down to the reviews section; keep it clear of the sticky nav. */
+.pdp__reviews { scroll-margin-top: var(--s-8); }
+
+.spec dt .i { vertical-align: -3px; margin-right: var(--s-1); }
+
+.shop__clear { border-bottom: 0 !important; }
+.shop__filters-hd { margin-bottom: var(--s-3); }
+
+/* The pager's "previous" chevron is the "next" symbol turned around, so the
+   sprite only has to carry one. */
+.i--flip { transform: rotate(180deg); }

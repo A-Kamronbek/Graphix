@@ -1,139 +1,233 @@
 {% extends "base.html" %}
-{% load static %}
-{% load price_format %}
-{% load query_tags %}
-{% block title %}{{ product.name }}{% endblock %}
-{% block body_class %}is-item{% endblock %}
+{% load static i18n i18n_fields price_format %}
+
+{% block title %}{{ product|t:"name" }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ product|t:"name" }} — GRAPHIX{% endblock %}
+{% block og_description %}{{ product|t:"description"|striptags|truncatewords:28 }}{% endblock %}
+{% block og_image %}{% with product.images.first as img %}{% if img and img.picture %}{{ request.scheme }}://{{ request.get_host }}{{ img.picture.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endif %}{% endwith %}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <p class="eyebrow mb-16">
-      <a href="{% url 'shop' %}">Do'kon</a>
-      {% if product.category %} · <a href="{% url 'shop' %}{% query_transform category=product.category.id %}">{{ product.category.name }}</a>{% endif %}
-      · {{ product.name }}
-    </p>
+<div class="wrap section">
 
-    <div class="item">
-      <div class="gallery" data-gallery>
-        <div class="gallery__viewport">
-          <div class="gallery__track" data-gallery-track>
-            {% for img in product.images.all %}
-              {% if img.picture and img.picture.name %}
-                <div class="gallery__slide">
-                  <img src="{{ img.picture.url }}" alt="{{ product.name }}"
-                       onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-                </div>
-              {% endif %}
-            {% empty %}
-              <div class="gallery__slide">
-                <img src="{% static 'img/no-image.jpg' %}" alt="{{ product.name }}">
-              </div>
-            {% endfor %}
-          </div>
-          <button type="button" class="gallery__arrow gallery__arrow--prev" data-gallery-prev aria-label="oldingi">‹</button>
-          <button type="button" class="gallery__arrow gallery__arrow--next" data-gallery-next aria-label="keyingi">›</button>
-        </div>
-        <div class="gallery__dots" data-gallery-dots></div>
+  <nav aria-label="{% trans 'Yoʻnalish' %}" class="crumbs--page">
+    <ol class="crumbs">
+      <li><a href="{% url 'home' %}">{% trans "Bosh sahifa" %}</a></li>
+      <li><a href="{% url 'shop' %}">{% trans "Doʻkon" %}</a></li>
+      {% if product.category %}
+        <li><a href="{% url 'shop' %}?category={{ product.category.id }}">{{ product.category|t:"name" }}</a></li>
+      {% endif %}
+      <li aria-current="page">{{ product|t:"name" }}</li>
+    </ol>
+  </nav>
+
+  <div class="pdp">
+
+    {# ------------------------------------------------------------ gallery #}
+    {# The photograph is the largest, sharpest thing on the page (§8). Capped at #}
+    {# min(76vh, 760px) so one image never takes more than one screen (§17 #47). #}
+    <div class="pdp__gallery" data-gallery>
+      <div class="pdp__frame">
+        {% with product.images.first as img %}
+          <img data-gallery-main
+               src="{% if img and img.picture and img.picture.name %}{{ img.picture.url }}{% else %}{% static 'img/no-image.jpg' %}{% endif %}"
+               alt="{{ product|t:'name' }}" decoding="async"
+               onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
+        {% endwith %}
       </div>
 
-      <aside class="item__info">
-        <h1 class="item__title">{{ product.name }}</h1>
-        <p class="item__price" data-price-display>
-          {% if selected_variant %}{{ selected_variant.price|price }} UZS{% else %}{% with product.variants.first as v %}{% if v %}{{ v.price|price }} UZS{% else %}— UZS{% endif %}{% endwith %}{% endif %}
+      {% if product.images.count > 1 %}
+        <div class="pdp__rail" role="tablist" aria-label="{% trans 'Rasmlar' %}">
+          {% for img in product.images.all %}
+            {% if img.picture and img.picture.name %}
+              <button type="button" role="tab" data-gallery-thumb="{{ img.picture.url }}"
+                      aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+                      aria-label="{% blocktrans with n=forloop.counter %}Rasm {{ n }}{% endblocktrans %}">
+                <img src="{{ img.picture.url }}" alt="" loading="lazy" decoding="async">
+              </button>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    {# ---------------------------------------------------------- buy column #}
+    <div class="pdp__buy">
+
+      <div class="stack stack--sm">
+        <h1 class="pdp__title">{{ product|t:"name" }}</h1>
+
+        {# Hidden entirely until the first approved review: an empty rating reads #}
+        {# worse than no rating at all (§9 Phase 5 item 2). #}
+        {% if product.review_count %}
+          <a class="rating" href="#reviews">
+            <span class="stars" aria-hidden="true">
+              {% for i in "12345" %}
+                <svg class="i{% if forloop.counter > product.rating_avg %} stars__empty{% endif %}"><use href="#i-star"></use></svg>
+              {% endfor %}
+            </span>
+            <span class="num">{{ product.rating_avg }}</span>
+            <span class="rating__count">({{ product.review_count }})</span>
+          </a>
+        {% endif %}
+
+        <p class="pdp__price num" data-price-display>
+          {% if selected_variant %}{{ selected_variant.price|price }} {% trans "soʻm" %}{% endif %}
         </p>
-        <p class="item__desc">{{ product.description|default:"" }}</p>
+      </div>
 
-        <form class="stack mt-32" method="post" action="{% url 'cart_add' product.id %}"
-              data-variant-form
-              data-variants='{{ variants_json|safe }}'>
-          {% csrf_token %}
-          <input type="hidden" name="colour" value="{{ selected_variant.colour.id|default_if_none:'' }}">
-          <input type="hidden" name="size" value="{{ selected_variant.size.id|default_if_none:'' }}">
+      <form method="post" action="{% url 'cart_add' product.id %}" class="stack"
+            data-variant-form data-variants='{{ variants_json|safe }}'>
+        {% csrf_token %}
+        {# The picker writes into these; they are what the server actually reads. #}
+        <input type="hidden" name="colour" value="{{ selected_variant.colour_id|default_if_none:'' }}" data-variant-colour>
+        <input type="hidden" name="size" value="{{ selected_variant.size_id|default_if_none:'' }}" data-variant-size>
 
-          {# colours #}
-          <div class="item__row">
-            <h4>Rang</h4>
-            <div class="swatches">
-              {% for c in colours %}
-                <span class="swatch {% if selected_variant.colour.id == c.id %}is-active{% endif %}"
-                      data-swatch="{{ c.id }}"
-                      title="{{ c.colour }}"
-                      style="background: {{ c.hex_code|default:'#222' }}"></span>
-              {% empty %}
-                <span class="muted mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">— Single colour —</span>
-              {% endfor %}
+        {# No colour picker: every design ships in one colourway (§17 #23). #}
+
+        {% if sizes %}
+          <div class="stack stack--sm">
+            <div class="row row--between">
+              <span class="label">{% trans "Oʻlcham" %}</span>
+              {% if size_chart %}
+                {# The modal itself is Phase 6a; this link is its anchor. #}
+                <a class="link small" href="{% url 'terms' %}#olcham" data-size-guide>
+                  {% trans "Oʻlcham jadvali" %}
+                </a>
+              {% endif %}
             </div>
-          </div>
-
-          {# sizes #}
-          <div class="item__row">
-            <h4>O'lcham</h4>
-            <div class="sizes">
+            <div class="sizes" role="group" aria-label="{% trans 'Oʻlcham' %}">
               {% for s in sizes %}
-                <span class="size {% if selected_variant.size.id == s.id %}is-active{% endif %} {% if s.id in unavailable_sizes %}is-oos{% endif %}"
-                      data-size="{{ s.id }}">{{ s.size }}</span>
-              {% empty %}
-                <span class="muted mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">— One size —</span>
+                <button type="button" class="sizes__btn" data-size="{{ s.id }}"
+                        aria-pressed="{% if selected_variant.size_id == s.id %}true{% else %}false{% endif %}"
+                        {% if s.id in unavailable_sizes %}disabled aria-label="{{ s.size }} — {% trans 'tugagan' %}"{% endif %}>{{ s.size }}</button>
               {% endfor %}
             </div>
-            <small class="field__hint mt-8" style="display:block;"></small>
+            <small class="field__hint" data-variant-hint></small>
           </div>
+        {% endif %}
 
-          {# qty #}
-          <div class="item__row row" style="gap: 16px;">
-            <div>
-              <h4>Soni</h4>
-              <div class="qty" data-qty>
-                <button type="button" data-qty-dec aria-label="decrease">−</button>
-                <input type="text" name="quantity" value="1" inputmode="numeric" pattern="[0-9]*" maxlength="2" {% if not is_purchasable %}disabled{% endif %}>
-                <button type="button" data-qty-inc aria-label="increase">+</button>
-              </div>
+        <div class="pdp__qty">
+          <div class="stack stack--sm">
+            <span class="label">{% trans "Soni" %}</span>
+            <div class="stepper" data-qty data-qty-max="{{ selected_variant.stock|default:1 }}">
+              <button type="button" data-qty-dec aria-label="{% trans 'Kamaytirish' %}">
+                <svg class="i i--sm" aria-hidden="true"><use href="#i-minus"></use></svg>
+              </button>
+              <input class="stepper__val num" type="text" name="quantity" value="1"
+                     inputmode="numeric" pattern="[0-9]*" maxlength="2"
+                     aria-label="{% trans 'Soni' %}" {% if not is_purchasable %}disabled{% endif %}>
+              <button type="button" data-qty-inc aria-label="{% trans 'Koʻpaytirish' %}">
+                <svg class="i i--sm" aria-hidden="true"><use href="#i-plus"></use></svg>
+              </button>
             </div>
           </div>
 
-          {% if is_purchasable %}
-            <button class="btn btn--solid btn--block btn--lg mt-24" type="submit">Savatga qo'shish</button>
-          {% else %}
-            <button class="btn btn--block btn--lg mt-24" type="button" disabled>Mavjud emas</button>
-<!--            <p class="muted mono mt-8" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">-->
-<!--              Hozirda mavjud emas.-->
-<!--            </p>-->
+          {# Heart and share render here; both are wired in Phase 6b (§17 #62). #}
+          <div class="pdp__actions">
+            <button type="button" class="like" data-like aria-pressed="false"
+                    aria-label="{% trans 'Saqlash' %}">
+              <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
+              {% if product.likes_count %}<span class="like__count num">{{ product.likes_count }}</span>{% endif %}
+            </button>
+            <button type="button" class="btn btn--ghost btn--icon" data-share
+                    aria-label="{% trans 'Ulashish' %}">
+              <svg class="i" aria-hidden="true"><use href="#i-share"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn btn--primary btn--lg btn--block" type="submit" data-buy
+                {% if not is_purchasable %}disabled{% endif %}>
+          {% if is_purchasable %}{% trans "Savatga qoʻshish" %}{% else %}{% trans "Tugadi" %}{% endif %}
+        </button>
+      </form>
+
+      {# Delivery, stated on the product page so it is never a checkout surprise. #}
+      <dl class="spec">
+        <div class="spec__row">
+          <dt>
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-box"></use></svg>
+            {% trans "Pochta boʻlimiga" %}
+          </dt>
+          <dd class="num">15 000 {% trans "soʻm" %}</dd>
+        </div>
+        <div class="spec__row">
+          <dt>
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-truck"></use></svg>
+            {% trans "Eshikkacha" %}
+          </dt>
+          <dd class="num">30 000 {% trans "soʻm" %}</dd>
+        </div>
+      </dl>
+
+      {# Spec strip — structured, so it reads the same on every product. #}
+      {% if product.gsm or product|t:"material" or product.print_method or product.fit %}
+        <dl class="spec">
+          {% if product|t:"material" %}
+            <div class="spec__row"><dt>{% trans "Mato" %}</dt><dd>{{ product|t:"material" }}</dd></div>
           {% endif %}
-        </form>
-      </aside>
+          {% if product.gsm %}
+            <div class="spec__row"><dt>{% trans "Zichlik" %}</dt><dd class="num">{{ product.gsm }} g/m²</dd></div>
+          {% endif %}
+          {% if product.print_method %}
+            <div class="spec__row"><dt>{% trans "Bosma" %}</dt><dd>{{ product.get_print_method_display }}</dd></div>
+          {% endif %}
+          {% if product.fit %}
+            <div class="spec__row"><dt>{% trans "Qolip" %}</dt><dd>{{ product.get_fit_display }}</dd></div>
+          {% endif %}
+        </dl>
+      {% endif %}
+
+      {% if product|t:"description" %}
+        <div class="stack stack--sm">
+          <span class="label">{% trans "Tavsif" %}</span>
+          <p class="body">{{ product|t:"description"|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+      {% if product.tags.exists %}
+        <div class="chips">
+          {% for tag in product.tags.all %}
+            <a href="{% url 'shop' %}?tag={{ tag.slug }}" class="badge">{{ tag|t:"name" }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
   </div>
-</section>
 
+  {# Reviews land in Phase 12; the anchor exists now so the rating can link to it. #}
+  <div id="reviews" class="pdp__reviews"></div>
+</div>
 
-{# related #}
 {% if related %}
-<section class="section divide-top">
-  <div class="wrap">
-<!--    <p class="eyebrow">More like this</p>-->
-    <h2 class="h-display h-md mt-8 mb-24">Sizga yoqishi mumkin</h2>
-    <div class="shop__grid">
+<section class="section">
+  <div class="wrap stack stack--lg">
+    <h2 class="h2">{% trans "Sizga yoqishi mumkin" %}</h2>
+    <div class="grid-products">
       {% for p in related %}
-        <a href="{% url 'item' p.slug %}" class="tile">
-          {% with p.images.first as img %}
-            {% if img and img.picture and img.picture.name %}
-              <img class="tile__img" src="{{ img.picture.url }}" alt="{{ p.name }}"
-                   onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-            {% else %}
-              <img class="tile__img" src="{% static 'img/no-image.jpg' %}" alt="{{ p.name }}">
-            {% endif %}
-          {% endwith %}
-          <div class="tile__meta">
-            <span class="tile__name">{{ p.name }}</span>
-            <span class="tile__price">{% if p.min_price is not None %}{{ p.min_price|price }} UZS{% endif %}</span>
-          </div>
-        </a>
-      {% empty %}
-        <div class="muted mono" style="grid-column: 1 / -1; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">— —</div>
+        {% include "product/_card.html" with p=p %}
       {% endfor %}
     </div>
   </div>
 </section>
 {% endif %}
+
+{# Mobile buy bar. Hidden from 860 px up, where the buy column is always visible. #}
+<div class="pdp__pad" aria-hidden="true"></div>
+<div class="buybar">
+  <span class="buybar__price">
+    <b class="num" data-price-display>{% if selected_variant %}{{ selected_variant.price|price }} {% trans "soʻm" %}{% endif %}</b>
+    <span data-variant-label>{% if selected_variant %}{{ selected_variant.size.size }}{% endif %}</span>
+  </span>
+  <button class="btn btn--primary" type="button" data-buy-jump
+          {% if not is_purchasable %}disabled{% endif %}>
+    {% if is_purchasable %}{% trans "Savatga" %}{% else %}{% trans "Tugadi" %}{% endif %}
+  </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/gallery.js' %}" defer></script>
+<script src="{% static 'js/variant.js' %}" defer></script>
 {% endblock %}

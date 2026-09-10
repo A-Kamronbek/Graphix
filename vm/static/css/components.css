@@ -81,6 +81,13 @@
 .stepper button:disabled { color: var(--c-fg-subtle); cursor: not-allowed; }
 .stepper__val { min-width: 44px; text-align: center; font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums; }
+/* As an <input> it would otherwise take the browser's white default, which reads
+   as a broken white bar on this ground. The stepper's own border is the frame. */
+input.stepper__val { width: 52px; padding: var(--s-2) 0; background: none; border: 0;
+  color: inherit; }
+input.stepper__val:focus { outline: none; }
+.stepper:focus-within { border-color: var(--c-brand); }
+input.stepper__val:disabled { color: var(--c-fg-subtle); }
 
 .otp { display: flex; gap: var(--s-2); }
 .otp input { width: 52px; height: 62px; text-align: center; font-size: var(--fs-2xl);
@@ -105,6 +112,7 @@
 .card__price{ font-size: var(--fs-sm); color: var(--c-fg-muted); font-variant-numeric: tabular-nums;
   margin-top: 2px; }
 .card__badge{ position: absolute; top: var(--s-2); left: var(--s-2); }
+.card__meta { margin-top: var(--s-3); }
 
 /* ============================================================= 4. gallery */
 .gallery { display: grid; gap: var(--s-2); }

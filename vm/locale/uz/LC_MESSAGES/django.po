@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-10 13:02+0500\n"
+"POT-Creation-Date: 2026-09-10 17:29+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -96,6 +96,291 @@ msgstr ""
 
 #: .\product\models.py:298
 msgid "Rad etilgan"
+msgstr ""
+
+#: .\templates\base.html:9 .\templates\product\item.html:15
+#: .\templates\product\shop.html:14
+msgid "Bosh sahifa"
+msgstr ""
+
+#: .\templates\base.html:10 .\templates\base.html:25
+msgid ""
+"Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab "
+"yetkazib berish."
+msgstr ""
+
+#: .\templates\base.html:24
+msgid "grafik futbolkalar"
+msgstr ""
+
+#: .\templates\base.html:55
+msgid "Asosiy qismga oʻtish"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:6 .\templates\partials\_drawer.html:8
+#: .\templates\partials\_nav.html:51
+msgid "Menyu"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:9 .\templates\product\shop.html:59
+msgid "Yopish"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:15 .\templates\partials\_footer.html:6
+#: .\templates\partials\_nav.html:12 .\templates\product\item.html:16
+#: .\templates\product\shop.html:4 .\templates\product\shop.html:5
+#: .\templates\product\shop.html:15
+msgid "Doʻkon"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:16 .\templates\partials\_nav.html:40
+msgid "Savat"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:18
+msgid "Kabinet"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:19
+msgid "Buyurtmalarim"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:21 .\templates\partials\_nav.html:46
+msgid "Kirish"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:22
+msgid "Roʻyxatdan oʻtish"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:24 .\templates\partials\_footer.html:19
+#: .\templates\partials\_nav.html:13
+msgid "Biz haqimizda"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:25 .\templates\partials\_footer.html:18
+#: .\templates\partials\_nav.html:14
+msgid "Bogʻlanish"
+msgstr ""
+
+#: .\templates\partials\_drawer.html:31
+msgid "Til"
+msgstr ""
+
+#: .\templates\partials\_footer.html:8 .\templates\product\shop.html:19
+#: .\templates\product\shop.html:130
+msgid "Barcha dizaynlar"
+msgstr ""
+
+#: .\templates\partials\_footer.html:16
+msgid "Yordam"
+msgstr ""
+
+#: .\templates\partials\_footer.html:20
+msgid "Shartlar"
+msgstr ""
+
+#: .\templates\partials\_footer.html:25
+msgid "Yetkazib berish"
+msgstr ""
+
+#: .\templates\partials\_footer.html:29
+msgid "Pochta boʻlimiga — 15 000 soʻm"
+msgstr ""
+
+#: .\templates\partials\_footer.html:30
+msgid "Eshikkacha — 30 000 soʻm"
+msgstr ""
+
+#: .\templates\partials\_footer.html:31
+msgid "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi"
+msgstr ""
+
+#: .\templates\partials\_footer.html:36
+msgid "Aloqa"
+msgstr ""
+
+#: .\templates\partials\_footer.html:50
+msgid "Elektron pochta"
+msgstr ""
+
+#: .\templates\partials\_footer.html:56
+msgid "Barcha huquqlar himoyalangan."
+msgstr ""
+
+#: .\templates\partials\_nav.html:11
+msgid "Asosiy menyu"
+msgstr ""
+
+#: .\templates\partials\_nav.html:21 .\templates\partials\_nav.html:29
+msgid "Qidirish"
+msgstr ""
+
+#: .\templates\partials\_nav.html:23
+msgid "Dizayn qidirish..."
+msgstr ""
+
+#: .\templates\partials\_nav.html:35
+msgid "Saqlanganlar"
+msgstr ""
+
+#: .\templates\product\_card.html:22 .\templates\product\item.html:142
+#: .\templates\product\item.html:225
+msgid "Tugadi"
+msgstr ""
+
+#: .\templates\product\_card.html:37 .\templates\product\item.html:75
+#: .\templates\product\item.html:153 .\templates\product\item.html:160
+#: .\templates\product\item.html:220
+msgid "soʻm"
+msgstr ""
+
+#: .\templates\product\_pager.html:4
+msgid "Sahifalar"
+msgstr ""
+
+#: .\templates\product\_pager.html:7
+msgid "Oldingi sahifa"
+msgstr ""
+
+#: .\templates\product\_pager.html:24
+msgid "Keyingi sahifa"
+msgstr ""
+
+#: .\templates\product\item.html:13 .\templates\product\shop.html:12
+msgid "Yoʻnalish"
+msgstr ""
+
+#: .\templates\product\item.html:40
+msgid "Rasmlar"
+msgstr ""
+
+#: .\templates\product\item.html:45
+#, python-format
+msgid "Rasm %(n)s"
+msgstr ""
+
+#: .\templates\product\item.html:91 .\templates\product\item.html:99
+#: .\templates\product\shop.html:92
+msgid "Oʻlcham"
+msgstr ""
+
+#: .\templates\product\item.html:95
+msgid "Oʻlcham jadvali"
+msgstr ""
+
+#: .\templates\product\item.html:103
+msgid "tugagan"
+msgstr ""
+
+#: .\templates\product\item.html:112 .\templates\product\item.html:119
+msgid "Soni"
+msgstr ""
+
+#: .\templates\product\item.html:114
+msgid "Kamaytirish"
+msgstr ""
+
+#: .\templates\product\item.html:120
+msgid "Koʻpaytirish"
+msgstr ""
+
+#: .\templates\product\item.html:129
+msgid "Saqlash"
+msgstr ""
+
+#: .\templates\product\item.html:134
+msgid "Ulashish"
+msgstr ""
+
+#: .\templates\product\item.html:142
+msgid "Savatga qoʻshish"
+msgstr ""
+
+#: .\templates\product\item.html:151
+msgid "Pochta boʻlimiga"
+msgstr ""
+
+#: .\templates\product\item.html:158
+msgid "Eshikkacha"
+msgstr ""
+
+#: .\templates\product\item.html:168
+msgid "Mato"
+msgstr ""
+
+#: .\templates\product\item.html:171
+msgid "Zichlik"
+msgstr ""
+
+#: .\templates\product\item.html:174
+msgid "Bosma"
+msgstr ""
+
+#: .\templates\product\item.html:177
+msgid "Qolip"
+msgstr ""
+
+#: .\templates\product\item.html:184
+msgid "Tavsif"
+msgstr ""
+
+#: .\templates\product\item.html:206
+msgid "Sizga yoqishi mumkin"
+msgstr ""
+
+#: .\templates\product\item.html:225
+msgid "Savatga"
+msgstr ""
+
+#: .\templates\product\shop.html:19
+#, python-format
+msgid "“%(q)s” uchun natijalar"
+msgstr ""
+
+#: .\templates\product\shop.html:24
+msgid "Topildi"
+msgstr ""
+
+#: .\templates\product\shop.html:30 .\templates\product\shop.html:52
+#: .\templates\product\shop.html:57
+msgid "Filtrlar"
+msgstr ""
+
+#: .\templates\product\shop.html:38 .\templates\product\shop.html:45
+msgid "Tartiblash"
+msgstr ""
+
+#: .\templates\product\shop.html:41
+msgid "Yangilari"
+msgstr ""
+
+#: .\templates\product\shop.html:42
+msgid "Narx: arzondan"
+msgstr ""
+
+#: .\templates\product\shop.html:43
+msgid "Narx: qimmatdan"
+msgstr ""
+
+#: .\templates\product\shop.html:80
+msgid "Kategoriya"
+msgstr ""
+
+#: .\templates\product\shop.html:104
+msgid "Filtrlarni tozalash"
+msgstr ""
+
+#: .\templates\product\shop.html:121
+msgid "Hech narsa topilmadi"
+msgstr ""
+
+#: .\templates\product\shop.html:124
+msgid "Soʻrovingizga mos dizayn yoʻq. Filtrlarni kamaytirib koʻring."
+msgstr ""
+
+#: .\templates\product\shop.html:126
+msgid "Hozircha dizaynlar qoʻshilmagan. Tez orada qaytib kelib koʻring."
 msgstr ""
 
 #: .\user\forms.py:11

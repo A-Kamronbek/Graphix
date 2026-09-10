@@ -1,12 +1,13 @@
-{% load static %}
-<!doctype html>
+{% load static i18n %}<!doctype html>
+{# The Phase 5 shell. Loads the design system only - never main.css, which is #}
+{# what base_legacy.html is for until the last page is rebuilt (§17 #48, #61). #}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
-  <title>{% block title %}Bosh sahifa{% endblock %} — GRAPHIX</title>
-  <meta name="description" content="{% block meta_description %}GRAPHIX — grafik futbolkalar do'koni. Premium sifat, 100+ dizayn, O'zbekiston bo'ylab yetkazib berish.{% endblock %}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#100E0C">
+  <title>{% block title %}{% trans "Bosh sahifa" %}{% endblock %} — GRAPHIX</title>
+  <meta name="description" content="{% block meta_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
 
   <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
   <link rel="icon" href="{% static 'img/favicon.ico' %}" sizes="32x32">
@@ -19,8 +20,8 @@
   {% endcomment %}
   <meta property="og:site_name" content="GRAPHIX">
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-  <meta property="og:title" content="{% block og_title %}GRAPHIX — grafik futbolkalar{% endblock %}">
-  <meta property="og:description" content="{% block og_description %}Grafik futbolkalar do'koni. Premium sifat, 100+ dizayn, O'zbekiston bo'ylab yetkazib berish.{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}GRAPHIX — {% trans "grafik futbolkalar" %}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
   <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endblock %}">
   <meta property="og:image:width" content="1200">
@@ -35,46 +36,40 @@
   {% endfor %}
   <link rel="alternate" hreflang="x-default" href="{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}">
 
-  <link rel="preconnect" href="https://rsms.me/">
-  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {# Both faces are used above the fold on every page, so both are preloaded. #}
+  {# Self-hosted and subset - no third-party request blocks the first paint. #}
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{% static 'fonts/playfair-display-var.woff2' %}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{% static 'fonts/onest-var.woff2' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages.css' %}">
 
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
-  {% block marq %}{% endblock %}
+  {# First focusable element on the page, so a keyboard user can pass the nav. #}
+  <a class="skip" href="#main">{% trans "Asosiy qismga oʻtish" %}</a>
 
+  {% include "partials/_icons.svg.html" %}
   {% include "partials/_nav.html" %}
+  {% include "partials/_drawer.html" %}
 
-  {# mobile drawer #}
-  <nav class="drawer" data-drawer aria-label="mobile">
-    <ul>
-      <li><a href="{% url 'home' %}">Bosh sahifa</a></li>
-      <li><a href="{% url 'shop' %}">Do'kon</a></li>
-      <li><a href="{% url 'about' %}">Haqimizda</a></li>
-      <li><a href="{% url 'contact' %}">Bog'lanish</a></li>
-      {% if user.is_authenticated %}
-        <li><a href="{% url 'account' %}">Kabinet</a></li>
-      {% else %}
-        <li><a href="{% url 'login' %}">Kirish</a></li>
-        <li><a href="{% url 'signup' %}">Ro'yxatdan o'tish</a></li>
-      {% endif %}
-      <li><a href="{% url 'cart' %}">Savat</a></li>
-    </ul>
-  </nav>
-
-  {# global messages (django messages framework) #}
   {% if messages %}
-    <div class="wrap mt-16">
-      <div class="msgs">
-        {% for m in messages %}
-          <div class="msg {% if 'error' in m.tags %}msg--err{% elif 'success' in m.tags %}msg--ok{% else %}msg--warn{% endif %}">{{ m }}</div>
-        {% endfor %}
-      </div>
+    <div class="wrap stack stack--sm msgs">
+      {% for m in messages %}
+        <div class="msg {% if 'error' in m.tags %}msg--err{% elif 'success' in m.tags %}msg--ok{% else %}msg--warn{% endif %}"
+             role="{% if 'error' in m.tags %}alert{% else %}status{% endif %}">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-{% if 'error' in m.tags %}warning{% elif 'success' in m.tags %}check{% else %}info{% endif %}"></use></svg>
+          <span>{{ m }}</span>
+        </div>
+      {% endfor %}
     </div>
   {% endif %}
 
-  <main>
+  <main id="main">
     {% block content %}{% endblock %}
   </main>
 

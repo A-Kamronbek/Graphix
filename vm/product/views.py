@@ -1,37 +1,62 @@
 """Storefront views: the shop listing (search / filter / sort) and product detail."""
-from django.shortcuts import render, redirect, get_object_or_404
-from django.core.paginator import Paginator
-from django.db.models import Min, Q
 import json
-from .models import Product, Category, Size, Colour, Variant
+
+from django.core.paginator import Paginator
+from django.db.models import Exists, Min, OuterRef, Q
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .models import Category, Colour, Product, Size, Tag, Variant
+
+
+def annotate_cards(qs):
+    """Add the two values every product card renders: cheapest price and stock.
+
+    ``min_price`` is the lowest price among sellable variants, and ``in_stock``
+    says whether anything is actually purchasable — which is what decides the
+    "Tugadi" badge. Both as annotations rather than template queries, so a grid of
+    twenty cards is still two queries.
+    """
+    sellable = Q(variants__available=True)
+    return qs.annotate(
+        min_price=Min('variants__price', filter=sellable),
+        in_stock=Exists(
+            Variant.objects.filter(product=OuterRef('pk'), available=True, stock__gt=0)
+        ),
+    )
 
 
 def shop(request):
-    """List products with search, category/size filters, sort, and paging.
+    """List products with search, filters, sort, and paging.
 
     Listing requires ``available``, not purchasability: a sold-out design stays
-    browsable and keeps its page, and the cart is where stock is enforced. What
-    does hide a product is ``is_active=False`` — the owner's explicit switch.
+    browsable and keeps its page, and the cart is where stock is enforced
+    (§17 #56). What does hide a product is ``is_active=False`` — the owner's
+    explicit switch.
     """
     q = request.GET.get('q', '').strip()
     category = request.GET.get('category')
     size = request.GET.get('size')
+    tags = [t for t in request.GET.getlist('tag') if t]
     sort = request.GET.get('sort', 'new')
 
-    qs = (
+    qs = annotate_cards(
         Product.objects
         .filter(is_active=True, variants__available=True)
-        .annotate(min_price=Min('variants__price', filter=Q(variants__available=True)))
         .prefetch_related('images', 'variants')
-        .distinct()
-    )
+    ).distinct()
 
     if q:
-        qs = qs.filter(Q(name__icontains=q) | Q(description__icontains=q))
+        qs = qs.filter(
+            Q(name__icontains=q) | Q(name_ru__icontains=q) | Q(name_en__icontains=q)
+            | Q(description__icontains=q) | Q(tags__name__icontains=q)
+        ).distinct()
     if category:
         qs = qs.filter(category_id=category)
     if size:
         qs = qs.filter(variants__size_id=size, variants__available=True).distinct()
+    if tags:
+        # Any of the chosen tags, which is how a chip row reads to a shopper.
+        qs = qs.filter(tags__slug__in=tags).distinct()
 
     if sort == 'price_asc':
         qs = qs.order_by('min_price')
@@ -57,8 +82,14 @@ def shop(request):
         'total_count': paginator.count,
         'categories': Category.objects.all(),
         'sizes': Size.objects.all(),
+        'tag_groups': [
+            (kind_label, Tag.objects.filter(kind=kind_value))
+            for kind_value, kind_label in Tag.Kind.choices
+        ],
         'selected_category': category,
         'selected_size': size,
+        'selected_tags': tags,
+        'filter_count': len(tags) + (1 if category else 0) + (1 if size else 0),
         'q': q,
         'sort': sort,
     })
@@ -71,9 +102,11 @@ def item_legacy_redirect(request, pk):
 
 
 def item(request, slug):
-    """Product detail: variants, availability, a price map for JS, and related items."""
+    """Product detail: gallery, variants, a price map for JS, and related items."""
     product = get_object_or_404(
-        Product.objects.prefetch_related('images', 'variants__size', 'variants__colour'),
+        Product.objects.prefetch_related(
+            'images', 'tags', 'variants__size', 'variants__colour'
+        ).select_related('category', 'size_chart', 'category__size_chart'),
         slug=slug,
         is_active=True,
     )
@@ -90,13 +123,12 @@ def item(request, slug):
     unavailable_sizes = [s.id for s in sizes if s.id not in available_size_ids]
 
     selected_variant = purchasable.first() or product.variants.first()
-
     is_purchasable = purchasable.exists()
 
-    # "colour_id:size_id" -> price/availability/id, consumed by the product-page JS
-    # to update price and the add-to-cart state as the user picks options. The key
-    # stays 'available' so the existing picker keeps working unchanged (§17 #23);
-    # it now carries purchasability, which is what the button actually depends on.
+    # "colour_id:size_id" -> price/availability/id/stock, consumed by variant.js to
+    # update the price and the add-to-cart state as the customer picks options. The
+    # key stays 'available' so the existing picker contract holds (§17 #23); it now
+    # carries purchasability, which is what the button actually depends on.
     variants_map = {}
     for v in product.variants.all():
         key = f"{v.colour_id or ''}:{v.size_id or ''}"
@@ -104,16 +136,15 @@ def item(request, slug):
             'price': float(v.price),
             'available': bool(v.is_purchasable),
             'id': v.id,
+            'stock': v.stock,
         }
 
-    related = (
-        Product.objects.filter(is_active=True, category=product.category,
-                               variants__available=True)
+    related = annotate_cards(
+        Product.objects
+        .filter(is_active=True, category=product.category, variants__available=True)
         .exclude(id=product.id)
-        .annotate(min_price=Min('variants__price', filter=Q(variants__available=True)))
         .prefetch_related('images', 'variants')
-        .distinct()[:4]
-    )
+    ).distinct()[:4]
 
     return render(request, 'product/item.html', {
         'product': product,
@@ -123,5 +154,6 @@ def item(request, slug):
         'selected_variant': selected_variant,
         'is_purchasable': is_purchasable,
         'variants_json': json.dumps(variants_map),
+        'size_chart': product.resolve_size_chart(),
         'related': related,
     })
