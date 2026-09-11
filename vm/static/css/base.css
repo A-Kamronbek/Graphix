@@ -56,6 +56,16 @@ img { height: auto; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
 a { color: inherit; text-decoration: none; }
+/* A long unbreakable string — an email address, a URL — must never be what makes
+   the page scroll sideways. Found at 360 px on the contact page, where
+   abdurahmonboboyev.magic@gmail.com pushed the layout 21 px over.
+   `anywhere` rather than `break-word` on purpose: only `anywhere` reduces the
+   element's min-content width, and min-content is what a grid column sizes to.
+   `break-word` stops the visual overflow but still lets the column grow, which
+   is exactly how the first attempt at this fix failed. Paragraphs keep the
+   gentler rule, since a long word there is not a layout risk. */
+a, address, dd { overflow-wrap: anywhere; }
+p { overflow-wrap: break-word; }
 table { border-collapse: collapse; width: 100%; }
 address { font-style: normal; }
 [hidden] { display: none !important; }

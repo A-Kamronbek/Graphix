@@ -59,17 +59,23 @@
 
       {# Language switcher. POSTs to set_language, which redirects to the #}
       {# translated version of the page the visitor was on rather than home. #}
-      <form action="{% url 'set_language' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <div class="lang">
-          {% for l in languages %}
-            <button type="submit" name="language" value="{{ l.code }}"
-                    aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}"
-                    {% if l.is_active %}aria-current="true"{% endif %}>{{ l.name }}</button>
-          {% endfor %}
-        </div>
-      </form>
+      {# Guarded on `languages` because Django renders 500.html with no context #}
+      {# at all - no request, no context processors - so on a real server error #}
+      {# this would otherwise be an empty box above a form with no CSRF token #}
+      {# and no `next`, which could not work even if a visitor clicked it. #}
+      {% if languages %}
+        <form action="{% url 'set_language' %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <div class="lang">
+            {% for l in languages %}
+              <button type="submit" name="language" value="{{ l.code }}"
+                      aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}"
+                      {% if l.is_active %}aria-current="true"{% endif %}>{{ l.name }}</button>
+            {% endfor %}
+          </div>
+        </form>
+      {% endif %}
     </div>
   </div>
 </footer>

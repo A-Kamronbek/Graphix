@@ -148,6 +148,14 @@
   .shop__filter-toggle { display: none; }
 }
 
+/* Every page grid is one column until its breakpoint, and that column must be
+   allowed to shrink. A grid item defaults to min-width:auto, so without the
+   minmax(0, …) a single long word inside — an email address, a product name —
+   sizes the whole column and the page scrolls sideways. */
+.pdp, .shop, .cartpage, .checkout, .account, .home__hero-inner {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* --------------------------------------------- page-level helper classes */
 /* These exist so no template carries a style attribute. A value used on two
    pages belongs in components.css instead; these are each used once. */
@@ -187,7 +195,11 @@
 /* The hero is height-capped so a product row is always partly visible at
    390 x 844 without scrolling (§17 #29). It leads with a real design rather
    than a fixed marketing image, so the first thing on the page is stock. */
-.home__hero { padding-block: var(--s-6) var(--s-7); }
+/* The numbers here are not taste, they are the budget that keeps the first
+   product card on screen at 390 x 844. Measured, not guessed: at 42vh art and
+   s-6/s-7 padding the first card started at 952px, 108px below the fold, which
+   is exactly the full-viewport hero #29 forbids. Verified by .git/fold.py. */
+.home__hero { padding-block: var(--s-5) var(--s-5); }
 .home__hero-inner { display: grid; gap: var(--s-5); align-items: center; }
 .home__title {
   font-family: var(--f-display);
@@ -200,7 +212,7 @@
 .home__hero-art {
   display: block;
   aspect-ratio: var(--ar-product);
-  max-height: 42vh;
+  max-height: 28vh;
   margin-inline: auto;
   overflow: hidden;
   background: var(--c-surface);
