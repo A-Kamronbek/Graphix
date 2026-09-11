@@ -1,58 +1,39 @@
 {% extends "base.html" %}
-{% load price_format %}
-{% block title %}To'lov{% endblock %}
+{% load i18n i18n_fields price_format %}
+{% block title %}{% trans "Toʻlov" %}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <div class="steps">
-      <span class="is-active">Savat</span>
-      <span class="is-active">Rasmiylashtirish</span>
-      <span class="is-active">To'lov</span>
-      <span>Holat</span>
-    </div>
-
-    <h1 class="h-display h-md mt-8 mb-32">Click orqali to'lov</h1>
-
-    <div class="checkout">
-      <div class="panel">
-<!--        <p class="eyebrow">Pay {{ order.total_price|price }} UZS</p>-->
-        <h2 class="h-display h-md mt-8">To'lov qilish</h2>
-        <p class="muted mt-16">
-          Click ilovasidan to'lovni amalga oshirganingizdan
-          so'ng buyurtmalar bo'limiga qayting.
-        </p>
-
-        <form method="post" action="{% url 'payment_start' order.id %}" class="mt-24">
-          {% csrf_token %}
-          <button class="btn btn--solid btn--block btn--lg" type="submit" >
-            Clickga o'tish →
-          </button>
-        </form>
-
-        <div class="row mt-16" style="gap: 8px;">
-          <a class="btn btn--ghost btn--sm" href="{% url 'order_detail' order.id %}">Buyurtmaga qaytish</a>
-          <form method="post" action="{% url 'order_cancel' order.id %}" style="margin: 0;">
-            {% csrf_token %}
-            <button class="btn btn--danger btn--sm" type="submit">Buyurtmani bekor qilish</button>
-          </form>
-        </div>
+<div class="wrap section">
+  <div class="auth auth--narrow">
+    <div class="stack stack--lg">
+      <div class="stack stack--sm">
+        <span class="eyebrow">{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}</span>
+        <h1 class="h1">{% trans "Click orqali toʻlov" %}</h1>
+        <p class="pdp__price num">{{ order.total_price|price }} {% trans "soʻm" %}</p>
       </div>
 
-      <aside class="summary">
-        <h3>Buyurtma #{{ order.id }}</h3>
+      <ul class="stack stack--sm">
         {% for it in order.cart.cart_items.all %}
-          <div class="row-between" style="padding: 8px 0; border-bottom: 1px solid var(--line);">
-            <div class="mono" style="font-size: 12px; letter-spacing: .06em; text-transform: uppercase;">
-              {{ it.variant.product.name }}<br>
-              <small class="muted">{{ it.variant.colour.colour }} · {{ it.variant.size.size }} × {{ it.quantity }}</small>
-            </div>
-            <span class="mono">{{ it.price_stat|price }}</span>
-          </div>
+          <li class="spec__row">
+            <span>{{ it.variant.product|t:"name" }} <span class="muted small">{{ it.variant.size.size }} × {{ it.quantity }}</span></span>
+            <span class="num">{{ it.price_stat|price }}</span>
+          </li>
         {% endfor %}
-        <div class="summary__row summary__row--total"><span>Jami</span><span>{{ order.total_price|price }} UZS</span></div>
-      </aside>
+      </ul>
+
+      <form method="post" action="{% url 'payment_start' order.id %}">
+        {% csrf_token %}
+        <button class="btn btn--primary btn--lg btn--block" type="submit">{% trans "Toʻlovga oʻtish" %}</button>
+      </form>
+
+      <div class="row row--wrap">
+        <a class="btn btn--ghost btn--sm" href="{% url 'order_detail' order.id %}">{% trans "Buyurtma tafsilotlari" %}</a>
+        <form method="post" action="{% url 'order_cancel' order.id %}">
+          {% csrf_token %}
+          <button class="btn btn--ghost btn--sm" type="submit">{% trans "Bekor qilish" %}</button>
+        </form>
+      </div>
     </div>
   </div>
-</section>
+</div>
 {% endblock %}

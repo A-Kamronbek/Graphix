@@ -1,6 +1,13 @@
-"""Cart operations: resolve the active cart, match a variant, add/update items."""
+"""Cart operations: resolve the active cart, match a variant, add/update items.
+
+Every ``CartError`` message reaches the customer through ``messages.error()``,
+so it is translated. ``gettext`` rather than ``gettext_lazy``: these are built
+inside a request, where the active language is already set, and a lazy object
+would only defer the same lookup and then have to survive ``str(exception)``.
+"""
 from django.db.models import F, Value
 from django.db.models.functions import Least
+from django.utils.translation import gettext as _
 
 from .models import Cart, CartItem
 
@@ -31,13 +38,13 @@ def resolve_variant(product, colour_id, size_id):
 
     matches = list(variant_qs[:2])
     if len(matches) != 1:
-        raise CartError("Tovar noto'g'ri tanlangan")
+        raise CartError(_("Tovar notoʻgʻri tanlangan"))
     variant = matches[0]
 
     if not variant.available:
-        raise CartError("Ushbu tovar sotuvda yo'q")
+        raise CartError(_("Ushbu tovar sotuvda yoʻq"))
     if variant.stock <= 0:
-        raise CartError("Ushbu o'lcham tugagan")
+        raise CartError(_("Ushbu oʻlcham tugagan"))
     return variant
 
 
@@ -60,7 +67,7 @@ def add_variant(cart, variant, qty):
     """
     cap = variant_cap(variant)
     if cap <= 0:
-        raise CartError("Ushbu o'lcham tugagan")
+        raise CartError(_("Ushbu oʻlcham tugagan"))
 
     item, created = CartItem.objects.get_or_create(
         cart=cart, variant=variant,
@@ -86,7 +93,7 @@ def set_item_quantity(item, qty):
     cap = variant_cap(item.variant)
     if cap <= 0:
         item.delete()
-        raise CartError("Ushbu o'lcham tugagan")
+        raise CartError(_("Ushbu oʻlcham tugagan"))
 
     item.quantity = min(qty, cap)
     item.save(update_fields=['quantity'])

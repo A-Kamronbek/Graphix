@@ -1,33 +1,55 @@
+{% load i18n %}
+{# Sticky header. The search field is the widest thing in it on desktop, because #}
+{# finding a design is the main job on this site; on mobile it collapses to an #}
+{# icon that expands the row below, so the brand and the cart never get squeezed. #}
 <header class="nav">
-  <div class="nav__inner">
-    <div class="nav__left">
-      <a href="{% url 'home' %}" class="nav__brand">GRAPHIX</a>
-      {% if user.is_authenticated %}
-        <a href="{% url 'account' %}" class="nav__user-mobile">{{user.username}}</a>
-      {% else %}
-        <a href="{% url 'login' %}" class="nav__user-mobile">Kirish</a>
-      {% endif %}
-    </div>
+  <a href="{% url 'home' %}" class="nav__brand" aria-label="GRAPHIX">
+    <svg class="i i--lg" aria-hidden="true"><use href="#i-mark"></use></svg>
+    <span>GRAPHIX</span>
+  </a>
 
-    <ul class="nav__links">
-      <li><a href="{% url 'shop' %}" {% if request.resolver_match.url_name == 'shop' %}class="is-active"{% endif %}>Do'kon</a></li>
-      <li><a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}class="is-active"{% endif %}>Haqimizda</a></li>
-      <li><a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="is-active"{% endif %}>Bog'lanish</a></li>
-    </ul>
+  <nav class="nav__links" aria-label="{% trans 'Asosiy menyu' %}">
+    <a href="{% url 'shop' %}" {% if request.resolver_match.url_name == 'shop' %}class="is-active" aria-current="page"{% endif %}>{% trans "Doʻkon" %}</a>
+    <a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}class="is-active" aria-current="page"{% endif %}>{% trans "Biz haqimizda" %}</a>
+    <a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="is-active" aria-current="page"{% endif %}>{% trans "Bogʻlanish" %}</a>
+  </nav>
 
-    <div class="nav__actions">
-      {% if user.is_authenticated %}
-        <a href="{% url 'account' %}" class="nav__account">{{user.username}}</a>
-      {% else %}
-        <a href="{% url 'login' %}" class="nav__account">Kirish</a>
-      {% endif %}
-      <a href="{% url 'cart' %}" class="nav__cart">
-        Savat
-        {% if cart_count and cart_count > 0 %}
-          <span class="nav__cart-count">{{ cart_count }}</span>
-        {% endif %}
-      </a>
-      <button class="nav__burger" data-burger aria-label="menu"><span></span></button>
-    </div>
+  {# The header field is the site's search entry; /shop/ keeps its own ?q=. #}
+  <form class="nav__search" method="get" action="{% url 'search' %}" role="search">
+    <label class="search">
+      <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+      <span class="sr-only">{% trans "Qidirish" %}</span>
+      <input type="search" name="q" value="{{ q|default:'' }}"
+             placeholder="{% trans 'Dizayn qidirish...' %}" autocomplete="off">
+    </label>
+  </form>
+
+  <div class="nav__actions">
+    <button type="button" class="nav__search-toggle" data-search-toggle
+            aria-label="{% trans 'Qidirish' %}" aria-expanded="false">
+      <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
+    </button>
+
+    {# The count and the page are Phase 5; the toggle that fills it is 6b. #}
+    <a href="{% if user.is_authenticated %}{% url 'liked' %}{% else %}{% url 'login' %}{% endif %}"
+       aria-label="{% trans 'Saqlanganlar' %}">
+      <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
+      {% if liked_count %}<span class="nav__count">{{ liked_count }}</span>{% endif %}
+    </a>
+
+    <a href="{% url 'cart' %}" aria-label="{% trans 'Savat' %}">
+      <svg class="i" aria-hidden="true"><use href="#i-cart"></use></svg>
+      {% if cart_count %}<span class="nav__count">{{ cart_count }}</span>{% endif %}
+    </a>
+
+    <a href="{% if user.is_authenticated %}{% url 'account' %}{% else %}{% url 'login' %}{% endif %}"
+       class="nav__account" aria-label="{% if user.is_authenticated %}{{ user.username }}{% else %}{% trans 'Kirish' %}{% endif %}">
+      <svg class="i" aria-hidden="true"><use href="#i-user"></use></svg>
+    </a>
+
+    <button type="button" class="nav__burger" data-drawer-open
+            aria-label="{% trans 'Menyu' %}" aria-expanded="false" aria-controls="gx-drawer">
+      <svg class="i" aria-hidden="true"><use href="#i-menu"></use></svg>
+    </button>
   </div>
 </header>

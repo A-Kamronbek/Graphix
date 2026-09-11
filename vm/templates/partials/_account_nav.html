@@ -1,0 +1,13 @@
+{% load i18n %}
+{# Account section navigation. A row of tabs on mobile, a column on desktop. #}
+<nav class="account__nav" aria-label="{% trans 'Kabinet' %}">
+  <a href="{% url 'account' %}" {% if active == 'home' %}class="is-active" aria-current="page"{% endif %}>{% trans "Kabinet" %}</a>
+  <a href="{% url 'account_orders' %}" {% if active == 'orders' %}class="is-active" aria-current="page"{% endif %}>{% trans "Buyurtmalarim" %}</a>
+  <a href="{% url 'liked' %}" {% if active == 'liked' %}class="is-active" aria-current="page"{% endif %}>{% trans "Saqlanganlar" %}</a>
+  <a href="{% url 'account_settings' %}" {% if active == 'settings' %}class="is-active" aria-current="page"{% endif %}>{% trans "Sozlamalar" %}</a>
+
+  <form method="post" action="{% url 'logout' %}" class="account__logout">
+    {% csrf_token %}
+    <button class="btn btn--ghost btn--block btn--sm" type="submit">{% trans "Chiqish" %}</button>
+  </form>
+</nav>

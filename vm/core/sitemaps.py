@@ -19,7 +19,9 @@ class StaticViewSitemap(Sitemap):
     x_default = True
 
     def items(self):
-        return ['home', 'shop', 'about', 'contact', 'terms']
+        # /saqlanganlar/ is deliberately absent: it needs a login, so it has
+        # nothing to show a crawler.
+        return ['home', 'shop', 'about', 'contact', 'delivery', 'size_guide', 'terms']
 
     def location(self, name):
         return reverse(name)

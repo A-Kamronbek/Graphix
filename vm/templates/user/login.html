@@ -1,46 +1,54 @@
 {% extends "base.html" %}
-{% block title %}Kirish{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Kirish" %}{% endblock %}
 
 {% block content %}
-<section class="auth">
-  <aside class="auth__art" aria-hidden="true">
-    <div class="auth__art-text">Hisobga<br>kirish</div>
-  </aside>
-
-  <div class="auth__form">
-    <div class="auth__form-inner">
-
+<div class="wrap section">
+  <div class="auth">
+    <div class="stack stack--lg">
+      <div class="stack stack--sm">
+        <h1 class="h1">{% trans "Kirish" %}</h1>
+        <p class="lede">{% trans "Buyurtmalaringiz va saqlanganlaringiz shu yerda." %}</p>
+      </div>
 
       {% if form.non_field_errors %}
-        <div class="msg msg--err mb-16">{{ form.non_field_errors|join:" · " }}</div>
+        <div class="msg msg--err" role="alert">{{ form.non_field_errors|join:" · " }}</div>
       {% endif %}
 
-      <form method="post" class="stack" data-validate>
+      <form method="post" class="stack">
         {% csrf_token %}
         <div class="field {% if form.username.errors %}field--error{% endif %}">
-          <label for="id_username">Foydalanuvchi nomi</label>
-          <input class="input" type="text" name="username" id="id_username" required autofocus value="{{ form.username.value|default:'' }}">
-          {% if form.username.errors %}<small class="field__err">{{ form.username.errors|join:" · " }}</small>{% endif %}
+          <label class="label" for="id_username">{% trans "Foydalanuvchi nomi" %}</label>
+          <input class="input" type="text" name="username" id="id_username" required autofocus
+                 autocomplete="username" value="{{ form.username.value|default:'' }}">
+          {% if form.username.errors %}<small class="field__error">{{ form.username.errors|join:" · " }}</small>{% endif %}
         </div>
+
         <div class="field {% if form.password.errors %}field--error{% endif %}">
-          <label for="id_password">Parol</label>
-          <input class="input" type="password" name="password" id="id_password" required>
-          {% if form.password.errors %}<small class="field__err">{{ form.password.errors|join:" · " }}</small>{% endif %}
+          <div class="field__hd">
+            <label class="label" for="id_password">{% trans "Parol" %}</label>
+            <a class="link small" href="{% url 'password_reset_request' %}">{% trans "Unutdingizmi?" %}</a>
+          </div>
+          <input class="input" type="password" name="password" id="id_password" required
+                 autocomplete="current-password">
+          {% if form.password.errors %}<small class="field__error">{{ form.password.errors|join:" · " }}</small>{% endif %}
         </div>
 
-        <div class="row-between mt-8">
-<!--          <label class="checkbox"><input type="checkbox" name="remember"> Meni eslab qol</label>-->
-          <a class="mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;" href="{% url 'password_reset_request' %}">Foydalanuvchi nomi yoki parolni unutdingizmi?</a>
-        </div>
-
-        <button class="btn btn--solid btn--block btn--lg mt-16" type="submit"{% if rate_limited %} disabled{% endif %}>Kirish</button>
-        {% if rate_limited %}<p class="rl-note">Juda ko'p urinish. Biroz kuting va qayta urining.</p>{% endif %}
+        <button class="btn btn--primary btn--lg btn--block" type="submit"
+                {% if rate_limited %}disabled{% endif %}>{% trans "Kirish" %}</button>
+        {% if rate_limited %}
+          <p class="field__error">{% trans "Juda koʻp urinish. Biroz kuting va qayta urining." %}</p>
+        {% endif %}
       </form>
 
-      <p class="muted mt-32 mono" style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase;">
-        Hisob yo'qmi? <a href="{% url 'signup' %}" style="color: var(--fg); text-decoration: underline; text-underline-offset: 4px;">Yaratish</a>
+      <p class="muted">
+        {% trans "Hisob yoʻqmi?" %} <a class="link" href="{% url 'signup' %}">{% trans "Roʻyxatdan oʻtish" %}</a>
       </p>
     </div>
+
+    <aside class="auth__art" aria-hidden="true">
+      <svg class="i" viewBox="0 0 24 24"><use href="#i-mark"></use></svg>
+    </aside>
   </div>
-</section>
+</div>
 {% endblock %}

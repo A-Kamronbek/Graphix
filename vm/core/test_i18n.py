@@ -201,6 +201,37 @@ class CatalogueCompletenessTests(TestCase):
                     f"Uzbek instead: {empty[:5]}",
                 )
 
+    def test_no_catalogue_entry_is_fuzzy(self):
+        """A fuzzy entry is ignored by gettext, so the page renders Uzbek.
+
+        ``makemessages`` marks an entry fuzzy when it guesses a translation from a
+        similar old msgid — and then gettext refuses to use it. Nothing fails; the
+        page is just silently monolingual in that one spot. It shipped exactly that
+        way for four strings, including the add-to-cart button, because the
+        empty-msgstr check above cannot see a *filled but ignored* entry.
+
+        The catalogue header is conventionally fuzzy and is skipped.
+        """
+        for lang in ('uz', 'ru', 'en'):
+            with self.subTest(lang=lang):
+                lines = self._catalogue_path(lang).read_text(encoding='utf-8').splitlines()
+                fuzzy = []
+                for i, line in enumerate(lines):
+                    if line.strip() != '#, fuzzy':
+                        continue
+                    j = i + 1
+                    while j < len(lines) and lines[j].startswith('#'):
+                        j += 1
+                    if j < len(lines) and lines[j].startswith('msgid "'):
+                        msgid = lines[j][7:-1]
+                        if msgid:                       # empty msgid == the header
+                            fuzzy.append(msgid)
+                self.assertEqual(
+                    fuzzy, [],
+                    f"{len(fuzzy)} fuzzy {lang} entr(ies) will render Uzbek instead of "
+                    f"being translated: {fuzzy}",
+                )
+
     def test_the_catalogues_cover_the_same_strings(self):
         """A string present in one catalogue and missing from another is a stale run."""
         ids = {lang: {mid for mid, _ in self._entries(lang)} for lang in ('uz', 'ru', 'en')}

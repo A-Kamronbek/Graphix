@@ -1,92 +1,97 @@
 {% extends "base.html" %}
-{% load price_format %}
-{% block title %}Buyurtma{% endblock %}
+{% load i18n i18n_fields price_format %}
+{% block title %}{% trans "Rasmiylashtirish" %}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <div class="steps">
-      <span class="is-active">Savat</span>
-      <span class="is-active">Rasmiylashtirish</span>
-      <span>To'lov</span>
-      <span>Holat</span>
-    </div>
+<div class="wrap section stack stack--lg">
+  <h1 class="h1">{% trans "Rasmiylashtirish" %}</h1>
 
-    <h1 class="h-display h-lg mt-8 mb-32">Rasmiylashtirish.</h1>
+  <div class="checkout">
+    <form method="post" class="stack stack--lg">
+      {% csrf_token %}
 
-    <div class="checkout">
-      <form method="post" class="stack" data-validate style="gap: 16px;">
-        {% csrf_token %}
-
-        <div class="panel">
-          <p class="eyebrow mb-16">Ma'lumotlar</p>
-          <div class="grid-2">
-            <div class="field">
-              <label>Ism</label>
-              <input class="input" name="name" required value="{{ form_data.name|default:user.first_name|default:user.username }}">
-            </div>
-            <div class="field">
-              <label>Telefon</label>
-              <input class="input" name="phone" type="tel"
-                     pattern="\+998 ?\d{2} ?\d{3} ?\d{2} ?\d{2}"
-                     title="format: +998 XX XXX XX XX"
-                     value="{{ form_data.phone|default:user.phone }}"
-                     placeholder="+998 xx xxx xx xx"
-                     required>
-            </div>
-          </div>
+      <section class="panel stack">
+        <h2 class="h3">{% trans "Aloqa" %}</h2>
+        <div class="field">
+          <label class="label" for="id_name">{% trans "Ismingiz" %}</label>
+          <input class="input" type="text" name="name" id="id_name" required
+                 autocomplete="name" value="{{ form_data.name|default:'' }}">
         </div>
-
-        <div class="panel">
-          <div class="field">
-            <label>Manzil</label>
-            <textarea class="textarea" name="address" required placeholder="Viloyat, tuman, shahar, ko'cha, uy">{{ form_data.address|default_if_none:''|default:'' }}</textarea>
-          </div>
-          <div class="field mt-16">
-            <label>Qo'shimcha ma'lumot</label>
-            <input class="input" name="notes" placeholder="Mo'ljal, ish joyi..." value="{{ form_data.notes|default_if_none:''|default:'' }}">
-          </div>
+        <div class="field">
+          <label class="label" for="id_phone">{% trans "Telefon" %}</label>
+          <input class="input" type="tel" name="phone" id="id_phone" required
+                 autocomplete="tel" placeholder="+998 ..." value="{{ form_data.phone|default:'' }}">
+          <small class="field__hint">{% trans "Kuryer shu raqamga qoʻngʻiroq qiladi." %}</small>
         </div>
+      </section>
 
-        <div class="panel">
-          <p class="eyebrow mb-16">To'lov usuli</p>
-          <label class="checkbox" style="display:flex; gap:12px; padding: 14px; border:1px solid var(--line);">
-            <input type="radio" name="payment_method" value="click" {% if form_data.payment_method == 'cash' %}{% else %}checked{% endif %}>
-            <span>
-              <strong style="font-family: var(--f-display); text-transform: uppercase;">Click</strong><br>
-              <small class="muted mono" style="font-size: 11px; letter-spacing: .12em;">Click orqali to'lov qilish.</small>
-            </span>
-          </label>
-          <label class="checkbox mt-8" style="display:flex; gap:12px; padding: 14px; border:1px solid var(--line); opacity: .5;">
-            <input type="radio" name="payment_method" value="cash" disabled>
-            <span>
-              <strong style="font-family: var(--f-display); text-transform: uppercase;">Naqd pul</strong><br>
-              <small class="muted mono" style="font-size: 11px; letter-spacing: .12em;">Mavjud emas.</small>
-            </span>
-          </label>
+      <section class="panel stack">
+        <h2 class="h3">{% trans "Yetkazib berish" %}</h2>
+        {# The tier picker, the map and the pickup-point list all arrive in #}
+        {# Phase 6e; the address stays required and authoritative either way. #}
+        <div class="field">
+          <label class="label" for="id_address">{% trans "Manzil" %}</label>
+          <textarea class="textarea" name="address" id="id_address" required
+                    autocomplete="street-address"
+                    placeholder="{% trans 'Viloyat, tuman, koʻcha, uy' %}">{{ form_data.address|default:'' }}</textarea>
         </div>
+        <div class="field">
+          <label class="label" for="id_notes">{% trans "Izoh" %}</label>
+          <textarea class="textarea" name="notes" id="id_notes"
+                    placeholder="{% trans 'Majburiy emas' %}">{{ form_data.notes|default:'' }}</textarea>
+        </div>
+      </section>
 
-        <button class="btn btn--solid btn--block btn--lg" type="submit">Rasmiylashtirish →</button>
-        <a href="{% url 'cart' %}" class="btn btn--solid btn--block btn--lg">← Savatga qaytish</a>
-      </form>
+      <section class="panel stack">
+        <h2 class="h3">{% trans "Toʻlov" %}</h2>
+        <label class="check">
+          <input type="radio" name="payment_method" value="click"
+                 {% if form_data.payment_method != 'cash' %}checked{% endif %}>
+          <span>
+            <strong>Click</strong>
+            <span class="field__hint">{% trans "Kartadan onlayn toʻlov" %}</span>
+          </span>
+        </label>
+        <label class="check">
+          <input type="radio" name="payment_method" value="cash"
+                 {% if form_data.payment_method == 'cash' %}checked{% endif %}>
+          <span>
+            <strong>{% trans "Naqd pul" %}</strong>
+            <span class="field__hint">{% trans "Olganda toʻlaysiz" %}</span>
+          </span>
+        </label>
+      </section>
 
-      <aside class="summary">
-        <h3>Buyurtmangiz</h3>
+      <button class="btn btn--primary btn--lg btn--block" type="submit">{% trans "Buyurtma berish" %}</button>
+    </form>
+
+    <aside class="checkout__summary panel stack">
+      <h2 class="h3">{% trans "Buyurtma" %}</h2>
+      <ul class="stack stack--sm">
         {% for it in items %}
-          <div class="row-between" style="padding: 8px 0; border-bottom: 1px solid var(--line);">
-            <div style="font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;">
-              {{ it.variant.product.name }}<br>
-              <small class="muted">{{ it.variant.colour.colour }} · {{ it.variant.size.size }} × {{ it.quantity }}</small>
-            </div>
-            <span class="mono">{{ it.line_total|price }}</span>
-          </div>
+          <li class="spec__row">
+            <span>
+              {{ it.variant.product|t:"name" }}
+              <span class="muted small">{{ it.variant.size.size }} × {{ it.quantity }}</span>
+            </span>
+            <span class="num">{{ it.line_total|price }}</span>
+          </li>
         {% endfor %}
+      </ul>
 
-        <div class="summary__row mt-16"><span>Umumiy</span><span>{{ subtotal|price }} UZS</span></div>
-        <div class="summary__row"><span>Dastavka</span><span>{{ delivery|default:0|price }} UZS</span></div>
-        <div class="summary__row summary__row--total"><span>Jami</span><span>{{ total|price }} UZS</span></div>
-      </aside>
-    </div>
+      <dl class="spec">
+        <div class="spec__row">
+          <dt>{% trans "Mahsulotlar" %}</dt>
+          <dd class="num">{{ subtotal|price }} {% trans "soʻm" %}</dd>
+        </div>
+        <div class="spec__row cartpage__total">
+          <dt>{% trans "Jami" %}</dt>
+          <dd class="num">{{ total|price }} {% trans "soʻm" %}</dd>
+        </div>
+      </dl>
+
+      <a class="link" href="{% url 'cart' %}">{% trans "Savatga qaytish" %}</a>
+    </aside>
   </div>
-</section>
+</div>
 {% endblock %}

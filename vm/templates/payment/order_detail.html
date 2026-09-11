@@ -1,60 +1,86 @@
 {% extends "base.html" %}
-{% load static %}
-{% load price_format %}
-{% block title %}Buyurtma #{{ order.id }}{% endblock %}
+{% load static i18n i18n_fields price_format uzb_dates %}
+{% block title %}{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <div class="row-between mt-8 mb-32" style="flex-wrap: wrap; gap: 16px;">
-      <h1 class="h-display h-lg">Buyurtma #{{ order.id }}</h1>
-      <span class="pill pill--{{ order.status|cut:'_' }}">{{ order.get_status_display }}</span>
+<div class="wrap section stack stack--lg">
+  <nav aria-label="{% trans 'Yoʻnalish' %}">
+    <ol class="crumbs">
+      <li><a href="{% url 'account' %}">{% trans "Kabinet" %}</a></li>
+      <li><a href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a></li>
+      <li aria-current="page">{{ order.order_no|default:order.id }}</li>
+    </ol>
+  </nav>
+
+  <div class="row row--between row--wrap">
+    <h1 class="h1 num">{{ order.order_no|default:order.id }}</h1>
+    <span class="badge {% if order.status == 'done' %}badge--success{% elif order.status == 'cancelled' %}badge--danger{% elif order.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ order.get_status_display }}</span>
+  </div>
+
+  <div class="checkout">
+    <div class="stack">
+      {% for it in order.cart.cart_items.all %}
+        <article class="cartline">
+          <a class="cartline__thumb" href="{% url 'item' it.variant.product.slug %}">
+            {% with it.variant.product.images.first as img %}
+              {% if img and img.picture and img.picture.name %}
+                <img src="{{ img.picture.url }}" alt="{{ it.variant.product|t:'name' }}" loading="lazy"
+                     onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
+              {% else %}
+                <img src="{% static 'img/no-image.jpg' %}" alt="{{ it.variant.product|t:'name' }}" loading="lazy">
+              {% endif %}
+            {% endwith %}
+          </a>
+          <div class="cartline__info stack stack--sm">
+            <a class="card__name" href="{% url 'item' it.variant.product.slug %}">{{ it.variant.product|t:"name" }}</a>
+            <span class="small muted">{% trans "Oʻlcham" %}: {{ it.variant.size.size }} × {{ it.quantity }}</span>
+            <span class="small muted num">{{ it.price_stat|price }} {% trans "soʻm" %}</span>
+          </div>
+          <div class="cartline__actions">
+            <span class="cartline__total num">{{ it.line_total|price }} {% trans "soʻm" %}</span>
+          </div>
+        </article>
+      {% endfor %}
     </div>
 
-    <div class="checkout">
-      <div class="stack" style="gap: 24px;">
-        <div class="panel">
-          <p class="eyebrow mb-16">Savat</p>
-          {% for it in order.cart.cart_items.all %}
-            <div class="cart__line" style="grid-template-columns: 80px 1fr auto;">
-              {% with it.variant.product.images.first as img %}
-                {% if img and img.picture and img.picture.name %}
-                  <img class="cart__thumb" src="{{ img.picture.url }}" alt="{{ it.variant.product.name }}" style="width: 80px;"
-                       onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-                {% else %}
-                  <img class="cart__thumb" src="{% static 'img/no-image.jpg' %}" alt="{{ it.variant.product.name }}" style="width: 80px;">
-                {% endif %}
-              {% endwith %}
-              <div class="cart__info">
-                <a class="cart__name" href="{% url 'item' it.variant.product.slug %}">{{ it.variant.product.name }}</a>
-                <span class="cart__meta">{{ it.variant.colour.colour }} · {{ it.variant.size.size }} × {{ it.quantity }}</span>
-                <span class="cart__meta">{{ it.price_stat|price }} UZS</span>
-              </div>
-              <span class="mono">{{ it.line_total|price }} UZS</span>
-            </div>
-          {% endfor %}
+    <aside class="checkout__summary panel stack">
+      <h2 class="h3">{% trans "Tafsilotlar" %}</h2>
+      <dl class="spec">
+        <div class="spec__row"><dt>{% trans "Sana" %}</dt><dd>{{ order.created_at|uz_date }}</dd></div>
+        <div class="spec__row"><dt>{% trans "Telefon" %}</dt><dd class="num">{{ order.phone }}</dd></div>
+        <div class="spec__row"><dt>{% trans "Toʻlov" %}</dt><dd>{{ order.get_payment_method_display }}</dd></div>
+        {% if order.delivery_option %}
+          <div class="spec__row">
+            <dt>{% trans "Yetkazib berish" %}</dt>
+            <dd>{{ order.delivery_option|t:"name" }}</dd>
+          </div>
+        {% endif %}
+        <div class="spec__row cartpage__total">
+          <dt>{% trans "Jami" %}</dt>
+          <dd class="num">{{ order.total_price|price }} {% trans "soʻm" %}</dd>
         </div>
+      </dl>
 
-        <div class="panel">
-          <p class="eyebrow mb-16">Telefon</p>
-          <p>{{ order.phone }}</p><br>
-          <p class="eyebrow mb-16">Manzil</p>
-          <p>{{ order.address }}</p>
-        </div>
+      <div class="stack stack--sm">
+        <span class="label">{% trans "Manzil" %}</span>
+        <address class="small">{{ order.address|linebreaksbr }}</address>
+        {% if order.pickup_snapshot %}
+          <address class="small">{{ order.pickup_snapshot|linebreaksbr }}</address>
+        {% endif %}
       </div>
 
-      <aside class="summary">
-        <h3>Tavsilotlar</h3>
-        <div class="summary__row"><span>Sana</span><span>{{ order.created_at|date:"d M Y" }}</span></div>
-        <div class="summary__row"><span>Holat</span><span class="pill pill--{{ order.status|cut:'_' }}">{{ order.get_status_display }}</span></div>
-        <div class="summary__row summary__row--total"><span>Narxi</span><span>{{ order.total_price|price }} UZS</span></div>
+      {% if order.notes %}
+        <div class="stack stack--sm">
+          <span class="label">{% trans "Izoh" %}</span>
+          <p class="small muted">{{ order.notes|linebreaksbr }}</p>
+        </div>
+      {% endif %}
 
-        <a class="btn btn--solid btn--block btn--lg mt-24" href="{% url 'order_status' order.id %}">Holatni ko'rish</a>
-        {% if order.status == 'paying' %}
-          <a class="btn btn--ghost btn--block mt-8" href="{% url 'payment' order.id %}">To'lov qilish</a>
-        {% endif %}
-      </aside>
-    </div>
+      <a class="btn btn--secondary btn--block" href="{% url 'order_status' order.id %}">{% trans "Holatini kuzatish" %}</a>
+      {% if order.status == 'paying' %}
+        <a class="btn btn--primary btn--block" href="{% url 'payment' order.id %}">{% trans "Toʻlovni yakunlash" %}</a>
+      {% endif %}
+    </aside>
   </div>
-</section>
+</div>
 {% endblock %}

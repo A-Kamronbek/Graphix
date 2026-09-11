@@ -1,96 +1,60 @@
 {% extends "base.html" %}
-{% load price_format %}
-{% block title %}Buyurtma holati{% endblock %}
+{% load i18n price_format %}
+{% block title %}{% trans "Buyurtma holati" %}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="wrap">
-    <div class="steps">
-      <span class="is-active">Savat</span>
-      <span class="is-active">Rasmiylashtirish</span>
-      <span class="is-active">To'lov</span>
-      <span class="is-active">Holat</span>
-    </div>
-
-    <h1 class="h-display h-lg mt-8">
-      {% if order.status == 'done' %}Bajarildi.
-      {% elif order.status == 'cancelled' %}Bekor qilindi.
-      {% elif order.status == 'on_the_way' %}Yo'lda.
-      {% elif order.status == 'processing' %}Jarayonda.
-      {% elif order.status == 'paid' %}To'landi.
-      {% elif order.status == 'paying' %}To'lov kutilmoqda.
-      {% else %}Buyurtma yaratildi.
-      {% endif %}
-    </h1>
-<!--    <p class="muted mt-8 mono" style="font-size: 12px; letter-spacing: .08em;">-->
-<!--      Placed {{ order.created_at|date:"d M Y · H:i" }} · Last update {{ order.updated_at|date:"d M Y · H:i" }}-->
-<!--    </p>-->
-
-    <div class="checkout mt-32">
-      <div class="panel">
-        <h3 class="h-display h-sm mb-24">Holati</h3>
-
-        {# Status flow: paying → paid → processing → on_the_way → done (or cancelled) #}
-        {% if order.status == 'cancelled' %}
-          <div class="msg msg--err">Buyurtma bekor qilindi.</div>
-        {% else %}
-          <div class="timeline">
-            <div class="timeline__item is-done">
-              <div class="timeline__title">Buyurtma yaratildi</div>
-              <div class="timeline__time">{{ order.created_at|date:"d M Y · H:i" }}</div>
-            </div>
-            <div class="timeline__item
-                {% if order.status == 'paying' %}is-current
-                {% elif order.status == 'paid' or order.status == 'processing' or order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
-              <div class="timeline__title">To'lov kutilmoqda</div>
-              <div class="timeline__time"><br></div>
-            </div>
-            <div class="timeline__item
-                {% if order.status == 'paid' %}is-current
-                {% elif order.status == 'processing' or order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
-              <div class="timeline__title">To'landi</div><br>
-<!--              <div class="timeline__time">Confirmed by Click</div>-->
-            </div>
-            <div class="timeline__item
-                {% if order.status == 'processing' %}is-current
-                {% elif order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
-              <div class="timeline__title">Jarayonda</div><br>
-<!--              <div class="timeline__time">We're packing your order</div>-->
-            </div>
-            <div class="timeline__item
-                {% if order.status == 'on_the_way' %}is-current
-                {% elif order.status == 'done' %}is-done{% endif %}">
-              <div class="timeline__title">Yetkazilmoqda</div><br>
-<!--              <div class="timeline__time">Out for delivery</div>-->
-            </div>
-            <div class="timeline__item {% if order.status == 'done' %}is-current{% endif %}">
-              <div class="timeline__title">Bajarildi</div><br>
-<!--              <div class="timeline__time">Enjoy ★</div>-->
-            </div>
-          </div>
-        {% endif %}
-
-        <div class="row mt-32" style="gap: 8px;">
-          <a class="btn btn--ghost btn--sm" href="{% url 'account_orders' %}">Barcha buyurtmalar</a>
-          {% if order.status == 'paying' %}
-            <a class="btn btn--sm" href="{% url 'payment' order.id %}">To'lov qilish →</a>
-            <form method="post" action="{% url 'order_cancel' order.id %}" style="margin: 0;">
-              {% csrf_token %}
-              <button class="btn btn--danger btn--sm" type="submit">Buyurtmani bekor qilish</button>
-            </form>
-          {% endif %}
-        </div>
+<div class="wrap section">
+  <div class="auth auth--narrow">
+    <div class="stack stack--lg">
+      <div class="stack stack--sm">
+        <span class="eyebrow">{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}</span>
+        <h1 class="h1">{{ order.get_status_display }}</h1>
+        <p class="pdp__price num">{{ order.total_price|price }} {% trans "soʻm" %}</p>
       </div>
 
-      <aside class="summary">
-        <h3>Tavsilotlar</h3>
-        <div class="summary__row"><span>Buyurtma #</span><span>{{ order.id }}</span></div>
-        <div class="summary__row"><span>Holati</span><span class="pill pill--{{ order.status|cut:'_' }}">{{ order.get_status_display }}</span></div>
-        <div class="summary__row"><span>Narsalar soni</span><span>{{ order.cart.cart_items.count }}</span></div>
-        <div class="summary__row"><span>Manzil</span><span style="text-align:right; max-width: 60%;">{{ order.address }}</span></div>
-        <div class="summary__row summary__row--total"><span>Narxi</span><span>{{ order.total_price|price }} UZS</span></div>
-      </aside>
+      {% if order.status == 'cancelled' %}
+        <div class="msg msg--err" role="status">{% trans "Bu buyurtma bekor qilingan." %}</div>
+      {% else %}
+        {# Four steps, each either done, current, or still ahead. #}
+        <ol class="steps">
+          <li class="steps__step {% if order.status == 'paying' %}is-current{% else %}is-done{% endif %}">
+            <span class="steps__dot" aria-hidden="true"></span>
+            <span>{% trans "Toʻlov" %}</span>
+          </li>
+          <li class="steps__step {% if order.status == 'paid' %}is-current{% elif order.status == 'processing' or order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
+            <span class="steps__dot" aria-hidden="true"></span>
+            <span>{% trans "Qabul qilindi" %}</span>
+          </li>
+          <li class="steps__step {% if order.status == 'processing' %}is-current{% elif order.status == 'on_the_way' or order.status == 'done' %}is-done{% endif %}">
+            <span class="steps__dot" aria-hidden="true"></span>
+            <span>{% trans "Tayyorlanmoqda" %}</span>
+          </li>
+          <li class="steps__step {% if order.status == 'on_the_way' %}is-current{% elif order.status == 'done' %}is-done{% endif %}">
+            <span class="steps__dot" aria-hidden="true"></span>
+            <span>{% trans "Yoʻlda" %}</span>
+          </li>
+          <li class="steps__step {% if order.status == 'done' %}is-done is-current{% endif %}">
+            <span class="steps__dot" aria-hidden="true"></span>
+            <span>{% trans "Yetkazildi" %}</span>
+          </li>
+        </ol>
+      {% endif %}
+
+      <div class="row row--wrap">
+        <a class="btn btn--secondary btn--sm" href="{% url 'order_detail' order.id %}">{% trans "Tafsilotlar" %}</a>
+        <a class="btn btn--ghost btn--sm" href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a>
+      </div>
+
+      {% if order.status == 'paying' %}
+        <div class="stack">
+          <a class="btn btn--primary btn--block" href="{% url 'payment' order.id %}">{% trans "Toʻlovni yakunlash" %}</a>
+          <form method="post" action="{% url 'order_cancel' order.id %}">
+            {% csrf_token %}
+            <button class="btn btn--ghost btn--block btn--sm" type="submit">{% trans "Bekor qilish" %}</button>
+          </form>
+        </div>
+      {% endif %}
     </div>
   </div>
-</section>
+</div>
 {% endblock %}

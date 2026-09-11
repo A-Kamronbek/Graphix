@@ -1,0 +1,41 @@
+{% load static i18n i18n_fields price_format %}
+{# One product card: shop grid, related strip, and later the home rows and the #}
+{# saved page. Expects `p`, annotated with `min_price` and `in_stock` by #}
+{# product.views.annotate_cards. #}
+{# #}
+{# The photograph is the point of the card, so it gets the whole top of it and #}
+{# the text underneath stays quiet. No layout shift: the frame holds the #}
+{# catalogue's 4:5 ratio before the image loads. #}
+<article class="card">
+  <a href="{% url 'item' p.slug %}">
+    <div class="card__media">
+      {% with p.images.first as img %}
+        {% if img and img.picture and img.picture.name %}
+          <img src="{{ img.picture.url }}" alt="{{ p|t:'name' }}" loading="lazy" decoding="async"
+               onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
+        {% else %}
+          <img src="{% static 'img/no-image.jpg' %}" alt="{{ p|t:'name' }}" loading="lazy" decoding="async">
+        {% endif %}
+      {% endwith %}
+
+      {% if p.in_stock is False %}
+        <span class="badge card__badge">{% trans "Tugadi" %}</span>
+      {% endif %}
+
+      {# Display only. The toggle is Phase 6b (§17 #62). #}
+      {% if p.likes_count %}
+        <span class="like like--float" aria-hidden="true">
+          <svg class="i i--sm i--solid"><use href="#i-heart"></use></svg>
+          <span class="like__count">{{ p.likes_count }}</span>
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="stack stack--sm card__meta">
+      <span class="card__name">{{ p|t:"name" }}</span>
+      <span class="card__price num">
+        {% if p.min_price is not None %}{{ p.min_price|price }} {% trans "soʻm" %}{% endif %}
+      </span>
+    </div>
+  </a>
+</article>
