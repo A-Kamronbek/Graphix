@@ -4,8 +4,9 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.19 · created 2026-09-08 · last amended 2026-09-12
+**Plan version:** 2.0 · created 2026-09-08 · last amended 2026-09-12
 **Status:** Phases 0, 1a, 2, 3, 4 and 5 complete · Phase 1b parked (no VPS yet) · **Phase 6 (product and checkout features) next**
+**This is the merged plan (§17 #89).** Two versions of this file existed on 2026-09-12: a planning line at v1.5 and an implementation line at v1.19. v2.0 is one document again, and the delivery redesign and Google Maps from the planning line are carried into it.
 
 ---
 
@@ -32,6 +33,24 @@ other chat's, as though one person built the whole thing:
 4. **No chat changes a locked decision** (§3) or a convention (§4) on its own. If one needs to
    change, it stops and raises it with Kamronbek, and the change is recorded in §17 before any code
    depends on it.
+
+### The plan forked once. Here is how not to do it again
+
+On 2026-09-12 two chats amended this file from different starting points: a planning chat took v1.3
+and produced its own v1.4 and v1.5, while the task chats had already carried the same file to v1.18.
+Both were legitimate work and both wrote `docs/PLAN.md`, so whichever saved last erased the other —
+and because both numbered their new decisions from #23, the same number meant two different things.
+
+**The rules that prevent it:**
+
+1. **Read the file immediately before amending it, and bump the version you actually read.** A chat
+   that has been open for hours is holding a stale copy.
+2. **A version number is never reused.** If the file says 1.18, the next amendment is 1.19 — not 1.4,
+   whatever the chat last saw.
+3. **Decision numbers are append-only across the whole project**, like phase numbers (§0 below). Never
+   restart them, and never renumber an existing one.
+4. **Check the version string before and after writing** (§17 #82). A write that did not land, or that
+   landed on the wrong base, is silent otherwise.
 
 ### Three rules that keep the work consistent
 
@@ -157,8 +176,8 @@ Settled during planning. Changing any of these requires a §17 decision-log entr
 | Decision | Choice | Why |
 |---|---|---|
 | Frontend approach | **Django templates + hand-written CSS/JS. No build step.** | Ships the same way it does today. Nothing new to install on the VPS, nothing to break in the gunicorn/nginx pipeline. |
-| Map provider | **Yandex Maps — paid commercial licence** | Best Uzbek street data and the best Uzbek/Russian reverse-geocoding by a clear margin. The free tier is *not* licensed for commercial sites, so this is a budgeted cost (§19 Q1). |
-| Map abstraction | **All map code sits behind one thin internal wrapper** | The licence cost is not yet known. If it turns out unacceptable, swapping to Leaflet, Google or 2GIS must be a one-file change, not a rewrite. |
+| Map provider | **Google Maps Platform** | Owner's decision, 2026-09-12 (§17 #83). It replaces the paid Yandex licence: Google bills per use with a monthly free allowance rather than requiring a commercial-site contract, and the map is now needed on one form only, so the volume is small. Yandex's edge on Uzbek street naming is real but does not pay for a licence negotiation (§19 Q1). |
+| Map abstraction | **All map code sits behind one thin internal wrapper** | Written before the provider was settled, and it is exactly why changing it cost nothing: the provider moved from Yandex to Google with no code to rewrite, because none had been written outside the plan. Keep the wrapper — 2GIS and Leaflet stay one file away. |
 | Saved items | **One "like" — public count and private saved list in a single action** | One heart, one model. Matches how every fashion store and social app works, and how the customer describes it. Feeds the popularity sort and the recommender. |
 | Guest browsing | **Anonymous cart; login required at checkout** | Guests browse and fill a cart freely; the login wall moves from "add to cart" to "checkout". Captures most of the conversion benefit without reworking the most sensitive code in the project. |
 | Rebuild strategy | **Evolve in place, one branch per phase** | Same repo, same database. The site stays live and improving throughout. |
@@ -166,15 +185,15 @@ Settled during planning. Changing any of these requires a §17 decision-log entr
 | Language strategy | **Uzbek default (no URL prefix), `/ru/` and `/en/` prefixed** | Best for SEO and for the majority audience. |
 | Internal package name | **`vm/` stays** for now | Renaming touches wsgi, systemd, nginx and the venv. Deferred to an optional Phase 11 task. |
 | Brand mark | **The existing six-point asterisk carries over** | Already vector, already distinctive. It needs a clean geometric redraw, not a redesign. |
-| Delivery | **Two tiers, no free threshold: 15 000 UZS to an Uzpost office · 30 000 UZS to the door. All shipping via Uzpost, Tashkent and regions alike.** | Simple, predictable, and each tier reflects real cost. |
-| Pickup points | **We own the branch dataset in our own `PickupPoint` table** | No public Uzpost branch API exists (§ research below). Owning it is the only way checkout can be reliable. |
+| Delivery | **Two methods, no free threshold: 15 000 UZS to an Uzpost branch · 40 000 UZS to the home. All shipping via Uzpost, Tashkent and regions alike.** | Simple, predictable, and each tier reflects real cost. The home tier rose from 30 000 on the owner's pricing call (§17 #85) — **the code still says 30 000 and Phase 6e changes it** (§18 #18). |
+| Branch delivery | **No branch table. The customer picks a region and a district, then types the 6-digit postal index of their branch.** | Owner's decision, 2026-09-12 (§17 #84), and it removes the hardest dependency in the project: there is no public Uzpost branch list, so a `PickupPoint` table meant owning and verifying a dataset we could not obtain. Every Uzbek knows their own postal index; two small reference tables (14 regions, ~210 districts and cities) are verifiable by hand in an afternoon. **Phase 4 shipped the `PickupPoint` table before this decision existed; Phase 6d retires it.** |
 | Colour | **Removed from the product-page UI; kept in the data model** | Every design ships in one colourway, so the picker is noise. Deleting the model would be a destructive migration with no benefit. |
 | Reviews | **Verified purchase only, with moderation** | Only a customer with a delivered order containing that product can review it. Photos are queued for approval before they appear publicly. |
 | Recommendations | **Tag-overlap, not machine learning. Data collected from day one, algorithm built after launch.** | A recommender needs like data and product tags to be worth anything. Tags land in Phase 4; the algorithm is Phase 13. |
 | Telegram notifications | **Committed deliverable, not optional** | A push to the owner's phone within seconds of an order is worth more than any dashboard. |
 | Legal documents | **Written in-project** | Drafted to a real standard against Uzbek law. Independent review recommended, not blocking. |
 
-### Research finding: Uzpost branch data
+### Research finding: Uzpost branch data — *why the branch table was dropped*
 
 Investigated before committing to pickup-point delivery.
 
@@ -194,9 +213,20 @@ Investigated before committing to pickup-point delivery.
   and their terms generally restrict storing results. Useful for cross-checking, not as a live
   dependency in the checkout path.
 
-**Conclusion:** seed a `PickupPoint` table once from OSM plus (ideally) an official list requested
-directly from Uzpost, verify by hand, and maintain it in the admin panel. Branch locations are
-slow-moving data; a live third-party lookup inside checkout would add a failure mode for no benefit.
+**Original conclusion (2026-09-08):** seed a `PickupPoint` table once from OSM plus an official
+list requested from Uzpost, verify by hand, maintain it in the admin panel.
+
+**Revised conclusion (2026-09-12, §17 #84):** drop the table. The research above is what forced the
+change rather than contradicting it — *there is no list to seed from*. Phase 4 built the loader, its
+validation and its tests, and shipped `data/pickup_points.csv` with a header and no rows, because
+inventing branches would misroute real parcels (§17 #58). That file would have stayed empty
+indefinitely, and it was the blocker on the whole of Phase 6.
+
+The postal index removes the dependency: the customer supplies the one piece of data we cannot obtain,
+and they already know it. What we own instead is a two-level reference table — 14 regions and ~210
+districts and cities — built from the official **SOATO / MHOBT** classifier, which *is* published.
+The index's first two digits encode the region, so a typo that would send a parcel to another province
+is caught at checkout against a prefix we know (§17 #86).
 
 ---
 
@@ -207,7 +237,7 @@ slow-moving data; a live third-party lookup inside checkout would add a failure 
 The rebuild adds **zero** new Python packages. Verified: Redis caching is built into Django 6;
 Pillow handles thumbnails; `django.utils.text.slugify` handles slugs; Django's own `gettext` handles
 i18n; `requests` (already installed) handles Telegram and any Uzpost seeding; Django's built-in
-runner handles tests; Yandex Maps is browser-side JavaScript.
+runner handles tests; Google Maps is browser-side JavaScript.
 
 To **remove** in Phase 0: `djangorestframework_simplejwt`, `django-cors-headers`.
 
@@ -232,7 +262,7 @@ never the cloud container's bash, which cannot see the D: drive.
 - **No hardcoded user-facing strings** after Phase 3. Everything goes through `{% trans %}`.
 - **Every model change ships with its migration in the same commit.**
 - **URL *names* never change.** Paths may change (with a 301); `{% url 'shop' %}` must keep working.
-- **External calls never break a request.** Every outbound integration (Eskiz, Telegram, Yandex,
+- **External calls never break a request.** Every outbound integration (Eskiz, Telegram, Google,
   Click) follows the pattern in `core/sms.py`: module logger, catch everything, log, return falsy.
   An outage degrades the feature — it never 500s the page.
 - **Commits**: `<phase>: <imperative summary>` — e.g. `P5: rebuild item page on the new design system`.
@@ -428,49 +458,68 @@ class DeliveryOption(Model):            # NEW
     note_uz/ru/en    TextField(blank)
     price            DecimalField(15,0)
     free_from_items  PositiveSmallIntegerField(0) # 0 = never free (current policy)
-    requires_pickup_point  BooleanField(False)
+    requires_branch  BooleanField(False)          # region + district + index, not an address
+                                                  # shipped as `requires_pickup_point`; Phase 6d
+                                                  # renames it in the migration that drops the table
     is_active        BooleanField(True)
     sort_order       PositiveSmallIntegerField(0)
 
-class PickupPoint(Model):               # NEW — our own Uzpost branch dataset
-    code             CharField(20, unique)        # postal index, e.g. "100007"
-    name_uz/ru/en    CharField(160)
-    region           CharField(80, db_index)      # Toshkent shahri, Samarqand viloyati…
-    district         CharField(80, db_index)
-    address_uz/ru/en CharField(255)
-    latitude         DecimalField(9,6)
-    longitude        DecimalField(9,6)
-    working_hours    CharField(120, blank)
-    phone            CharField(30, blank)
+# Two small reference tables, from the official SOATO / MHOBT classifier.
+# They replace PickupPoint (§17 #84). Shipped in Phase 6d, not Phase 4.
+class Region(Model):                    # NEW — 12 viloyat + Qoraqalpogʻiston + Toshkent shahri
+    code             CharField(4, unique)         # SOATO code
+    name_uz/ru/en    CharField(80)
+    postal_prefix    CharField(2, db_index)       # first two digits of every index in it
     is_active        BooleanField(True, db_index)
     sort_order       PositiveSmallIntegerField(0)
-    Meta: ordering = ['region', 'district', 'name_uz']
+    Meta: ordering = ['sort_order', 'name_uz']
+
+class District(Model):                  # NEW — tumanlar AND regionally-subordinate shaharlar
+    region           FK(Region, PROTECT, related_name='districts')
+    code             CharField(8, unique)         # SOATO code
+    name_uz/ru/en    CharField(80)
+    kind             CharField(10, choices=['tuman', 'shahar'])
+    is_active        BooleanField(True, db_index)
+    Meta: ordering = ['region', 'name_uz'], unique_together = ('region', 'name_uz')
 
 Order        + order_no        CharField(20, unique, db_index)   # "GX-260908-0042"
-             + latitude, longitude   DecimalField(9,6, null, blank)   # door delivery only
+             + latitude, longitude   DecimalField(9,6, null, blank)   # home delivery, map only
+             + address_source  CharField(10, blank, choices=['map','manual'])  # home delivery
              + delivery_option FK(DeliveryOption, null, blank, PROTECT)
              + delivery_price  DecimalField(15,0, default=0)     # SNAPSHOT at checkout
-             + pickup_point    FK(PickupPoint, null, blank, PROTECT)
-             + pickup_snapshot TextField(blank)   # frozen name+address of the branch at order time
+             + region          FK(Region, null, blank, PROTECT)      # branch method
+             + district        FK(District, null, blank, PROTECT)    # branch method
+             + postal_index    CharField(6, blank, db_index)         # branch method
+             + location_snapshot TextField(blank)   # frozen text of whichever branch was chosen
 ```
 
 **Seeded delivery options:**
 
-| code | Uzbek name | Price | Pickup point | Note shown |
+| code | Uzbek name | Price | What the customer gives | Note shown |
 |---|---|---|---|---|
-| `uzpost_office` | Uzbekiston pochtasi bo'limiga | 15 000 | **required** | Collect from your chosen branch |
-| `uzpost_door` | Eshikkacha yetkazib berish | 30 000 | — | Courier to your address |
+| `uzpost_office` | Pochta boʻlimiga | 15 000 | region · district · 6-digit index | Collect from your Uzpost branch |
+| `uzpost_door` | Eshikkacha yetkazib berish | **40 000** | address — dropped pin or typed | Uzpost courier to your address |
+
+The code is `uzpost_door`, not `uzpost_home`: that is what Phase 4 seeded and what any existing order's
+`PROTECT` foreign key points at. Renaming it would buy nothing. **The seeded price is still 30 000 —
+Phase 6e changes it, along with the copy on the product and delivery pages** (§18 #18).
 
 Both tiers ship via Uzpost, in Tashkent and every region alike. There is currently **no free-delivery
 threshold** — `free_from_items` stays 0. The field exists so a promotion can be switched on later
 without a deploy.
 
 **Two snapshots, for the same reason `CartItem.price_stat` exists:** `delivery_price` freezes the fee
-at checkout, and `pickup_snapshot` freezes the branch's name and address as text. If a branch is
-renamed, moved or deactivated a year later, the order still says where it was sent.
+at checkout, and `location_snapshot` freezes as text whatever the customer chose — region, district and
+index, or the address. A district renamed or deactivated a year later cannot rewrite where a parcel
+was sent.
 
-Validation: an order with a `requires_pickup_point` option **must** have a `pickup_point`; an order
-with a door option must not. Enforced in the checkout view and in `Order.clean()`.
+**Validation, and it is the point of this design** (§17 #86). A branch order **must** carry a region, a
+district and an index; a home order must carry none of them. The index must be exactly six digits, and
+its **first two digits must match the chosen region's `postal_prefix`** — the one check that catches the
+typo that would otherwise send a parcel to another province. One region row is **`Boshqa`** (Other),
+for an address the classifier does not cover: the prefix check is skipped for it, **the six-digit
+format check is not**. Enforced in the checkout view **and** in `Order.clean()`, so neither path can
+be skipped.
 
 `order_no` is what the customer and courier see. The integer PK is never shown again — it leaks how
 many orders the shop has taken. `total_price` keeps its exact current meaning (whole so'm, the value
@@ -503,7 +552,7 @@ static/js/    main.js · gallery.js · variant.js · map.js · panel.js
 ```
 
 `map.js` talks only to a thin internal wrapper (`GX.map`) exposing `init`, `addMarkers`,
-`onMarkerSelect`, `setPin`, `getPin`, `reverseGeocode`. No page ever calls a Yandex global directly —
+`onMarkerSelect`, `setPin`, `getPin`, `reverseGeocode`. No page ever calls a Google global directly —
 that is what makes a provider swap a one-file change.
 
 ### Token set (values decided in Phase 2, shape decided now)
@@ -551,7 +600,7 @@ rating** (display + input) · **Review card** (rating, text, photos, verified ba
 with count · **Share button** · Badge / pill (order status, "Yangi", "Ommabop", "Tugadi") · Modal /
 sheet (mobile sheet, desktop dialog) · Toast · Breadcrumb · Pagination · Empty state · Skeleton
 loader · Responsive table (stacks on mobile) · Filter panel (sidebar desktop, bottom sheet mobile) ·
-**Pickup-point picker** (region/district selects + scrollable branch list + map) · Tabs · Accordion ·
+**Region and district drawers** (scoped list, search appearing only where the list is long) + postal-index field · Tabs · Accordion ·
 Language switcher · Nav (desktop bar + mobile drawer) · Footer.
 
 ### Visual direction — how it gets chosen
@@ -935,6 +984,12 @@ The CSV is assembled from an official Uzpost list if one can be obtained (§19 Q
 against OpenStreetMap, and **verified by hand**. Launch scope is a decision (§19 Q4) — Tashkent plus
 regional capitals is a sane starting set; nationwide can follow.
 
+> **Superseded on 2026-09-12 (§17 #84).** Everything below shipped and works, and none of it is
+> used any more: there is no branch table in the target model. Phase 6d replaces it with `Region`,
+> `District` and a typed postal index, and retires `PickupPoint`, `seed_pickup_points` and
+> `data/pickup_points.csv`. Kept here unedited because Phase 4 is closed and its record should say
+> what it actually did — and because the reasoning below is *why* the redesign happened.
+
 **Built in Phase 4, and the file is empty on purpose.** The command validates the whole file before
 writing anything, checks every coordinate against Uzbekistan's bounding box (which catches swapped
 lat/lng — the one typo that yields a perfect-looking row pointing at another country), and ships with
@@ -968,7 +1023,8 @@ languages) before the next begins.
    - **Spec strip** — GSM / material · print method · fit
    - **Heart** (saves + counts) and **share** buttons
    - Description, **reviews section**, related products
-   - Delivery line: "15 000 so'm pochta bo'limiga · 30 000 so'm eshikkacha"
+   - Delivery line: "15 000 so'm pochta boʻlimiga · 30 000 so'm eshikkacha" — **what shipped.**
+     Phase 6e changes the second figure to 40 000 (§17 #85)
    - Sticky add-to-cart bar on mobile
 3. **Shop (`/shop/`)** — responsive grid; filters as a sticky sidebar on desktop and a sheet that
    comes down from the top on mobile (§17 #76, #77); **tag filters**; pagination; a real empty state.
@@ -1054,36 +1110,77 @@ chart content to put in them.
 name (all languages), description and tag names. Debounced suggestions are a nice-to-have, not a
 requirement; the results page is.
 
-**6d — Map, pickup points and location.** *(Highest complexity in this phase.)*
+**6d — Delivery method selection, the map, and retiring the branch table.**
+*(Highest complexity in this phase.)*
 
-- All map code behind the `GX.map` wrapper (§8). No page calls a Yandex global directly.
-- Yandex Maps JS API under the commercial licence, loaded **only** where a map is shown, `async`,
-  after the form is interactive — never blocking first paint.
-- **Pickup-point picker — list-first, map-second.** Region select → district select → a scrollable
-  list of branches, each showing name, address and working hours. Selecting a list item highlights its
-  pin; clicking a pin selects the list item. A "nearest to me" button sorts by distance behind an
-  explicit geolocation permission prompt.
+The checkout's delivery step is **one choice that reveals one of two different forms**. Nothing from
+the branch the customer did not pick is submitted, validated or stored.
 
-  *Why list-first: on a 390 px screen a pure-map picker with thirty overlapping pins is genuinely
-  hard to use, and it fails completely when the map does. The list is the control; the map is
-  confirmation. This is the pattern every large CIS marketplace settled on.*
-- **Door delivery:** draggable pin defaulting to Tashkent centre, "use my location" button, and
-  reverse-geocoding into the address textarea in the active language. The customer can freely edit
-  the result.
-- **The map is assistive, never required.** The address textarea stays required and authoritative for
-  door delivery; the pickup list works as a plain `<select>` with no map at all. A customer who denies
-  location permission, blocks the script, or has JavaScript off can still complete checkout. **Hard
-  requirement, not a nicety.**
-- Store `latitude`/`longitude` (door) or `pickup_point` + `pickup_snapshot` (office) on the order.
+```
+                        DELIVERY
+                            |
+              +-------------+-------------+
+            HOME                        UZPOST
+          40 000                        15 000
+              |                            |
+      +-------+-------+             region (drawer)
+    MAP           MANUAL            district (drawer)
+   lat/lng        address           postal index (6 digits)
+      +-------+-------+                    |
+              +------------+---------------+
+                         ORDER
+```
+
+**Uzpost branch — 15 000 so'm. No map at all.** Three fields: a region drawer, a district drawer
+scoped to that region, and the 6-digit postal index typed in. The drawers are drawers rather than
+`<select>`s because 210 districts in a native picker on a 390 px screen is miserable; each shows a
+search field **only where its list is long enough to need one** (§17 #87). Both work as plain selects
+with JavaScript off. Validation is §7's, enforced twice.
+
+**Home delivery — 40 000 so'm.** Two ways to give an address, presented as a toggle, and
+`address_source` records which was used:
+
+- **Map** — a draggable pin defaulting to Tashkent centre, plus a "use my location" button behind an
+  explicit permission prompt. Dropping the pin stores `latitude`/`longitude` and reverse-geocodes into
+  the address field, which the customer can then edit freely.
+- **Manual** — the customer types the address. No coordinates stored.
+
+**The map is needed on this one form only**, which is what made Google affordable (§17 #83): all map
+code behind the `GX.map` wrapper (§8), Google Maps JS loaded `async` on the home-delivery branch
+alone, after the form is interactive, never blocking first paint.
+
+**Retiring the branch table** — part of this sub-phase, in one migration: add `Region` and `District`,
+add `Order.region` / `district` / `postal_index` / `address_source`, rename `pickup_snapshot` to
+`location_snapshot` and `DeliveryOption.requires_pickup_point` to `requires_branch`, then drop
+`Order.pickup_point` and `PickupPoint`. Also delete `seed_pickup_points`, `data/pickup_points.csv` and
+their tests, and replace them with `seed_regions` + `data/regions.csv`; update `create_order_from_cart`'s
+keyword arguments, `payment/admin.py`, `order_detail.html` and the style guide's picker demo. **No
+order in the database points at a `PickupPoint`** (checkout has never set one), so the drop is safe —
+verify that before running it, not after.
+- **The map is assistive, never required.** The address field stays required and authoritative for home
+  delivery; the branch method has no map to fail. A customer who denies location permission, blocks the
+  script, or has JavaScript off can still complete checkout. **Hard requirement, not a nicety** — and
+  cheaper to honour now that only one of the two methods involves a map at all.
+- Store `latitude`/`longitude` + `address_source` (home) or `region` + `district` + `postal_index`
+  (branch) on the order, and `location_snapshot` either way.
+- **`seed_regions`** mirrors `seed_pickup_points`' discipline: validate the whole CSV before writing
+  anything, upsert on SOATO code, deactivate rather than delete so an order's `PROTECT` key survives,
+  idempotent across runs. `data/regions.csv` is committed — 14 regions and ~210 districts and cities,
+  small enough to verify by hand in an afternoon, and worth it, because a wrong district name at
+  checkout is a wrong parcel (§19 Q23).
 - The admin order view and the Telegram notification both show a maps deep link for the courier.
 - Graceful failure: if the script fails to load, the map area hides itself and everything still works.
   Never a broken grey box.
 
 **6e — Delivery tiers and cash on delivery.**
 
-- `DeliveryOption` selector at checkout: **15 000 so'm to an Uzpost branch** or **30 000 so'm to the
-  door**. Choosing the branch option reveals the pickup-point picker; choosing door reveals the map
-  and address.
+- `DeliveryOption` selector at checkout: **15 000 so'm to an Uzpost branch** or **40 000 so'm to the
+  home**. Choosing the branch option reveals the region and district drawers and the index field;
+  choosing home reveals the address toggle and the map.
+- **Change the seeded home price from 30 000 to 40 000** (§17 #85) — the migration row, the product
+  page's delivery line, `delivery.html`, the style guide and the three `.po` entries that carry the
+  delivery paragraph, plus the assertion in `core/test_phase4.py`. Today the plan and the code
+  disagree, and the code is what a customer sees (§18 #18).
 - Both tiers ship via Uzpost, Tashkent and regions alike — stated at checkout, on the confirmation, on
   `/yetkazib-berish/` and in the terms. The customer should never be surprised about who delivers.
 - `delivery_price` snapshotted onto the order; the total computed inside the existing locked
@@ -1126,8 +1223,9 @@ Telegram HTML parse mode; all user-supplied text HTML-escaped.
 **Definition of Done:** the size guide shows the chart image (and table where rows exist) on every
 product · liking persists, counts correctly, and both new sorts work · share works on mobile and
 desktop · global search returns sensible results in all three languages · a checkout completes with a
-pickup branch selected, with a door pin, **and with JavaScript disabled** · delivery price and pickup
-snapshot are frozen on the order · a cash order reaches `processing` without touching Click · a Click
+branch selected by region, district and index, with a home-delivery pin, **and with JavaScript
+disabled** · an index that contradicts its region is rejected · delivery price and location snapshot
+are frozen on the order · a cash order reaches `processing` without touching Click · a Click
 order still completes end to end · a Telegram message arrives within seconds of an order, a message
 and a review · unsetting the Telegram credentials breaks nothing · a guest cart survives login and
 merges correctly · an unverified user with an order is never deleted.
@@ -1158,7 +1256,7 @@ storefront's product page.
      owner should never wait 30 s for an upload that will be rejected.
 4. **Reviews** — moderation queue: approve or reject, with the photos shown at a reviewable size.
    Approving recomputes the product's `rating_avg` and `review_count`.
-5. **Pickup points** — search, edit, activate/deactivate, and correct coordinates on a map.
+5. **Regions and districts** — search, edit, activate/deactivate, correct a postal prefix. Small reference data, edited rarely; the screen exists so a district rename never needs a deploy.
 6. **Size charts** — upload chart images, attach to categories or products, optional measurement rows.
 7. **Delivery options** — edit prices, notes and the (currently unused) free threshold without code.
 8. **Tags** — create and rename, in all three languages.
@@ -1180,7 +1278,7 @@ in-project, to a real standard, against Uzbek law — not filled from a generic 
 1. **Privacy policy** (`/privacy/`) — the data controller and how to contact them; what is collected
    (name, username, phone, delivery address, map coordinates, chosen pickup branch, order history,
    reviews and review photos, contact messages, IP for rate limiting, session and cart data); why and
-   on what legal basis; who it is shared with (**Eskiz** for SMS, **Click** for payment, **Yandex**
+   on what legal basis; who it is shared with (**Eskiz** for SMS, **Click** for payment, **Google**
    for maps and geocoding, **Uzpost** for delivery, **Telegram** for internal order notifications);
    retention; the customer's rights and how to exercise them; cookies and browser storage, including
    the anonymous cart and the `sessionStorage` signup draft; children's data; how changes are
@@ -1188,8 +1286,10 @@ in-project, to a real standard, against Uzbek law — not filled from a generic 
    (*"Shaxsga doir ma'lumotlar to'g'risida"gi qonun*).
 2. **Terms of use** (`/terms/`) — parties and definitions; registration and phone verification;
    ordering and when a contract forms; prices, currency and VAT; payment via Click and cash on
-   delivery; **delivery terms — 15 000 so'm to an Uzpost branch, 30 000 so'm to the door, all via
-   Uzpost nationwide, expected timeframes, uncollected-parcel policy**; returns, exchanges and
+   delivery; **delivery terms — 15 000 so'm to an Uzpost branch, 40 000 so'm to the home, all via
+   Uzpost nationwide, expected timeframes, and the uncollected-parcel policy — Uzpost holds an
+   uncollected parcel for one month, which the terms must state because it decides who bears the
+   loss**; returns, exchanges and
    cancellation, including the sizing disclaimer (measurements approximate, ±1 cm); **review rules and
    the moderation policy**; intellectual property in the printed designs; acceptable use; limitation of
    liability; governing law and disputes; amendment procedure.
@@ -1227,7 +1327,7 @@ consent · dated and versioned · delivery and review terms match the implemente
 6. `ManifestStaticFilesStorage` for cache-busted filenames.
 7. Audit every list view for N+1 queries (the current shop and item views already do this well).
 8. Indexes on everything filtered or ordered: `slug`, `likes_count`, `rating_avg`, `created_at`,
-   `order_no`, `Variant(product, available)`, `PickupPoint(region, district)`.
+   `order_no`, `Variant(product, available)`, `District(region)`, `Order(postal_index)`.
 
 **SEO**
 
@@ -1263,10 +1363,10 @@ Test) · the whole checkout flow completable with the keyboard alone.
 |---|---|
 | `user` | Phone normalisation across formats · signup creates an unverified user and sends an OTP · correct OTP verifies · wrong OTP counts an attempt · 7 wrong attempts delete the account · expiry deletes the account · `expire_verification` refuses a premature POST · resend respects the cooldown · full password-reset happy path · reset cannot skip the OTP step · **a user with an order is never deleted by `_cancel_and_delete`** |
 | `cart` | Add creates a line with a snapshotted price · adding again bumps quantity, caps at 99 · price change does not alter an existing line · quantity 0 removes the line · another user's cart item is inaccessible · stock cap respected · **anonymous cart is created and persists** · **guest cart merges on login, quantities summed and capped** · **guest cart is claimed when the user has no open cart** |
-| `payment` | Checkout creates an order and closes the cart · concurrent checkout does not duplicate · empty cart rejected · **office tier charges 15 000 and requires a pickup point** · **door tier charges 30 000 and rejects a pickup point** · **delivery price is snapshotted and unaffected by a later price change** · **pickup snapshot survives the branch being deactivated** · webhook marks paid · webhook idempotent · cancellation restores stock · cash order skips Click |
+| `payment` | Checkout creates an order and closes the cart · concurrent checkout does not duplicate · empty cart rejected · **branch method charges 15 000 and requires region, district and index** · **home method charges 40 000 and rejects an index** · **a 5-digit or non-numeric index is rejected** · **an index whose prefix contradicts the chosen region is rejected** · **the prefix check is skipped for the `Boshqa` region but the format check still applies** · **delivery price is snapshotted and unaffected by a later price change** · **location snapshot survives the district being deactivated** · **a map order stores coordinates, a manual order does not, and `address_source` records which** · webhook marks paid · webhook idempotent · cancellation restores stock · cash order skips Click |
 | `product` | Shop filters by category, size and tag · sorts by price, popularity and rating · search matches name, description and tags in all languages · only available variants listed · slug resolves · old PK URL 301s · size-chart resolution falls back product → category → none |
 | `reviews` | Only a delivered purchaser can review · one review per user per product · a new review is `pending` and invisible · approval publishes it and updates `rating_avg` and `review_count` · rejection does not · photo upload validates type and size |
-| `core` | Rate limiter allows up to the limit and blocks past it · fails open on cache error · contact requires login to POST · **Telegram send failure does not break the request** · **missing Telegram credentials handled cleanly** · **`seed_pickup_points` is idempotent and deactivates rather than deletes** |
+| `core` | Rate limiter allows up to the limit and blocks past it · fails open on cache error · contact requires login to POST · **Telegram send failure does not break the request** · **missing Telegram credentials handled cleanly** · **`seed_regions` is idempotent and deactivates rather than deletes** |
 | `i18n` | All three languages resolve · the webhook path is unprefixed · `tfield` falls back to Uzbek |
 | Smoke | Every URL in §6 returns 200 (or the right redirect) for anonymous, logged-in and staff users |
 
@@ -1418,12 +1518,12 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 | 2 | `i18n_patterns` prefixes the webhook path | **Critical** — every Click callback 404s | Explicitly excluded in §6; a dedicated test asserts the unprefixed path resolves |
 | 3 | A migration corrupts production data | **Critical** | Verified backup before every deploy; migrations rehearsed on a restored copy |
 | 4 | `_cancel_and_delete` deletes a user who now has an order or claimed cart | **Critical** — data loss | Guard plus a dedicated test in Phase 6g; called out in the Phase 6 Definition of Done |
-| 5 | Yandex commercial licence costs more than the business can carry | High — a locked decision becomes unaffordable | All map code behind the `GX.map` wrapper, so switching provider is a one-file change; get pricing before Phase 6 (§19 Q1) |
-| 6 | 30 000 so'm door delivery is below actual cost in far regions | High — every distant order loses money | Verify against Uzpost's published courier tariffs before launch (§19 Q5) |
+| 5 | Google Maps billing grows with traffic, or the free allowance changes | Medium — a cost that scales with success | The map is on one form only (§17 #83), so volume tracks orders, not page views. All map code stays behind `GX.map`, so 2GIS, Leaflet or Yandex remain a one-file swap. Put a billing alert on the Google project before launch (§19 Q1) |
+| 6 | 40 000 so'm home delivery is below actual cost in far regions | High — every distant order loses money | Verify against Uzpost's published courier tariffs before launch (§19 Q5) |
 | 7 | Machine-translated Russian/English makes the site read as cheap | High — undermines the whole rebuild | Human-quality copy per Phase 3; never bulk-translate `.po` files |
 | 8 | Product photography inconsistent | High — no CSS can rescue it | Photography standard in §8; a Phase 11 blocker |
 | 9 | Owner- and customer-uploaded phone photos are enormous | High — a 3.8 MB image already exists | Image pipeline in Phase 9 plus client-side validation at both upload points |
-| 10 | Pickup-point data is incomplete, stale or wrong | High — parcels sent to a branch that has moved | We own the table; `pickup_snapshot` freezes what the customer chose; deactivate rather than delete; periodic re-verification |
+| 10 | A customer mistypes their postal index, or picks the wrong district | High — parcel sent to the wrong place | The index prefix is checked against the chosen region (§17 #86), which catches the province-level error; `location_snapshot` freezes what they chose, so the order record never drifts. A within-province typo is not detectable and is why the index is shown back on the confirmation page for the customer to check |
 | 11 | Review photos are abused (offensive or irrelevant content on a public page) | High — brand damage | Moderation queue; nothing is public until approved; Telegram alert on every pending review |
 | 12 | Selling designs that reproduce other brands' trademarks | High — legal exposure and payment-processor risk | If the mockup artwork was placeholder, no issue. If any are intended products, they should be reviewed before listing (§19 Q8) |
 | 13 | Scope creep across a long project | High — nothing ships | §10 procedure; one phase at a time; §11 out-of-scope list |
@@ -1489,9 +1589,9 @@ Phase 13 (recommendations) runs after launch, once there is like data worth read
 | 1 Rebrand | ▎ Small–Medium | External lead times |
 | 2 Design system | ▊ **Large** | Three directions + full component library |
 | 3 i18n foundation | ▌ Medium–Large | Infrastructure is quick; three languages of real copy is not |
-| 4 Data model | ▋ Medium–Large | Grew substantially: tags, reviews, pickup points, cart changes |
+| 4 Data model | ▌ Medium | Tags, reviews, cart changes. Shipped a `PickupPoint` table that §17 #84 then retired — the replacement reference tables land in Phase 6d |
 | 5 Frontend rebuild | █ **Largest** | Eleven page groups × six breakpoints × three languages |
-| 6 Features | █ **Largest** | Size guide, likes, share, search, map + pickup picker, delivery, Telegram, anonymous cart |
+| 6 Features | █ **Largest** | Size guide, likes, share, search, the delivery redesign (region/district/index + retiring `PickupPoint`), the Google map, Telegram, anonymous cart. Splitting it is worth considering |
 | 12 Reviews | ▌ Medium | Submission, moderation, display, photo handling, SEO |
 | 7 Admin panel | ▊ Large | A second interface; product creation and moderation are both substantial |
 | 8 Legal & content | ▌ Medium | Three documents × three languages |
@@ -1514,9 +1614,9 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 | 1b Deployment | ⛔ Blocked | `phase-1b-deploy` | — | — | **Waiting on the VPS purchase.** Runs after Phase 10, before launch (§13) |
 | 2 Design system | ✅ Done | `phase-2-design` | 2026-09-09 | 2026-09-09 | Round one rejected, round two signed off. Tokens, fonts, base, components, style guide, icons, lockups all shipped. Item 10's measurement carried to Phase 5 |
 | 3 i18n foundation | ✅ Done | `phase-3-i18n` | 2026-09-09 | 2026-09-09 | Machinery + 25 Python strings in 3 languages. Template copy moves to Phase 5, per page (§17 #50) |
-| 4 Data model | ✅ Done | `phase-4-models`, `phase-4-verify` | 2026-09-10 | 2026-09-10 | DoD met, 68 tests. Verification pass fixed two silent defects (§17 #59, #60). Item 11 (size charts) carried to Phase 6 — blocked on §19 Q9. `data/pickup_points.csv` ships header-only pending Q3/Q4 |
+| 4 Data model | ✅ Done | `phase-4-models`, `phase-4-verify` | 2026-09-10 | 2026-09-10 | DoD met, 68 tests. Verification pass fixed two silent defects (§17 #59, #60). Item 11 (size charts) carried to Phase 6 — blocked on §19 Q9. `data/pickup_points.csv` shipped header-only, and §17 #84 then retired the whole branch table — Phase 6d replaces it with `Region`/`District` |
 | 5 Frontend rebuild | ✅ Done | `phase-5-frontend`, `phase-5-polish` | 2026-09-10 | 2026-09-12 | All 11 items. `main.css` and the legacy shim deleted. 25 templates on the design system, 221 strings in 3 languages. Defects found by verification rather than review at every step: four in the first pass (§17 #63, #64), seventeen in the browser re-check (§17 #67–#73), five when Kamronbek ran it himself — including two page layouts flattened to one column (§17 #74–#77). **Gate review 2026-09-12 (§17 #79–#82):** DoD met after fixing twenty user-facing Python strings that bypassed gettext, deleting two superseded CSS sections, and restoring this file from a stale write that had silently reverted it to v1.5. Four checklist items moved to the phase that can honestly meet them. 70 tests |
-| 6 Features | ⬜ Not started | `phase-6-features` | — | — | **Entry criteria met.** Blocked work inside it: 6a's chart table (Q9), the pickup picker (Q3/Q4), the map (Q1), Telegram (Q2). 6b, 6c, 6g and 6a's viewer need nothing from anyone and are where it should start |
+| 6 Features | ⬜ Not started | `phase-6-features` | — | — | **Entry criteria met, and the hardest blocker is gone**: §17 #84 replaced the Uzpost branch dataset with region + district + index, which closed Q3 and Q4. Needs a **Google Maps API key** (Q1) and a Telegram token (Q2); 6a's chart table still waits on Q9. Start with 6b, 6c, 6g and 6a's viewer; 6d carries the model migration |
 | 12 Reviews | ⬜ Not started | `phase-12-reviews` | — | — | Runs before Phase 7 |
 | 7 Admin panel | ⬜ Not started | `phase-7-panel` | — | — | |
 | 8 Legal & content | ⬜ Not started | `phase-8-content` | — | — | |
@@ -1552,6 +1652,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-12 | Task | 5 | v1.17: **Kamronbek ran the site himself and found what no harness had been asked to check: whether a page has the layout it is supposed to have.** One rule caused most of it — a shared `grid-template-columns: minmax(0, 1fr)` written *after* the breakpoints that set the real columns. A media query adds no specificity, so it won everywhere, and **the product page and the shop had a single column on every screen since the 360 px overflow fix** (§17 #74). On the product page that put the buy column under a gallery whose image was sticky, so the photograph slid down over the title as he scrolled; on the shop it stacked the filters above the grid. Fixed, and now measured: `interact.py` asserts the column counts, that the buy column sits *beside* the gallery, and that the gallery never overlaps it at any scroll position. Also from his list: **the image frame no longer takes any size from the photograph inside it** (§17 #75) — proved by swapping in 3000×500, 500×3000 and 900×900 sources and measuring the box; **the shop is a sticky sidebar plus an independently scrolling results column** (§17 #76), which needed a wrapper, because a stretched grid item fills its own grid area and a sticky box with no room in its containing block cannot move at all — and the sidebar’s `top` had never applied anyway, reset by an `inset: auto` written after it; **the mobile hero is type and two buttons**, no photograph, with the supporting line under them (§17 #77) — the first product card is now 283 px above the fold instead of 36; **the mobile filter sheet comes down from the top** with a backdrop that dims the page and dismisses on tap; and the account logout is a bordered button rather than a ghost that read as one more link. 342 breakpoint checks, every interaction check and 69 tests pass | Kamronbek reviews |
 | 2026-09-12 | Task | 5 | v1.18: **the eight review designs are now the local database, seeded by `manage.py seed_demo_catalogue`.** They had only ever existed inside a throwaway test database that `.git/render_all.py` built and destroyed, so every screenshot and every breakpoint sweep was measured against a catalogue no developer ever actually saw — which is exactly how a single-column product page survived for days: nobody had a page in front of them with four photographs and four sizes on it. The command is destructive by design and says so before it acts: it replaces products, images, variants, categories and sizes, and the carts and orders that hang off them, while keeping user accounts, delivery options, pickup points and contact messages. It refuses any `DB_HOST` that is not local. The photographs live in `docs/design/demo-catalogue/` because `vm/media/` is gitignored, and are copied into place when missing, so a fresh clone needs nothing but the command — verified by deleting them and running it again. Kamronbek’s three scratch products, two categories and one test order are gone at his request; a `pg_dump` of the old database is in `.git/dbbackup/` anyway. 69 tests pass | Phase 6 |
 | 2026-09-12 | Task | 5 | v1.19: **gate review before Phase 6 — "is everything actually ready?" answered by measuring rather than by reading the tracker.** Three findings mattered. (1) **This file had been silently reverted to v1.5.** The working copy was 1 697 lines of plan at v1.18 in git and 1 572 lines at v1.5 on disk — every decision from #23 on, every session row past Phase 1, the whole Phase 2–5 record, gone from the file the next chat would read, with `git status` showing one unremarkable modified file. §18 #17 again, on the one file the project cannot afford to lose; restored from `HEAD` and now version-asserted by any script that writes it (§17 #82). (2) **Twenty user-facing Python strings had never been marked for translation** — the add-to-cart and remove confirmations, every OTP and password-reset message, signup and login, order cancellation, the "number already registered" error. A Russian visitor got Uzbek at each of those moments. Wrapped, written by hand in Russian and English, and **`makemessages` guessed thirteen of them fuzzy**, so §17 #63 tried to recur one more time — and the test written to catch that class of defect did not, because it matched a bare `#, fuzzy` and gettext writes `#, fuzzy, python-format` when the string has a placeholder. Both the test and `.git/po_tool.py` now read the flag line properly, and a new `ast`-based test fails on any `messages.*` or `add_error` literal that bypasses gettext (§17 #80). (3) **Four checklist items could not honestly be ticked and were moved, not ticked**: gallery pinch-zoom and skeleton loading to Phase 6, `srcset` to Phase 9, Lighthouse to Phase 9 — and Phase 5 item 6 claimed an anonymous cart that Phase 6g actually owns (§17 #79). Also: two whole CSS sections deleted that nothing had used since Phase 2 (`.gallery__*`, `.hero__*` — superseded by `.pdp__*` and `.home__hero*`), three hand-written page scrims collapsed into one `--c-scrim` token, and the last class used in markup with no rule behind it removed. **Measured, not assumed: CSS 17.8 KB and JS 7.5 KB gzipped against 60 and 30; `audit.py` 0 findings across 57 pages × 6 widths × 3 languages; every `interact.py` check; the fold check in all three languages; `makemigrations --check` clean; 70 tests.** | Phase 6 — start with 6b, 6c, 6g and 6a's viewer |
+| 2026-09-12 | Task | 5 | v2.0: **the plan had forked, and this is the merge.** Kamronbek asked where the delivery redesign and the Google Maps decision had gone. They were in a *second* version of this file: a planning chat had taken v1.3 and amended it into its own v1.4 and v1.5 — **map provider Google, `PickupPoint` dropped for region + district + a typed postal index, home delivery 40 000, postal-index prefix validation** — while the task chats carried the same file from v1.6 to v1.19. Both wrote `docs/PLAN.md`, so the last writer won; and because both numbered new decisions from #23, **the same number meant two different things** in the two copies. During the v1.19 gate review I read the planning file's lower version number as a stale revert and ran `git checkout` over it. That was my error and the file is not recoverable: PyCharm's local history holds the path but not the content, and no copy survived on disk or in the project. **Its decisions were rebuilt from this session's own transcript**, which had captured the parts of it I read — §3, §7's delivery table, Phase 5, Phase 6a/6d, Phase 10's payment tests, §12 risk #6, §14, §15, §16, §17 #1–#22 and #37, §19 Q5 — and folded in here as **#83–#88**, renumbered into this line's sequence because a cross-reference has to resolve to one thing forever (#89). The reconstruction is faithful on the decisions and their reasoning; **the `Region`/`District` field list in §7 is mine and should be checked against the planning chat before 6d builds it.** The redesign is also the best news in the plan: it **closes Q3 and Q4**, which were the hardest blockers in the project — there is no Uzpost branch dataset to obtain any more, because the customer types the one field we could never get. Code debt recorded rather than done: the seeded home price is still 30 000 in six places (§18 #18), and `PickupPoint` and its loader are retired by 6d's migration. §0 now carries the four rules that stop this happening twice | Phase 6 — 6b, 6c, 6g, 6a's viewer; 6d once there is a Maps key and a verified `regions.csv` |
 
 ---
 
@@ -1560,7 +1661,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | # | Date | Decision | Reasoning |
 |---|---|---|---|
 | 1 | 2026-09-08 | Django templates + hand-written CSS/JS, no build step | Deploys unchanged; nothing new on the VPS |
-| 2 | 2026-09-08 | ~~Yandex free tier~~ → **paid Yandex commercial licence** | Free tier is not licensed for commercial sites. Yandex kept for its Uzbek data quality; cost accepted |
+| 2 | 2026-09-08 | ~~Yandex free tier~~ → ~~paid Yandex commercial licence~~ — **superseded by #83: Google Maps** | Free tier is not licensed for commercial sites. Yandex kept for its Uzbek data quality; cost accepted |
 | 3 | 2026-09-08 | ~~Separate like and favourite~~ → **one merged "like"** | Two similar hearts confuse shoppers; one action matches how the customer and every fashion store think about it |
 | 4 | 2026-09-08 | Evolve in place, one branch per phase | Site stays live; no big-bang cutover |
 | 5 | 2026-09-08 | Zero new Python dependencies | Everything needed is installed or standard library |
@@ -1570,17 +1671,17 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 9 | 2026-09-08 | Base font size 14 px → 16 px | The biggest reason the current site reads as cramped |
 | 10 | 2026-09-08 | Map is assistive; the address stays required and authoritative | Checkout must work with no JS, no permission, no map |
 | 11 | 2026-09-08 | Keep the six-point asterisk; redraw it geometrically | Already distinctive and vector; the traced path is the only problem |
-| 12 | 2026-09-08 | ~~15k flat, free at 2 items~~ → **15k to an Uzpost branch, 30k to the door, no free threshold** | Each tier reflects real cost; simplest possible rule to explain |
+| 12 | 2026-09-08 | ~~15k flat, free at 2 items~~ → 15k branch / ~~30k~~ door, no free threshold *(the home tier is now 40k — see #85)* | Each tier reflects real cost; simplest possible rule to explain |
 | 13 | 2026-09-08 | Delivery configured as `DeliveryOption` rows, not hardcoded | Prices will change; that must not require a deploy |
-| 14 | 2026-09-08 | `delivery_price` and `pickup_snapshot` frozen on the order | Same principle as `CartItem.price_stat` — a later change must not rewrite history |
+| 14 | 2026-09-08 | `delivery_price` and a location snapshot frozen on the order *(the snapshot is now `location_snapshot` — see #84)* | Same principle as `CartItem.price_stat` — a later change must not rewrite history |
 | 15 | 2026-09-08 | Size guide image-first, with optional structured rows | The owner supplies charts as photos; rows are a bonus for a11y and SEO |
 | 16 | 2026-09-08 | Telegram notifications committed, not optional | Highest operational value per line of code in the project |
 | 17 | 2026-09-08 | Telegram sends fire on `transaction.on_commit`, never raise | A notification must never fail a checkout or fire for a rolled-back order |
 | 18 | 2026-09-08 | Legal documents written in-project; review recommended, not blocking | Owner's call; still written to a real standard |
 | 19 | 2026-09-08 | Product creation with photo upload is a first-class admin screen | The owner enters the whole catalogue himself |
 | 20 | 2026-09-08 | Planning chat and task chats separated; the plan is shared memory | Keeps many chats consistent over a long project |
-| 21 | 2026-09-08 | **We own the pickup-point dataset** rather than querying a third party live | No public Uzpost API exists; a live lookup would add a checkout failure mode for no benefit |
-| 22 | 2026-09-08 | **Pickup picker is list-first, map-second** | A pure-map picker with thirty overlapping pins is unusable at 390 px and fails when the map does |
+| 21 | 2026-09-08 | ~~We own the pickup-point dataset~~ — **superseded by #84** | No public Uzpost API exists; a live lookup would add a checkout failure mode for no benefit |
+| 22 | 2026-09-08 | ~~Pickup picker is list-first, map-second~~ — **superseded by #84: there is no picker at all** | A pure-map picker with thirty overlapping pins is unusable at 390 px and fails when the map does |
 | 23 | 2026-09-08 | **Colour removed from the storefront UI, kept in the data model** | Every design is one colourway, so the picker is noise — but deleting the model is a destructive migration for no gain |
 | 24 | 2026-09-08 | **Anonymous cart; login still required at checkout** | Captures most of the conversion benefit without reworking the most sensitive code in the project |
 | 25 | 2026-09-08 | **Reviews are verified-purchase only and moderated before publication** | It is what makes reviews trustworthy, and user-uploaded photos on a public page need a gate |
@@ -1641,6 +1742,13 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 80 | 2026-09-12 | **A string the site flashes at a visitor is copy, wherever it lives** | §4's "no hardcoded user-facing strings" was read as being about templates. It is not: twenty messages in `cart/views.py`, `payment/views.py`, `user/views.py`, `user/password_reset.py` and `user/models.py` had never been marked, so a Russian or English visitor got Uzbek when they added to the cart, verified a phone, reset a password, cancelled an order, or signed up with a number already on file. Now wrapped, respelt with U+02BB, and written in all three languages — and guarded by a test that parses the source with `ast` rather than grepping it, because the question is *which argument* carries the string: `add_error('code', _("…"))` is correct and `add_error('code', "…")` is not, and no regex tells those apart reliably. **The SMS bodies are deliberately excluded**: Eskiz moderates the exact message text, so translating one stops it sending until re-moderated (§19 Q17) |
 | 81 | 2026-09-12 | **CSS keeps a rule with no markup only when the plan names the phase that adds the markup** | 23 classes were defined and unused. Two whole sections were **superseded duplicates** and are deleted: `.gallery__*`, which the product page stopped using when it became `.pdp__*`, and `.hero__*`, replaced by `.home__hero*` — dangerous rather than merely dead, because the next person to restyle the gallery would have edited the wrong rule and seen nothing happen. Four unused utilities went with them, and `--container-wide` with `.wrap--wide`. The rest stay, because a phase is named for each: `.toast*` and `.modal__*` in Phase 6, `.review__*` and `.stars--input` in Phase 12, `.skel*` with 6b's first async fetch. Also folded in: three hand-written `color-mix(… #000 …)` scrims, already drifted to two different values, are now one `--c-scrim` token — the last hardcoded colour outside `tokens.css` |
 | 82 | 2026-09-12 | **Any script that writes `PLAN.md` asserts its version string first** | The file on disk had been reverted to v1.5 — the end of planning, before a line of Phase 0 — while git held v1.18. §18 #17's failure mode, on the one file that is the project's memory between chats, and `git status` reported it as one modified file among the session's own edits. The cost if a chat had read it instead of noticing: every locked decision after #22 and the entire Phase 2–5 record, silently absent. `.git/plan_v119.py` opens with `assert "**Plan version:** 1.18" in s`, and every later one does the same with its own predecessor. A plan amendment that cannot see the version it expects must stop, not write |
+| 83 | 2026-09-12 | ~~Yandex~~ → **Google Maps Platform** | Owner's decision. Yandex was chosen for Uzbek street data, and that advantage is real — but it came with a commercial-site licence that needed a sales conversation and an unknown monthly cost (the old §19 Q1), and it was blocking a locked decision. Google bills per use against a monthly free allowance, which suits a map that now appears on **one form**: #84 removed the branch picker, so the only map left is the home-delivery pin. The `GX.map` wrapper (#27) is why this cost nothing — the provider changed and there was no code to rewrite. Needs an API key restricted to the site's domains, on a project with a billing alert |
+| 84 | 2026-09-12 | **Branch delivery is region + district + a typed 6-digit postal index. `PickupPoint` is dropped** | Owner's decision, and the most valuable one in the project so far, because it dissolves a dependency rather than working around it. There is no public Uzpost branch list (§3 research), so owning a `PickupPoint` table meant owning data we could not obtain: Phase 4 shipped the loader, the validation, the tests and an **empty** CSV, and it had become the blocker on all of Phase 6 (old Q3/Q4, now closed). The customer knows their own postal index — so they supply the one field we cannot, and we own only what is published: two small SOATO-derived reference tables, 14 regions and ~210 districts and cities. `pickup_snapshot` becomes `location_snapshot`; `requires_pickup_point` becomes `requires_branch`. **The retirement is Phase 6d work, not a rewrite of Phase 4's record** |
+| 85 | 2026-09-12 | Home delivery ~~30 000~~ → **40 000 so'm** | Owner's pricing decision. **The code still says 30 000** — the seed migration, the product page, the delivery page, the style guide and three catalogue entries — so plan and site currently disagree, and the site is what a customer reads. Phase 6e changes all six places together (§18 #18). Risk #6 and §19 Q5 both move to 40 000 |
+| 86 | 2026-09-12 | **The postal index is validated against the chosen region's prefix, in the view *and* in `Order.clean()`** | A six-digit index is easy to mistype and a wrong one sends a real parcel to the wrong place. The first two digits encode the province, and that is knowable from the region the customer already picked — so the one class of error worth catching automatically, a parcel leaving for another province, is caught. The `Boshqa` region skips the prefix check and keeps the format check, so an address the classifier does not cover is still orderable. Enforced in both places because the checkout view is not the only thing that will ever build an order |
+| 87 | 2026-09-12 | **Region and district are drawers, not `<select>`s, and the search field appears only where the list is long** | ~210 districts in a native mobile picker is a scroll with no landmarks. A drawer can show them grouped, scoped to the chosen region, at a readable size — and a search box above a list of nine districts is noise, so it renders only past a threshold. Both fall back to plain selects with JavaScript off, which is the §3 rule that checkout must work without it |
+| 88 | 2026-09-12 | **`address_source` records whether a home address came from the map or was typed** | One column, and it answers the question the courier actually has: are these coordinates the customer's own or a geocoder's guess? A typed address stores no coordinates at all, so the absence is meaningful rather than missing data |
+| 89 | 2026-09-12 | **The plan forked, and the merge renumbers rather than reconciles numbers** | Two chats amended this file from different bases on the same day: a planning chat turned v1.3 into its own v1.4 and v1.5 (#83–#88 above), while task chats carried the same file from v1.6 to v1.19. Both numbered new decisions from #23, so **the same number meant two different things** — the planning line's #33 was the delivery redesign and #37 the 40 000 price, while this line's #33 is the footer context processor and #37 the geometric mark. Renumbering the planning line's decisions into this sequence is the only safe merge: a cross-reference must resolve to one thing forever. The planning file itself was lost — overwritten by a `git checkout` during the gate review, by me, after I read its lower version number as a stale revert — and its decisions were rebuilt from the gate-review session's transcript, which held the parts of it I had read. **What that means for anyone reading this:** #83–#88 are faithful to the decisions and the reasoning, but the §7 `Region` / `District` field list is a reconstruction and should be checked against the planning chat before 6d builds it. §0 now carries the four rules that prevent a second fork |
 
 ---
 
@@ -1671,6 +1779,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 18 | **The product page and the delivery page state the delivery prices as copy, while `DeliveryOption` rows own the real ones** | 2026-09-12 | `item.html` and `delivery.html` each hardcode "15 000" and "30 000". §17 #13 made delivery configurable precisely so a price change is not a deploy — but a change in the admin would now leave two pages quietly lying. It has already drifted once: an earlier plan version had the door tier at 40 000 and the code never followed (§17 #37 was reverted, so 30 000 is correct *today*, which is luck rather than design). Phase 6d/6e render both from the rows |
 | 19 | **Admin `help_text` strings are untranslated Uzbek** | 2026-09-12 | Eight fields carry `help_text="Oʻzbekcha — asosiy matn"` and similar. They are admin-only, the owner works in Uzbek, and Phase 7 replaces this admin with a custom panel — so this is deliberately *not* fixed now, and is noted so the §17 #80 sweep does not read as complete for every string on the project |
 | 20 | **One inline `style` attribute remains, in `_icons.svg.html`** | 2026-09-12 | The sprite root carries `style="position:absolute"`. It is the standard idiom for an inline SVG sprite and the only `style` attribute left on the site; noted so "no `style` attribute" in the Phase 5 checklist is read as "one, deliberately, on a container that renders nothing" rather than as an oversight |
+| 21 | **UzPost partner programme** | 2026-09-12 | Surfaced during the delivery research: Uzpost runs a business/partner arrangement that may offer better tariffs, a pickup-from-us service, or bulk lodgement than walking parcels to a counter. Worth one conversation before launch — it bears directly on risk #6, since the 40 000 home tier is priced against public courier rates. Phase 11 at the latest |
 
 ---
 
@@ -1678,11 +1787,11 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 
 | # | Question | Needed by | Status |
 |---|---|---|---|
-| 1 | **Yandex Maps commercial pricing for Uzbekistan** — needs a sales conversation. What is the monthly cost at our volume, and is it acceptable? | Phase 6d | ⏳ Open — blocks a locked decision |
+| 1 | **A Google Maps Platform API key, on a project with billing enabled and a budget alert set.** Restrict it to the site's domains before it ships. | Phase 6d | ⏳ Owner will supply |
 | 2 | Telegram bot token and chat ID | Phase 6f | ⏳ Owner will supply |
-| 3 | Can Uzpost supply an official branch list (index codes, addresses, coordinates, hours)? A business partner asking is a normal request and would beat any scraped source. **Phase 4 built `seed_pickup_points` and shipped `data/pickup_points.csv` header-only (§17 #58) — the loader, its validation and its tests are done and waiting for rows.** Now blocks Phase 6's pickup picker, and nothing can ship to a branch until it is answered. | Phase 6 | ⏳ Open — **now the blocker, not the command** |
-| 4 | Pickup-point launch scope — Tashkent only, Tashkent + regional capitals, or nationwide? Decides how many rows Q3 has to produce. | Phase 6 | ⏳ Open |
-| 5 | **Is 30 000 so'm door delivery actually above cost in far regions?** Check Uzpost's published courier tariffs. | Phase 6e | ⏳ Open |
+| 3 | ~~Can Uzpost supply an official branch list (index codes, addresses, coordinates, hours)?~~ | — | ✅ **Closed 2026-09-12 — the question no longer needs an answer.** §17 #84 replaced the branch table with region + district + a customer-typed postal index, so nothing waits on a dataset we cannot obtain. `PickupPoint`, `seed_pickup_points` and the header-only CSV are retired in Phase 6d |
+| 4 | ~~Pickup-point launch scope — Tashkent only, regional capitals, or nationwide?~~ | — | ✅ **Closed 2026-09-12** — there are no pickup points to scope. Every Uzpost branch is reachable from day one, because the customer supplies its index (§17 #84) |
+| 5 | **Is 40 000 so'm home delivery actually above cost in far regions?** Check Uzpost's published courier tariffs. | Phase 6e | ⏳ Open |
 | 6 | Tag taxonomy — **who defines the style/theme tags, and what is the starting list?** Phase 4 seeded exactly the eight §7 names — style: `oversize`, `boxy`; theme: `anime`, `streetwear`, `music`, `sport`, `minimal`, `vintage`. No `collection` tags: those are per-drop and the owner creates them as drops happen. **The list needs extending by whoever knows the catalogue** — it is what the Phase 13 recommender reads, so a thin taxonomy means weak recommendations. | Phase 7 | ✅ **Answered 2026-09-11** — the owner writes tags when adding a product; the seeded eight are a starting set, not a taxonomy (§17 #71) |
 | 7 | Fit range — regular and oversize only, or more? Drives the size charts and the `fit` choices. Phase 4 shipped three (`regular`, `oversize`, `boxy`), taking `boxy` from §7's tag examples. Changing the set later is a migration, so confirm before the catalogue is entered. | Phase 7 | ✅ **Answered 2026-09-11** — regular and oversize only. `boxy` removed by migration 0014 (§17 #70) |
 | 8 | **Were the designs in the customer's mockup placeholders?** If any reproduce other brands' marks and are intended for sale, that is worth reviewing before listing. | Phase 11 | ⏳ Open |
@@ -1698,6 +1807,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 19 | Product photography — when can real shots exist? Not blocking now (§17 #42), but it gates Phase 11 and it is what decides whether the chosen direction actually looks professional. | Phase 11 | ⏳ Open |
 | 21 | The dev machine sleeps and takes PostgreSQL down with it, so a command that spans a sleep dies with *"server closed the connection unexpectedly"*. Harmless — retry. Worth knowing before someone debugs it as a code fault (§18 #10). | — | ℹ️ Environment, not a defect |
 | 22 | **`--c-line-strong` is 1.8:1 against the page ground, and §9 asks for 3:1 on UI boundaries.** Control borders are the only thing separating an input from the page - the field’s own fill is 1.4:1 against it - so at the moment neither cue reaches the bar this plan sets. Raising the token to about `#6D604D` clears 3.15:1 on the page, but it lightens the border of every control on the site, and the palette is locked by §17 #45. **Not changed unilaterally.** Kamronbek’s call: raise it, accept the gap and write it down, or find the contrast somewhere other than the border | Phase 9 | ⏳ Open — needs a look, not a discussion |
+| 23 | **`data/regions.csv` — who verifies it?** The 14 regions and ~210 districts and cities come from the official SOATO / MHOBT classifier, and the postal prefix per region has to be right or checkout rejects valid indexes. It is an afternoon of careful checking by someone who knows the country, and it blocks 6d rather than the whole phase. | Phase 6d | ⏳ Open |
 
 **Resolved:**
 
@@ -1710,10 +1820,10 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | Who writes the Russian and English copy? | ✅ Written in-project |
 | Who writes the legal documents? | ✅ Written in-project |
 | Who enters products? | ✅ The owner, via the custom admin panel |
-| Delivery carrier and pricing? | ✅ Uzpost nationwide · 15 000 to a branch · 30 000 to the door · no free threshold |
+| Delivery carrier and pricing? | ✅ Uzpost nationwide · 15 000 to a branch · 40 000 to the home · no free threshold (§17 #85) |
 | Telegram bot? | ✅ Yes — order, payment, message and review notifications |
 | Size guide format? | ✅ Image-first, optional measurement rows |
-| Map provider? | ✅ Yandex, paid commercial licence, behind a swappable wrapper |
+| Map provider? | ✅ **Google Maps Platform**, behind a swappable wrapper (§17 #83). Yandex was the answer until 2026-09-12 |
 | Like vs favourite? | ✅ Merged into one heart |
 | Guest checkout? | ✅ Anonymous cart; login required at checkout |
 | Is there data in the current production database to preserve? | ✅ No — it holds no items. A new VPS is being provisioned; nothing needs migrating (§17 #34) |
