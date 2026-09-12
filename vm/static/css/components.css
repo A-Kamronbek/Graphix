@@ -117,7 +117,10 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .card__media { position: relative; aspect-ratio: var(--ar-product); overflow: hidden;
   background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--r-sm);
   margin-bottom: var(--s-3); }
-.card__media img { width: 100%; height: 100%; object-fit: cover;
+/* Pinned, so the photograph cannot size the card: every card in a grid has to
+   be the same height whatever shape its image happens to be. */
+.card__media img { position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
   transition: transform var(--t-slow) var(--ease-out); }
 .card a:hover .card__media img { transform: scale(1.035); }
 .card__name { font-family: var(--f-display); font-weight: var(--fw-semibold); font-size: var(--fs-lg); }
