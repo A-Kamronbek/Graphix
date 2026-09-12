@@ -8,6 +8,8 @@
 
   <form method="post" action="{% url 'logout' %}" class="account__logout">
     {% csrf_token %}
-    <button class="btn btn--ghost btn--block btn--sm" type="submit">{% trans "Chiqish" %}</button>
+    {# Bordered, not ghost: as a borderless button under a column of plain #}
+    {# links it read as one more link rather than an action. #}
+    <button class="btn btn--secondary btn--block btn--sm" type="submit">{% trans "Chiqish" %}</button>
   </form>
 </nav>

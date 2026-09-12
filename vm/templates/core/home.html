@@ -26,10 +26,14 @@
          aria-label="{{ featured|t:'name' }}">
         {% with featured.images.first as img %}
           {% if img and img.picture and img.picture.name %}
-            <img src="{{ img.picture.url }}" alt="{{ featured|t:'name' }}" decoding="async"
+            {# Lazy on purpose: the hero image is hidden below 860 px, and a lazy #}
+            {# image that is not displayed is never fetched, so a phone does not #}
+            {# pay for a picture it will not see. On desktop it sits in the first #}
+            {# screen, where the browser fetches it immediately anyway. #}
+            <img src="{{ img.picture.url }}" alt="{{ featured|t:'name' }}" decoding="async" loading="lazy"
                  onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
           {% else %}
-            <img src="{% static 'img/no-image.jpg' %}" alt="{{ featured|t:'name' }}" decoding="async">
+            <img src="{% static 'img/no-image.jpg' %}" alt="{{ featured|t:'name' }}" decoding="async" loading="lazy">
           {% endif %}
         {% endwith %}
       </a>

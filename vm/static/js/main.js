@@ -179,6 +179,7 @@
   function initFilterSheet() {
     var toggle = $('[data-filters-toggle]');
     var panel = $('[data-filters]');
+    var backdrop = $('[data-filters-backdrop]');
     if (!toggle || !panel) return;
 
     var release = null;
@@ -187,6 +188,7 @@
       if (open === panel.classList.contains('is-open')) return;
       panel.classList.toggle('is-open', open);
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (backdrop) backdrop.hidden = !open;
       lockScroll(open);
       if (open) {
         release = trapFocus(panel);

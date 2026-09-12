@@ -18,36 +18,12 @@
 
       <h1 class="h1">{% if q %}{% blocktrans %}“{{ q }}” uchun natijalar{% endblocktrans %}{% elif search_page %}{% trans "Qidiruv" %}{% else %}{% trans "Barcha dizaynlar" %}{% endif %}</h1>
 
-      <div class="shop__bar">
-        {# "Topildi: 12" rather than a pluralised noun — Russian has four plural #}
-        {# forms and this phrasing is natural commercial register in all three. #}
-        <span class="shop__count">{% trans "Topildi" %}: <span class="num">{{ total_count }}</span></span>
-
-        {# Mobile only: opens the same filter markup as a bottom sheet. #}
-        <button type="button" class="btn btn--secondary btn--sm shop__filter-toggle"
-                data-filters-toggle aria-expanded="false" aria-controls="gx-filters">
-          <svg class="i i--sm" aria-hidden="true"><use href="#i-filter"></use></svg>
-          {% trans "Filtrlar" %}{% if filter_count %} ({{ filter_count }}){% endif %}
-        </button>
-
-        <form method="get" class="shop__sort">
-          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
-          {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-          {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
-          {% for t in selected_tags %}<input type="hidden" name="tag" value="{{ t }}">{% endfor %}
-          <label class="sr-only" for="gx-sort">{% trans "Tartiblash" %}</label>
-          {# Ommabop and Reyting join this list in Phase 6b, with the sorts. #}
-          <select class="select" id="gx-sort" name="sort" onchange="this.form.submit()">
-            <option value="new" {% if sort == 'new' %}selected{% endif %}>{% trans "Yangilari" %}</option>
-            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>{% trans "Narx: arzondan" %}</option>
-            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>{% trans "Narx: qimmatdan" %}</option>
-          </select>
-          <noscript><button class="btn btn--secondary btn--sm" type="submit">{% trans "Tartiblash" %}</button></noscript>
-        </form>
-      </div>
     </div>
 
-    {# Filters. One set of markup: sidebar on desktop, bottom sheet on mobile. #}
+    {# Filters. One set of markup: sidebar on desktop, top sheet on mobile. #}
+    {# The wrapper exists only so the sidebar has something to be sticky inside: #}
+    {# a stretched grid item fills its own grid area and cannot travel. #}
+    <div class="shop__aside">
     <form method="get" id="gx-filters" class="shop__filters" data-filters
           aria-label="{% trans 'Filtrlar' %}">
       {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
@@ -106,8 +82,43 @@
       {% endif %}
     </form>
 
-    {# Results. #}
-    <div class="stack stack--lg">
+    {# Dims the page behind the sheet and gives it a tap-anywhere-to-close #}
+    {# target, which is how people dismiss a sheet. Removed from the tree #}
+    {# while closed so it can never swallow a click on the page. #}
+    <div class="sheet__backdrop" data-filters-backdrop data-filters-close hidden></div>
+    </div>
+
+    {# Results, with the bar that describes them. #}
+    <div class="shop__main">
+      <div class="shop__bar">
+        {# "Topildi: 12" rather than a pluralised noun — Russian has four plural #}
+        {# forms and this phrasing is natural commercial register in all three. #}
+        <span class="shop__count">{% trans "Topildi" %}: <span class="num">{{ total_count }}</span></span>
+
+        {# Mobile only: opens the same filter markup as a sheet from the top. #}
+        <button type="button" class="btn btn--secondary btn--sm shop__filter-toggle"
+                data-filters-toggle aria-expanded="false" aria-controls="gx-filters">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-filter"></use></svg>
+          {% trans "Filtrlar" %}{% if filter_count %} ({{ filter_count }}){% endif %}
+        </button>
+
+        <form method="get" class="shop__sort">
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+          {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+          {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
+          {% for t in selected_tags %}<input type="hidden" name="tag" value="{{ t }}">{% endfor %}
+          <label class="sr-only" for="gx-sort">{% trans "Tartiblash" %}</label>
+          {# Ommabop and Reyting join this list in Phase 6b, with the sorts. #}
+          <select class="select" id="gx-sort" name="sort" onchange="this.form.submit()">
+            <option value="new" {% if sort == 'new' %}selected{% endif %}>{% trans "Yangilari" %}</option>
+            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>{% trans "Narx: arzondan" %}</option>
+            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>{% trans "Narx: qimmatdan" %}</option>
+          </select>
+          <noscript><button class="btn btn--secondary btn--sm" type="submit">{% trans "Tartiblash" %}</button></noscript>
+        </form>
+      </div>
+
+      <div class="stack stack--lg">
       {% if products %}
         <div class="grid-products">
           {% for p in products %}
@@ -131,6 +142,7 @@
           {% endif %}
         </div>
       {% endif %}
+      </div>
     </div>
 
   </div>

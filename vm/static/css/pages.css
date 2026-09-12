@@ -39,6 +39,14 @@
   .nav__account { display: grid; }
 }
 
+/* The filter sheet's backdrop. One step under the sheet, one step over
+   everything else. Hidden entirely while closed, so it is never in the way. */
+.sheet__backdrop {
+  position: fixed; inset: 0; z-index: calc(var(--z-modal) - 1);
+  background: color-mix(in srgb, #000 58%, transparent);
+}
+@media (min-width: 860px) { .sheet__backdrop { display: none; } }
+
 /* The drawer's backdrop. Carries the click-to-close target and dims the page. */
 .drawer__backdrop {
   position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1);
@@ -46,10 +54,18 @@
 }
 
 /* ------------------------------------------------------- product detail */
-/* Two columns from 860 px, with the gallery sticky and the buy column scrolling
-   beside it. The single rule this layout exists to enforce: one photograph must
-   never take more than one screen (§17 #47). */
-.pdp { display: grid; gap: var(--s-5); }
+/* Two columns from 860 px. The gallery does NOT travel with the scroll: a
+   sticky image beside a shorter buy column slides down over the page as you
+   read, which is what the owner saw and disliked. The single rule this layout
+   exists to enforce: one photograph must never take more than one screen
+   (§17 #47). */
+/* One column until this layout's breakpoint, and that column must be allowed to
+   shrink: a grid item defaults to min-width:auto, so without minmax(0, …) one
+   long word — an email address, a product name — sizes the whole column and the
+   page scrolls sideways. Declared per layout rather than in one shared rule,
+   because a shared rule placed after these breakpoints silently beat them and
+   left the product page and the shop with no second column on any screen. */
+.pdp { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 
 .pdp__gallery { min-width: 0; }
 .pdp__buy { min-width: 0; display: flex; flex-direction: column; gap: var(--s-5); }
@@ -79,15 +95,20 @@
     gap: var(--s-7);
     align-items: start;
   }
-  .pdp__gallery { position: sticky; top: calc(var(--s-8) + var(--s-2)); }
   .pdp__pad { display: none; }
 }
 
 /* The gallery: main image capped in height, thumbnails below on mobile and in a
    vertical rail beside the image on desktop. */
+/* The frame is sized by the layout, never by the photograph. Its width is
+   derived from the height cap and the catalogue ratio, and the image inside is
+   taken out of flow entirely — so a 3000x500 source and a 500x3000 source
+   produce exactly the same box, which is the whole point of a catalogue that
+   will be filled from mixed sources. */
 .pdp__frame {
   position: relative;
   aspect-ratio: var(--ar-product);
+  width: min(100%, calc(var(--pdp-image-max) * 4 / 5));
   max-height: var(--pdp-image-max);
   margin-inline: auto;
   overflow: hidden;
@@ -95,10 +116,12 @@
   border: 1px solid var(--c-line);
   border-radius: var(--r-md);
 }
-.pdp__frame img { width: 100%; height: 100%; object-fit: cover; }
+.pdp__frame img { position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; }
 
 .pdp__rail { display: flex; gap: var(--s-2); margin-top: var(--s-2); }
 .pdp__rail button {
+  position: relative;
   flex: 0 0 64px;
   aspect-ratio: var(--ar-product);
   overflow: hidden;
@@ -109,18 +132,34 @@
 }
 .pdp__rail button:hover { opacity: .85; }
 .pdp__rail button[aria-current="true"] { opacity: 1; border-color: var(--c-brand); }
-.pdp__rail img { width: 100%; height: 100%; object-fit: cover; }
+.pdp__rail img { position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; }
 
 @media (min-width: 1024px) {
   /* Vertical thumbnail rail to the left of the image (§17 #47). */
   .pdp__gallery { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--s-3); }
   .pdp__rail { flex-direction: column; margin-top: 0; order: -1; }
+  /* Beside its thumbnails, not floating in the middle of the column: centred,
+     the frame sat 60 px away from the rail and the two stopped reading as one
+     gallery. The slack falls on the right, where it becomes the gutter before
+     the buy column. */
+  .pdp__frame { margin-inline: 0; }
 }
 
 /* ------------------------------------------------------------------ shop */
-/* Filters are a sidebar on desktop and a bottom sheet on mobile — the same
-   markup either way, so there is only one set of controls to keep in step. */
-.shop { display: grid; gap: var(--s-5); }
+/* Filters are a sidebar on desktop and a sheet on mobile — the same markup
+   either way, so there is only one set of controls to keep in step. */
+/* Cleared by the sticky header plus a little air. */
+.shop { --shop-sticky-top: calc(var(--s-8) + var(--s-2));
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+/* The bar belongs above the results, not above the whole layout: sitting in
+   the head it stretched the full width and left the sort control stranded a
+   thousand pixels from the count it belongs to. */
+.shop__main { display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-5); align-content: start; }
+/* On mobile the sidebar is a fixed sheet and its wrapper has no job, so it is
+   taken out of the grid entirely rather than left as an empty row. */
+.shop__aside { display: contents; }
 .shop__bar { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
 .shop__bar .shop__count { color: var(--c-fg-muted); font-size: var(--fs-sm); }
 .shop__sort { margin-left: auto; }
@@ -132,34 +171,48 @@
 }
 
 .shop__filters { display: none; }
+/* Down from the top, over the header. Rising from the bottom put the filters
+   below the control that opened them, in the part of the screen the visitor had
+   just looked away from. */
 .shop__filters.is-open {
   display: block;
-  position: fixed; inset: auto 0 0 0; z-index: var(--z-modal);
-  max-height: 82vh; overflow-y: auto;
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-modal);
+  max-height: 86vh; overflow-y: auto; overscroll-behavior: contain;
   padding: var(--s-5) var(--pad-x) var(--s-6);
   background: var(--c-surface);
-  border-top: 1px solid var(--c-line-strong);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  border-bottom: 1px solid var(--c-line-strong);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
   box-shadow: var(--sh-lg);
 }
 
 @media (min-width: 860px) {
-  .shop { grid-template-columns: 248px minmax(0, 1fr); gap: var(--s-7); align-items: start; }
-  .shop__head { grid-column: 1 / -1; }
+  /* No `align-items: start` here: a sticky sidebar can only travel inside
+     its own grid area, and a start-aligned item's area is just its content,
+     so it scrolled away with the page. Stretched, it has the whole row. */
+  .shop { grid-template-columns: 248px minmax(0, 1fr); gap: var(--s-7); }
+  .shop__head { grid-column: 1 / -1; align-self: start; }
+  /* The wrapper is the grid item and stretches to the full row; the sidebar is
+     sticky inside it. Without the wrapper the sidebar was the stretched item
+     itself, and a sticky box that already fills its containing block has
+     nowhere to travel, so it scrolled away like any other element. */
+  .shop__aside { display: block; }
+  /* The sidebar holds its place while the grid scrolls past it, and scrolls on
+     its own once the filter list is longer than the screen — so a long list can
+     never make the page taller than the results it is filtering. */
   .shop__filters, .shop__filters.is-open {
-    display: block; position: sticky; top: calc(var(--s-8) + var(--s-2));
-    inset: auto; max-height: none; padding: 0; overflow: visible;
+    /* `inset: auto` first, then `top`. The other way round the shorthand reset
+       the offset it had just been given and the sidebar never stuck at all -
+       which is how it shipped, because nothing was measuring it. */
+    display: block; inset: auto; position: sticky; top: var(--shop-sticky-top);
+    padding: 0 var(--s-2) 0 0;
+    max-height: calc(100vh - var(--shop-sticky-top) - var(--s-5));
+    overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable;
     background: none; border: 0; border-radius: 0; box-shadow: none;
   }
   .shop__filter-toggle { display: none; }
-}
-
-/* Every page grid is one column until its breakpoint, and that column must be
-   allowed to shrink. A grid item defaults to min-width:auto, so without the
-   minmax(0, …) a single long word inside — an email address, a product name —
-   sizes the whole column and the page scrolls sideways. */
-.pdp, .shop, .cartpage, .checkout, .account, .home__hero-inner {
-  grid-template-columns: minmax(0, 1fr);
+  /* Stays visible while the filter list scrolls under it. */
+  .shop__filters-hd { position: sticky; top: 0; z-index: 1;
+    padding-block: var(--s-2); background: var(--c-bg); }
 }
 
 /* --------------------------------------------- page-level helper classes */
@@ -210,7 +263,8 @@
    back rather than letting the first product card slide off the screen.
    Decision #29 is the constraint; `.git/fold.py` is what proves it. */
 .home__hero { padding-block: var(--s-5) var(--s-4); }
-.home__hero-inner { display: grid; gap: var(--s-5); align-items: center; }
+.home__hero-inner { display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-5); align-items: center; }
 .home__title {
   font-family: var(--f-display);
   font-size: clamp(var(--fs-3xl), 10vw, var(--fs-5xl));
@@ -220,6 +274,7 @@
   text-wrap: balance;
 }
 .home__hero-art {
+  position: relative;
   display: block;
   aspect-ratio: var(--ar-product);
   max-height: 28vh;
@@ -229,7 +284,8 @@
   border: 1px solid var(--c-line);
   border-radius: var(--r-md);
 }
-.home__hero-art img { width: 100%; height: 100%; object-fit: cover;
+.home__hero-art img { position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
   transition: transform var(--t-slow) var(--ease-out); }
 .home__hero-art:hover img { transform: scale(1.03); }
 
@@ -242,14 +298,30 @@
   .home__hero-art { max-height: 62vh; margin-inline: 0; }
 }
 
+/* Below 860 px the hero is type and two buttons, nothing else — the owner's
+   call, and it lifts the first product row far up the page. The image is hidden
+   rather than dropped from the markup so the desktop hero keeps one source of
+   truth, and it is marked `loading="lazy"` so a phone never downloads a picture
+   it will not show. */
+@media (max-width: 859px) {
+  .home__hero-art { display: none; }
+  /* Eyebrow, headline, buttons, then the supporting line. */
+  .home__hero-inner .row { order: 0; }
+  .home__hero-inner .lede { order: 1; }
+}
+
+
 /* ------------------------------------------------------------------ cart */
-.cartpage { display: grid; gap: var(--s-6); align-items: start; }
+.cartpage { display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-6); align-items: start; }
 .cartline { display: grid; grid-template-columns: 84px minmax(0, 1fr);
   gap: var(--s-3) var(--s-4); padding-block: var(--s-4);
   border-bottom: 1px solid var(--c-line); }
-.cartline__thumb { grid-row: span 2; aspect-ratio: var(--ar-product); overflow: hidden;
+.cartline__thumb { position: relative; grid-row: span 2;
+  aspect-ratio: var(--ar-product); overflow: hidden;
   background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--r-sm); }
-.cartline__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.cartline__thumb img { position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; }
 .cartline__actions { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center;
   gap: var(--s-3); }
 .cartline__total { margin-left: auto; font-weight: var(--fw-semibold); }
@@ -282,7 +354,8 @@
 
 /* --------------------------------------------------------------- account */
 /* Tabs across the top on mobile, a sidebar from 860 px. */
-.account { display: grid; gap: var(--s-6); align-items: start; }
+.account { display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-6); align-items: start; }
 .account__nav { display: flex; gap: var(--s-1); overflow-x: auto;
   border-bottom: 1px solid var(--c-line); }
 .account__nav a { padding: var(--s-3) var(--s-4); white-space: nowrap; color: var(--c-fg-muted);
@@ -309,7 +382,8 @@
 /* ---------------------------------------------------- checkout / summary */
 /* Same two-column shape as the cart: the form leads, the summary sits beside
    it on desktop and underneath on mobile. */
-.checkout { display: grid; gap: var(--s-6); align-items: start; }
+.checkout { display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-6); align-items: start; }
 .checkout__summary { position: sticky; top: calc(var(--s-8) + var(--s-2)); }
 
 @media (min-width: 860px) {
