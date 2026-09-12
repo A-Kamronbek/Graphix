@@ -124,6 +124,12 @@
 .shop__bar { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
 .shop__bar .shop__count { color: var(--c-fg-muted); font-size: var(--fs-sm); }
 .shop__sort { margin-left: auto; }
+/* Once the bar wraps, `margin-left: auto` stranded the sort control against the
+   right edge of its own line with nothing beside it, which read as a stray
+   dropdown rather than a deliberate pairing. On its own row it takes the row. */
+@media (max-width: 560px) {
+  .shop__sort { margin-left: 0; flex: 1 0 100%; }
+}
 
 .shop__filters { display: none; }
 .shop__filters.is-open {
@@ -199,7 +205,11 @@
    product card on screen at 390 x 844. Measured, not guessed: at 42vh art and
    s-6/s-7 padding the first card started at 952px, 108px below the fold, which
    is exactly the full-viewport hero #29 forbids. Verified by .git/fold.py. */
-.home__hero { padding-block: var(--s-5) var(--s-5); }
+/* The header grew by 8 px when its icon buttons were raised to the 44 px tap
+   floor, and the fold budget is exactly that tight: the hero gives the 8 px
+   back rather than letting the first product card slide off the screen.
+   Decision #29 is the constraint; `.git/fold.py` is what proves it. */
+.home__hero { padding-block: var(--s-5) var(--s-4); }
 .home__hero-inner { display: grid; gap: var(--s-5); align-items: center; }
 .home__title {
   font-family: var(--f-display);
@@ -280,6 +290,11 @@
 .account__nav a:hover { color: var(--c-fg); }
 .account__nav a.is-active { color: var(--c-fg); border-bottom-color: var(--c-brand); }
 .account__logout { display: none; }
+/* Three links wrap rather than scroll. The strip was scrollable, but with no
+   affordance it simply looked like a word cut in half at the screen edge. */
+@media (max-width: 560px) {
+  .account__nav { flex-wrap: wrap; overflow-x: visible; }
+}
 
 @media (min-width: 860px) {
   .account { grid-template-columns: 220px minmax(0, 1fr); gap: var(--s-7); }
@@ -327,3 +342,9 @@
 /* Long-form copy: legal pages, about, delivery, the size guide. */
 .prose { max-width: 68ch; }
 .prose img { border: 1px solid var(--c-line); border-radius: var(--r-md); }
+
+/* The size guide is one photograph or diagram the owner uploads. It is the
+   content of the page, so it gets the full column and is never cropped: an
+   intrinsic ratio is unknown here, so `height: auto` with the `.prose` width
+   cap is the honest constraint. */
+.sizeguide__img { display: block; width: 100%; height: auto; }

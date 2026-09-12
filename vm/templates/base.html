@@ -1,7 +1,10 @@
-{% load static i18n %}<!doctype html>
+{% load static i18n %}{% get_current_language as LANGUAGE_CODE %}<!doctype html>
 {# The site shell. Every page extends this and the design system is the only #}
 {# stylesheet on the site — main.css and its legacy shim were deleted when the #}
 {# last page moved across at the end of Phase 5 (§17 #48, #61). #}
+{# LANGUAGE_CODE is read from the tag above, not from the context #}
+{# processor: Django renders 500.html with no context at all, and #}
+{# the shell must not depend on context to be correct (§17 #66). #}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">

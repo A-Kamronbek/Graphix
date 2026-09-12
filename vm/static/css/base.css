@@ -105,7 +105,7 @@ address { font-style: normal; }
 .body  { max-width: 62ch; color: var(--c-fg-muted); }
 .small { font-size: var(--fs-sm); }
 .muted { color: var(--c-fg-muted); }
-.subtle{ color: var(--c-fg-subtle); }
+.subtle{ color: var(--c-fg-hint); }
 
 /* Small uppercase label. Used for every field label and section eyebrow. */
 .eyebrow, .label {

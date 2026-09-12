@@ -37,10 +37,13 @@
       </div>
 
       {% if product.images.count > 1 %}
-        <div class="pdp__rail" role="tablist" aria-label="{% trans 'Rasmlar' %}">
+        {# Buttons, not tabs: role="tab" needs aria-selected and a tabpanel to #}
+{# control, and the main image is neither. Plain buttons announce #}
+{# correctly and keep the arrow-key behaviour in gallery.js. #}
+<div class="pdp__rail" role="group" aria-label="{% trans 'Rasmlar' %}">
           {% for img in product.images.all %}
             {% if img.picture and img.picture.name %}
-              <button type="button" role="tab" data-gallery-thumb="{{ img.picture.url }}"
+              <button type="button" data-gallery-thumb="{{ img.picture.url }}"
                       aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
                       aria-label="{% blocktrans with n=forloop.counter %}Rasm {{ n }}{% endblocktrans %}">
                 <img src="{{ img.picture.url }}" alt="" loading="lazy" decoding="async">
@@ -89,9 +92,10 @@
           <div class="stack stack--sm">
             <div class="row row--between">
               <span class="label">{% trans "Oʻlcham" %}</span>
-              {% if size_chart %}
-                {# The modal itself is Phase 6a; this link is its anchor. #}
-                <a class="link small" href="{% url 'terms' %}#olcham" data-size-guide>
+              {% if has_size_guide %}
+                {# Goes to the real page. Phase 6a turns this into a modal and #}
+                {# keeps the href as its no-JS fallback. #}
+                <a class="link small" href="{% url 'size_guide' %}" data-size-guide>
                   {% trans "Oʻlcham jadvali" %}
                 </a>
               {% endif %}

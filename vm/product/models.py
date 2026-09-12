@@ -110,9 +110,12 @@ class Product(models.Model):
         EMBROIDERY = 'embroidery', _('Naqsh')
 
     class Fit(models.TextChoices):
+        # Two fits only, confirmed by the owner. `boxy` shipped in Phase 4 from
+        # the tag examples in plan §7 and was never used; migration 0014 folds
+        # any row carrying it into `oversize`, the nearer of the two. Adding a
+        # third later is a migration, so it stays a decision, not a default.
         REGULAR = 'regular', _('Oddiy')
         OVERSIZE = 'oversize', _('Oversize')
-        BOXY = 'boxy', _('Boxy')
 
     name = models.CharField(max_length=255, help_text="Oʻzbekcha — asosiy matn")
     name_ru = models.CharField(max_length=255, blank=True, default='')

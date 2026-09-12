@@ -22,7 +22,13 @@
      thin, which is the exact fault that sank the first design round. */
   --c-fg:            #EFE9DE;
   --c-fg-muted:      #B0A697;   /* secondary text, labels */
-  --c-fg-subtle:     #7D7466;   /* disabled, placeholder, decorative */
+  --c-fg-subtle:     #7D7466;   /* disabled and decorative ONLY - 4.18:1 at best,
+                                   so it must never carry text a visitor has to
+                                   read. Phase 5's audit found it doing exactly
+                                   that in the footer (§17 #67). */
+  --c-fg-hint:       #958A79;   /* quiet but readable: placeholders, timestamps,
+                                   fine print. 4.53:1 on the darkest ground in
+                                   the system, so it clears AA everywhere. */
 
   /* lines */
   --c-line:          #2C2620;   /* hairline between rows */

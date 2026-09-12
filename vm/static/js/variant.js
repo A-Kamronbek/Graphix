@@ -72,6 +72,9 @@
         qty.disabled = !entry.available;
         if (parseInt(qty.value, 10) > entry.stock) qty.value = Math.max(1, entry.stock);
       }
+      /* The stepper owns its own plus/minus disabled state and cannot see this
+       * attribute change on its own. */
+      stepper.dispatchEvent(new Event('gx:qtymax'));
     }
 
     if (buy) buy.disabled = !entry.available;
@@ -95,7 +98,10 @@
   var jump = document.querySelector('[data-buy-jump]');
   if (jump && buy) {
     jump.addEventListener('click', function () {
-      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      /* The only scripted animation on the site, so it is also the only one that
+       * has to ask. A visitor who has turned motion off gets the jump instantly. */
+      var reduce = window.GX && window.GX.prefersReducedMotion && window.GX.prefersReducedMotion();
+      form.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
       buy.focus();
     });
   }

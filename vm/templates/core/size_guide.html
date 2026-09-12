@@ -2,53 +2,66 @@
 {% load i18n i18n_fields %}
 {% block title %}{% trans "Oʻlcham jadvali" %}{% endblock %}
 
+{% comment %}
+  Reached only when there is something to show - the view 404s otherwise - so
+  this template has no empty state and says nothing about a guide that does not
+  exist yet. The owner's image comes first because it is the thing people
+  actually read; the structured charts are the machine-readable version behind
+  it and arrive with Phase 6.
+{% endcomment %}
+
 {% block content %}
 <div class="wrap section">
   <article class="prose stack stack--lg">
     <h1 class="h1">{% trans "Oʻlcham jadvali" %}</h1>
+    <p class="lede">{% trans "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan." %}</p>
 
-    {% if charts %}
-      {% for chart in charts %}
-        <section class="stack">
-          <h2 class="h3">{{ chart.name }}</h2>
-          {% if chart.image %}
-            <img src="{{ chart.image.url }}" alt="{{ chart.name }}" loading="lazy" decoding="async">
-          {% endif %}
-          {% if chart|t:"note" %}<p class="body">{{ chart|t:"note" }}</p>{% endif %}
-
-          {% if chart.rows.exists %}
-            <div class="scroll-x">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>{% trans "Oʻlcham" %}</th>
-                    <th class="num">{% trans "Koʻkrak, sm" %}</th>
-                    <th class="num">{% trans "Uzunlik, sm" %}</th>
-                    <th class="num">{% trans "Yelka, sm" %}</th>
-                    <th class="num">{% trans "Yeng, sm" %}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for row in chart.rows.all %}
-                    <tr>
-                      <td data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</td>
-                      <td data-label="{% trans 'Koʻkrak, sm' %}" class="num">{{ row.chest_cm }}</td>
-                      <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm }}</td>
-                      <td data-label="{% trans 'Yelka, sm' %}" class="num">{{ row.shoulder_cm|default:"—" }}</td>
-                      <td data-label="{% trans 'Yeng, sm' %}" class="num">{{ row.sleeve_cm|default:"—" }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% endif %}
-        </section>
-      {% endfor %}
-    {% else %}
-      <p class="lede">{% trans "Oʻlcham jadvallari tayyorlanmoqda." %}</p>
-      <p class="body">{% trans "Ayni paytda oʻlchamni tanlashda ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz." %}</p>
-      <a class="btn btn--primary" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
+    {% if size_guide_image %}
+      <img class="sizeguide__img" src="{{ size_guide_image }}"
+           alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
+           loading="lazy" decoding="async">
     {% endif %}
+
+    {% for chart in charts %}
+      <section class="stack">
+        <h2 class="h3">{{ chart.name }}</h2>
+        {% if chart.image %}
+          <img class="sizeguide__img" src="{{ chart.image.url }}" alt="{{ chart.name }}"
+               loading="lazy" decoding="async">
+        {% endif %}
+        {% if chart|t:"note" %}<p class="body">{{ chart|t:"note" }}</p>{% endif %}
+
+        {% if chart.rows.exists %}
+          <div class="scroll-x">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>{% trans "Oʻlcham" %}</th>
+                  <th class="num">{% trans "Koʻkrak, sm" %}</th>
+                  <th class="num">{% trans "Uzunlik, sm" %}</th>
+                  <th class="num">{% trans "Yelka, sm" %}</th>
+                  <th class="num">{% trans "Yeng, sm" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in chart.rows.all %}
+                  <tr>
+                    <td data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</td>
+                    <td data-label="{% trans 'Koʻkrak, sm' %}" class="num">{{ row.chest_cm }}</td>
+                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm }}</td>
+                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{{ row.shoulder_cm|default:"—" }}</td>
+                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{{ row.sleeve_cm|default:"—" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </section>
+    {% endfor %}
+
+    <p class="body">{% trans "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz." %}</p>
+    <a class="btn btn--primary" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
   </article>
 </div>
 {% endblock %}
