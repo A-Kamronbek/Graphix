@@ -1,7 +1,10 @@
 """Template context shared by every page's chrome."""
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from django.urls import translate_url
 from django.utils.translation import get_language
+
+SIZE_GUIDE_IMAGE = 'img/size_guide.png'
 
 
 def languages(request):
@@ -32,3 +35,20 @@ def languages(request):
         })
 
     return {'languages': items, 'active_language': active}
+
+
+def size_guide(request):
+    """Whether there is a size guide to link to at all.
+
+    The guide is one image the owner drops at ``static/img/size_guide.png``.
+    Until that file exists there is no size guide, and the site says nothing
+    about one: the footer link is hidden, the product page's link is hidden and
+    the page itself 404s. A link to a page that apologises for being empty is
+    worse than no link - the visitor learns only that something is missing.
+
+    The lookup goes through the staticfiles finders, which is what ``{% static %}``
+    uses, so it answers the same before and after ``collectstatic``. A negative
+    result is deliberately not cached: the owner uploads the file and the site
+    picks it up without a restart.
+    """
+    return {'has_size_guide': bool(finders.find(SIZE_GUIDE_IMAGE))}

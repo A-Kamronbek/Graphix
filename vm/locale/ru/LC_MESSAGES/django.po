@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-10 22:09+0500\n"
+"POT-Creation-Date: 2026-09-12 00:26+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,11 +34,11 @@ msgstr "Этот размер закончился"
 msgid "Juda koʻp urinish. Iltimos, birozdan soʻng qayta urinib koʻring."
 msgstr "Слишком много попыток. Пожалуйста, повторите чуть позже."
 
-#: .\core\views.py:96
+#: .\core\views.py:110
 msgid "Iltimos, xabar kiriting."
 msgstr "Пожалуйста, введите сообщение."
 
-#: .\core\views.py:102
+#: .\core\views.py:116
 msgid "Xabar qabul qilindi."
 msgstr "Сообщение отправлено."
 
@@ -86,27 +86,23 @@ msgstr "Трафаретная печать"
 msgid "Naqsh"
 msgstr "Вышивка"
 
-#: .\product\models.py:113
+#: .\product\models.py:117
 msgid "Oddiy"
 msgstr "Обычный"
 
-#: .\product\models.py:114
+#: .\product\models.py:118
 msgid "Oversize"
 msgstr "Оверсайз"
 
-#: .\product\models.py:115
-msgid "Boxy"
-msgstr "Бокси"
-
-#: .\product\models.py:296
+#: .\product\models.py:299
 msgid "Kutilmoqda"
 msgstr "На модерации"
 
-#: .\product\models.py:297
+#: .\product\models.py:300
 msgid "Tasdiqlangan"
 msgstr "Одобрен"
 
-#: .\product\models.py:298
+#: .\product\models.py:301
 msgid "Rad etilgan"
 msgstr "Отклонён"
 
@@ -130,7 +126,7 @@ msgid "Kirish"
 msgstr "Войти"
 
 #: .\templates\403.html:13 .\templates\404.html:13 .\templates\500.html:11
-#: .\templates\base.html:10 .\templates\product\item.html:15
+#: .\templates\base.html:13 .\templates\product\item.html:15
 #: .\templates\product\liked.html:10 .\templates\product\shop.html:14
 msgid "Bosh sahifa"
 msgstr "Главная"
@@ -167,15 +163,15 @@ msgstr "Что-то пошло не так"
 msgid "Xatolik bizning tomonda. Biroz kutib, qayta urinib koʻring."
 msgstr "Ошибка на нашей стороне. Подождите немного и попробуйте снова."
 
-#: .\templates\base.html:11 .\templates\base.html:26
+#: .\templates\base.html:14 .\templates\base.html:29
 msgid "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish."
 msgstr "Магазин футболок с принтами. Премиальное качество, 100+ дизайнов, доставка по Узбекистану."
 
-#: .\templates\base.html:25
+#: .\templates\base.html:28
 msgid "grafik futbolkalar"
 msgstr "футболки с принтами"
 
-#: .\templates\base.html:56
+#: .\templates\base.html:59
 msgid "Asosiy qismga oʻtish"
 msgstr "Перейти к содержимому"
 
@@ -184,9 +180,9 @@ msgstr "Перейти к содержимому"
 msgid "Savat"
 msgstr "Корзина"
 
-#: .\templates\cart\cart.html:28 .\templates\core\size_guide.html:24
-#: .\templates\core\size_guide.html:34 .\templates\payment\order_detail.html:36
-#: .\templates\product\item.html:91 .\templates\product\item.html:99
+#: .\templates\cart\cart.html:28 .\templates\core\size_guide.html:39
+#: .\templates\core\size_guide.html:49 .\templates\payment\order_detail.html:36
+#: .\templates\product\item.html:94 .\templates\product\item.html:103
 #: .\templates\product\shop.html:92
 msgid "Oʻlcham"
 msgstr "Размер"
@@ -200,21 +196,21 @@ msgstr "Размер"
 #: .\templates\payment\order_detail.html:40
 #: .\templates\payment\order_detail.html:60 .\templates\payment\payment.html:12
 #: .\templates\payment\status.html:12 .\templates\product\_card.html:37
-#: .\templates\product\item.html:75 .\templates\product\item.html:153
-#: .\templates\product\item.html:160 .\templates\product\item.html:220
+#: .\templates\product\item.html:78 .\templates\product\item.html:157
+#: .\templates\product\item.html:164 .\templates\product\item.html:224
 msgid "soʻm"
 msgstr "сум"
 
-#: .\templates\cart\cart.html:37 .\templates\product\item.html:114
+#: .\templates\cart\cart.html:37 .\templates\product\item.html:118
 msgid "Kamaytirish"
 msgstr "Уменьшить"
 
-#: .\templates\cart\cart.html:42 .\templates\product\item.html:112
-#: .\templates\product\item.html:119
+#: .\templates\cart\cart.html:42 .\templates\product\item.html:116
+#: .\templates\product\item.html:123
 msgid "Soni"
 msgstr "Количество"
 
-#: .\templates\cart\cart.html:43 .\templates\product\item.html:120
+#: .\templates\cart\cart.html:43 .\templates\product\item.html:124
 msgid "Koʻpaytirish"
 msgstr "Увеличить"
 
@@ -272,7 +268,7 @@ msgid "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi."
 msgstr "Выберите понравившийся дизайн — он появится здесь."
 
 #: .\templates\core\about.html:3 .\templates\core\about.html:8
-#: .\templates\core\home.html:84 .\templates\partials\_drawer.html:24
+#: .\templates\core\home.html:86 .\templates\partials\_drawer.html:24
 #: .\templates\partials\_footer.html:19 .\templates\partials\_nav.html:13
 msgid "Biz haqimizda"
 msgstr "О нас"
@@ -298,7 +294,7 @@ msgid "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Bos
 msgstr "Есть своя картинка или идея, а в нашей коллекции её нет? Не тратьте время на поиски — напишите нам. Сделаем футболку с вашим дизайном под заказ."
 
 #: .\templates\core\about.html:20 .\templates\core\contact.html:3
-#: .\templates\core\contact.html:10 .\templates\core\size_guide.html:50
+#: .\templates\core\contact.html:10 .\templates\core\size_guide.html:64
 #: .\templates\partials\_drawer.html:25 .\templates\partials\_footer.html:18
 #: .\templates\partials\_nav.html:14 .\templates\terms.html:41
 msgid "Bogʻlanish"
@@ -343,7 +339,7 @@ msgstr ""
 msgid "Telefon"
 msgstr "Телефон"
 
-#: .\templates\core\contact.html:55 .\templates\partials\_footer.html:52
+#: .\templates\core\contact.html:55 .\templates\partials\_footer.html:57
 msgid "Elektron pochta"
 msgstr "Эл. почта"
 
@@ -351,11 +347,11 @@ msgstr "Эл. почта"
 msgid "Butun Oʻzbekiston boʻylab, Oʻzbekiston pochtasi orqali — Toshkentda ham, viloyatlarda ham."
 msgstr "По всему Узбекистану, через «Узбекистон почтаси» — и в Ташкенте, и в областях."
 
-#: .\templates\core\delivery.html:15 .\templates\product\item.html:151
+#: .\templates\core\delivery.html:15 .\templates\product\item.html:155
 msgid "Pochta boʻlimiga"
 msgstr "До отделения почты"
 
-#: .\templates\core\delivery.html:22 .\templates\product\item.html:158
+#: .\templates\core\delivery.html:22 .\templates\product\item.html:162
 msgid "Eshikkacha"
 msgstr "До двери"
 
@@ -399,42 +395,46 @@ msgstr "Все"
 msgid "Siz uchun"
 msgstr "Для вас"
 
-#: .\templates\core\home.html:69
+#: .\templates\core\home.html:71
 msgid "Kategoriyalar"
 msgstr "Категории"
 
-#: .\templates\core\home.html:82
+#: .\templates\core\home.html:84
 msgid "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
 msgstr "Каждая футболка проверяется до печати. Ни плохой печати, ни дешёвой ткани — всё, что есть в магазине, мы носим и сами."
 
-#: .\templates\core\size_guide.html:3 .\templates\core\size_guide.html:8
-#: .\templates\partials\_footer.html:20 .\templates\product\item.html:95
+#: .\templates\core\size_guide.html:3 .\templates\core\size_guide.html:16
+#: .\templates\partials\_footer.html:20 .\templates\product\item.html:99
 msgid "Oʻlcham jadvali"
 msgstr "Таблица размеров"
 
-#: .\templates\core\size_guide.html:25 .\templates\core\size_guide.html:35
+#: .\templates\core\size_guide.html:17
+msgid "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan."
+msgstr "Размеры в сантиметрах, сняты с самой вещи."
+
+#: .\templates\core\size_guide.html:21
+msgid "GRAPHIX futbolkalari oʻlcham jadvali"
+msgstr "Таблица размеров футболок GRAPHIX"
+
+#: .\templates\core\size_guide.html:40 .\templates\core\size_guide.html:50
 msgid "Koʻkrak, sm"
 msgstr "Грудь, см"
 
-#: .\templates\core\size_guide.html:26 .\templates\core\size_guide.html:36
+#: .\templates\core\size_guide.html:41 .\templates\core\size_guide.html:51
 msgid "Uzunlik, sm"
 msgstr "Длина, см"
 
-#: .\templates\core\size_guide.html:27 .\templates\core\size_guide.html:37
+#: .\templates\core\size_guide.html:42 .\templates\core\size_guide.html:52
 msgid "Yelka, sm"
 msgstr "Плечо, см"
 
-#: .\templates\core\size_guide.html:28 .\templates\core\size_guide.html:38
+#: .\templates\core\size_guide.html:43 .\templates\core\size_guide.html:53
 msgid "Yeng, sm"
 msgstr "Рукав, см"
 
-#: .\templates\core\size_guide.html:48
-msgid "Oʻlcham jadvallari tayyorlanmoqda."
-msgstr "Таблицы размеров готовятся."
-
-#: .\templates\core\size_guide.html:49
-msgid "Ayni paytda oʻlchamni tanlashda ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz."
-msgstr "Пока что, если сомневаетесь в размере, напишите нам — назовём точные замеры вещи."
+#: .\templates\core\size_guide.html:63
+msgid "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz."
+msgstr "Сомневаетесь — напишите нам, назовём точные размеры изделия."
 
 #: .\templates\partials\_account_nav.html:3
 #: .\templates\partials\_account_nav.html:4
@@ -500,27 +500,27 @@ msgstr "Помощь"
 msgid "Shartlar"
 msgstr "Условия"
 
-#: .\templates\partials\_footer.html:30
-msgid "Pochta boʻlimiga — 15 000 soʻm"
-msgstr "До отделения почты — 15 000 сум"
-
-#: .\templates\partials\_footer.html:31
-msgid "Eshikkacha — 30 000 soʻm"
-msgstr "До двери — 30 000 сум"
-
 #: .\templates\partials\_footer.html:32
+msgid "Pochta boʻlimiga — 15 000 soʻm"
+msgstr "До отделения почты — 15 000 сум"
+
+#: .\templates\partials\_footer.html:33
+msgid "Eshikkacha — 30 000 soʻm"
+msgstr "До двери — 30 000 сум"
+
+#: .\templates\partials\_footer.html:34
 msgid "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi"
 msgstr "По всему Узбекистану, «Узбекистон почтаси»"
 
-#: .\templates\partials\_footer.html:33
+#: .\templates\partials\_footer.html:35
 msgid "Batafsil"
 msgstr "Подробнее"
 
-#: .\templates\partials\_footer.html:38 .\templates\payment\checkout.html:14
+#: .\templates\partials\_footer.html:40 .\templates\payment\checkout.html:14
 msgid "Aloqa"
 msgstr "Связаться"
 
-#: .\templates\partials\_footer.html:58
+#: .\templates\partials\_footer.html:65
 msgid "Barcha huquqlar himoyalangan."
 msgstr "Все права защищены."
 
@@ -681,8 +681,8 @@ msgstr "В пути"
 msgid "Yetkazildi"
 msgstr "Доставлен"
 
-#: .\templates\product\_card.html:22 .\templates\product\item.html:142
-#: .\templates\product\item.html:225
+#: .\templates\product\_card.html:22 .\templates\product\item.html:146
+#: .\templates\product\item.html:229
 msgid "Tugadi"
 msgstr "Нет в наличии"
 
@@ -698,56 +698,56 @@ msgstr "Предыдущая страница"
 msgid "Keyingi sahifa"
 msgstr "Следующая страница"
 
-#: .\templates\product\item.html:40
+#: .\templates\product\item.html:43
 msgid "Rasmlar"
 msgstr "Фотографии"
 
-#: .\templates\product\item.html:45
+#: .\templates\product\item.html:48
 #, python-format
 msgid "Rasm %(n)s"
 msgstr "Фото %(n)s"
 
-#: .\templates\product\item.html:103
+#: .\templates\product\item.html:107
 msgid "tugagan"
 msgstr "нет в наличии"
 
-#: .\templates\product\item.html:129 .\templates\user\account_settings.html:36
+#: .\templates\product\item.html:133 .\templates\user\account_settings.html:36
 msgid "Saqlash"
 msgstr "Сохранить"
 
-#: .\templates\product\item.html:134
+#: .\templates\product\item.html:138
 msgid "Ulashish"
 msgstr "Поделиться"
 
-#: .\templates\product\item.html:142
+#: .\templates\product\item.html:146
 msgid "Savatga qoʻshish"
 msgstr "Добавить в корзину"
 
-#: .\templates\product\item.html:168
+#: .\templates\product\item.html:172
 msgid "Mato"
 msgstr "Ткань"
 
-#: .\templates\product\item.html:171
+#: .\templates\product\item.html:175
 msgid "Zichlik"
 msgstr "Плотность"
 
-#: .\templates\product\item.html:174
+#: .\templates\product\item.html:178
 msgid "Bosma"
 msgstr "Печать"
 
-#: .\templates\product\item.html:177
+#: .\templates\product\item.html:181
 msgid "Qolip"
 msgstr "Посадка"
 
-#: .\templates\product\item.html:184
+#: .\templates\product\item.html:188
 msgid "Tavsif"
 msgstr "Описание"
 
-#: .\templates\product\item.html:206
+#: .\templates\product\item.html:210
 msgid "Sizga yoqishi mumkin"
 msgstr "Вам может понравиться"
 
-#: .\templates\product\item.html:225
+#: .\templates\product\item.html:229
 msgid "Savatga"
 msgstr "В корзину"
 
@@ -1103,3 +1103,9 @@ msgstr "формат: +998 XX XXX XX XX"
 #: .\user\validators.py:18 .\user\validators.py:24
 msgid "Parol 8 belgidan kam boʻlmasligi kerak."
 msgstr "Пароль должен содержать не менее 8 символов."
+
+#~ msgid "Boxy"
+#~ msgstr "Бокси"
+
+#~ msgid "Oʻlcham jadvallari tayyorlanmoqda."
+#~ msgstr "Таблицы размеров готовятся."

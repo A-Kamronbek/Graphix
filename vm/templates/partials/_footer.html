@@ -3,7 +3,7 @@
   <div class="wrap">
     <div class="foot__grid">
       <div>
-        <h4>{% trans "Doʻkon" %}</h4>
+        <h2>{% trans "Doʻkon" %}</h2>
         <ul>
           <li><a href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a></li>
           {% for c in nav_categories %}
@@ -13,29 +13,34 @@
       </div>
 
       <div>
-        <h4>{% trans "Yordam" %}</h4>
+        <h2>{% trans "Yordam" %}</h2>
         <ul>
           <li><a href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a></li>
           <li><a href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a></li>
-          <li><a href="{% url 'size_guide' %}">{% trans "Oʻlcham jadvali" %}</a></li>
+          {# Hidden until the guide exists, because the page 404s until then. #}
+          {% if has_size_guide %}
+            <li><a href="{% url 'size_guide' %}">{% trans "Oʻlcham jadvali" %}</a></li>
+          {% endif %}
           <li><a href="{% url 'terms' %}">{% trans "Shartlar" %}</a></li>
         </ul>
       </div>
 
       <div>
-        <h4>{% trans "Yetkazib berish" %}</h4>
+        <h2>{% trans "Yetkazib berish" %}</h2>
         {# The two tiers, stated everywhere a customer might look for them, so #}
         {# nobody is surprised at checkout about who delivers or what it costs. #}
         <ul>
-          <li>{% trans "Pochta boʻlimiga — 15 000 soʻm" %}</li>
-          <li>{% trans "Eshikkacha — 30 000 soʻm" %}</li>
+          {# Non-breaking spaces inside the amounts: this column is narrow enough #}
+          {# on a phone to split "15 000" across two lines otherwise. #}
+          <li>{% trans "Pochta boʻlimiga — 15 000 soʻm" %}</li>
+          <li>{% trans "Eshikkacha — 30 000 soʻm" %}</li>
           <li class="subtle">{% trans "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi" %}</li>
           <li><a class="link" href="{% url 'delivery' %}">{% trans "Batafsil" %}</a></li>
         </ul>
       </div>
 
       <div>
-        <h4>{% trans "Aloqa" %}</h4>
+        <h2>{% trans "Aloqa" %}</h2>
         <ul>
           <li>
             <a href="tel:+998507888436" class="foot__link">
@@ -49,7 +54,12 @@
               <span>Telegram</span>
             </a>
           </li>
-          <li><a href="mailto:abdurahmonboboyev.magic@gmail.com">{% trans "Elektron pochta" %}</a></li>
+          <li>
+            <a href="mailto:abdurahmonboboyev.magic@gmail.com" class="foot__link">
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-mail"></use></svg>
+              <span>{% trans "Elektron pochta" %}</span>
+            </a>
+          </li>
         </ul>
       </div>
     </div>

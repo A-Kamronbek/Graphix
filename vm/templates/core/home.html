@@ -63,7 +63,9 @@
   </section>
 {% endif %}
 
-{% if categories %}
+{# Two or more, or not at all: a "Categories" heading above a single chip is a #}
+{# choice with nothing to choose between, and it reads as an unfinished page. #}
+{% if categories|length > 1 %}
   <section class="section">
     <div class="wrap stack stack--lg">
       <h2 class="h2">{% trans "Kategoriyalar" %}</h2>

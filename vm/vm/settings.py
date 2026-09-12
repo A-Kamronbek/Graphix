@@ -75,6 +75,7 @@ TEMPLATES = [
                 'cart.context_processors.liked_count',
                 'product.context_processors.nav_categories',
                 'core.context_processors.languages',
+                'core.context_processors.size_guide',
             ],
         },
     },

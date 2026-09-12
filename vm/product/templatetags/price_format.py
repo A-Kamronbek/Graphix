@@ -10,4 +10,6 @@ def price(value):
         n = int(round(float(value)))
     except (TypeError, ValueError):
         return value
-    return f"{n:,}".replace(",", " ")
+    # A non-breaking space, so "185 000 soʻm" can never be split across two
+    # lines by a narrow card or a footer column.
+    return f"{n:,}".replace(",", "\u00a0")

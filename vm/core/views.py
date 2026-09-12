@@ -1,11 +1,15 @@
 """Static pages (home, about, terms), the contact form, the staff style guide,
 and error handlers."""
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.staticfiles import finders
+from django.http import Http404
 from django.utils.translation import gettext as _
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 from product.models import Product, Category
+from django.templatetags.static import static
+from core.context_processors import SIZE_GUIDE_IMAGE
 from .models import Msg
 from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
@@ -57,13 +61,23 @@ def delivery(request):
 def size_guide(request):
     """Standalone size guide, for search engines and the footer (plan §9 6a).
 
+    The guide is whatever exists: the owner's image at
+    ``static/img/size_guide.png``, plus any structured ``SizeChart`` rows once
+    Phase 6 seeds them. If neither exists there is no size guide, and this 404s
+    rather than rendering a page that apologises for being empty - the footer
+    and product-page links are hidden in the same state, so a visitor never
+    learns that something is missing (owner's call, plan §17 #69).
+
     The modal on the product page is Phase 6a; this page is its indexable twin.
-    With no charts uploaded yet (§19 Q9) it says so plainly and offers the
-    contact form rather than rendering an empty table.
     """
     from product.models import SizeChart
+    charts = list(SizeChart.objects.prefetch_related('rows__size'))
+    image = finders.find(SIZE_GUIDE_IMAGE) and static(SIZE_GUIDE_IMAGE)
+    if not charts and not image:
+        raise Http404('no size guide has been uploaded yet')
     return render(request, 'core/size_guide.html', {
-        'charts': SizeChart.objects.prefetch_related('rows__size'),
+        'charts': charts,
+        'size_guide_image': image,
     })
 
 
@@ -117,7 +131,8 @@ def contact(request):
 STYLE_SWATCHES = [
     ('--c-bg', '#100E0C'), ('--c-surface', '#17140F'), ('--c-surface-2', '#211C15'),
     ('--c-surface-3', '#2A241B'), ('--c-fg', '#EFE9DE'), ('--c-fg-muted', '#B0A697'),
-    ('--c-fg-subtle', '#7D7466'), ('--c-line', '#2C2620'), ('--c-line-strong', '#453D31'),
+    ('--c-fg-subtle', '#7D7466'), ('--c-fg-hint', '#958A79'),
+    ('--c-line', '#2C2620'), ('--c-line-strong', '#453D31'),
     ('--c-brand', '#C6A44E'), ('--c-brand-hover', '#D6B662'), ('--c-brand-fg', '#171205'),
     ('--c-success', '#86BE72'), ('--c-warning', '#D9A441'), ('--c-danger', '#E07A62'),
     ('--c-info', '#8AB4CE'),
@@ -126,7 +141,7 @@ STYLE_SWATCHES = [
 STYLE_ICONS = [
     'mark', 'search', 'heart', 'cart', 'user', 'share', 'menu', 'close', 'check',
     'minus', 'plus', 'chevron-down', 'chevron-right', 'arrow-left', 'arrow-right',
-    'star', 'filter', 'sort', 'truck', 'box', 'pin', 'phone', 'telegram', 'info',
+    'star', 'filter', 'sort', 'truck', 'box', 'pin', 'phone', 'mail', 'telegram', 'info',
     'warning', 'image', 'trash', 'ruler',
 ]
 

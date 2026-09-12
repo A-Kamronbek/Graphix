@@ -6,7 +6,9 @@ tells Google the three prefixes are the same page in different languages rather
 than duplicate content.
 """
 from django.contrib.sitemaps import Sitemap
+from django.contrib.staticfiles import finders
 from django.urls import reverse
+from core.context_processors import SIZE_GUIDE_IMAGE
 from product.models import Product
 
 
@@ -21,7 +23,12 @@ class StaticViewSitemap(Sitemap):
     def items(self):
         # /saqlanganlar/ is deliberately absent: it needs a login, so it has
         # nothing to show a crawler.
-        return ['home', 'shop', 'about', 'contact', 'delivery', 'size_guide', 'terms']
+        names = ['home', 'shop', 'about', 'contact', 'delivery', 'terms']
+        # The size guide 404s until the owner uploads the image, and a sitemap
+        # that advertises a 404 is worse than one that omits the page.
+        if finders.find(SIZE_GUIDE_IMAGE):
+            names.insert(-1, 'size_guide')
+        return names
 
     def location(self, name):
         return reverse(name)

@@ -49,9 +49,15 @@
   font-size: var(--fs-base); min-height: 48px;
   transition: border-color var(--t-fast), background var(--t-fast);
 }
-.input::placeholder, .textarea::placeholder { color: var(--c-fg-subtle); }
+.input::placeholder, .textarea::placeholder { color: var(--c-fg-hint); }
 .input:hover, .textarea:hover, .select:hover { border-color: var(--c-fg-subtle); }
-.input:focus, .textarea:focus, .select:focus { outline: none; border-color: var(--c-brand); background: var(--c-surface-2); }
+/* The brand border and lifted ground are the focus treatment under a mouse.
+   The brass ring is NOT removed for keyboard focus: a field that only changes
+   its 1px border is not enough to navigate by, and every text field on the site
+   was losing the ring that every button kept. */
+.input:focus, .textarea:focus, .select:focus { border-color: var(--c-brand); background: var(--c-surface-2); }
+.input:focus:not(:focus-visible), .textarea:focus:not(:focus-visible),
+.select:focus:not(:focus-visible) { outline: none; }
 .textarea { min-height: 120px; resize: vertical; line-height: var(--lh-normal); }
 .select { appearance: none; padding-right: var(--s-7);
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
@@ -85,7 +91,7 @@
    as a broken white bar on this ground. The stepper's own border is the frame. */
 input.stepper__val { width: 52px; padding: var(--s-2) 0; background: none; border: 0;
   color: inherit; }
-input.stepper__val:focus { outline: none; }
+input.stepper__val:focus:not(:focus-visible) { outline: none; }
 .stepper:focus-within { border-color: var(--c-brand); }
 input.stepper__val:disabled { color: var(--c-fg-subtle); }
 
@@ -93,12 +99,18 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .otp input { width: 52px; height: 62px; text-align: center; font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold); background: var(--c-surface); color: var(--c-fg);
   border: 1px solid var(--c-line-strong); border-radius: var(--r-sm); font-variant-numeric: tabular-nums; }
-.otp input:focus { outline: none; border-color: var(--c-brand); }
+.otp input:focus { border-color: var(--c-brand); }
+.otp input:focus:not(:focus-visible) { outline: none; }
 
 .search { display: flex; align-items: center; gap: var(--s-2); width: 100%;
   padding: 0 var(--s-4); background: var(--c-surface); border: 1px solid var(--c-line-strong);
   border-radius: var(--r-full); min-height: 44px; color: var(--c-fg-muted); }
-.search:focus-within { border-color: var(--c-brand); color: var(--c-fg); }
+/* The input inside the pill is borderless and has `outline: none`, so the
+   keyboard ring belongs on the pill: drawn here it frames the whole control
+   instead of a bare field, and every other control on the page keeps a ring
+   this one was missing. */
+.search:focus-within { border-color: var(--c-brand); color: var(--c-fg);
+  outline: 2px solid var(--c-brand); outline-offset: 2px; }
 .search input { flex: 1; background: none; border: 0; outline: none; min-width: 0; }
 
 /* ========================================================= 3. product card */
@@ -151,7 +163,11 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 /* ============================================================ 6. spec strip */
 .spec__row { display: flex; justify-content: space-between; gap: var(--s-5);
   padding: var(--s-3) 0; border-top: 1px solid var(--c-line); font-size: var(--fs-sm); }
-.spec__row dt { color: var(--c-fg-muted); }
+/* The global reset makes every svg display:block, so an icon inside this
+   block-level dt took its own line and left the label sitting under it. Flex
+   puts them back on one line, which is what every other icon+label pair does. */
+.spec__row dt { display: flex; align-items: center; gap: var(--s-2);
+  color: var(--c-fg-muted); }
 .spec__row dd { font-weight: var(--fw-semibold); text-align: right; }
 
 /* =========================================================== 7. star rating */
@@ -173,15 +189,16 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .review__hd { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
   margin-bottom: var(--s-2); }
 .review__who { font-weight: var(--fw-semibold); }
-.review__date{ color: var(--c-fg-subtle); font-size: var(--fs-sm); margin-left: auto; }
+.review__date{ color: var(--c-fg-hint); font-size: var(--fs-sm); margin-left: auto; }
 .review__text{ color: var(--c-fg-muted); }
 .review__pics{ display: flex; gap: var(--s-2); margin-top: var(--s-3); }
 .review__pics img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--r-sm);
   border: 1px solid var(--c-line); }
 
 /* ============================================== 9. heart / share / badges */
-.like { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--c-fg);
-  padding: var(--s-2); border-radius: var(--r-sm); transition: color var(--t-fast); }
+.like { display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  color: var(--c-fg); padding: var(--s-2); border-radius: var(--r-sm);
+  min-width: 44px; min-height: 44px; transition: color var(--t-fast); }
 .like:hover { color: var(--c-brand); }
 .like[aria-pressed="true"] { color: var(--c-brand); }
 .like[aria-pressed="true"] .i { fill: currentColor; }
@@ -319,20 +336,33 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .acc__panel { padding-bottom: var(--s-4); color: var(--c-fg-muted); }
 
 /* =============================================== 18. nav / drawer / footer */
+/* The bar is full-bleed but its contents line up with `.wrap`: without the max()
+   the logo sat 80 px to the left of the page's own left edge at 1440, which is
+   the sort of misalignment nobody can name but everybody sees. */
 .nav { position: sticky; top: 0; z-index: var(--z-sticky);
   display: flex; align-items: center; gap: var(--s-4);
-  padding: var(--s-3) var(--pad-x); border-bottom: 1px solid var(--c-line);
+  padding-block: var(--s-3);
+  padding-inline: max(var(--pad-x), calc((100% - var(--container)) / 2 + var(--pad-x)));
+  border-bottom: 1px solid var(--c-line);
   background: color-mix(in srgb, var(--c-bg) 94%, transparent); backdrop-filter: blur(8px); }
-.nav__brand { display: flex; align-items: center; gap: var(--s-2); }
+.nav__brand { display: flex; align-items: center; gap: var(--s-2);
+  min-height: 44px; }   /* the logo is a link, so it is a tap target too */
 .nav__brand .i { color: var(--c-fg); }
 .nav__brand span { font-family: var(--f-display); font-weight: var(--fw-bold);
   font-size: var(--fs-lg); letter-spacing: .10em; }
 .nav__links { display: none; gap: var(--s-5); margin-left: var(--s-6); color: var(--c-fg-muted); }
 .nav__links a:hover, .nav__links .is-active { color: var(--c-fg); }
 .nav__actions { margin-left: auto; display: flex; gap: var(--s-1); }
-.nav__actions button, .nav__actions a { padding: var(--s-2); border-radius: var(--r-sm);
-  display: grid; place-items: center; position: relative; }
-.nav__actions button:hover, .nav__actions a:hover { background: var(--c-surface-2); }
+:where(.nav__actions) :where(button, a) { padding: var(--s-2); border-radius: var(--r-sm);
+  display: grid; place-items: center; position: relative;
+  /* The icon stays 20px; the box around it is the tap target. */
+  min-width: 44px; min-height: 44px; }
+:where(.nav__actions) :where(button, a):hover { background: var(--c-surface-2); }
+/* `:where()` on purpose. As `.nav__actions button` this rule scored (0,2,1) and
+   silently beat every `display: none` written for an individual control, so the
+   burger and the search icon showed on desktop next to the links and the field
+   they replace, and the account icon showed on mobile next to the drawer that
+   already holds it. Zero specificity puts those rules back in charge. */
 .nav__count { position: absolute; top: 2px; right: 0; background: var(--c-brand);
   color: var(--c-brand-fg); font-size: 10px; font-weight: var(--fw-bold); line-height: 1;
   padding: 2px 4px; border-radius: var(--r-full); }
@@ -343,19 +373,26 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
   padding: var(--s-5); transform: translateX(100%);
   transition: transform var(--t-base) var(--ease-out); }
 .drawer.is-open { transform: none; }
+/* Pulled back by its own overhang so the icon still lines up with the
+   drawer's padding edge while the target around it is full size. */
+.drawer__hd button { width: 44px; height: 44px; display: grid; place-items: center;
+  margin: calc(var(--s-3) * -1) calc(var(--s-3) * -1) calc(var(--s-3) * -1) 0; }
 .drawer a { display: block; padding: var(--s-3) 0; border-bottom: 1px solid var(--c-line);
   font-size: var(--fs-lg); }
 
-.foot { border-top: 1px solid var(--c-line); padding: var(--s-7) var(--pad-x) var(--s-6);
+/* No horizontal padding here: the footer's contents are already inside a
+   `.wrap`, and setting `--pad-x` on both indented the footer past every other
+   block on the page. */
+.foot { border-top: 1px solid var(--c-line); padding-block: var(--s-7) var(--s-6);
   color: var(--c-fg-muted); font-size: var(--fs-sm); }
 .foot__grid { display: grid; gap: var(--s-5); grid-template-columns: 1fr 1fr; }
-.foot h4 { font-family: var(--f-display); color: var(--c-fg); font-size: var(--fs-base);
+.foot h2 { font-family: var(--f-display); color: var(--c-fg); font-size: var(--fs-base);
   font-weight: var(--fw-semibold); margin-bottom: var(--s-3); }
 .foot li { margin-bottom: var(--s-2); }
 .foot a:hover { color: var(--c-fg); }
 .foot__bot { display: flex; flex-wrap: wrap; gap: var(--s-3); justify-content: space-between;
   margin-top: var(--s-6); padding-top: var(--s-4); border-top: 1px solid var(--c-line);
-  font-size: var(--fs-xs); color: var(--c-fg-subtle); }
+  font-size: var(--fs-xs); color: var(--c-fg-hint); }
 @media (min-width: 720px) { .foot__grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* ================================================= 19. language switcher */
@@ -400,3 +437,48 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .hero__sub { color: var(--c-fg-muted); margin-top: var(--s-3); max-width: 46ch; }
 .hero__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-5); }
 @media (min-width: 860px) { .hero { max-height: none; padding-block: var(--s-9); } }
+
+/* ===================================================== 19. touch sizing
+   Plan §9 sets the floor at 44 x 44. Most controls already meet it; these are
+   the ones that did not, and they are corrected only where a finger is the
+   likely input. A 36 px button is fine under a mouse and wrong under a thumb,
+   so the desktop sizes are left alone rather than inflated to match. */
+@media (max-width: 720px), (pointer: coarse) {
+  /* Filter, sort and the account page's ghost buttons. */
+  .btn--sm { min-height: 44px; }
+
+  .lang button { min-height: 44px; }
+
+  /* The whole label is the target for a checkbox or radio, not the 22 px box. */
+  .check { min-height: 44px; }
+
+  /* Footer links were 18 px tall on a 26 px pitch - three of them fit inside one
+     fingertip. Taller links, tighter margins: the column reads the same, the
+     targets stop overlapping. */
+  .foot li { margin-bottom: var(--s-1); }
+  .foot li a { display: inline-flex; align-items: center; min-height: 44px; }
+
+  /* Two stacked calls to action that differ by ten pixels look like a mistake
+     rather than a choice. Full width makes the pair deliberate. */
+  .home__hero .btn { flex: 1 0 100%; }
+
+  /* Tag chips keep their pill proportions - a 44 px chip looks like a button -
+     and grow their hit area with a pseudo-element instead. */
+  a.badge { position: relative; }
+  a.badge::after { content: ""; position: absolute; inset: -8px; }
+
+  /* Standalone text links - "Barchasi", "Koʻrish", "Parolni unutdingizmi?" -
+     are actions, not prose, and at 27 px tall they are a poor target. Growing
+     the box would break the typographic rhythm they sit in, so the hit area
+     grows instead and the text stays exactly where it was. Links inside running
+     text are excluded: expanding those would make neighbouring lines overlap. */
+  a.link, a.card__name { position: relative; }
+  a.link::after, a.card__name::after { content: ""; position: absolute;
+    inset: -9px -4px; }
+  p a.link::after, li a.link::after, td a.link::after, .prose a.link::after { content: none; }
+
+  /* Breadcrumbs are 18 px of text doing navigation work. Vertical-only growth:
+     the crumbs sit in a row, so widening them would let neighbours overlap. */
+  .crumbs a { position: relative; }
+  .crumbs a::after { content: ""; position: absolute; inset: -13px 0; }
+}
