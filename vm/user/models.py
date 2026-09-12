@@ -51,7 +51,7 @@ class User(AbstractUser):
         max_length=17,
         unique=True,
         error_messages={
-            'unique': "Ushbu raqam allaqachon ro'yxatdan o'tgan.",
+            'unique': _("Ushbu raqam allaqachon roʻyxatdan oʻtgan."),
         },
     )
     phone_verified = models.BooleanField(default=False)

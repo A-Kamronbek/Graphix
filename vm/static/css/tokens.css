@@ -46,6 +46,11 @@
   --c-danger:        #E07A62;  --c-danger-bg:  #2A140F;
   --c-info:          #8AB4CE;  --c-info-bg:    #101D24;
 
+  /* The scrim behind anything that covers the page - drawer, filter sheet,
+     modal. One value, so every dimmed page dims by the same amount; three
+     hand-written color-mix() calls had already drifted to two. */
+  --c-scrim:         color-mix(in srgb, #000 60%, transparent);
+
   /* ---------------------------------------------------------------- space */
   --s-1:   4px;  --s-2:   8px;  --s-3:  12px;  --s-4:  16px;  --s-5:  24px;
   --s-6:  32px;  --s-7:  48px;  --s-8:  64px;  --s-9:  96px;  --s-10:128px;
@@ -81,7 +86,6 @@
 
   /* -------------------------------------------------------------- layout */
   --container:      1280px;
-  --container-wide: 1600px;
   --pad-x: clamp(16px, 5vw, 48px);
 
   /* Product imagery is 4:5 across the whole catalogue (§8). */

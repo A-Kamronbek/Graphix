@@ -8,6 +8,7 @@ import random
 from datetime import timedelta
 
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from core.sms import send_sms
 
@@ -18,7 +19,7 @@ MAX_ATTEMPTS = 7
 
 # User-facing reasons for aborting the reset flow, keyed by an internal code.
 REASONS = {
-    'expired': "Kod muddati tugadi. Iltimos, qaytadan urinib ko'ring.",
+    'expired': _("Kod muddati tugadi. Iltimos, qaytadan urinib koʻring."),
 }
 
 

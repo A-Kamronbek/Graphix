@@ -4,7 +4,7 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 1.18 · created 2026-09-08 · last amended 2026-09-12
+**Plan version:** 1.19 · created 2026-09-08 · last amended 2026-09-12
 **Status:** Phases 0, 1a, 2, 3, 4 and 5 complete · Phase 1b parked (no VPS yet) · **Phase 6 (product and checkout features) next**
 
 ---
@@ -959,7 +959,8 @@ languages) before the next begins.
 1. **`base.html`, nav, footer, drawer** — the shell. Includes the **global search field**, language
    switcher, **heart count**, cart count, and the mobile drawer.
 2. **Product detail (`/mahsulot/<slug>/`)** — the most important page on the site:
-   - Gallery with thumbnails, swipe, pinch-zoom
+   - Gallery with thumbnails, swipe, and arrow-key navigation. **Zoom moves to Phase 6a**,
+     where it shares one full-screen viewer with the size chart (§17 #79)
    - Title, price, **star rating + review count** (hidden entirely until the first approved review —
      an empty rating looks worse than no rating)
    - Size selection with clear out-of-stock states; **no colour picker**
@@ -969,15 +970,20 @@ languages) before the next begins.
    - Description, **reviews section**, related products
    - Delivery line: "15 000 so'm pochta bo'limiga · 30 000 so'm eshikkacha"
    - Sticky add-to-cart bar on mobile
-3. **Shop (`/shop/`)** — responsive grid; filters as sidebar on desktop, bottom sheet on mobile;
-   **tag filters**; sort including **"Ommabop"** (by `likes_count`) and **"Reyting bo'yicha"**;
-   pagination; skeleton loading; a real empty state.
+3. **Shop (`/shop/`)** — responsive grid; filters as a sticky sidebar on desktop and a sheet that
+   comes down from the top on mobile (§17 #76, #77); **tag filters**; pagination; a real empty state.
+   **"Ommabop"** and **"Reyting bo'yicha"** sort with the data that makes them meaningful, in Phase 6b,
+   and **skeleton loading** arrives with the first asynchronous fetch there too — the grid is rendered
+   by the server today, so there is no moment for a skeleton to fill (§17 #79).
 4. **Home (`/`)** — hero that shows actual product and **obeys the above-the-fold rule**; tagline;
    a **"Siz uchun" (For you) row** — filled with most-liked initially, swapped for the real
    recommender in Phase 13; new arrivals; category entry points; brand statement.
 5. **Search results (`/qidiruv/`)** — global search across name, description and tags.
-6. **Cart** — **works for anonymous visitors**; line items with thumbnails, quantity steppers, totals;
-   the checkout button prompts login for guests, stating plainly that the cart is kept.
+6. **Cart** — line items with thumbnails, quantity steppers, totals; the checkout button prompts
+   login for guests, stating plainly that the cart is kept. **The anonymous cart itself is Phase 6g.**
+   Phase 4 built the model for it — nullable `user`, `session_key`, two partial unique constraints —
+   but the views never followed: `cart`, `cart_update` and `cart_remove` are still `@login_required`
+   and `cart_add` sends an anonymous visitor to login. Found by this phase's gate review (§17 #79).
 7. **Liked items (`/saqlanganlar/`)** — same grid as shop, with remove and "add to cart" actions.
 8. **Auth pages** — login, signup, OTP, the three password-reset steps. Behaviour unchanged; only
    presentation.
@@ -994,12 +1000,23 @@ languages) before the next begins.
 - [ ] All three languages, including the longest string in each (Russian runs ~20 % longer)
 - [ ] Keyboard navigable, visible focus ring on every interactive element
 - [ ] Loading, empty, error and success states designed
-- [ ] Images have `alt`, `width`, `height` and `srcset` (no layout shift)
-- [ ] No hardcoded colour, spacing or font-size value
-- [ ] Lighthouse mobile ≥ 90
+- [ ] Images have `alt`, and a frame that holds the catalogue’s 4:5 ratio before the file
+      arrives, so nothing shifts. `width`/`height` and `srcset` need the image pipeline and
+      belong to Phase 9 (§18 #14)
+- [ ] No hardcoded colour, spacing or font-size value, and no `style` attribute
+- [ ] Every user-facing string it can produce goes through `{% trans %}` **or `gettext`** — the
+      Python that flashes a message at the page is copy too (§17 #80)
 
-**Definition of Done:** every page passes its full checklist · the old `main.css` is deleted · CSS and
-JS under budget · nothing in `templates/` references a removed class.
+**Definition of Done:** every page passes its full checklist · the old `main.css` is deleted · CSS
+and JS under the §5 budget, **measured gzipped, which is how they are served** · no class defined in
+CSS that no markup uses, and no class used in markup that no rule styles · every user-facing string
+through gettext · `.git/audit.py`, `.git/interact.py` and `.git/fold.py` all clean · the full test
+suite green.
+
+**Lighthouse is Phase 9's gate, not this one.** The mobile score is dominated by the image pipeline,
+which does not exist yet: measuring it here would either fail for a reason this phase cannot fix, or
+pass against a catalogue of eight photographs and mean nothing. §5's targets stand; Phase 9 owns
+proving them (§17 #79).
 
 ---
 
@@ -1007,10 +1024,19 @@ JS under budget · nothing in `templates/` references a removed class.
 
 *Goal: the features that make the shop genuinely better to use.*
 
-**6a — Size guide.** Modal (desktop dialog / mobile bottom sheet) from a "O'lcham jadvali" link beside
-the size selector. Renders the chart image full width, pinch-zoomable, with a descriptive `alt`. Where
-`SizeChartRow` entries exist, a responsive table below it with the selected size highlighted. Shows
-the chart note in the active language. Standalone `/size-guide/` page for SEO and the footer.
+**6a — Size guide and the zoomable viewer.** The standalone `/size-guide/` page already shipped in
+Phase 5, and it shows the chart only when `static/img/size_guide.png` is actually there — Kamronbek's
+call, and the right one: if there is no chart, nobody should learn that there was supposed to be one
+(§17 #69). The link beside the size selector goes to that page.
+
+What is left here is the **viewer**: a tap on the size chart — or on a product photograph — opens it
+full-screen with native pinch-zoom and a focus trap. One viewer serves both, which is why the gallery's
+zoom was moved here rather than built twice (§17 #79). The `.overlay` / `.modal` CSS is already in the
+design system waiting for it.
+
+Then the **`SizeChartRow` table** below the image, with the selected size highlighted and the chart
+note in the active language. That half is blocked on §19 Q9 — the models are built and there is no
+chart content to put in them.
 
 **6b — Likes (save + popularity) and share.**
 
@@ -1489,8 +1515,8 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 | 2 Design system | ✅ Done | `phase-2-design` | 2026-09-09 | 2026-09-09 | Round one rejected, round two signed off. Tokens, fonts, base, components, style guide, icons, lockups all shipped. Item 10's measurement carried to Phase 5 |
 | 3 i18n foundation | ✅ Done | `phase-3-i18n` | 2026-09-09 | 2026-09-09 | Machinery + 25 Python strings in 3 languages. Template copy moves to Phase 5, per page (§17 #50) |
 | 4 Data model | ✅ Done | `phase-4-models`, `phase-4-verify` | 2026-09-10 | 2026-09-10 | DoD met, 68 tests. Verification pass fixed two silent defects (§17 #59, #60). Item 11 (size charts) carried to Phase 6 — blocked on §19 Q9. `data/pickup_points.csv` ships header-only pending Q3/Q4 |
-| 5 Frontend rebuild | ✅ Done | `phase-5-frontend` | 2026-09-10 | 2026-09-10 | All 11 items. `main.css` and the legacy shim deleted — DoD met. 25 templates on the design system, 201 strings in 3 languages, 306 breakpoint checks clean. Four defects found by verification (§17 #63, #64). **Polished on `phase-5-polish` 2026-09-11** after a full re-check in a real browser: seventeen more defects, all behavioural or visual (§17 #67-#73) |
-| 6 Features | ⬜ Not started | `phase-6-features` | — | — | Needs Yandex licence + Telegram token |
+| 5 Frontend rebuild | ✅ Done | `phase-5-frontend`, `phase-5-polish` | 2026-09-10 | 2026-09-12 | All 11 items. `main.css` and the legacy shim deleted. 25 templates on the design system, 221 strings in 3 languages. Defects found by verification rather than review at every step: four in the first pass (§17 #63, #64), seventeen in the browser re-check (§17 #67–#73), five when Kamronbek ran it himself — including two page layouts flattened to one column (§17 #74–#77). **Gate review 2026-09-12 (§17 #79–#82):** DoD met after fixing twenty user-facing Python strings that bypassed gettext, deleting two superseded CSS sections, and restoring this file from a stale write that had silently reverted it to v1.5. Four checklist items moved to the phase that can honestly meet them. 70 tests |
+| 6 Features | ⬜ Not started | `phase-6-features` | — | — | **Entry criteria met.** Blocked work inside it: 6a's chart table (Q9), the pickup picker (Q3/Q4), the map (Q1), Telegram (Q2). 6b, 6c, 6g and 6a's viewer need nothing from anyone and are where it should start |
 | 12 Reviews | ⬜ Not started | `phase-12-reviews` | — | — | Runs before Phase 7 |
 | 7 Admin panel | ⬜ Not started | `phase-7-panel` | — | — | |
 | 8 Legal & content | ⬜ Not started | `phase-8-content` | — | — | |
@@ -1525,6 +1551,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-11 | Task | 5 | v1.16: **polish pass on branch `phase-5-polish`, driven by rendering rather than by reading.** Kamronbek answered the four open questions (fit range, tag taxonomy, social handles, size guide) and asked for every page to be re-checked in a real browser. Two harnesses now do that: `.git/audit.py` asks fourteen questions of every page at every breakpoint in all three languages — clipped text, escaped elements, unlabelled controls, heading order, duplicate ids, contrast, and **tap targets measured by hit-testing rather than by the element’s own box** — and `.git/interact.py` *operates* the drawer, search, filter sheet, stepper, gallery and size picker with real clicks and Tab presses, then asserts on what the page became. Both serve the pages over HTTP, because on `file://` the woff2 faces are blocked by CORS and every screenshot was being judged in fallback fonts. **They found twenty-four defects, almost none of which reading the source would have shown**, among them: an open drawer let Tab walk out onto links behind it; the filter sheet never took focus and never gave it back; every text field on the site lost its focus ring to an `outline: none`; the stepper’s minus at quantity 1 looked live and did nothing; `.nav__actions button` out-specified three `display: none` rules, so the burger and a redundant search icon sat on desktop and a fifth icon sat on mobile — which is also what pushed the header onto two rows and dropped the first product card below the fold once the icons grew to 44 px; the footer was indented past every other block because it set `--pad-x` on top of the `.wrap` that already had it; the header sat 80 px left of the page’s own left edge at 1440; and the delivery rows put their icon on a line of its own because the reset makes every `svg` a block. **342 breakpoint checks and every interaction check now pass**, the fold check passes in all three languages, and 69 tests pass. Decisions §17 #67–#73 | Kamronbek reviews, then Phase 6 |
 | 2026-09-12 | Task | 5 | v1.17: **Kamronbek ran the site himself and found what no harness had been asked to check: whether a page has the layout it is supposed to have.** One rule caused most of it — a shared `grid-template-columns: minmax(0, 1fr)` written *after* the breakpoints that set the real columns. A media query adds no specificity, so it won everywhere, and **the product page and the shop had a single column on every screen since the 360 px overflow fix** (§17 #74). On the product page that put the buy column under a gallery whose image was sticky, so the photograph slid down over the title as he scrolled; on the shop it stacked the filters above the grid. Fixed, and now measured: `interact.py` asserts the column counts, that the buy column sits *beside* the gallery, and that the gallery never overlaps it at any scroll position. Also from his list: **the image frame no longer takes any size from the photograph inside it** (§17 #75) — proved by swapping in 3000×500, 500×3000 and 900×900 sources and measuring the box; **the shop is a sticky sidebar plus an independently scrolling results column** (§17 #76), which needed a wrapper, because a stretched grid item fills its own grid area and a sticky box with no room in its containing block cannot move at all — and the sidebar’s `top` had never applied anyway, reset by an `inset: auto` written after it; **the mobile hero is type and two buttons**, no photograph, with the supporting line under them (§17 #77) — the first product card is now 283 px above the fold instead of 36; **the mobile filter sheet comes down from the top** with a backdrop that dims the page and dismisses on tap; and the account logout is a bordered button rather than a ghost that read as one more link. 342 breakpoint checks, every interaction check and 69 tests pass | Kamronbek reviews |
 | 2026-09-12 | Task | 5 | v1.18: **the eight review designs are now the local database, seeded by `manage.py seed_demo_catalogue`.** They had only ever existed inside a throwaway test database that `.git/render_all.py` built and destroyed, so every screenshot and every breakpoint sweep was measured against a catalogue no developer ever actually saw — which is exactly how a single-column product page survived for days: nobody had a page in front of them with four photographs and four sizes on it. The command is destructive by design and says so before it acts: it replaces products, images, variants, categories and sizes, and the carts and orders that hang off them, while keeping user accounts, delivery options, pickup points and contact messages. It refuses any `DB_HOST` that is not local. The photographs live in `docs/design/demo-catalogue/` because `vm/media/` is gitignored, and are copied into place when missing, so a fresh clone needs nothing but the command — verified by deleting them and running it again. Kamronbek’s three scratch products, two categories and one test order are gone at his request; a `pg_dump` of the old database is in `.git/dbbackup/` anyway. 69 tests pass | Phase 6 |
+| 2026-09-12 | Task | 5 | v1.19: **gate review before Phase 6 — "is everything actually ready?" answered by measuring rather than by reading the tracker.** Three findings mattered. (1) **This file had been silently reverted to v1.5.** The working copy was 1 697 lines of plan at v1.18 in git and 1 572 lines at v1.5 on disk — every decision from #23 on, every session row past Phase 1, the whole Phase 2–5 record, gone from the file the next chat would read, with `git status` showing one unremarkable modified file. §18 #17 again, on the one file the project cannot afford to lose; restored from `HEAD` and now version-asserted by any script that writes it (§17 #82). (2) **Twenty user-facing Python strings had never been marked for translation** — the add-to-cart and remove confirmations, every OTP and password-reset message, signup and login, order cancellation, the "number already registered" error. A Russian visitor got Uzbek at each of those moments. Wrapped, written by hand in Russian and English, and **`makemessages` guessed thirteen of them fuzzy**, so §17 #63 tried to recur one more time — and the test written to catch that class of defect did not, because it matched a bare `#, fuzzy` and gettext writes `#, fuzzy, python-format` when the string has a placeholder. Both the test and `.git/po_tool.py` now read the flag line properly, and a new `ast`-based test fails on any `messages.*` or `add_error` literal that bypasses gettext (§17 #80). (3) **Four checklist items could not honestly be ticked and were moved, not ticked**: gallery pinch-zoom and skeleton loading to Phase 6, `srcset` to Phase 9, Lighthouse to Phase 9 — and Phase 5 item 6 claimed an anonymous cart that Phase 6g actually owns (§17 #79). Also: two whole CSS sections deleted that nothing had used since Phase 2 (`.gallery__*`, `.hero__*` — superseded by `.pdp__*` and `.home__hero*`), three hand-written page scrims collapsed into one `--c-scrim` token, and the last class used in markup with no rule behind it removed. **Measured, not assumed: CSS 17.8 KB and JS 7.5 KB gzipped against 60 and 30; `audit.py` 0 findings across 57 pages × 6 widths × 3 languages; every `interact.py` check; the fold check in all three languages; `makemigrations --check` clean; 70 tests.** | Phase 6 — start with 6b, 6c, 6g and 6a's viewer |
 
 ---
 
@@ -1610,6 +1637,10 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 76 | 2026-09-12 | **The shop is a sticky sidebar and an independently scrolling results column. The product gallery does not travel at all** | Kamronbek’s call on both. The sidebar needed a wrapper to work: a stretched grid item fills its own grid area exactly, and `position: sticky` has nowhere to travel inside a containing block it already fills — so the wrapper takes the stretch and the sidebar sticks inside it. Its `top` had never applied either: `inset: auto`, written on the line after `top`, reset it, so the “sticky” sidebar had been an ordinary block since Phase 5. It now pins under the header for as long as there are products to scroll past, and scrolls on its own when the filter list outgrows the screen. The gallery went the other way: sticky is what made the photograph slide down the page, so it is gone |
 | 77 | 2026-09-12 | **On mobile the hero is type and two buttons; the photograph and the supporting line move** | Kamronbek: remove the picture below the second button and put the “Premium sifat…” line there instead. The order is eyebrow, headline, buttons, supporting line — done with flex `order` so the desktop hero keeps one source of truth, and the image is hidden rather than removed, marked `loading="lazy"` so a phone never downloads it. The effect on §17 #29 is larger than the request: the first product card sits 283 px above the fold instead of 36 |
 | 78 | 2026-09-12 | **The demo catalogue is seeded data in the real local database, not a fixture that only exists inside a test run** | The review screenshots, the 342 breakpoint checks and every interaction check are measured against eight specific products — one with four photographs, one with a sold-out size, prices long enough to test the thin-space grouping, names long enough to wrap. Until now those rows lived only in a database `render_all.py` created and destroyed, so a developer opening the site saw whatever scratch rows were lying about instead. **Verification and development were looking at different sites**, and that gap is what let a product page with no second column go unnoticed. `manage.py seed_demo_catalogue` puts the same eight in the real database; the photographs are tracked in `docs/design/demo-catalogue/` and copied into the gitignored `vm/media/` when missing, so the command is all a fresh clone needs. It refuses a non-local `DB_HOST`, because "reset the catalogue" must never be able to reach production by accident |
+| 79 | 2026-09-12 | **A checklist item the phase cannot honestly meet is moved to the phase that can, not ticked** | Four of Phase 5's items were unmet, and leaving them as unticked boxes under a "Done" phase is how a plan stops being trusted. Gallery **pinch-zoom** and the shop's **skeleton loading** go to Phase 6: the zoom because one full-screen viewer should serve both the chart and the photograph and 6a is already building it, the skeleton because the grid is server-rendered and there is no loading moment for it to fill until 6b fetches asynchronously. **`srcset`** goes to Phase 9 with the rest of the image pipeline (§18 #14 said so already; the checklist did not). **Lighthouse** goes to Phase 9 because the score is mostly the image pipeline. And Phase 5 item 6 claimed a cart that **works for anonymous visitors** while `cart`, `cart_update` and `cart_remove` are `@login_required` — Phase 4 built the model, §9 Phase 6g owns the views, and the item now says so |
+| 80 | 2026-09-12 | **A string the site flashes at a visitor is copy, wherever it lives** | §4's "no hardcoded user-facing strings" was read as being about templates. It is not: twenty messages in `cart/views.py`, `payment/views.py`, `user/views.py`, `user/password_reset.py` and `user/models.py` had never been marked, so a Russian or English visitor got Uzbek when they added to the cart, verified a phone, reset a password, cancelled an order, or signed up with a number already on file. Now wrapped, respelt with U+02BB, and written in all three languages — and guarded by a test that parses the source with `ast` rather than grepping it, because the question is *which argument* carries the string: `add_error('code', _("…"))` is correct and `add_error('code', "…")` is not, and no regex tells those apart reliably. **The SMS bodies are deliberately excluded**: Eskiz moderates the exact message text, so translating one stops it sending until re-moderated (§19 Q17) |
+| 81 | 2026-09-12 | **CSS keeps a rule with no markup only when the plan names the phase that adds the markup** | 23 classes were defined and unused. Two whole sections were **superseded duplicates** and are deleted: `.gallery__*`, which the product page stopped using when it became `.pdp__*`, and `.hero__*`, replaced by `.home__hero*` — dangerous rather than merely dead, because the next person to restyle the gallery would have edited the wrong rule and seen nothing happen. Four unused utilities went with them, and `--container-wide` with `.wrap--wide`. The rest stay, because a phase is named for each: `.toast*` and `.modal__*` in Phase 6, `.review__*` and `.stars--input` in Phase 12, `.skel*` with 6b's first async fetch. Also folded in: three hand-written `color-mix(… #000 …)` scrims, already drifted to two different values, are now one `--c-scrim` token — the last hardcoded colour outside `tokens.css` |
+| 82 | 2026-09-12 | **Any script that writes `PLAN.md` asserts its version string first** | The file on disk had been reverted to v1.5 — the end of planning, before a line of Phase 0 — while git held v1.18. §18 #17's failure mode, on the one file that is the project's memory between chats, and `git status` reported it as one modified file among the session's own edits. The cost if a chat had read it instead of noticing: every locked decision after #22 and the entire Phase 2–5 record, silently absent. `.git/plan_v119.py` opens with `assert "**Plan version:** 1.18" in s`, and every later one does the same with its own predecessor. A plan amendment that cannot see the version it expects must stop, not write |
 
 ---
 
@@ -1637,6 +1668,9 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 15 | `docs/design/phase5/` renders are gitignored scratch | 2026-09-10 | `.git/render_p5.py` rebuilds them on demand from a throwaway test database seeded with the Phase 2 mockups, which is how the six-breakpoint screenshots get taken. Kept out of git because they are 22 KB of generated HTML each and go stale the moment a template changes |
 | 16 | Returns and uncollected-parcel policy is still the pre-rebuild text | 2026-09-10 | `terms.html` section 3 was corrected in Phase 5 because it contradicted locked decision #12 on delivery, but sections 4–7 are the copy that was already there. Phase 8 owns the legal text and §19 Q11 is the open question behind it. Flagged so the correction to one section is not read as a review of the whole document |
 | 17 | **Writing a repo file from a snapshot staged earlier silently reverts everything edited since** | 2026-09-11 | Cost about an hour in the Phase 5 polish pass, twice. Files reach the repo by being staged up from the machine, edited in the container, and written back — and a stale staged copy carries the file as it was *when it was staged*, so writing it back throws away every later edit. Nothing errors; the change simply is not there any more, and the next screenshot shows an old defect that was fixed an hour ago. Two rules that would have prevented both: **re-stage a file immediately before editing it**, and **verify by marker on the machine after writing, not by the fact that the write reported success**. `.git/reapply.py` is the recovery pattern — every edit guarded by its own marker so re-running it is safe and it reports which edits it had to put back |
+| 18 | **The product page and the delivery page state the delivery prices as copy, while `DeliveryOption` rows own the real ones** | 2026-09-12 | `item.html` and `delivery.html` each hardcode "15 000" and "30 000". §17 #13 made delivery configurable precisely so a price change is not a deploy — but a change in the admin would now leave two pages quietly lying. It has already drifted once: an earlier plan version had the door tier at 40 000 and the code never followed (§17 #37 was reverted, so 30 000 is correct *today*, which is luck rather than design). Phase 6d/6e render both from the rows |
+| 19 | **Admin `help_text` strings are untranslated Uzbek** | 2026-09-12 | Eight fields carry `help_text="Oʻzbekcha — asosiy matn"` and similar. They are admin-only, the owner works in Uzbek, and Phase 7 replaces this admin with a custom panel — so this is deliberately *not* fixed now, and is noted so the §17 #80 sweep does not read as complete for every string on the project |
+| 20 | **One inline `style` attribute remains, in `_icons.svg.html`** | 2026-09-12 | The sprite root carries `style="position:absolute"`. It is the standard idiom for an inline SVG sprite and the only `style` attribute left on the site; noted so "no `style` attribute" in the Phase 5 checklist is read as "one, deliberately, on a container that renders nothing" rather than as an oversight |
 
 ---
 
@@ -1660,10 +1694,10 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 14 | Earlier notes said "BTS pochta"; the current answer says Uzpost for everything. One carrier or two? | Phase 8 | ⏳ Open |
 | 15 | **When is the VPS bought?** Specs are settled (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD, upgradeable to 26.04), and Phase 1b is the only thing waiting on it. Ask again when Phase 10 finishes. | Phase 1b | ⏳ Open — not urgent |
 | 16 | Instagram and TikTok handles for the footer (§18 #7) | — | ✅ **Answered 2026-09-11** — there are no accounts; the links are dropped, not deferred |
-| 22 | **`--c-line-strong` is 1.8:1 against the page ground, and §9 asks for 3:1 on UI boundaries.** Control borders are the only thing separating an input from the page - the field’s own fill is 1.4:1 against it - so at the moment neither cue reaches the bar this plan sets. Raising the token to about `#6D604D` clears 3.15:1 on the page, but it lightens the border of every control on the site, and the palette is locked by §17 #45. **Not changed unilaterally.** Kamronbek’s call: raise it, accept the gap and write it down, or find the contrast somewhere other than the border | Phase 9 | ⏳ Open — needs a look, not a discussion |
 | 17 | Confirm the Eskiz sender name is approved as exactly `GRAPHIX`, and that the two SMS templates were re-moderated after the rebrand — Eskiz moderates message *text*, and both bodies changed in Phase 1a | Phase 1b | ⏳ Open — worth checking before it blocks a live signup |
 | 19 | Product photography — when can real shots exist? Not blocking now (§17 #42), but it gates Phase 11 and it is what decides whether the chosen direction actually looks professional. | Phase 11 | ⏳ Open |
 | 21 | The dev machine sleeps and takes PostgreSQL down with it, so a command that spans a sleep dies with *"server closed the connection unexpectedly"*. Harmless — retry. Worth knowing before someone debugs it as a code fault (§18 #10). | — | ℹ️ Environment, not a defect |
+| 22 | **`--c-line-strong` is 1.8:1 against the page ground, and §9 asks for 3:1 on UI boundaries.** Control borders are the only thing separating an input from the page - the field’s own fill is 1.4:1 against it - so at the moment neither cue reaches the bar this plan sets. Raising the token to about `#6D604D` clears 3.15:1 on the page, but it lightens the border of every control on the site, and the palette is locked by §17 #45. **Not changed unilaterally.** Kamronbek’s call: raise it, accept the gap and write it down, or find the contrast somewhere other than the border | Phase 9 | ⏳ Open — needs a look, not a discussion |
 
 **Resolved:**
 

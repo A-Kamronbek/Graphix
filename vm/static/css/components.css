@@ -129,27 +129,6 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .card__badge{ position: absolute; top: var(--s-2); left: var(--s-2); }
 .card__meta { margin-top: var(--s-3); }
 
-/* ============================================================= 4. gallery */
-.gallery { display: grid; gap: var(--s-2); }
-.gallery__main { aspect-ratio: var(--ar-product); overflow: hidden; background: var(--c-surface);
-  border: 1px solid var(--c-line); border-radius: var(--r-sm); }
-.gallery__main img { width: 100%; height: 100%; object-fit: cover; }
-.gallery__rail { display: flex; gap: var(--s-2); }
-.gallery__rail li { flex: 1; border: 1px solid var(--c-line); border-radius: var(--r-sm);
-  overflow: hidden; opacity: .55; transition: opacity var(--t-base), border-color var(--t-base); }
-.gallery__rail li:hover { opacity: .85; }
-.gallery__rail li.is-active { opacity: 1; border-color: var(--c-brand); }
-
-/* Desktop: thumbnails become a vertical rail beside a height-capped image.
-   The cap is the rule — one photograph never exceeds one screen (§17 #47). */
-@media (min-width: 860px) {
-  .gallery { grid-template-columns: 76px minmax(0, 1fr); align-items: start; }
-  .gallery__rail { flex-direction: column; order: -1; }
-  .gallery__rail li { flex: none; }
-  .gallery__main { height: var(--pdp-image-max); aspect-ratio: var(--ar-product);
-    justify-self: start; }
-}
-
 /* ======================================================= 5. size selector */
 .sizes { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .sizes__btn { min-width: 60px; padding: var(--s-3) var(--s-2); background: var(--c-surface);
@@ -223,7 +202,7 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 
 /* ================================================ 10. modal / mobile sheet */
 .overlay { position: fixed; inset: 0; z-index: var(--z-modal);
-  background: color-mix(in srgb, #000 62%, transparent); display: grid; place-items: end center; }
+  background: var(--c-scrim); display: grid; place-items: end center; }
 .modal { width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
   background: var(--c-surface); border: 1px solid var(--c-line-strong);
   border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--sh-lg); }
@@ -428,18 +407,6 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .buybar__price span { font-size: var(--fs-xs); color: var(--c-fg-muted); }
 .buybar .btn { margin-left: auto; }
 @media (min-width: 860px) { .buybar { display: none; } }
-
-/* ================================================================ 22. hero */
-/* The home hero is height-capped so a product row is always partially visible
-   at 390 x 844 without scrolling (plan §9 Phase 2 item 10, §17 #29). */
-.hero { display: flex; flex-direction: column; justify-content: center;
-  max-height: 58vh; padding: var(--s-7) var(--pad-x) var(--s-6); }
-.hero__title { font-family: var(--f-display); font-weight: var(--fw-bold);
-  font-size: clamp(var(--fs-4xl), 13vw, var(--fs-6xl)); line-height: var(--lh-tight);
-  letter-spacing: var(--ls-tight); }
-.hero__sub { color: var(--c-fg-muted); margin-top: var(--s-3); max-width: 46ch; }
-.hero__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-5); }
-@media (min-width: 860px) { .hero { max-height: none; padding-block: var(--s-9); } }
 
 /* ===================================================== 19. touch sizing
    Plan §9 sets the floor at 44 x 44. Most controls already meet it; these are

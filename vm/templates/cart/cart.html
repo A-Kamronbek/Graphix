@@ -23,7 +23,7 @@
               {% endwith %}
             </a>
 
-            <div class="cartline__info stack stack--sm">
+            <div class="stack stack--sm">
               <a class="card__name" href="{% url 'item' it.variant.product.slug %}">{{ it.variant.product|t:"name" }}</a>
               <span class="small muted">{% trans "Oʻlcham" %}: {{ it.variant.size.size }}</span>
               <span class="small muted num">{{ it.price_stat|price }} {% trans "soʻm" %}</span>

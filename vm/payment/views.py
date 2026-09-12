@@ -111,7 +111,8 @@ def payment_start(request, order_id):
     order = get_object_or_404(Order, pk=order_id, user=request.user)
 
     if order.status != Order.Status.PAYING:
-        messages.info(request, "Bu buyurtma uchun to'lov holati allaqachon o'zgargan.")
+        messages.info(request, _("Bu buyurtma uchun toʻlov holati "
+                                 "allaqachon oʻzgargan."))
         return redirect('order_status', pk=order.id)
 
     return_url = request.build_absolute_uri(reverse('order_detail', args=[order.id]))
@@ -157,7 +158,7 @@ def order_cancel(request, pk):
     """Cancel an order that is still awaiting payment."""
     order = get_object_or_404(Order, pk=pk, user=request.user)
     if services.cancel_order(order):
-        messages.success(request, f"#{order.id} bekor qilindi.")
+        messages.success(request, _("#%(no)s bekor qilindi.") % {'no': order.id})
     else:
-        messages.error(request, "Buyurtmani bekor qilib bo'lmadi.")
+        messages.error(request, _("Buyurtmani bekor qilib boʻlmadi."))
     return redirect('order_status', pk=order.id)

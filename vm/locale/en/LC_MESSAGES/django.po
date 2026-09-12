@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-12 00:26+0500\n"
+"POT-Creation-Date: 2026-09-13 01:10+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,15 @@ msgstr "This item isn’t for sale"
 #: .\cart\services.py:47 .\cart\services.py:70 .\cart\services.py:96
 msgid "Ushbu oʻlcham tugagan"
 msgstr "This size is sold out"
+
+#: .\cart\views.py:75
+#, python-format
+msgid "%(name)s savatga qoʻshildi."
+msgstr "%(name)s is in your cart."
+
+#: .\cart\views.py:99
+msgid "Olib tashlandi."
+msgstr "Removed."
 
 #: .\core\ratelimit.py:12
 msgid "Juda koʻp urinish. Iltimos, birozdan soʻng qayta urinib koʻring."
@@ -65,6 +74,19 @@ msgstr "This order has already been placed."
 #: .\payment\views.py:87
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
 msgstr "Order received. Please complete payment."
+
+#: .\payment\views.py:114
+msgid "Bu buyurtma uchun toʻlov holati allaqachon oʻzgargan."
+msgstr "The payment status of this order has already changed."
+
+#: .\payment\views.py:161
+#, python-format
+msgid "#%(no)s bekor qilindi."
+msgstr "Order #%(no)s has been cancelled."
+
+#: .\payment\views.py:163
+msgid "Buyurtmani bekor qilib boʻlmadi."
+msgstr "The order could not be cancelled."
 
 #: .\product\models.py:45
 msgid "Uslub"
@@ -146,7 +168,7 @@ msgstr "The link may be out of date. Start from the shop."
 #: .\templates\404.html:12 .\templates\cart\cart.html:90
 #: .\templates\core\about.html:21 .\templates\core\home.html:19
 #: .\templates\partials\_footer.html:8 .\templates\product\liked.html:26
-#: .\templates\product\shop.html:19 .\templates\product\shop.html:130
+#: .\templates\product\shop.html:19 .\templates\product\shop.html:141
 #: .\templates\user\account.html:31 .\templates\user\account_orders.html:20
 msgid "Barcha dizaynlar"
 msgstr "All designs"
@@ -164,8 +186,12 @@ msgid "Xatolik bizning tomonda. Biroz kutib, qayta urinib koʻring."
 msgstr "The fault is on our side. Give it a moment and try again."
 
 #: .\templates\base.html:14 .\templates\base.html:29
-msgid "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish."
-msgstr "Graphic t-shirt shop. Premium quality, 100+ designs, delivery across Uzbekistan."
+msgid ""
+"Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab "
+"yetkazib berish."
+msgstr ""
+"Graphic t-shirt shop. Premium quality, 100+ designs, delivery across "
+"Uzbekistan."
 
 #: .\templates\base.html:28
 msgid "grafik futbolkalar"
@@ -183,7 +209,7 @@ msgstr "Cart"
 #: .\templates\cart\cart.html:28 .\templates\core\size_guide.html:39
 #: .\templates\core\size_guide.html:49 .\templates\payment\order_detail.html:36
 #: .\templates\product\item.html:94 .\templates\product\item.html:103
-#: .\templates\product\shop.html:92
+#: .\templates\product\shop.html:68
 msgid "Oʻlcham"
 msgstr "Size"
 
@@ -235,7 +261,7 @@ msgid "Mahsulotlar"
 msgstr "Items"
 
 #: .\templates\cart\cart.html:71 .\templates\core\delivery.html:3
-#: .\templates\core\delivery.html:8 .\templates\partials\_footer.html:26
+#: .\templates\core\delivery.html:8 .\templates\partials\_footer.html:29
 #: .\templates\payment\checkout.html:29
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
@@ -268,30 +294,49 @@ msgid "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi."
 msgstr "Pick a design you like and it'll show up here."
 
 #: .\templates\core\about.html:3 .\templates\core\about.html:8
-#: .\templates\core\home.html:86 .\templates\partials\_drawer.html:24
+#: .\templates\core\home.html:90 .\templates\partials\_drawer.html:24
 #: .\templates\partials\_footer.html:19 .\templates\partials\_nav.html:13
 msgid "Biz haqimizda"
 msgstr "About us"
 
 #: .\templates\core\about.html:10
-msgid "Siz izlagan grafik futbolkalar — bir joyda, omborda, yetkazishga tayyor."
-msgstr "The graphic tees you were looking for — in one place, in stock, ready to ship."
+msgid ""
+"Siz izlagan grafik futbolkalar — bir joyda, omborda, yetkazishga tayyor."
+msgstr ""
+"The graphic tees you were looking for — in one place, in stock, ready to "
+"ship."
 
 #: .\templates\core\about.html:12
-msgid "Maʻlum bir grafika yoki dizayndagi futbolkani izlash qancha vaqt olishini bilamiz. Shuning uchun bu ishni siz uchun yengillashtirdik: saytdagi har bir dizayn Toshkentda, omborda turadi va bugunoq joʻnatilishi mumkin."
-msgstr "We know how long it takes to hunt down a tee with the right graphic. So we made it simple: every design on the site sits in our Tashkent stockroom and can go out the same day."
+msgid ""
+"Maʻlum bir grafika yoki dizayndagi futbolkani izlash qancha vaqt olishini "
+"bilamiz. Shuning uchun bu ishni siz uchun yengillashtirdik: saytdagi har bir "
+"dizayn Toshkentda, omborda turadi va bugunoq joʻnatilishi mumkin."
+msgstr ""
+"We know how long it takes to hunt down a tee with the right graphic. So we "
+"made it simple: every design on the site sits in our Tashkent stockroom and "
+"can go out the same day."
 
 #: .\templates\core\about.html:14
-msgid "Har bir mahsulot sifat jihatidan tekshiriladi — sifatsiz print ham, arzon mato ham yoʻq. Doʻkonga qoʻyilgan har bir futbolka oʻzimiz ham kiyadigan darajada."
-msgstr "Every piece is checked — no bad prints, no cheap fabric. Nothing reaches the shop that we wouldn't wear ourselves."
+msgid ""
+"Har bir mahsulot sifat jihatidan tekshiriladi — sifatsiz print ham, arzon "
+"mato ham yoʻq. Doʻkonga qoʻyilgan har bir futbolka oʻzimiz ham kiyadigan "
+"darajada."
+msgstr ""
+"Every piece is checked — no bad prints, no cheap fabric. Nothing reaches the "
+"shop that we wouldn't wear ourselves."
 
 #: .\templates\core\about.html:16 .\templates\core\home.html:20
 msgid "Oʻz dizayningiz"
 msgstr "Your own design"
 
 #: .\templates\core\about.html:17
-msgid "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual dizaynli futbolka tayyorlaymiz."
-msgstr "Got an image or an idea we don't carry? Don't waste time looking elsewhere — write to us. We print custom designs to order."
+msgid ""
+"Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa "
+"joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual "
+"dizaynli futbolka tayyorlaymiz."
+msgstr ""
+"Got an image or an idea we don't carry? Don't waste time looking elsewhere — "
+"write to us. We print custom designs to order."
 
 #: .\templates\core\about.html:20 .\templates\core\contact.html:3
 #: .\templates\core\contact.html:10 .\templates\core\size_guide.html:64
@@ -321,8 +366,11 @@ msgstr "Too many attempts. Wait a moment and try again."
 
 #: .\templates\core\contact.html:37
 #, python-format
-msgid "Xabar yuborish uchun <a class=\"link\" href=\"%(login_url)s\">hisobingizga kiring</a>."
-msgstr "To send a message, <a class=\"link\" href=\"%(login_url)s\">sign in</a>."
+msgid ""
+"Xabar yuborish uchun <a class=\"link\" href=\"%(login_url)s\">hisobingizga "
+"kiring</a>."
+msgstr ""
+"To send a message, <a class=\"link\" href=\"%(login_url)s\">sign in</a>."
 
 #: .\templates\core\contact.html:44
 msgid "Toʻgʻridan-toʻgʻri"
@@ -339,13 +387,16 @@ msgstr ""
 msgid "Telefon"
 msgstr "Phone"
 
-#: .\templates\core\contact.html:55 .\templates\partials\_footer.html:57
+#: .\templates\core\contact.html:55 .\templates\partials\_footer.html:60
 msgid "Elektron pochta"
 msgstr "Email"
 
 #: .\templates\core\delivery.html:9
-msgid "Butun Oʻzbekiston boʻylab, Oʻzbekiston pochtasi orqali — Toshkentda ham, viloyatlarda ham."
-msgstr "Across Uzbekistan, via Uzbekiston pochtasi — Tashkent and the regions alike."
+msgid ""
+"Butun Oʻzbekiston boʻylab, Oʻzbekiston pochtasi orqali — Toshkentda ham, "
+"viloyatlarda ham."
+msgstr ""
+"Across Uzbekistan, via Uzbekiston pochtasi — Tashkent and the regions alike."
 
 #: .\templates\core\delivery.html:15 .\templates\product\item.html:155
 msgid "Pochta boʻlimiga"
@@ -356,11 +407,17 @@ msgid "Eshikkacha"
 msgstr "To your door"
 
 #: .\templates\core\delivery.html:28
-msgid "Boʻlimga yetkazishda buyurtmani oʻzingiz tanlagan pochta boʻlimidan olib ketasiz. Eshikkacha yetkazishda kuryer koʻrsatilgan manzilga olib boradi."
-msgstr "With branch delivery you collect the order from the post office you chose. With door delivery a courier brings it to the address you gave."
+msgid ""
+"Boʻlimga yetkazishda buyurtmani oʻzingiz tanlagan pochta boʻlimidan olib "
+"ketasiz. Eshikkacha yetkazishda kuryer koʻrsatilgan manzilga olib boradi."
+msgstr ""
+"With branch delivery you collect the order from the post office you chose. "
+"With door delivery a courier brings it to the address you gave."
 
 #: .\templates\core\delivery.html:29
-msgid "Toʻlovni Click orqali onlayn yoki buyurtmani olganda naqd pulda amalga oshirishingiz mumkin."
+msgid ""
+"Toʻlovni Click orqali onlayn yoki buyurtmani olganda naqd pulda amalga "
+"oshirishingiz mumkin."
 msgstr "You can pay online with Click, or in cash when the order arrives."
 
 #: .\templates\core\delivery.html:32
@@ -383,28 +440,32 @@ msgstr "Graphics worth wearing."
 msgid "Premium sifat · 100+ dizayn · Oʻzbekiston boʻylab yetkazib berish"
 msgstr "Premium quality · 100+ designs · Delivery across Uzbekistan"
 
-#: .\templates\core\home.html:44
+#: .\templates\core\home.html:48
 msgid "Yangi kelganlar"
 msgstr "New arrivals"
 
-#: .\templates\core\home.html:45 .\templates\user\account.html:22
+#: .\templates\core\home.html:49 .\templates\user\account.html:22
 msgid "Barchasi"
 msgstr "See all"
 
-#: .\templates\core\home.html:58
+#: .\templates\core\home.html:62
 msgid "Siz uchun"
 msgstr "For you"
 
-#: .\templates\core\home.html:71
+#: .\templates\core\home.html:75
 msgid "Kategoriyalar"
 msgstr "Categories"
 
-#: .\templates\core\home.html:84
-msgid "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
-msgstr "Every tee is checked before it's printed. No bad prints, no cheap fabric — everything in the shop is something we'd wear ourselves."
+#: .\templates\core\home.html:88
+msgid ""
+"Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
+"mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
+msgstr ""
+"Every tee is checked before it's printed. No bad prints, no cheap fabric — "
+"everything in the shop is something we'd wear ourselves."
 
 #: .\templates\core\size_guide.html:3 .\templates\core\size_guide.html:16
-#: .\templates\partials\_footer.html:20 .\templates\product\item.html:99
+#: .\templates\partials\_footer.html:22 .\templates\product\item.html:99
 msgid "Oʻlcham jadvali"
 msgstr "Size guide"
 
@@ -463,7 +524,7 @@ msgstr "Saved"
 msgid "Sozlamalar"
 msgstr "Settings"
 
-#: .\templates\partials\_account_nav.html:11
+#: .\templates\partials\_account_nav.html:13
 msgid "Chiqish"
 msgstr "Sign out"
 
@@ -472,7 +533,7 @@ msgstr "Sign out"
 msgid "Menyu"
 msgstr "Menu"
 
-#: .\templates\partials\_drawer.html:9 .\templates\product\shop.html:59
+#: .\templates\partials\_drawer.html:9 .\templates\product\shop.html:35
 msgid "Yopish"
 msgstr "Close"
 
@@ -496,31 +557,31 @@ msgstr "Language"
 msgid "Yordam"
 msgstr "Help"
 
-#: .\templates\partials\_footer.html:21
+#: .\templates\partials\_footer.html:24
 msgid "Shartlar"
 msgstr "Terms"
 
-#: .\templates\partials\_footer.html:32
+#: .\templates\partials\_footer.html:35
 msgid "Pochta boʻlimiga — 15 000 soʻm"
 msgstr "To a post office — 15 000 soʻm"
 
-#: .\templates\partials\_footer.html:33
+#: .\templates\partials\_footer.html:36
 msgid "Eshikkacha — 30 000 soʻm"
 msgstr "To your door — 30 000 soʻm"
 
-#: .\templates\partials\_footer.html:34
+#: .\templates\partials\_footer.html:37
 msgid "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi"
 msgstr "Across Uzbekistan, via Uzbekiston pochtasi"
 
-#: .\templates\partials\_footer.html:35
+#: .\templates\partials\_footer.html:38
 msgid "Batafsil"
 msgstr "More"
 
-#: .\templates\partials\_footer.html:40 .\templates\payment\checkout.html:14
+#: .\templates\partials\_footer.html:43 .\templates\payment\checkout.html:14
 msgid "Aloqa"
 msgstr "Get in touch"
 
-#: .\templates\partials\_footer.html:65
+#: .\templates\partials\_footer.html:68
 msgid "Barcha huquqlar himoyalangan."
 msgstr "All rights reserved."
 
@@ -768,48 +829,48 @@ msgstr "Results for “%(q)s”"
 msgid "Qidiruv"
 msgstr "Search"
 
-#: .\templates\product\shop.html:24
-msgid "Topildi"
-msgstr "Found"
-
-#: .\templates\product\shop.html:30 .\templates\product\shop.html:52
-#: .\templates\product\shop.html:57
+#: .\templates\product\shop.html:28 .\templates\product\shop.html:33
+#: .\templates\product\shop.html:102
 msgid "Filtrlar"
 msgstr "Filters"
 
-#: .\templates\product\shop.html:38 .\templates\product\shop.html:45
-msgid "Tartiblash"
-msgstr "Sort"
-
-#: .\templates\product\shop.html:41
-msgid "Yangilari"
-msgstr "Newest"
-
-#: .\templates\product\shop.html:42
-msgid "Narx: arzondan"
-msgstr "Price: low to high"
-
-#: .\templates\product\shop.html:43
-msgid "Narx: qimmatdan"
-msgstr "Price: high to low"
-
-#: .\templates\product\shop.html:80
+#: .\templates\product\shop.html:56
 msgid "Kategoriya"
 msgstr "Category"
 
-#: .\templates\product\shop.html:104
+#: .\templates\product\shop.html:80
 msgid "Filtrlarni tozalash"
 msgstr "Clear filters"
 
-#: .\templates\product\shop.html:121
+#: .\templates\product\shop.html:96
+msgid "Topildi"
+msgstr "Found"
+
+#: .\templates\product\shop.html:110 .\templates\product\shop.html:117
+msgid "Tartiblash"
+msgstr "Sort"
+
+#: .\templates\product\shop.html:113
+msgid "Yangilari"
+msgstr "Newest"
+
+#: .\templates\product\shop.html:114
+msgid "Narx: arzondan"
+msgstr "Price: low to high"
+
+#: .\templates\product\shop.html:115
+msgid "Narx: qimmatdan"
+msgstr "Price: high to low"
+
+#: .\templates\product\shop.html:132
 msgid "Hech narsa topilmadi"
 msgstr "Nothing found"
 
-#: .\templates\product\shop.html:124
+#: .\templates\product\shop.html:135
 msgid "Soʻrovingizga mos dizayn yoʻq. Filtrlarni kamaytirib koʻring."
 msgstr "No designs match your search. Try removing some filters."
 
-#: .\templates\product\shop.html:126
+#: .\templates\product\shop.html:137
 msgid "Hozircha dizaynlar qoʻshilmagan. Tez orada qaytib kelib koʻring."
 msgstr "No designs yet. Check back soon."
 
@@ -822,68 +883,116 @@ msgid "1. Umumiy shartlar"
 msgstr "1. General terms"
 
 #: .\templates\terms.html:16
-msgid "Saytimizdan foydalanish va buyurtma berish orqali siz ushbu shartlarga rozilik bildirgan hisoblanasiz. Biz bu shartlarni istalgan vaqtda yangilash huquqiga egamiz. Kiritilgan oʻzgarishlar saytga joylangan zahoti kuchga kiradi."
-msgstr "By using the site and placing an order you accept these terms. We may update them at any time, and changes take effect as soon as they are published here."
+msgid ""
+"Saytimizdan foydalanish va buyurtma berish orqali siz ushbu shartlarga "
+"rozilik bildirgan hisoblanasiz. Biz bu shartlarni istalgan vaqtda yangilash "
+"huquqiga egamiz. Kiritilgan oʻzgarishlar saytga joylangan zahoti kuchga "
+"kiradi."
+msgstr ""
+"By using the site and placing an order you accept these terms. We may update "
+"them at any time, and changes take effect as soon as they are published here."
 
 #: .\templates\terms.html:18
 msgid "2. Buyurtma va toʻlov"
 msgstr "2. Orders and payment"
 
 #: .\templates\terms.html:19
-msgid "Buyurtmani Click orqali onlayn yoki mahsulotni olganingizda naqd pulda toʻlashingiz mumkin. Toʻlovni amalga oshirishdan avval yetkazib berish maʻlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil uchun javobgarlikni oʻz zimmamizga olmaymiz."
-msgstr "You can pay online with Click, or in cash when the order arrives. Please check your delivery details carefully before paying: we can't take responsibility for an address entered incorrectly."
+msgid ""
+"Buyurtmani Click orqali onlayn yoki mahsulotni olganingizda naqd pulda "
+"toʻlashingiz mumkin. Toʻlovni amalga oshirishdan avval yetkazib berish "
+"maʻlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil "
+"uchun javobgarlikni oʻz zimmamizga olmaymiz."
+msgstr ""
+"You can pay online with Click, or in cash when the order arrives. Please "
+"check your delivery details carefully before paying: we can't take "
+"responsibility for an address entered incorrectly."
 
 #: .\templates\terms.html:21
 msgid "3. Yetkazib berish"
 msgstr "3. Delivery"
 
 #: .\templates\terms.html:22
-msgid "Barcha buyurtmalar Oʻzbekiston pochtasi orqali yuboriladi — Toshkentda ham, viloyatlarda ham. Pochta boʻlimiga yetkazish 15 000 soʻm, eshikkacha yetkazish 30 000 soʻm. Bepul yetkazish chegarasi hozircha yoʻq."
-msgstr "All orders ship via Uzbekiston pochtasi, in Tashkent and the regions alike. Delivery to a post office is 15 000 soʻm, to your door 30 000 soʻm. There is no free-delivery threshold at the moment."
+msgid ""
+"Barcha buyurtmalar Oʻzbekiston pochtasi orqali yuboriladi — Toshkentda ham, "
+"viloyatlarda ham. Pochta boʻlimiga yetkazish 15 000 soʻm, eshikkacha "
+"yetkazish 30 000 soʻm. Bepul yetkazish chegarasi hozircha yoʻq."
+msgstr ""
+"All orders ship via Uzbekiston pochtasi, in Tashkent and the regions alike. "
+"Delivery to a post office is 15 000 soʻm, to your door 30 000 soʻm. There is "
+"no free-delivery threshold at the moment."
 
 #: .\templates\terms.html:23
-msgid "Buyurtmalarni imkon qadar tez joʻnatishga harakat qilamiz. Yetkazib berish muddati pochta xizmatining ish tartibiga bogʻliq."
-msgstr "We send orders out as quickly as we can. How long delivery takes depends on the postal service."
+msgid ""
+"Buyurtmalarni imkon qadar tez joʻnatishga harakat qilamiz. Yetkazib berish "
+"muddati pochta xizmatining ish tartibiga bogʻliq."
+msgstr ""
+"We send orders out as quickly as we can. How long delivery takes depends on "
+"the postal service."
 
 #: .\templates\terms.html:25
 msgid "4. Qaytarish va almashtirish"
 msgstr "4. Returns and exchanges"
 
 #: .\templates\terms.html:26
-msgid "Agar mahsulot shikastlangan holatda yetib borsa, olganingizdan keyin 24 soat ichida muammoni koʻrsatuvchi qisqa foto yoki video yuboring — mahsulotni almashtirib beramiz."
-msgstr "If an item arrives damaged, send us a short photo or video of the problem within 24 hours of delivery and we'll replace it."
+msgid ""
+"Agar mahsulot shikastlangan holatda yetib borsa, olganingizdan keyin 24 soat "
+"ichida muammoni koʻrsatuvchi qisqa foto yoki video yuboring — mahsulotni "
+"almashtirib beramiz."
+msgstr ""
+"If an item arrives damaged, send us a short photo or video of the problem "
+"within 24 hours of delivery and we'll replace it."
 
 #: .\templates\terms.html:27
-msgid "Oʻlcham mos kelmasa, kiyilmagan, yuvilmagan va asl holatidagi mahsulotni mos oʻlchamga almashtirib beramiz."
-msgstr "If the size doesn't fit, we'll exchange it — provided the item is unworn, unwashed and in its original condition."
+msgid ""
+"Oʻlcham mos kelmasa, kiyilmagan, yuvilmagan va asl holatidagi mahsulotni mos "
+"oʻlchamga almashtirib beramiz."
+msgstr ""
+"If the size doesn't fit, we'll exchange it — provided the item is unworn, "
+"unwashed and in its original condition."
 
 #: .\templates\terms.html:28
-msgid "Maxsus buyurtmalar aynan sizning soʻrovingiz asosida tayyorlanadi, shuning uchun ishlab chiqarish boshlangandan keyin ular qaytarilmaydi."
-msgstr "Custom orders are made to your specific request, so once production has started they can't be returned."
+msgid ""
+"Maxsus buyurtmalar aynan sizning soʻrovingiz asosida tayyorlanadi, shuning "
+"uchun ishlab chiqarish boshlangandan keyin ular qaytarilmaydi."
+msgstr ""
+"Custom orders are made to your specific request, so once production has "
+"started they can't be returned."
 
 #: .\templates\terms.html:30
 msgid "5. Mahsulot koʻrinishining aniqligi"
 msgstr "5. How accurate the photos are"
 
 #: .\templates\terms.html:31
-msgid "Futbolkalarimizning rangi va detallarini imkon qadar aniq koʻrsatishga harakat qilamiz. Ranglar ekran sozlamalariga qarab biroz farq qilishi mumkin."
-msgstr "We try to show the colour and detail of our tees as accurately as we can. Shades may differ slightly depending on your screen."
+msgid ""
+"Futbolkalarimizning rangi va detallarini imkon qadar aniq koʻrsatishga "
+"harakat qilamiz. Ranglar ekran sozlamalariga qarab biroz farq qilishi mumkin."
+msgstr ""
+"We try to show the colour and detail of our tees as accurately as we can. "
+"Shades may differ slightly depending on your screen."
 
 #: .\templates\terms.html:33
 msgid "6. Maxfiylik siyosati"
 msgstr "6. Privacy"
 
 #: .\templates\terms.html:34
-msgid "Siz taqdim etgan ism, telefon raqami va manzil faqat buyurtmangizni bajarish va yetkazib berish uchun ishlatiladi. Shaxsiy maʻlumotlaringiz marketing maqsadida uchinchi tomonlarga berilmaydi."
-msgstr "The name, phone number and address you give us are used only to fulfil and deliver your order. Your personal data is never passed to third parties for marketing."
+msgid ""
+"Siz taqdim etgan ism, telefon raqami va manzil faqat buyurtmangizni bajarish "
+"va yetkazib berish uchun ishlatiladi. Shaxsiy maʻlumotlaringiz marketing "
+"maqsadida uchinchi tomonlarga berilmaydi."
+msgstr ""
+"The name, phone number and address you give us are used only to fulfil and "
+"deliver your order. Your personal data is never passed to third parties for "
+"marketing."
 
 #: .\templates\terms.html:36
 msgid "7. Aloqa"
 msgstr "7. Getting in touch"
 
 #: .\templates\terms.html:37
-msgid "Savollaringiz boʻlsa, Telegram orqali yoki aloqa sahifasidan bogʻlaning."
-msgstr "If you have questions, reach us on Telegram or through the contact page."
+msgid ""
+"Savollaringiz boʻlsa, Telegram orqali yoki aloqa sahifasidan bogʻlaning."
+msgstr ""
+"If you have questions, reach us on Telegram or through the contact page."
 
 #: .\templates\terms.html:40
 msgid "Orqaga"
@@ -1025,7 +1134,9 @@ msgstr "We'll confirm your phone number — it's needed to deliver your order."
 
 #: .\templates\user\signup.html:61
 #, python-format
-msgid "Barcha <a class=\"link\" href=\"%(terms_url)s\">shartlar</a>ga rozilik beraman."
+msgid ""
+"Barcha <a class=\"link\" href=\"%(terms_url)s\">shartlar</a>ga rozilik "
+"beraman."
 msgstr "I agree to all the <a class=\"link\" href=\"%(terms_url)s\">terms</a>."
 
 #: .\templates\user\signup.html:66
@@ -1100,12 +1211,66 @@ msgstr "That number is already registered."
 msgid "format: +998 XX XXX XX XX"
 msgstr "format: +998 XX XXX XX XX"
 
+#: .\user\models.py:54
+msgid "Ushbu raqam allaqachon roʻyxatdan oʻtgan."
+msgstr "That number is already registered."
+
+#: .\user\password_reset.py:22
+msgid "Kod muddati tugadi. Iltimos, qaytadan urinib koʻring."
+msgstr "The code has expired. Please try again."
+
 #: .\user\validators.py:18 .\user\validators.py:24
 msgid "Parol 8 belgidan kam boʻlmasligi kerak."
 msgstr "Password must be at least 8 characters."
 
-#~ msgid "Boxy"
-#~ msgstr "Boxy"
+#: .\user\views.py:63
+msgid "Xush kelibsiz!"
+msgstr "Welcome back!"
 
-#~ msgid "Oʻlcham jadvallari tayyorlanmoqda."
-#~ msgstr "Size charts are on the way."
+#: .\user\views.py:98
+msgid "Tasdiqlash kodi muddati tugadi. Iltimos, qaytadan roʻyxatdan oʻting."
+msgstr "The confirmation code has expired. Please sign up again."
+
+#: .\user\views.py:100
+msgid "Roʻyxatdan oʻtish bekor qilindi."
+msgstr "Sign-up was cancelled."
+
+#: .\user\views.py:134 .\user\views.py:328
+msgid "Kod notoʻgʻri."
+msgstr "That code is not right."
+
+#: .\user\views.py:139
+msgid "Telefon raqam tasdiqlandi."
+msgstr "Your phone number is confirmed."
+
+#: .\user\views.py:168 .\user\views.py:350
+msgid "Iltimos biroz kuting."
+msgstr "Please wait a moment."
+
+#: .\user\views.py:172 .\user\views.py:362
+msgid "Yangi kod yuborildi."
+msgstr "A new code has been sent."
+
+#: .\user\views.py:231
+msgid "Maʻlumotlar yangilandi."
+msgstr "Your details have been updated."
+
+#: .\user\views.py:239
+msgid "Parol yangilandi."
+msgstr "Your password has been updated."
+
+#: .\user\views.py:287
+msgid "Ushbu raqam roʻyxatdan oʻtmagan."
+msgstr "That number is not registered."
+
+#: .\user\views.py:291
+msgid "Tasdiqlash kodi yuborildi."
+msgstr "A confirmation code has been sent."
+
+#: .\user\views.py:325
+msgid "Juda koʻp urinish. Iltimos, qaytadan urinib koʻring."
+msgstr "Too many attempts. Please start again."
+
+#: .\user\views.py:397
+msgid "Parol yangilandi. Endi kirishingiz mumkin."
+msgstr "Your password has been updated. You can sign in now."

@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .models import CartItem
@@ -71,7 +72,8 @@ def cart_add(request, product_id):
         messages.error(request, str(e))
         return redirect('item', slug=product.slug)
 
-    messages.success(request, f"{product.name} savatga qo\'shildi.")
+    messages.success(request, _("%(name)s savatga qoʻshildi.")
+                      % {'name': product.name})
     return redirect('shop')
 
 
@@ -94,5 +96,5 @@ def cart_remove(request, item_id):
     """Remove a line from the cart."""
     item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
     item.delete()
-    messages.success(request, "Olib tashlandi.")
+    messages.success(request, _("Olib tashlandi."))
     return redirect('cart')

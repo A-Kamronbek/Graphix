@@ -43,14 +43,14 @@
    everything else. Hidden entirely while closed, so it is never in the way. */
 .sheet__backdrop {
   position: fixed; inset: 0; z-index: calc(var(--z-modal) - 1);
-  background: color-mix(in srgb, #000 58%, transparent);
+  background: var(--c-scrim);
 }
 @media (min-width: 860px) { .sheet__backdrop { display: none; } }
 
 /* The drawer's backdrop. Carries the click-to-close target and dims the page. */
 .drawer__backdrop {
   position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1);
-  background: color-mix(in srgb, #000 58%, transparent);
+  background: var(--c-scrim);
 }
 
 /* ------------------------------------------------------- product detail */
@@ -220,8 +220,6 @@
    pages belongs in components.css instead; these are each used once. */
 
 .msgs { padding-top: var(--s-4); }
-
-.nav__search-row { flex-basis: 100%; }
 
 .drawer__hd { margin-bottom: var(--s-5); }
 .drawer__lang { margin-top: var(--s-5); }

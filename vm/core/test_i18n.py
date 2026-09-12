@@ -5,7 +5,11 @@ callback to `/payment/click/update/`, and `i18n_patterns` would happily move tha
 path behind a language prefix. If that ever happens, every callback 404s and
 payments fail *silently* — the order simply never flips to paid (§12 risk #2).
 """
-from django.test import TestCase, override_settings
+import ast
+from pathlib import Path
+
+from django.conf import settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse, resolve
 from django.utils import translation
 
@@ -211,13 +215,20 @@ class CatalogueCompletenessTests(TestCase):
         empty-msgstr check above cannot see a *filled but ignored* entry.
 
         The catalogue header is conventionally fuzzy and is skipped.
+
+        Matching a bare ``#, fuzzy`` is not enough: gettext writes all of an
+        entry's flags on one comma-separated line, so a string with a placeholder
+        comes back as ``#, fuzzy, python-format``. This test read the bare form
+        only, which is how a fuzzy add-to-cart message got past both it and
+        ``.git/po_tool.py`` during the Phase 5 gate review.
         """
         for lang in ('uz', 'ru', 'en'):
             with self.subTest(lang=lang):
                 lines = self._catalogue_path(lang).read_text(encoding='utf-8').splitlines()
                 fuzzy = []
                 for i, line in enumerate(lines):
-                    if line.strip() != '#, fuzzy':
+                    flags = line.strip()
+                    if not (flags.startswith('#,') and 'fuzzy' in flags):
                         continue
                     j = i + 1
                     while j < len(lines) and lines[j].startswith('#'):
@@ -252,3 +263,80 @@ class CatalogueCompletenessTests(TestCase):
                             str(dict(Tag.Kind.choices)[Tag.Kind.STYLE]),
                             str(dict(Review.Status.choices)[Review.Status.PENDING])]
                 self.assertEqual(rendered, wanted)
+
+
+class UserFacingPythonStringTests(SimpleTestCase):
+    """Every flash message and form error must go through gettext.
+
+    Template copy is covered by `makemessages` finding `{% trans %}`, and the
+    catalogue tests above prove a found string is actually translated. Neither
+    can see a string that was never marked at all — and the Phase 5 gate review
+    found twenty of them, across the cart, payment, signup, OTP, account and
+    password-reset flows. They were not subtle failures: a Russian visitor added
+    something to the cart and got Uzbek.
+
+    So this walks the source with `ast` and fails on a literal passed to
+    `messages.*` or `form.add_error`. `ast` rather than a regex because the real
+    question is *which argument* carries the string, and a line-based match
+    cannot tell `add_error('code', _("..."))` - a field name, correctly wrapped -
+    from `add_error('code', "...")`.
+
+    SMS bodies are deliberately out of scope: Eskiz moderates the exact message
+    text, so translating one would stop it sending until re-moderated (§19 Q17).
+    """
+
+    TARGETS = ('success', 'error', 'warning', 'info', 'add_message', 'add_error')
+
+    @staticmethod
+    def _is_translated(node):
+        """True if `node` is `_(...)`, or `_(...) % {...}` / `_(...).format(...)`."""
+        if isinstance(node, ast.BinOp):
+            return UserFacingPythonStringTests._is_translated(node.left)
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name) and func.id in ('_', 'gettext', 'ngettext'):
+                return True
+            if isinstance(func, ast.Attribute):          # _("...").format(...)
+                return UserFacingPythonStringTests._is_translated(func.value)
+        return False
+
+    def test_no_flash_message_or_form_error_is_an_unwrapped_literal(self):
+        root = Path(settings.BASE_DIR)
+        offences = []
+        for path in sorted(root.rglob('*.py')):
+            rel = path.relative_to(root).as_posix()
+            if 'migrations/' in rel or rel.startswith('vm/') or '/test' in rel:
+                continue
+            tree = ast.parse(path.read_text(encoding='utf-8'), filename=rel)
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                func = node.func
+                if not isinstance(func, ast.Attribute):
+                    continue
+                # `logger.error("...")` shares three method names with
+                # `messages.error("...")`, and a log line must stay English and
+                # untranslated - so match on the receiver, not just the method.
+                if func.attr == 'add_error':
+                    pass
+                elif (func.attr in self.TARGETS
+                        and isinstance(func.value, ast.Name)
+                        and func.value.id == 'messages'):
+                    pass
+                else:
+                    continue
+                for arg in node.args:
+                    # A bare word is a field name or a level, not copy; prose has
+                    # a space in it. An f-string can never be translated at all.
+                    if isinstance(arg, ast.JoinedStr):
+                        offences.append(f"{rel}:{node.lineno} f-string")
+                    elif (isinstance(arg, ast.Constant) and isinstance(arg.value, str)
+                            and ' ' in arg.value.strip()):
+                        offences.append(f"{rel}:{node.lineno} {arg.value[:40]!r}")
+                    elif isinstance(arg, ast.BinOp) and not self._is_translated(arg):
+                        offences.append(f"{rel}:{node.lineno} unwrapped %-format")
+        self.assertEqual(
+            offences, [],
+            f"{len(offences)} user-facing string(s) bypass gettext and will render "
+            f"Uzbek in every language: {offences}",
+        )

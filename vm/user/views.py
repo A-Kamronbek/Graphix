@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .forms import (
@@ -59,7 +60,7 @@ def login_view(request):
             return render(request, 'user/login.html', {'form': form, 'rate_limited': True})
         elif form.is_valid():
             login(request, form.get_user())
-            messages.success(request, "Xush kelibsiz!")
+            messages.success(request, _("Xush kelibsiz!"))
             # Only honor a safe, internal `next`; otherwise fall back to shop.
             nxt = request.GET.get('next') or request.POST.get('next')
             if nxt and url_has_allowed_host_and_scheme(
@@ -94,8 +95,9 @@ def signup_view(request):
     # Explanation banner after an OTP flow ended (kept in the URL, not the
     # session, since _cancel_and_delete flushes the session via logout()).
     reason_messages = {
-        'expired': "Tasdiqlash kodi muddati tugadi. Iltimos, qaytadan ro'yxatdan o'ting.",
-        'cancelled': "Ro'yxatdan o'tish bekor qilindi.",
+        'expired': _("Tasdiqlash kodi muddati tugadi. "
+                     "Iltimos, qaytadan roʻyxatdan oʻting."),
+        'cancelled': _("Roʻyxatdan oʻtish bekor qilindi."),
     }
     notice = reason_messages.get(request.GET.get('reason'))
 
@@ -129,12 +131,12 @@ def verify_phone(request):
                 attempts = otp.register_failed_attempt(request)
                 if attempts >= otp.MAX_ATTEMPTS:
                     return _cancel_and_delete(request, reason='expired')
-                form.add_error('code', "Kod noto'g'ri.")
+                form.add_error('code', _("Kod notoʻgʻri."))
             else:
                 request.user.phone_verified = True
                 request.user.save(update_fields=['phone_verified'])
                 otp.clear(request)
-                messages.success(request, "Telefon raqam tasdiqlandi.")
+                messages.success(request, _("Telefon raqam tasdiqlandi."))
                 return redirect('account')
 
     return render(request, 'user/verify_phone.html', {
@@ -163,11 +165,11 @@ def resend_otp(request):
         return _cancel_and_delete(request, reason='expired')
 
     if otp.resend_cooldown(request) > 0:
-        messages.error(request, "Iltimos biroz kuting.")
+        messages.error(request, _("Iltimos biroz kuting."))
         return redirect('verify_phone')
 
     otp.generate(request, reset_expiry=False)
-    messages.success(request, "Yangi kod yuborildi.")
+    messages.success(request, _("Yangi kod yuborildi."))
     return redirect('verify_phone')
 
 
@@ -226,7 +228,7 @@ def account_settings(request):
             profile_form = ProfileForm(request.POST, instance=request.user)
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, "Ma'lumotlar yangilandi.")
+                messages.success(request, _("Maʻlumotlar yangilandi."))
                 return redirect('account_settings')
         elif action == 'password':
             password_form = ChangePasswordForm(request.user, request.POST)
@@ -234,7 +236,7 @@ def account_settings(request):
                 password_form.save()
                 # Keep the user logged in after a password change.
                 update_session_auth_hash(request, password_form.user)
-                messages.success(request, "Parol yangilandi.")
+                messages.success(request, _("Parol yangilandi."))
                 return redirect('account_settings')
 
     return render(request, 'user/account_settings.html', {
@@ -282,11 +284,11 @@ def password_reset_request(request):
             if not user:
                 # Per product decision, tell the user the number isn't registered.
                 # (Trade-off: this allows phone-number enumeration.)
-                form.add_error('phone', "Ushbu raqam ro'yxatdan o'tmagan.")
+                form.add_error('phone', _("Ushbu raqam roʻyxatdan oʻtmagan."))
             else:
                 pwreset.start_window(request, phone)
                 pwreset.issue_code(request, user)  # sets code, user_id, last_sent_at
-                messages.info(request, "Tasdiqlash kodi yuborildi.")
+                messages.info(request, _("Tasdiqlash kodi yuborildi."))
                 return redirect('password_reset_verify')
 
     notice = pwreset.REASONS.get(request.GET.get('reason'))
@@ -320,9 +322,10 @@ def password_reset_verify(request):
             attempts = pwreset.register_failed_attempt(request)
             if attempts >= pwreset.MAX_ATTEMPTS:
                 pwreset.clear(request)
-                messages.error(request, "Juda ko'p urinish. Iltimos, qaytadan urinib ko'ring.")
+                messages.error(request, _("Juda koʻp urinish. "
+                                          "Iltimos, qaytadan urinib koʻring."))
                 return redirect('password_reset_request')
-            form.add_error('code', "Kod noto'g'ri.")
+            form.add_error('code', _("Kod notoʻgʻri."))
 
     uid_peek = str(request.session.get('pwreset_user_id') or '')
     return render(request, 'user/password_reset_verify.html', {
@@ -344,7 +347,7 @@ def password_reset_resend(request):
         pwreset.clear(request)
         return redirect(f"{reverse('password_reset_request')}?reason=expired")
     if pwreset.resend_cooldown(request) > 0:
-        messages.error(request, "Iltimos biroz kuting.")
+        messages.error(request, _("Iltimos biroz kuting."))
         return redirect('password_reset_verify')
 
     uid = request.session.get('pwreset_user_id')
@@ -356,7 +359,7 @@ def password_reset_resend(request):
         if user:
             pwreset.issue_code(request, user)
 
-    messages.info(request, "Yangi kod yuborildi.")
+    messages.info(request, _("Yangi kod yuborildi."))
     return redirect('password_reset_verify')
 
 
@@ -391,7 +394,7 @@ def password_reset_set(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         pwreset.clear(request)
-        messages.success(request, "Parol yangilandi. Endi kirishingiz mumkin.")
+        messages.success(request, _("Parol yangilandi. Endi kirishingiz mumkin."))
         return redirect('login')
 
     return render(request, 'user/password_reset_set.html', {
