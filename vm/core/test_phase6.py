@@ -489,17 +489,58 @@ class DeliveryValidationTests(TestCase):
                                district=self.geo['other_district'],
                                postal_index='1402').clean()
 
+    def _home_order(self, **over):
+        """A home order carries the same region and district a branch one does
+        (§17 #106); only the last field differs."""
+        fields = {
+            'delivery_option': self.home,
+            'region': self.geo['tashkent'],
+            'district': self.geo['chilonzor'],
+            'address': 'Amir Temur koʻchasi 1',
+        }
+        fields.update(over)
+        return self._order(**fields)
+
+    def test_a_home_order_with_a_street_address_is_valid(self):
+        self._home_order().clean()            # must not raise
+
     def test_a_home_order_needs_an_address(self):
         with self.assertRaises(DjangoValidationError):
-            self._order(delivery_option=self.home, address='').clean()
+            self._home_order(address='').clean()
+
+    def test_a_home_order_needs_a_region(self):
+        with self.assertRaises(DjangoValidationError):
+            self._home_order(region=None).clean()
+
+    def test_a_home_order_needs_a_district(self):
+        with self.assertRaises(DjangoValidationError):
+            self._home_order(district=None).clean()
+
+    def test_a_home_district_from_another_region_is_rejected(self):
+        with self.assertRaises(DjangoValidationError):
+            self._home_order(district=self.geo['sam_city']).clean()
 
     def test_a_home_order_rejects_a_postal_index(self):
+        """The index is the post office's field. On a courier order it is a
+        leftover from the other half of the form."""
         with self.assertRaises(DjangoValidationError):
-            self._order(delivery_option=self.home, address='Toshkent',
-                        postal_index='100011').clean()
+            self._home_order(postal_index='100011').clean()
 
-    def test_a_home_order_with_a_typed_address_is_valid(self):
-        self._order(delivery_option=self.home, address='Toshkent, Amir Temur 1').clean()
+    def test_a_home_snapshot_reads_region_district_then_street(self):
+        from payment.models import location_text
+        text = location_text(self.geo['tashkent'], self.geo['chilonzor'],
+                             '', '', 'Amir Temur koʻchasi 1')
+        self.assertEqual(text.split(' · ')[0], self.geo['tashkent'].name)
+        self.assertIn('Chilonzor', text)
+        self.assertTrue(text.endswith('Amir Temur koʻchasi 1'))
+
+    def test_a_multiline_address_is_flattened_into_the_snapshot(self):
+        """The snapshot is one line of frozen text, not the address field."""
+        from payment.models import location_text
+        text = location_text(self.geo['tashkent'], self.geo['chilonzor'],
+                             '', '', 'Amir Temur 1\n  12-uy')
+        self.assertNotIn('\n', text)
+        self.assertTrue(text.endswith('Amir Temur 1 12-uy'))
 
 
 class CheckoutTests(TestCase):
@@ -524,6 +565,15 @@ class CheckoutTests(TestCase):
         data.update(over)
         return self.client.post(reverse('checkout'), data)
 
+    def _home_post(self, **over):
+        """A home-delivery post, with the region and district it now needs."""
+        data = {'delivery_option': 'uzpost_door',
+                'region': self.geo['tashkent'].pk,
+                'district': self.geo['chilonzor'].pk,
+                'address': 'Amir Temur koʻchasi 1'}
+        data.update(over)
+        return self._post(**data)
+
     def _order(self):
         from payment.models import Order
         return Order.objects.filter(cart=self.cart).first()
@@ -541,33 +591,41 @@ class CheckoutTests(TestCase):
         self.assertIn('Chilonzor', order.location_snapshot)
         self.assertIsNone(order.latitude)
 
-    def test_a_home_order_charges_40000(self):
-        self._post(delivery_option='uzpost_door', address='Toshkent, Amir Temur 1',
-                   address_source='manual')
+    def test_a_home_order_charges_40000_and_freezes_where_it_is_going(self):
+        self._home_post(address_source='manual')
         order = self._order()
         self.assertIsNotNone(order)
         self.assertEqual(order.delivery_price, Decimal('40000'))
         self.assertEqual(order.address_source, 'manual')
+        # Region and district are on a home order too, and the snapshot reads
+        # province, district, street (§17 #106).
+        self.assertEqual(order.region_id, self.geo['tashkent'].pk)
+        self.assertEqual(order.district_id, self.geo['chilonzor'].pk)
+        self.assertIn('Chilonzor', order.location_snapshot)
+        self.assertTrue(order.location_snapshot.endswith('Amir Temur koʻchasi 1'))
+
+    def test_a_home_order_without_a_district_is_refused(self):
+        response = self._home_post(district='')
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(self._order())
 
     def test_a_manual_order_stores_no_coordinates(self):
-        self._post(delivery_option='uzpost_door', address='Toshkent',
-                   address_source='manual', latitude='41.3', longitude='69.2')
+        self._home_post(address_source='manual', latitude='41.3', longitude='69.2')
         order = self._order()
         self.assertIsNone(order.latitude)
         self.assertIsNone(order.longitude)
         self.assertEqual(order.address_source, 'manual')
 
     def test_a_map_order_stores_the_pin_and_says_so(self):
-        self._post(delivery_option='uzpost_door', address='Toshkent',
-                   address_source='map', latitude='41.311081', longitude='69.240562')
+        self._home_post(address_source='map',
+                        latitude='41.311081', longitude='69.240562')
         order = self._order()
         self.assertEqual(order.address_source, 'map')
         self.assertEqual(float(order.latitude), 41.311081)
 
     def test_a_map_order_whose_pin_did_not_arrive_falls_back_to_manual(self):
         """The address is what the courier follows either way (§17 #91)."""
-        self._post(delivery_option='uzpost_door', address='Toshkent',
-                   address_source='map', latitude='', longitude='')
+        self._home_post(address_source='map', latitude='', longitude='')
         order = self._order()
         self.assertEqual(order.address_source, 'manual')
         self.assertIsNone(order.latitude)
@@ -582,6 +640,10 @@ class CheckoutTests(TestCase):
         order = self._order()
         self.assertIsNone(order.latitude)
         self.assertEqual(order.address_source, '')
+        # The street address belongs to the courier half and must not survive
+        # onto an order going to a post office counter.
+        self.assertEqual(order.address, '')
+        self.assertNotIn('saqlanmasligi', order.location_snapshot)
 
     def test_an_index_that_contradicts_the_region_does_not_create_an_order(self):
         response = self._post(delivery_option='uzpost_office',
@@ -609,7 +671,7 @@ class CheckoutTests(TestCase):
         self.assertEqual(self._order().location_note, '')
 
     def test_the_frozen_price_survives_a_later_price_change(self):
-        self._post(delivery_option='uzpost_door', address='Toshkent')
+        self._home_post()
         order = self._order()
         self.home.price = Decimal('99000')
         self.home.save(update_fields=['price'])
@@ -647,7 +709,10 @@ class PaymentOptionTests(TestCase):
     def _post(self, method):
         return self.client.post(reverse('checkout'), {
             'name': 'Toʻlovchi', 'phone': '+998 90 123 45 99',
-            'delivery_option': 'uzpost_door', 'address': 'Toshkent',
+            'delivery_option': 'uzpost_door',
+            'region': self.geo['tashkent'].pk,
+            'district': self.geo['chilonzor'].pk,
+            'address': 'Amir Temur koʻchasi 1',
             'address_source': 'manual', 'payment_method': method, 'notes': '',
         })
 
@@ -776,7 +841,10 @@ class TelegramDeliveryTests(TestCase):
     def _checkout(self):
         return self.client.post(reverse('checkout'), {
             'name': 'Xabarchi', 'phone': '+998 90 123 45 11',
-            'delivery_option': 'uzpost_door', 'address': 'Toshkent',
+            'delivery_option': 'uzpost_door',
+            'region': self.geo['tashkent'].pk,
+            'district': self.geo['chilonzor'].pk,
+            'address': 'Amir Temur koʻchasi 1',
             'address_source': 'manual', 'payment_method': 'click', 'notes': '',
         })
 

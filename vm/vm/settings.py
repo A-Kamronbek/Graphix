@@ -76,6 +76,7 @@ TEMPLATES = [
                 'product.context_processors.nav_categories',
                 'core.context_processors.languages',
                 'core.context_processors.size_guide',
+                'core.context_processors.delivery_tiers',
             ],
         },
     },

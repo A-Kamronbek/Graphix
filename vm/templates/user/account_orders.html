@@ -15,7 +15,9 @@
       {% else %}
         <div class="empty">
           <svg class="i" aria-hidden="true"><use href="#i-box"></use></svg>
-          <h3>{% trans "Hali buyurtma yoʻq" %}</h3>
+          {# h2, not h3: the empty state is the page's one section under the h1, #}
+          {# and a jump from h1 to h3 tells a screen reader a level is missing. #}
+          <h2 class="h3">{% trans "Hali buyurtma yoʻq" %}</h2>
           <p>{% trans "Birinchi buyurtmangiz shu yerda koʻrinadi." %}</p>
           <a class="btn btn--primary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
         </div>

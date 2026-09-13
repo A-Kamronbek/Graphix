@@ -165,16 +165,24 @@ def location_text(region=None, district=None, postal_index='', location_note='',
     order: that is the whole point, and it is why a district renamed or
     deactivated a year from now cannot rewrite where a parcel was actually sent
     (§17 #14).
+
+    Both methods now carry a region and a district (§17 #106), so the text reads
+    the same way for either — province, district, then whichever of the index or
+    the street address the method uses. The address is collapsed onto one line
+    because this is a single line of frozen text, not the address field itself.
     """
-    if region is None:
-        return (address or '').strip()
-    parts = [region.name]
-    if district is not None:
-        parts.append(location_note or district.name)
-    elif location_note:
-        parts.append(location_note)
+    parts = []
+    if region is not None:
+        parts.append(region.name)
+        if district is not None:
+            parts.append(location_note or district.name)
+        elif location_note:
+            parts.append(location_note)
     if postal_index:
         parts.append(postal_index)
+    street = ' '.join((address or '').split())
+    if street:
+        parts.append(street)
     return ' · '.join(parts)
 
 
@@ -280,13 +288,17 @@ class Order(models.Model):
         as in the checkout view because the view will not always be the only
         thing that builds an order.
 
-        Three checks, in order of what they cost the customer:
+        Four checks, in order of what they cost the customer:
 
-        * a branch order must carry a region, a district and an index, and a
-          home order must carry none of them — a half-filled order is a parcel
-          nobody can route;
-        * the index must be six digits, whatever region it is for, because a
-          five-digit index is wrong everywhere;
+        * **both** methods must carry a region and a district. A courier needs
+          the province and the district as much as the post office does, and a
+          customer who picks them from a drawer cannot misspell them — which is
+          why the home form stopped asking for them inside a free-text address
+          (§17 #106);
+        * the district must belong to the chosen region;
+        * for a branch order the index must be six digits, whatever region it is
+          for, because a five-digit index is wrong everywhere; a home order must
+          not carry one at all;
         * the index's leading digits must match the chosen region's prefix.
           That is the one error worth catching automatically: it is the typo
           that sends a real parcel to another province, and the customer finds
@@ -299,11 +311,14 @@ class Order(models.Model):
         branch = self.delivery_option.requires_branch
         errors = {}
 
+        if not self.region_id:
+            errors['region'] = _('Viloyatni tanlang.')
+        if not self.district_id:
+            errors['district'] = _('Tuman yoki shaharni tanlang.')
+        elif self.region_id and self.district.region_id != self.region_id:
+            errors['district'] = _('Tanlangan tuman bu viloyatga tegishli emas.')
+
         if branch:
-            if not self.region_id:
-                errors['region'] = _('Viloyatni tanlang.')
-            if not self.district_id:
-                errors['district'] = _('Tuman yoki shaharni tanlang.')
             if not self.postal_index:
                 errors['postal_index'] = _('Pochta indeksini kiriting.')
             elif not (self.postal_index.isdigit() and len(self.postal_index) == 6):
@@ -313,10 +328,8 @@ class Order(models.Model):
                     'Bu indeks tanlangan viloyatga toʻgʻri kelmadi. '
                     'Indeksni yoki viloyatni tekshiring.'
                 )
-            if self.district_id and self.region_id and self.district.region_id != self.region_id:
-                errors['district'] = _('Tanlangan tuman bu viloyatga tegishli emas.')
         else:
-            if self.region_id or self.district_id or self.postal_index:
+            if self.postal_index:
                 errors['postal_index'] = _(
                     'Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi.'
                 )

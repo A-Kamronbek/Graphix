@@ -3,9 +3,11 @@
 {% block title %}{% trans "Rasmiylashtirish" %}{% endblock %}
 
 {% comment %}
-  The delivery step is one choice that reveals one of two different forms:
+  Where the parcel is going, asked in the order a person actually knows it:
 
                           DELIVERY
+                              |
+                    VILOYAT + TUMAN/SHAHAR        <- both methods (§17 #106)
                               |
                 +-------------+-------------+
                 |                           |
@@ -14,12 +16,19 @@
         +-------+-------+                   |
         |               |                   |
       MAP           MANUAL           POSTAL INDEX
-     lat/lng        address              index
+     lat/lng     street + house           index
 
-  Nothing from the branch the customer did not pick is submitted, validated or
-  stored. Both halves are in the document and both work with JavaScript off:
-  the drawers fall back to plain selects, the map simply is not there, and the
-  address field carries the home branch on its own.
+  The province and the district come from the same two drawers whichever method
+  is chosen — a courier needs them as much as a post office does, and a drawer
+  cannot be misspelt. Only the last step differs: a branch order ends in a
+  six-digit index, a home order in a street and a house number.
+
+  Nothing from the step the customer did not take is submitted, validated or
+  stored. Everything works with JavaScript off: the drawers fall back to the
+  real <select>s underneath them, the map simply is not there, and the address
+  field carries the home branch on its own. Which is why neither half carries a
+  `hidden` attribute in the markup — the script hides the half that does not
+  apply, and a script that never runs leaves a form that still works (§17 #107).
 {% endcomment %}
 
 {% block content %}
@@ -63,8 +72,8 @@
           </label>
         {% endfor %}
 
-        {# ------------------------------------------------- Uzpost branch #}
-        <div class="stack" data-branch-fields hidden>
+        {# ------------------------------------------- where, for both methods #}
+        <div class="stack" data-location-fields>
           <div class="field">
             <label class="label" for="id_region">{% trans "Viloyat" %}</label>
             {# A plain select with JavaScript off; checkout.js replaces it with #}
@@ -103,7 +112,10 @@
                    maxlength="160" value="{{ form_data.location_note|default:'' }}"
                    placeholder="{% trans 'Qoʻlda yozing' %}">
           </div>
+        </div>
 
+        {# ------------------------------------------------- Uzpost branch #}
+        <div class="stack" data-branch-fields>
           <div class="field">
             <label class="label" for="id_postal_index">{% trans "Pochta indeksi" %}</label>
             <input class="input num" type="text" name="postal_index" id="id_postal_index"
@@ -127,7 +139,7 @@
         </div>
 
         {# --------------------------------------------------- home delivery #}
-        <div class="stack" data-home-fields hidden>
+        <div class="stack" data-home-fields>
           {# The toggle only decides whether a pin is offered. The address stays #}
           {# required and authoritative either way: a courier delivers to an #}
           {# address, not to a coordinate (§17 #91). #}
@@ -161,10 +173,13 @@
           <input type="hidden" name="longitude" value="{{ form_data.longitude|default:'' }}" data-longitude>
 
           <div class="field">
-            <label class="label" for="id_address">{% trans "Manzil" %}</label>
+            <label class="label" for="id_address">{% trans "Koʻcha va uy" %}</label>
             <textarea class="textarea" name="address" id="id_address" data-address
                       autocomplete="street-address"
-                      placeholder="{% trans 'Viloyat, tuman, koʻcha, uy' %}">{{ form_data.address|default:'' }}</textarea>
+                      placeholder="{% trans 'Koʻcha, uy, xonadon' %}">{{ form_data.address|default:'' }}</textarea>
+            <small class="field__hint">
+              {% trans "Viloyat va tumanni yuqorida tanladingiz — bu yerga faqat koʻcha va uy raqamini yozing." %}
+            </small>
           </div>
         </div>
 
@@ -247,7 +262,10 @@
 <div class="picker-drawer" data-picker hidden role="dialog" aria-modal="true">
   <div class="picker-drawer__panel">
     <div class="picker-drawer__hd">
-      <h2 class="h3" data-picker-title></h2>
+      {# Seeded rather than left empty: checkout.js sets the real title when the #}
+      {# drawer opens, but an empty h2 sitting in the document is an empty #}
+      {# heading whether or not anyone can see it. #}
+      <h2 class="h3" data-picker-title>{% trans "Tanlang" %}</h2>
       <button type="button" class="modal__close" data-picker-close
               aria-label="{% trans 'Yopish' %}">
         <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>

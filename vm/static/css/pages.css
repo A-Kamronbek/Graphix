@@ -136,8 +136,15 @@
   width: 100%; height: 100%; object-fit: cover; }
 
 @media (min-width: 1024px) {
-  /* Vertical thumbnail rail to the left of the image (§17 #47). */
-  .pdp__gallery { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--s-3); }
+  /* Vertical thumbnail rail to the left of the image (§17 #47).
+     Scoped to the modifier, not to `.pdp__gallery`, because the rail is
+     CONDITIONAL: item.html omits it for a product with one photograph. Applied
+     to the bare block, the two columns were still declared, the frame became
+     the first grid item, and `width: min(100%, …)` resolved 100% against the
+     64 px thumbnail column — a 760 px photograph rendered 64 px wide with the
+     rest of the column empty. A layout must never assume a child the template
+     can decide not to render (§17 #109). */
+  .pdp__gallery--rail { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--s-3); }
   .pdp__rail { flex-direction: column; margin-top: 0; order: -1; }
   /* Beside its thumbnails, not floating in the middle of the column: centred,
      the frame sat 60 px away from the rail and the two stopped reading as one

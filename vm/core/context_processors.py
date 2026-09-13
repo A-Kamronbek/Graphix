@@ -59,3 +59,27 @@ def size_guide(request):
     # app registry is still being populated.
     from product.models import SizeChart
     return {'has_size_guide': SizeChart.objects.exists()}
+
+
+def delivery_tiers(request):
+    """The delivery tiers and their prices, for the footer on every page.
+
+    The footer quoted them as literal text, and when §17 #85 moved the door
+    price from 30 000 to 40 000 the footer kept saying 30 000 — on every page of
+    the site, including the checkout page whose own form said 40 000 two
+    hundred pixels above it. §18 #18 closed the product and delivery pages and
+    missed this one, which is the argument for reading the rows rather than
+    repeating them: a price written down twice is a price that will disagree
+    with itself (§17 #111).
+
+    Cached, because this runs on every request for something that changes when
+    the owner edits a row. A short TTL is the right trade: a price change shows
+    up within a minute and the footer costs no query in between.
+    """
+    from django.core.cache import cache
+    tiers = cache.get('delivery_tiers')
+    if tiers is None:
+        from payment.models import DeliveryOption
+        tiers = list(DeliveryOption.objects.filter(is_active=True))
+        cache.set('delivery_tiers', tiers, 60)
+    return {'delivery_tiers': tiers}

@@ -130,7 +130,8 @@
       {% else %}
         <div class="empty">
           <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
-          <h3>{% trans "Hech narsa topilmadi" %}</h3>
+          {# h2: the empty state is the page's one section under the h1. #}
+          <h2 class="h3">{% trans "Hech narsa topilmadi" %}</h2>
           <p>
             {% if q or filter_count %}
               {% trans "Soʻrovingizga mos dizayn yoʻq. Filtrlarni kamaytirib koʻring." %}

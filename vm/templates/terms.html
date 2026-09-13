@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n i18n_fields price_format %}
 {% block title %}{% trans "Shartlar va qoidalar" %}{% endblock %}
 
 {% block content %}
@@ -16,10 +16,20 @@
     <p class="body">{% trans "Saytimizdan foydalanish va buyurtma berish orqali siz ushbu shartlarga rozilik bildirgan hisoblanasiz. Biz bu shartlarni istalgan vaqtda yangilash huquqiga egamiz. Kiritilgan oʻzgarishlar saytga joylangan zahoti kuchga kiradi." %}</p>
 
     <h2 class="h3">{% trans "2. Buyurtma va toʻlov" %}</h2>
-    <p class="body">{% trans "Buyurtmani Click orqali onlayn yoki mahsulotni olganingizda naqd pulda toʻlashingiz mumkin. Toʻlovni amalga oshirishdan avval yetkazib berish maʻlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil uchun javobgarlikni oʻz zimmamizga olmaymiz." %}</p>
+    {# Written to stay true when the owner switches a method on or off. It said #}
+    {# an order could be paid for in cash on delivery, and cash has been off #}
+    {# since §17 #99 — a terms page promising a payment method the checkout does #}
+    {# not offer is worse than a wrong price (§17 #111). #}
+    <p class="body">{% trans "Buyurtma rasmiylashtirish sahifasida koʻrsatilgan toʻlov usullari orqali toʻlanadi. Toʻlovni amalga oshirishdan avval yetkazib berish maʻlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil uchun javobgarlikni oʻz zimmamizga olmaymiz." %}</p>
 
     <h2 class="h3">{% trans "3. Yetkazib berish" %}</h2>
-    <p class="body">{% trans "Barcha buyurtmalar Oʻzbekiston pochtasi orqali yuboriladi — Toshkentda ham, viloyatlarda ham. Pochta boʻlimiga yetkazish 15 000 soʻm, eshikkacha yetkazish 30 000 soʻm. Bepul yetkazish chegarasi hozircha yoʻq." %}</p>
+    {# The prices come from the rows, for the same reason the footer's do. #}
+    <p class="body">{% trans "Barcha buyurtmalar Oʻzbekiston pochtasi orqali yuboriladi — Toshkentda ham, viloyatlarda ham. Bepul yetkazish chegarasi hozircha yoʻq." %}</p>
+    <ul class="body">
+      {% for tier in delivery_tiers %}
+        <li>{{ tier|t:"name" }} — <span class="num">{{ tier.price|price }} {% trans "soʻm" %}</span></li>
+      {% endfor %}
+    </ul>
     <p class="body">{% trans "Buyurtmalarni imkon qadar tez joʻnatishga harakat qilamiz. Yetkazib berish muddati pochta xizmatining ish tartibiga bogʻliq." %}</p>
 
     <h2 class="h3">{% trans "4. Qaytarish va almashtirish" %}</h2>
