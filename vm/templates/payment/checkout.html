@@ -85,7 +85,10 @@
                     data-title="{% trans 'Viloyat' %}">
               <option value="">{% trans "Tanlang" %}</option>
               {% for r in regions %}
+                {# data-match carries all three spellings so a dropped pin can #}
+                {# be matched against whichever one Google returns (§17 #116). #}
                 <option value="{{ r.pk }}" data-prefix="{{ r.postal_prefix }}"
+                        data-match="{{ r.name }}|{{ r.name_ru }}|{{ r.name_en }}"
                         {% if form_data.region == r.pk %}selected{% endif %}>{{ r|t:"name" }}</option>
               {% endfor %}
             </select>
@@ -288,11 +291,22 @@
 <script src="{% static 'js/map.js' %}" defer></script>
 <script src="{% static 'js/checkout.js' %}" defer></script>
 {% if google_maps_key %}
-  {# Loaded async and only on this page: the map is needed on one form, which #}
-  {# is what made a paid provider affordable at all (§17 #83). It never blocks #}
-  {# first paint, and if it fails to arrive GX.map stays unavailable and the #}
-  {# address field carries the form. #}
-  <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&loading=async&callback=GXMapReady"></script>
+  {# Loaded only on this page: the map is needed on one form, which is what #}
+  {# made a paid provider affordable at all (§17 #83). If it fails to arrive #}
+  {# GX.map stays unavailable and the address field carries the form. #}
+  {#  #}
+  {# `defer`, NOT `async`. Deferred scripts run in document order, so map.js #}
+  {# has defined the GXMapReady callback before Google can call it. With #}
+  {# `async` the Google file runs the moment it arrives — which on a second #}
+  {# visit is straight out of the HTTP cache, ahead of our own deferred #}
+  {# scripts — and it called a callback that did not exist yet: "GXMapReady is #}
+  {# not a function", no map, and only for people who had been here before #}
+  {# (§17 #119). It still does not block parsing or first paint. #}
+  {#  #}
+  {# `language` and `region` are what make the place names Google returns #}
+  {# comparable to ours: asked in the page's own language, and biased to #}
+  {# Uzbekistan so a search never drifts to a same-named place abroad. #}
+  <script defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&loading=async&language={{ LANGUAGE_CODE }}&region=UZ&callback=GXMapReady"></script>
 {% endif %}
 {% endblock %}

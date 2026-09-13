@@ -25,15 +25,22 @@
     <li><a href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a></li>
   </ul>
 
-  <form action="{% url 'set_language' %}" method="post" class="drawer__lang">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  {# One form per language, each carrying the URL of this page in that #}
+  {# language. The footer's copy of this control carries the full reasoning; #}
+  {# the short version is that `set_language` cannot translate the path itself #}
+  {# when Uzbek is unprefixed, so the page has to do it (§17 #115). #}
+  <div class="drawer__lang">
     <span class="label">{% trans "Til" %}</span>
     <div class="lang">
       {% for l in languages %}
-        <button type="submit" name="language" value="{{ l.code }}"
-                aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}">{{ l.name }}</button>
+        <form action="{% url 'set_language' %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ l.url }}">
+          <input type="hidden" name="language" value="{{ l.code }}">
+          <button type="submit"
+                  aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}">{{ l.name }}</button>
+        </form>
       {% endfor %}
     </div>
-  </form>
+  </div>
 </nav>
