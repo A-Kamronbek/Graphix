@@ -13,8 +13,8 @@ and four sizes on it.
 categories, the sizes, and everything that hangs off them - carts, cart lines
 and orders - go, because a variant cannot be deleted while an order line still
 points at it. It leaves alone the things that are not catalogue: user accounts
-(so nobody is locked out of their own dev site), delivery options, pickup points
-and contact messages.
+(so nobody is locked out of their own dev site), delivery and payment options,
+regions and districts, and contact messages.
 
 The photographs live in `docs/design/demo-catalogue/` because `vm/media/` is
 gitignored, and are copied into place when they are missing - so this works on a

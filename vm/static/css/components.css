@@ -369,6 +369,19 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
   padding-right: var(--s-7); }
 .select--drawer.is-empty { color: var(--c-fg-hint); }
 
+/* The native select the drawer replaced. It stays in the document — it is
+   still what submits, and a screen reader should still meet a real select —
+   but it must take no space.
+
+   `.sr-only` on its own is not enough here: `.select` also sets a width, the
+   two tie on specificity, and the "hidden" select ended up 1 425 px wide and
+   absolutely positioned, which put 144 px of horizontal scroll on a page that
+   is supposed to have none. §17 #72 in a new costume — a rule that exists to
+   be overridden must not be able to win — so this one is written specifically
+   enough to settle it. */
+.select.sr-only { width: 1px; height: 1px; min-height: 0; padding: 0;
+  border: 0; clip-path: inset(50%); }
+
 /* The drawer itself: a sheet on a phone, a centred dialog from 720 px. */
 .picker-drawer { position: fixed; inset: 0; z-index: var(--z-modal);
   background: var(--c-scrim); display: grid; place-items: end stretch; }
