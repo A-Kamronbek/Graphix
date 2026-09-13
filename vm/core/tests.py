@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from cart.models import Cart, CartItem
-from payment.models import Order
+from payment.models import DeliveryOption, Order
 from product.models import Category, Colour, Product, Size, Variant
 from user.models import User
 
@@ -75,17 +75,25 @@ class SmokeTests(TestCase):
         )
         self.client.force_login(self.user)
 
+        # Home delivery with a typed address: the simplest complete order, and
+        # the one that has to keep working whatever else changes about checkout.
+        # The delivery tier is now part of the form, and its fee is part of the
+        # total (§17 #85).
+        door = DeliveryOption.objects.get(code='uzpost_door')
         response = self.client.post(reverse('checkout'), {
             'name': 'Smoke User',
             'phone': '+998 90 123 45 67',
             'address': 'Toshkent, Amir Temur ko\'chasi 1',
             'notes': '',
+            'delivery_option': door.code,
+            'address_source': 'manual',
             'payment_method': Order.PaymentMethod.CLICK,
         })
 
         order = Order.objects.get(cart=cart)
         self.assertRedirects(response, reverse('payment', args=[order.id]))
-        self.assertEqual(order.total_price, Decimal('300000'))
+        self.assertEqual(order.total_price, Decimal('300000') + door.price)
+        self.assertEqual(order.delivery_price, door.price)
         self.assertEqual(order.status, Order.Status.PAYING)
 
         cart.refresh_from_db()

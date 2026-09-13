@@ -1,25 +1,25 @@
 """Phase 4 guards: slugs, order numbers, the legacy 301, stock, and the seeds.
 
 These are the Definition of Done for Phase 4 written as assertions, so a later
-phase can't quietly undo them. Several of them protect money or inventory: that a
-sold-out size cannot be over-ordered, that a paid order moves stock exactly once,
-and that the delivery option and the pickup point always agree.
+phase can't quietly undo them. Several of them protect money or inventory: that
+a sold-out size cannot be over-ordered, and that a paid order moves stock
+exactly once.
+
+The pickup-point tests that used to live here are gone with the table they
+guarded (§17 #84). Their replacements — the region, district and postal-index
+rules, which are what actually decides where a parcel goes — are in
+``test_phase6.py``, with the phase that owns them.
 """
-import csv
-import tempfile
 from decimal import Decimal
-from pathlib import Path
 
 from click_up.models import ClickTransaction
-from django.core.exceptions import ValidationError
-from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
 from cart import services as cart_services
 from cart.models import Cart, CartItem
 from payment import services as payment_services
-from payment.models import DeliveryOption, Order, PickupPoint
+from payment.models import DeliveryOption, Order
 from product.models import Category, Colour, Product, Size, Variant
 from user.models import User
 
@@ -252,51 +252,30 @@ class StockMovementTests(TestCase):
 
 
 class DeliveryOptionTests(TestCase):
-    """The two seeded tiers exist, and an order's option and pickup point agree."""
+    """The two seeded tiers exist and say what the customer has to supply.
+
+    The branch tier's *validation* moved to Phase 6 with the redesign; what is
+    still Phase 4's is that the tiers are rows at all, and that neither has a
+    free threshold.
+    """
 
     def test_both_tiers_are_seeded(self):
         codes = set(DeliveryOption.objects.values_list('code', flat=True))
         self.assertEqual({'uzpost_office', 'uzpost_door'}, codes)
 
-    def test_office_requires_a_pickup_point_and_door_does_not(self):
+    def test_the_office_tier_needs_a_branch_and_the_door_tier_does_not(self):
         office = DeliveryOption.objects.get(code='uzpost_office')
         door = DeliveryOption.objects.get(code='uzpost_door')
-        self.assertTrue(office.requires_pickup_point)
-        self.assertFalse(door.requires_pickup_point)
+        self.assertTrue(office.requires_branch)
+        self.assertFalse(door.requires_branch)
         self.assertEqual(office.price, Decimal('15000'))
-        self.assertEqual(door.price, Decimal('30000'))
+        # 40 000 since §17 #85; migration 0015 corrected the seeded row.
+        self.assertEqual(door.price, Decimal('40000'))
 
     def test_no_free_delivery_threshold_yet(self):
         for option in DeliveryOption.objects.all():
             self.assertEqual(option.free_from_items, 0)
             self.assertEqual(option.price_for_items(99), option.price)
-
-    def test_clean_rejects_an_office_order_without_a_branch(self):
-        user = User.objects.create_user(username='cleanuser', password='clean-pass-123',
-                                        phone='+998 90 444 55 66', phone_verified=True)
-        order = Order(
-            user=user, cart=Cart.objects.create(user=user, status=False),
-            phone='+998 90 444 55 66', address='Toshkent', total_price=Decimal('1000'),
-            delivery_option=DeliveryOption.objects.get(code='uzpost_office'),
-        )
-        with self.assertRaises(ValidationError):
-            order.clean()
-
-    def test_clean_rejects_a_door_order_with_a_branch(self):
-        user = User.objects.create_user(username='cleanuser2', password='clean-pass-123',
-                                        phone='+998 90 555 66 77', phone_verified=True)
-        order = Order(
-            user=user, cart=Cart.objects.create(user=user, status=False),
-            phone='+998 90 555 66 77', address='Toshkent', total_price=Decimal('1000'),
-            delivery_option=DeliveryOption.objects.get(code='uzpost_door'),
-            pickup_point=PickupPoint.objects.create(
-                code='100007', name='Boʻlim', region='Toshkent shahri',
-                district='Chilonzor', address='Bunyodkor 1',
-                latitude=Decimal('41.285'), longitude=Decimal('69.204'),
-            ),
-        )
-        with self.assertRaises(ValidationError):
-            order.clean()
 
 
 class TagSeedTests(TestCase):
@@ -312,71 +291,6 @@ class TagSeedTests(TestCase):
             set(Tag.objects.filter(kind='theme').values_list('slug', flat=True)),
             {'anime', 'streetwear', 'music', 'sport', 'minimal', 'vintage'},
         )
-
-
-class PickupPointSeedTests(TestCase):
-    """The seed command is idempotent and deactivates rather than deletes."""
-
-    COLUMNS = ['code', 'name', 'name_ru', 'name_en', 'region', 'district', 'address',
-               'address_ru', 'address_en', 'latitude', 'longitude',
-               'working_hours', 'phone', 'sort_order']
-
-    def _csv(self, rows):
-        """Write rows to a temp CSV and return its path."""
-        handle = tempfile.NamedTemporaryFile('w', suffix='.csv', delete=False,
-                                             newline='', encoding='utf-8')
-        writer = csv.DictWriter(handle, fieldnames=self.COLUMNS)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({c: row.get(c, '') for c in self.COLUMNS})
-        handle.close()
-        return handle.name
-
-    def _row(self, code, **over):
-        row = {'code': code, 'name': f"Boʻlim {code}", 'region': 'Toshkent shahri',
-               'district': 'Chilonzor', 'address': f"Koʻcha {code}",
-               'latitude': '41.285000', 'longitude': '69.204000'}
-        row.update(over)
-        return row
-
-    def test_seeding_twice_changes_nothing(self):
-        path = self._csv([self._row('100007'), self._row('100011')])
-        call_command('seed_pickup_points', file=path)
-        self.assertEqual(PickupPoint.objects.count(), 2)
-        call_command('seed_pickup_points', file=path)
-        self.assertEqual(PickupPoint.objects.count(), 2)
-
-    def test_a_branch_missing_from_the_csv_is_deactivated_not_deleted(self):
-        call_command('seed_pickup_points',
-                     file=self._csv([self._row('100007'), self._row('100011')]))
-        call_command('seed_pickup_points', file=self._csv([self._row('100007')]))
-
-        self.assertEqual(PickupPoint.objects.count(), 2)
-        self.assertTrue(PickupPoint.objects.get(code='100007').is_active)
-        self.assertFalse(PickupPoint.objects.get(code='100011').is_active)
-
-    def test_an_updated_row_is_overwritten(self):
-        call_command('seed_pickup_points', file=self._csv([self._row('100007')]))
-        call_command('seed_pickup_points',
-                     file=self._csv([self._row('100007', address='Yangi koʻcha 5')]))
-        self.assertEqual(PickupPoint.objects.get(code='100007').address, 'Yangi koʻcha 5')
-
-    def test_swapped_coordinates_are_refused_and_nothing_is_written(self):
-        """69,41 instead of 41,69 would send parcels to the wrong country."""
-        from django.core.management.base import CommandError
-        path = self._csv([self._row('100007'),
-                          self._row('100011', latitude='69.204', longitude='41.285')])
-        with self.assertRaises(CommandError):
-            call_command('seed_pickup_points', file=path)
-        self.assertEqual(PickupPoint.objects.count(), 0)
-
-    def test_the_shipped_csv_is_header_only_and_valid(self):
-        """The real dataset has to come from the owner (plan §19) — but the file parses."""
-        from django.conf import settings
-        shipped = Path(settings.BASE_DIR) / 'data' / 'pickup_points.csv'
-        self.assertTrue(shipped.exists())
-        call_command('seed_pickup_points', file=str(shipped))
-        self.assertEqual(PickupPoint.objects.count(), 0)
 
 
 class AdminDefaultColourTests(TestCase):

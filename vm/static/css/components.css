@@ -354,6 +354,46 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .picker__item[aria-pressed="true"] { background: var(--c-brand-bg); box-shadow: inset 3px 0 0 var(--c-brand); }
 .picker__name { display: block; font-weight: var(--fw-semibold); }
 .picker__meta { display: block; font-size: var(--fs-sm); color: var(--c-fg-muted); }
+/* A heading inside the list: Tumanlar, then Shaharlar. The reason these are
+   drawers rather than native selects — a <select> cannot group, and cannot
+   carry a search field only where one is warranted (§17 #87). */
+.picker__group { position: sticky; top: 0; z-index: 1;
+  padding: var(--s-2) var(--s-4); background: var(--c-surface);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-caps); text-transform: uppercase;
+  color: var(--c-fg-hint); border-bottom: 1px solid var(--c-line); }
+
+/* The button a drawerised <select> becomes. It keeps .select's own look so the
+   two fields do not read as different kinds of control. */
+.select--drawer { display: flex; align-items: center; text-align: left;
+  padding-right: var(--s-7); }
+.select--drawer.is-empty { color: var(--c-fg-hint); }
+
+/* The drawer itself: a sheet on a phone, a centred dialog from 720 px. */
+.picker-drawer { position: fixed; inset: 0; z-index: var(--z-modal);
+  background: var(--c-scrim); display: grid; place-items: end stretch; }
+.picker-drawer[hidden] { display: none; }
+.picker-drawer__panel { display: flex; flex-direction: column; gap: var(--s-3);
+  max-height: 86vh; padding: var(--s-4);
+  background: var(--c-surface); border-top: 1px solid var(--c-line-strong);
+  border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--sh-lg); }
+.picker-drawer__hd { display: flex; align-items: center; gap: var(--s-3); }
+.picker-drawer__hd h2 { margin-right: auto; }
+.picker-drawer .picker__list { max-height: none; flex: 1; }
+@media (min-width: 720px) {
+  .picker-drawer { place-items: center; padding: var(--s-5); }
+  .picker-drawer__panel { width: min(560px, 100%); border-radius: var(--r-lg);
+    border: 1px solid var(--c-line-strong); }
+}
+
+/* The map, on the home half of checkout only. It is never rendered when the
+   API key is blank, so there is no grey box to explain (§17 #93). */
+.map { display: flex; flex-direction: column; gap: var(--s-3); }
+.map[hidden] { display: none; }
+.map__canvas { aspect-ratio: 4 / 3; max-height: 360px;
+  background: var(--c-surface); border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-md); overflow: hidden; }
+
 .picker__map { aspect-ratio: 4 / 3; background: var(--c-surface); border: 1px solid var(--c-line);
   border-radius: var(--r-sm); display: grid; place-items: center; color: var(--c-fg-subtle); }
 @media (min-width: 860px) { .picker { grid-template-columns: 380px minmax(0, 1fr); } }

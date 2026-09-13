@@ -183,22 +183,22 @@
       </form>
 
       {# Delivery, stated on the product page so it is never a checkout surprise. #}
-      <dl class="spec">
-        <div class="spec__row">
-          <dt>
-            <svg class="i i--sm" aria-hidden="true"><use href="#i-box"></use></svg>
-            {% trans "Pochta boʻlimiga" %}
-          </dt>
-          <dd class="num">15 000 {% trans "soʻm" %}</dd>
-        </div>
-        <div class="spec__row">
-          <dt>
-            <svg class="i i--sm" aria-hidden="true"><use href="#i-truck"></use></svg>
-            {% trans "Eshikkacha" %}
-          </dt>
-          <dd class="num">30 000 {% trans "soʻm" %}</dd>
-        </div>
-      </dl>
+      {# Rendered from the DeliveryOption rows rather than written as copy: the #}
+      {# prices are configurable precisely so a change is not a deploy, and two #}
+      {# pages quietly stating an old figure is how that promise breaks (§18 #18). #}
+      {% if delivery_options %}
+        <dl class="spec">
+          {% for opt in delivery_options %}
+            <div class="spec__row">
+              <dt>
+                <svg class="i i--sm" aria-hidden="true"><use href="#i-{% if opt.requires_branch %}box{% else %}truck{% endif %}"></use></svg>
+                {{ opt|t:"name" }}
+              </dt>
+              <dd class="num">{{ opt.price|price }} {% trans "soʻm" %}</dd>
+            </div>
+          {% endfor %}
+        </dl>
+      {% endif %}
 
       {# Spec strip — structured, so it reads the same on every product. #}
       {% if product.gsm or product|t:"material" or product.print_method or product.fit %}

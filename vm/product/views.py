@@ -286,5 +286,15 @@ def item(request, slug):
         # The drawn chart, if the owner has not replaced it with his own. Same
         # lookup the standalone page uses, so the two never show different files.
         'size_guide_image': finders.find(SIZE_GUIDE_IMAGE) and static(SIZE_GUIDE_IMAGE),
+        # The delivery line reads from the rows, so the page and the checkout can
+        # never quote different prices (§18 #18). Imported here rather than at
+        # module scope to keep product from taking a startup import on payment.
+        'delivery_options': _delivery_options(),
         'related': related,
     })
+
+
+def _delivery_options():
+    """The active delivery tiers, for the product page's delivery line."""
+    from payment.models import DeliveryOption
+    return list(DeliveryOption.objects.filter(is_active=True))

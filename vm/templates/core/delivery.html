@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n i18n_fields price_format %}
 {% block title %}{% trans "Yetkazib berish" %}{% endblock %}
 
 {% block content %}
@@ -8,25 +8,35 @@
     <h1 class="h1">{% trans "Yetkazib berish" %}</h1>
     <p class="lede">{% trans "Butun Oʻzbekiston boʻylab, Oʻzbekiston pochtasi orqali — Toshkentda ham, viloyatlarda ham." %}</p>
 
-    <dl class="spec">
-      <div class="spec__row">
-        <dt>
-          <svg class="i i--sm" aria-hidden="true"><use href="#i-box"></use></svg>
-          {% trans "Pochta boʻlimiga" %}
-        </dt>
-        <dd class="num">15 000 {% trans "soʻm" %}</dd>
-      </div>
-      <div class="spec__row">
-        <dt>
-          <svg class="i i--sm" aria-hidden="true"><use href="#i-truck"></use></svg>
-          {% trans "Eshikkacha" %}
-        </dt>
-        <dd class="num">30 000 {% trans "soʻm" %}</dd>
-      </div>
-    </dl>
+    {# From the rows, not written as copy. A price change in the admin has to #}
+    {# reach every page that states it, or one of them starts quietly lying #}
+    {# (§17 #13, §18 #18). #}
+    {% if delivery_options %}
+      <dl class="spec">
+        {% for opt in delivery_options %}
+          <div class="spec__row">
+            <dt>
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-{% if opt.requires_branch %}box{% else %}truck{% endif %}"></use></svg>
+              {{ opt|t:"name" }}
+            </dt>
+            <dd class="num">{{ opt.price|price }} {% trans "soʻm" %}</dd>
+          </div>
+        {% endfor %}
+      </dl>
+    {% endif %}
 
-    <p class="body">{% trans "Boʻlimga yetkazishda buyurtmani oʻzingiz tanlagan pochta boʻlimidan olib ketasiz. Eshikkacha yetkazishda kuryer koʻrsatilgan manzilga olib boradi." %}</p>
-    <p class="body">{% trans "Toʻlovni Click orqali onlayn yoki buyurtmani olganda naqd pulda amalga oshirishingiz mumkin." %}</p>
+    <h2 class="h3">{% trans "Pochta boʻlimiga" %}</h2>
+    <p class="body">{% trans "Rasmiylashtirishda viloyat va tumaningizni tanlab, oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksini yozasiz. Indeksni bilmasangiz, Oʻzbekiston pochtasining boʻlimlar xaritasidan topishingiz mumkin — havola rasmiylashtirish sahifasida." %}</p>
+
+    <h2 class="h3">{% trans "Eshikkacha" %}</h2>
+    <p class="body">{% trans "Kuryer buyurtmani siz koʻrsatgan manzilga olib boradi. Manzilni qoʻlda yozishingiz yoki xaritada belgilab qoʻyishingiz mumkin — xaritadagi belgi manzilni aniqlashtiradi, lekin manzilning oʻzi baribir kerak." %}</p>
+
+    {# Quoted from uz.post, not estimated (§19 Q10). #}
+    <h2 class="h3">{% trans "Qancha vaqt ketadi?" %}</h2>
+    <p class="body">{% trans "Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab 1–6 kun ichida yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin." %}</p>
+
+    <h2 class="h3">{% trans "Buyurtmani olib ketmasangiz nima boʻladi?" %}</h2>
+    <p class="body">{% trans "Joʻnatma pochta boʻlimida bir oy saqlanadi. Shu muddat ichida olib ketilmasa, u bizga qaytariladi. Shuning uchun boʻlim indeksini diqqat bilan tekshiring — buyurtma tasdiqlangandan keyin uni tasdiq sahifasida qayta koʻrishingiz mumkin." %}</p>
 
     <div class="row row--wrap">
       <a class="btn btn--secondary" href="{% url 'contact' %}">{% trans "Savolingiz bormi?" %}</a>

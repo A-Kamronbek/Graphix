@@ -52,11 +52,16 @@ def delivery(request):
 
     §7 requires the two tiers to be stated everywhere a customer might look —
     checkout, the confirmation, this page and the terms — so nobody is surprised
-    at checkout about who delivers or what it costs. The prices live in
-    DeliveryOption rows, but this page states them as copy: it has to read
-    correctly even before the rows are seeded on a fresh deploy.
+    at checkout about who delivers or what it costs. The figures come from the
+    DeliveryOption rows rather than being written here as copy: they are rows
+    precisely so a price change is not a deploy (§17 #13), and a page that
+    states the old number is how that promise breaks (§18 #18). Before the rows
+    are seeded the table simply does not render, and the prose still reads.
     """
-    return render(request, 'core/delivery.html')
+    from payment.models import DeliveryOption
+    return render(request, 'core/delivery.html', {
+        'delivery_options': list(DeliveryOption.objects.filter(is_active=True)),
+    })
 
 
 def size_guide(request):
