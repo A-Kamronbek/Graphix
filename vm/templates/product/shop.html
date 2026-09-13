@@ -108,9 +108,10 @@
           {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
           {% for t in selected_tags %}<input type="hidden" name="tag" value="{{ t }}">{% endfor %}
           <label class="sr-only" for="gx-sort">{% trans "Tartiblash" %}</label>
-          {# Ommabop and Reyting join this list in Phase 6b, with the sorts. #}
           <select class="select" id="gx-sort" name="sort" onchange="this.form.submit()">
             <option value="new" {% if sort == 'new' %}selected{% endif %}>{% trans "Yangilari" %}</option>
+            <option value="popular" {% if sort == 'popular' %}selected{% endif %}>{% trans "Ommabop" %}</option>
+            <option value="rating" {% if sort == 'rating' %}selected{% endif %}>{% trans "Reyting boʻyicha" %}</option>
             <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>{% trans "Narx: arzondan" %}</option>
             <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>{% trans "Narx: qimmatdan" %}</option>
           </select>

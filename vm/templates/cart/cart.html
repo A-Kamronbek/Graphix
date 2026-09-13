@@ -77,7 +77,16 @@
           </div>
         </dl>
 
-        <a class="btn btn--primary btn--lg btn--block" href="{% url 'checkout' %}">{% trans "Rasmiylashtirish" %}</a>
+        {# Guests fill a cart freely; the login wall is here, at checkout, and #}
+        {# it says plainly that nothing is lost — the cart is merged into the #}
+        {# account on the way back (§17 #24). #}
+        {% if user.is_authenticated %}
+          <a class="btn btn--primary btn--lg btn--block" href="{% url 'checkout' %}">{% trans "Rasmiylashtirish" %}</a>
+        {% else %}
+          <a class="btn btn--primary btn--lg btn--block"
+             href="{% url 'login' %}?next={% url 'checkout' %}">{% trans "Rasmiylashtirish" %}</a>
+          <p class="small muted">{% trans "Buyurtma berish uchun kirish kerak. Savatingiz saqlanib qoladi." %}</p>
+        {% endif %}
         <a class="link" href="{% url 'shop' %}">{% trans "Xaridni davom ettirish" %}</a>
       </aside>
     </div>

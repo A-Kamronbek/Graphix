@@ -127,17 +127,42 @@
             </div>
           </div>
 
-          {# Heart and share render here; both are wired in Phase 6b (§17 #62). #}
+          {# The heart submits the like form below rather than this one. A form #}
+          {# cannot be nested inside another, and the HTML `form` attribute is #}
+          {# exactly the escape hatch for a control that belongs elsewhere — so #}
+          {# the button keeps its place in the layout and still posts on its own. #}
           <div class="pdp__actions">
-            <button type="button" class="like" data-like aria-pressed="false"
-                    aria-label="{% trans 'Saqlash' %}">
+            <button type="submit" class="like" form="gx-like" data-like
+                    aria-pressed="{% if is_liked %}true{% else %}false{% endif %}"
+                    aria-label="{% if is_liked %}{% trans 'Saqlanganlardan olib tashlash' %}{% else %}{% trans 'Saqlash' %}{% endif %}"
+                    data-label-on="{% trans 'Saqlanganlardan olib tashlash' %}"
+                    data-label-off="{% trans 'Saqlash' %}"
+                    data-error="{% trans 'Xatolik yuz berdi. Qayta urinib koʻring.' %}">
               <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
-              {% if product.likes_count %}<span class="like__count num">{{ product.likes_count }}</span>{% endif %}
+              <span class="like__count num" data-like-count{% if not product.likes_count %} hidden{% endif %}>{{ product.likes_count }}</span>
             </button>
-            <button type="button" class="btn btn--ghost btn--icon" data-share
-                    aria-label="{% trans 'Ulashish' %}">
-              <svg class="i" aria-hidden="true"><use href="#i-share"></use></svg>
-            </button>
+
+            {# navigator.share on a phone; a small menu on desktop, where it #}
+            {# does not exist. Both are progressive: with JS off the button is #}
+            {# not rendered at all rather than sitting there inert. #}
+            <div class="share" data-share-wrap hidden>
+              <button type="button" class="btn btn--ghost btn--icon" data-share
+                      aria-haspopup="true" aria-expanded="false"
+                      aria-label="{% trans 'Ulashish' %}">
+                <svg class="i" aria-hidden="true"><use href="#i-share"></use></svg>
+              </button>
+              <div class="share__menu" data-share-menu hidden>
+                <a data-share-telegram href="#" target="_blank" rel="noopener">
+                  <svg class="i i--sm" aria-hidden="true"><use href="#i-telegram"></use></svg>
+                  Telegram
+                </a>
+                <button type="button" data-share-copy
+                        data-done="{% trans 'Havola nusxalandi' %}">
+                  <svg class="i i--sm" aria-hidden="true"><use href="#i-share"></use></svg>
+                  {% trans "Havolani nusxalash" %}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -145,6 +170,15 @@
                 {% if not is_purchasable %}disabled{% endif %}>
           {% if is_purchasable %}{% trans "Savatga qoʻshish" %}{% else %}{% trans "Tugadi" %}{% endif %}
         </button>
+      </form>
+
+      {# The heart's own form. It carries nothing the customer fills in, only #}
+      {# the CSRF token and where to come back to, so it renders as a bare #}
+      {# container and the button that submits it lives up in the actions row. #}
+      <form id="gx-like" method="post" action="{% url 'product_like' product.slug %}"
+            data-like-form hidden>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
       </form>
 
       {# Delivery, stated on the product page so it is never a checkout surprise. #}

@@ -1,11 +1,15 @@
 {% load static i18n i18n_fields price_format %}
-{# One product card: shop grid, related strip, and later the home rows and the #}
-{# saved page. Expects `p`, annotated with `min_price` and `in_stock` by #}
-{# product.views.annotate_cards. #}
+{# One product card: shop grid, related strip, home rows and the saved page. #}
+{# Expects `p`, annotated with `min_price`, `in_stock` and (for a signed-in #}
+{# visitor) `is_liked` by product.views.annotate_cards. #}
 {# #}
 {# The photograph is the point of the card, so it gets the whole top of it and #}
 {# the text underneath stays quiet. No layout shift: the frame holds the #}
 {# catalogue's 4:5 ratio before the image loads. #}
+{# #}
+{# The heart is a form, and it sits OUTSIDE the card's link: a form inside an #}
+{# anchor is invalid HTML, and nesting one there made tapping the heart follow #}
+{# the link. `.card` is the positioned ancestor it floats against. #}
 <article class="card">
   <a href="{% url 'item' p.slug %}">
     <div class="card__media">
@@ -21,14 +25,6 @@
       {% if p.in_stock is False %}
         <span class="badge card__badge">{% trans "Tugadi" %}</span>
       {% endif %}
-
-      {# Display only. The toggle is Phase 6b (§17 #62). #}
-      {% if p.likes_count %}
-        <span class="like like--float" aria-hidden="true">
-          <svg class="i i--sm i--solid"><use href="#i-heart"></use></svg>
-          <span class="like__count">{{ p.likes_count }}</span>
-        </span>
-      {% endif %}
     </div>
 
     <div class="stack stack--sm card__meta">
@@ -38,4 +34,22 @@
       </span>
     </div>
   </a>
+
+  <form class="like--float" method="post" action="{% url 'product_like' p.slug %}"
+        data-like-form>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {# The two labels and the failure message are passed in rather than written #}
+    {# in JavaScript: a string the page can show is copy, and copy is translated #}
+    {# (§17 #80). A hardcoded Uzbek label in a script has already shipped once. #}
+    <button type="submit" class="like" data-like
+            aria-pressed="{% if p.is_liked %}true{% else %}false{% endif %}"
+            aria-label="{% if p.is_liked %}{% trans 'Saqlanganlardan olib tashlash' %}{% else %}{% trans 'Saqlash' %}{% endif %}"
+            data-label-on="{% trans 'Saqlanganlardan olib tashlash' %}"
+            data-label-off="{% trans 'Saqlash' %}"
+            data-error="{% trans 'Xatolik yuz berdi. Qayta urinib koʻring.' %}">
+      <svg class="i i--sm" aria-hidden="true"><use href="#i-heart"></use></svg>
+      <span class="like__count num" data-like-count{% if not p.likes_count %} hidden{% endif %}>{{ p.likes_count }}</span>
+    </button>
+  </form>
 </article>

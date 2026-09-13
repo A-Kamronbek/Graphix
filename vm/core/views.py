@@ -33,7 +33,8 @@ def home(request):
 
     live = Product.objects.filter(is_active=True, variants__available=True)
 
-    newest = annotate_cards(live.prefetch_related('images', 'variants')).distinct()
+    newest = annotate_cards(live.prefetch_related('images', 'variants'),
+                            user=request.user).distinct()
     return render(request, 'core/home.html', {
         # The hero photograph is the newest design, so the page leads with stock
         # that is actually for sale rather than a fixed marketing image.

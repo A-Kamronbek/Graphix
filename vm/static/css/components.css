@@ -114,6 +114,10 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .search input { flex: 1; background: none; border: 0; outline: none; min-width: 0; }
 
 /* ========================================================= 3. product card */
+/* The card is the positioned ancestor the heart floats against. It cannot be
+   .card__media: the heart is a form, a form inside an anchor is invalid HTML,
+   and the whole media block lives inside the card's link. */
+.card { position: relative; }
 .card__media { position: relative; aspect-ratio: var(--ar-product); overflow: hidden;
   background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--r-sm);
   margin-bottom: var(--s-3); }
@@ -185,10 +189,34 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .like[aria-pressed="true"] { color: var(--c-brand); }
 .like[aria-pressed="true"] .i { fill: currentColor; }
 .like__count { font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
-.like--float { position: absolute; top: var(--s-2); right: var(--s-2);
+/* The floating heart on a card. It is the <form>, not the button: the button
+   inside keeps .like's own sizing and pressed state, and z-index puts the whole
+   thing above the card's link so the tap lands on the heart. */
+.like--float { position: absolute; top: var(--s-2); right: var(--s-2); z-index: 1;
   background: color-mix(in srgb, var(--c-bg) 66%, transparent);
   border-radius: var(--r-full); backdrop-filter: blur(4px); }
 .like--float:hover { background: var(--c-brand); color: var(--c-brand-fg); }
+/* A count of zero is hidden rather than absent, so the toggle can reveal it
+   without rebuilding the button. */
+.like__count[hidden] { display: none; }
+/* While the toggle is in flight the heart is not clickable, but it must not
+   look disabled either — it has already changed to the state it is confirming. */
+.like[aria-busy="true"] { pointer-events: none; }
+
+/* Share. On a phone the button hands off to navigator.share and this menu is
+   never built; on desktop it is the whole control, so it is anchored to the
+   button rather than floated over the page. */
+.share { position: relative; }
+.share__menu { position: absolute; right: 0; top: calc(100% + var(--s-2));
+  z-index: var(--z-drawer); min-width: 220px; padding: var(--s-2);
+  display: flex; flex-direction: column;
+  background: var(--c-surface-2); border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-md); box-shadow: var(--sh-lg); }
+.share__menu[hidden] { display: none; }
+.share__menu > * { display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3); min-height: 44px; border-radius: var(--r-sm);
+  color: var(--c-fg); text-align: left; white-space: nowrap; }
+.share__menu > *:hover { background: var(--c-surface-3); }
 
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px var(--s-2);
   border-radius: var(--r-full); font-size: var(--fs-xs); font-weight: var(--fw-semibold);
