@@ -1,13 +1,34 @@
 {% extends "base.html" %}
-{% load i18n i18n_fields price_format %}
+{% load static i18n i18n_fields price_format %}
 {% block title %}{% trans "Rasmiylashtirish" %}{% endblock %}
+
+{% comment %}
+  The delivery step is one choice that reveals one of two different forms:
+
+                          DELIVERY
+                              |
+                +-------------+-------------+
+                |                           |
+              HOME                        UZPOST
+                |                           |
+        +-------+-------+                   |
+        |               |                   |
+      MAP           MANUAL           POSTAL INDEX
+     lat/lng        address              index
+
+  Nothing from the branch the customer did not pick is submitted, validated or
+  stored. Both halves are in the document and both work with JavaScript off:
+  the drawers fall back to plain selects, the map simply is not there, and the
+  address field carries the home branch on its own.
+{% endcomment %}
 
 {% block content %}
 <div class="wrap section stack stack--lg">
   <h1 class="h1">{% trans "Rasmiylashtirish" %}</h1>
 
   <div class="checkout">
-    <form method="post" class="stack stack--lg">
+    <form method="post" class="stack stack--lg" data-checkout
+          data-districts="{{ districts_json }}">
       {% csrf_token %}
 
       <section class="panel stack">
@@ -27,42 +48,159 @@
 
       <section class="panel stack">
         <h2 class="h3">{% trans "Yetkazib berish" %}</h2>
-        {# The tier picker, the map and the pickup-point list all arrive in #}
-        {# Phase 6e; the address stays required and authoritative either way. #}
-        <div class="field">
-          <label class="label" for="id_address">{% trans "Manzil" %}</label>
-          <textarea class="textarea" name="address" id="id_address" required
-                    autocomplete="street-address"
-                    placeholder="{% trans 'Viloyat, tuman, koʻcha, uy' %}">{{ form_data.address|default:'' }}</textarea>
+
+        {% for opt in delivery_options %}
+          <label class="check">
+            <input type="radio" name="delivery_option" value="{{ opt.code }}"
+                   data-delivery-choice
+                   data-branch="{% if opt.requires_branch %}1{% else %}0{% endif %}"
+                   data-price="{{ opt.price }}"
+                   {% if form_data.delivery_option == opt.code %}checked{% endif %}>
+            <span>
+              <strong>{{ opt|t:"name" }} — <span class="num">{{ opt.price|price }} {% trans "soʻm" %}</span></strong>
+              <span class="field__hint">{{ opt|t:"note" }}</span>
+            </span>
+          </label>
+        {% endfor %}
+
+        {# ------------------------------------------------- Uzpost branch #}
+        <div class="stack" data-branch-fields hidden>
+          <div class="field">
+            <label class="label" for="id_region">{% trans "Viloyat" %}</label>
+            {# A plain select with JavaScript off; checkout.js replaces it with #}
+            {# a drawer that can group Tumanlar and Shaharlar and search a long #}
+            {# list, neither of which a native select can do (§17 #87). #}
+            {# data-prefix is what lets the page say "that index is not in this #}
+            {# region" before the round trip. The server checks it again. #}
+            <select class="select" name="region" id="id_region" data-region
+                    data-title="{% trans 'Viloyat' %}">
+              <option value="">{% trans "Tanlang" %}</option>
+              {% for r in regions %}
+                <option value="{{ r.pk }}" data-prefix="{{ r.postal_prefix }}"
+                        {% if form_data.region == r.pk %}selected{% endif %}>{{ r|t:"name" }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="id_district">{% trans "Tuman yoki shahar" %}</label>
+            {# Every string this field's drawer can show is passed in, because a #}
+            {# heading the page prints is copy and copy is translated (§17 #80). #}
+            <select class="select" name="district" id="id_district" data-district
+                    data-title="{% trans 'Tuman yoki shahar' %}"
+                    data-placeholder="{% trans 'Tanlang' %}"
+                    data-group-districts="{% trans 'Tumanlar' %}"
+                    data-group-cities="{% trans 'Shaharlar' %}">
+              <option value="">{% trans "Avval viloyatni tanlang" %}</option>
+            </select>
+          </div>
+
+          {# Only for the Boshqa escape: the district the classifier does not #}
+          {# know about, in the customer's own words. #}
+          <div class="field" data-location-note-field hidden>
+            <label class="label" for="id_location_note">{% trans "Tuman yoki shahar nomi" %}</label>
+            <input class="input" type="text" name="location_note" id="id_location_note"
+                   maxlength="160" value="{{ form_data.location_note|default:'' }}"
+                   placeholder="{% trans 'Qoʻlda yozing' %}">
+          </div>
+
+          <div class="field">
+            <label class="label" for="id_postal_index">{% trans "Pochta indeksi" %}</label>
+            <input class="input num" type="text" name="postal_index" id="id_postal_index"
+                   inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                   autocomplete="postal-code" placeholder="100011"
+                   value="{{ form_data.postal_index|default:'' }}"
+                   data-postal-index
+                   data-error-format="{% trans 'Indeks 6 ta raqamdan iborat boʻlishi kerak.' %}"
+                   data-error-region="{% trans 'Bu indeks tanlangan viloyatga toʻgʻri kelmadi.' %}">
+            <small class="field__hint" data-postal-hint>
+              {% trans "Oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksi." %}
+            </small>
+            {# A customer who does not know their index is sent to Uzpost's own #}
+            {# branch map — in a new tab, with the form saved first, because #}
+            {# leaving checkout mid-order is a real drop-off risk (§17 #92). #}
+            <a class="link small" href="https://uz.post/uz/map" target="_blank"
+               rel="noopener" data-leave-checkout>
+              {% trans "Indeksni bilmaysizmi? Pochta boʻlimlari xaritasi" %}
+            </a>
+          </div>
         </div>
+
+        {# --------------------------------------------------- home delivery #}
+        <div class="stack" data-home-fields hidden>
+          {# The toggle only decides whether a pin is offered. The address stays #}
+          {# required and authoritative either way: a courier delivers to an #}
+          {# address, not to a coordinate (§17 #91). #}
+          <div class="chips" role="group" aria-label="{% trans 'Manzilni kiritish usuli' %}"
+               data-address-source-toggle hidden>
+            <button type="button" data-source="map" aria-pressed="false">
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-pin"></use></svg>
+              {% trans "Xaritadan" %}
+            </button>
+            <button type="button" data-source="manual" aria-pressed="true">
+              {% trans "Qoʻlda kiritish" %}
+            </button>
+          </div>
+
+          {% if google_maps_key %}
+            <div class="map" data-map hidden>
+              <div class="map__canvas" data-map-canvas
+                   aria-label="{% trans 'Yetkazib berish manzili xaritasi' %}"></div>
+              <button type="button" class="btn btn--secondary btn--sm" data-map-locate>
+                <svg class="i i--sm" aria-hidden="true"><use href="#i-pin"></use></svg>
+                {% trans "Joylashuvimni aniqlash" %}
+              </button>
+              <small class="field__hint">
+                {% trans "Belgini kerakli joyga suring. Manzil quyida toʻldiriladi — uni tahrirlashingiz mumkin." %}
+              </small>
+            </div>
+          {% endif %}
+
+          <input type="hidden" name="address_source" value="{{ form_data.address_source|default:'manual' }}" data-address-source>
+          <input type="hidden" name="latitude" value="{{ form_data.latitude|default:'' }}" data-latitude>
+          <input type="hidden" name="longitude" value="{{ form_data.longitude|default:'' }}" data-longitude>
+
+          <div class="field">
+            <label class="label" for="id_address">{% trans "Manzil" %}</label>
+            <textarea class="textarea" name="address" id="id_address" data-address
+                      autocomplete="street-address"
+                      placeholder="{% trans 'Viloyat, tuman, koʻcha, uy' %}">{{ form_data.address|default:'' }}</textarea>
+          </div>
+        </div>
+
         <div class="field">
           <label class="label" for="id_notes">{% trans "Izoh" %}</label>
           <textarea class="textarea" name="notes" id="id_notes"
                     placeholder="{% trans 'Majburiy emas' %}">{{ form_data.notes|default:'' }}</textarea>
         </div>
+
+        {# Timeframes quoted from uz.post, not guessed (§19 Q10). #}
+        <p class="small muted">
+          {% trans "Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab 1–6 kun ichida yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin." %}
+        </p>
       </section>
 
       <section class="panel stack">
         <h2 class="h3">{% trans "Toʻlov" %}</h2>
-        <label class="check">
-          <input type="radio" name="payment_method" value="click"
-                 {% if form_data.payment_method != 'cash' %}checked{% endif %}>
-          <span>
-            <strong>Click</strong>
-            <span class="field__hint">{% trans "Kartadan onlayn toʻlov" %}</span>
-          </span>
-        </label>
-        <label class="check">
-          <input type="radio" name="payment_method" value="cash"
-                 {% if form_data.payment_method == 'cash' %}checked{% endif %}>
-          <span>
-            <strong>{% trans "Naqd pul" %}</strong>
-            <span class="field__hint">{% trans "Olganda toʻlaysiz" %}</span>
-          </span>
-        </label>
+        {# Only methods the shop currently offers are rendered. A method that is #}
+        {# switched off is absent rather than greyed out: a disabled control #}
+        {# reads as "coming soon" and invites the customer to wait for it. #}
+        {% for opt in payment_options %}
+          <label class="check">
+            <input type="radio" name="payment_method" value="{{ opt.code }}"
+                   {% if form_data.payment_method == opt.code or payment_options|length == 1 %}checked{% endif %}>
+            <span>
+              <strong>{{ opt|t:"name" }}</strong>
+              <span class="field__hint">{{ opt|t:"note" }}</span>
+            </span>
+          </label>
+        {% empty %}
+          <p class="msg msg--warn">{% trans "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning." %}</p>
+        {% endfor %}
       </section>
 
-      <button class="btn btn--primary btn--lg btn--block" type="submit">{% trans "Buyurtma berish" %}</button>
+      <button class="btn btn--primary btn--lg btn--block" type="submit"
+              {% if not payment_options %}disabled{% endif %}>{% trans "Buyurtma berish" %}</button>
     </form>
 
     <aside class="checkout__summary panel stack">
@@ -84,9 +222,18 @@
           <dt>{% trans "Mahsulotlar" %}</dt>
           <dd class="num">{{ subtotal|price }} {% trans "soʻm" %}</dd>
         </div>
+        {# The subtotal and the currency word are handed to the script so it can #}
+        {# re-render these two numbers when the tier changes. The server still #}
+        {# computes the real total from the locked cart lines — this is a #}
+        {# preview, never the figure that gets charged. #}
+        <div class="spec__row">
+          <dt>{% trans "Yetkazib berish" %}</dt>
+          <dd class="num" data-delivery-total data-suffix=" {% trans 'soʻm' %}">{{ delivery|price }} {% trans "soʻm" %}</dd>
+        </div>
         <div class="spec__row cartpage__total">
           <dt>{% trans "Jami" %}</dt>
-          <dd class="num">{{ total|price }} {% trans "soʻm" %}</dd>
+          <dd class="num" data-order-total data-subtotal="{{ subtotal|floatformat:'0' }}"
+              data-suffix=" {% trans 'soʻm' %}">{{ total|price }} {% trans "soʻm" %}</dd>
         </div>
       </dl>
 
@@ -94,4 +241,40 @@
     </aside>
   </div>
 </div>
+
+{# The drawer the region and district fields become. One piece of markup for #}
+{# both, filled by checkout.js and never rendered with JavaScript off. #}
+<div class="picker-drawer" data-picker hidden role="dialog" aria-modal="true">
+  <div class="picker-drawer__panel">
+    <div class="picker-drawer__hd">
+      <h2 class="h3" data-picker-title></h2>
+      <button type="button" class="modal__close" data-picker-close
+              aria-label="{% trans 'Yopish' %}">
+        <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+    {# A search field only where the list is long enough to warrant one — over #}
+    {# about a dozen items. Below that it is clutter (§17 #87). #}
+    <label class="search" data-picker-search hidden>
+      <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+      <span class="sr-only">{% trans "Qidirish" %}</span>
+      <input type="search" autocomplete="off" data-picker-query
+             placeholder="{% trans 'Qidirish...' %}">
+    </label>
+    <div class="picker__list" data-picker-list></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/map.js' %}" defer></script>
+<script src="{% static 'js/checkout.js' %}" defer></script>
+{% if google_maps_key %}
+  {# Loaded async and only on this page: the map is needed on one form, which #}
+  {# is what made a paid provider affordable at all (§17 #83). It never blocks #}
+  {# first paint, and if it fails to arrive GX.map stays unavailable and the #}
+  {# address field carries the form. #}
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&loading=async&callback=GXMapReady"></script>
+{% endif %}
 {% endblock %}

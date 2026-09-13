@@ -93,8 +93,9 @@
             <div class="row row--between">
               <span class="label">{% trans "Oʻlcham" %}</span>
               {% if has_size_guide %}
-                {# Goes to the real page. Phase 6a turns this into a modal and #}
-                {# keeps the href as its no-JS fallback. #}
+                {# Opens the full-screen viewer. The href is not decoration: #}
+                {# with JavaScript off it is a plain link to the real page, #}
+                {# which shows the same chart and the same table. #}
                 <a class="link small" href="{% url 'size_guide' %}" data-size-guide>
                   {% trans "Oʻlcham jadvali" %}
                 </a>
@@ -127,17 +128,42 @@
             </div>
           </div>
 
-          {# Heart and share render here; both are wired in Phase 6b (§17 #62). #}
+          {# The heart submits the like form below rather than this one. A form #}
+          {# cannot be nested inside another, and the HTML `form` attribute is #}
+          {# exactly the escape hatch for a control that belongs elsewhere — so #}
+          {# the button keeps its place in the layout and still posts on its own. #}
           <div class="pdp__actions">
-            <button type="button" class="like" data-like aria-pressed="false"
-                    aria-label="{% trans 'Saqlash' %}">
+            <button type="submit" class="like" form="gx-like" data-like
+                    aria-pressed="{% if is_liked %}true{% else %}false{% endif %}"
+                    aria-label="{% if is_liked %}{% trans 'Saqlanganlardan olib tashlash' %}{% else %}{% trans 'Saqlash' %}{% endif %}"
+                    data-label-on="{% trans 'Saqlanganlardan olib tashlash' %}"
+                    data-label-off="{% trans 'Saqlash' %}"
+                    data-error="{% trans 'Xatolik yuz berdi. Qayta urinib koʻring.' %}">
               <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
-              {% if product.likes_count %}<span class="like__count num">{{ product.likes_count }}</span>{% endif %}
+              <span class="like__count num" data-like-count{% if not product.likes_count %} hidden{% endif %}>{{ product.likes_count }}</span>
             </button>
-            <button type="button" class="btn btn--ghost btn--icon" data-share
-                    aria-label="{% trans 'Ulashish' %}">
-              <svg class="i" aria-hidden="true"><use href="#i-share"></use></svg>
-            </button>
+
+            {# navigator.share on a phone; a small menu on desktop, where it #}
+            {# does not exist. Both are progressive: with JS off the button is #}
+            {# not rendered at all rather than sitting there inert. #}
+            <div class="share" data-share-wrap hidden>
+              <button type="button" class="btn btn--ghost btn--icon" data-share
+                      aria-haspopup="true" aria-expanded="false"
+                      aria-label="{% trans 'Ulashish' %}">
+                <svg class="i" aria-hidden="true"><use href="#i-share"></use></svg>
+              </button>
+              <div class="share__menu" data-share-menu hidden>
+                <a data-share-telegram href="#" target="_blank" rel="noopener">
+                  <svg class="i i--sm" aria-hidden="true"><use href="#i-telegram"></use></svg>
+                  Telegram
+                </a>
+                <button type="button" data-share-copy
+                        data-done="{% trans 'Havola nusxalandi' %}">
+                  <svg class="i i--sm" aria-hidden="true"><use href="#i-share"></use></svg>
+                  {% trans "Havolani nusxalash" %}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -147,23 +173,32 @@
         </button>
       </form>
 
+      {# The heart's own form. It carries nothing the customer fills in, only #}
+      {# the CSRF token and where to come back to, so it renders as a bare #}
+      {# container and the button that submits it lives up in the actions row. #}
+      <form id="gx-like" method="post" action="{% url 'product_like' product.slug %}"
+            data-like-form hidden>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      </form>
+
       {# Delivery, stated on the product page so it is never a checkout surprise. #}
-      <dl class="spec">
-        <div class="spec__row">
-          <dt>
-            <svg class="i i--sm" aria-hidden="true"><use href="#i-box"></use></svg>
-            {% trans "Pochta boʻlimiga" %}
-          </dt>
-          <dd class="num">15 000 {% trans "soʻm" %}</dd>
-        </div>
-        <div class="spec__row">
-          <dt>
-            <svg class="i i--sm" aria-hidden="true"><use href="#i-truck"></use></svg>
-            {% trans "Eshikkacha" %}
-          </dt>
-          <dd class="num">30 000 {% trans "soʻm" %}</dd>
-        </div>
-      </dl>
+      {# Rendered from the DeliveryOption rows rather than written as copy: the #}
+      {# prices are configurable precisely so a change is not a deploy, and two #}
+      {# pages quietly stating an old figure is how that promise breaks (§18 #18). #}
+      {% if delivery_options %}
+        <dl class="spec">
+          {% for opt in delivery_options %}
+            <div class="spec__row">
+              <dt>
+                <svg class="i i--sm" aria-hidden="true"><use href="#i-{% if opt.requires_branch %}box{% else %}truck{% endif %}"></use></svg>
+                {{ opt|t:"name" }}
+              </dt>
+              <dd class="num">{{ opt.price|price }} {% trans "soʻm" %}</dd>
+            </div>
+          {% endfor %}
+        </dl>
+      {% endif %}
 
       {# Spec strip — structured, so it reads the same on every product. #}
       {% if product.gsm or product|t:"material" or product.print_method or product.fit %}
@@ -200,6 +235,53 @@
     </div>
   </div>
 
+  {# The size chart the viewer shows. Rendered here, hidden, so the overlay has #}
+  {# real markup to clone rather than a second copy built in JavaScript that #}
+  {# could drift from this one — and so a screen reader and a search engine can #}
+  {# read the measurements even if the viewer is never opened. #}
+  {% if has_size_guide %}
+    <div class="sizeguide stack" data-sizeguide-content hidden>
+      {% if size_guide_image %}
+        <img class="sizeguide__img" src="{{ size_guide_image }}"
+             alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
+             loading="lazy" decoding="async">
+      {% endif %}
+
+      {% if size_chart %}
+        <h2 class="h3">{{ size_chart.name }}</h2>
+        {% if size_chart.rows.exists %}
+          <div class="scroll-x">
+            <table class="table sizeguide__table">
+              <thead>
+                <tr>
+                  <th>{% trans "Oʻlcham" %}</th>
+                  <th class="num">{% trans "Koʻkrak, sm" %}</th>
+                  <th class="num">{% trans "Uzunlik, sm" %}</th>
+                  <th class="num">{% trans "Yelka, sm" %}</th>
+                  <th class="num">{% trans "Yeng, sm" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in size_chart.rows.all %}
+                  {# data-row-size is how the viewer finds the row for the size #}
+                  {# the customer has actually picked. #}
+                  <tr data-row-size="{{ row.size_id }}">
+                    <th data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</th>
+                    <td data-label="{% trans 'Koʻkrak, sm' %}" class="num">{{ row.chest_cm }}</td>
+                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm }}</td>
+                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{{ row.shoulder_cm|default:"—" }}</td>
+                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{{ row.sleeve_cm|default:"—" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+        {% if size_chart|t:"note" %}<p class="small muted">{{ size_chart|t:"note" }}</p>{% endif %}
+      {% endif %}
+    </div>
+  {% endif %}
+
   {# Reviews land in Phase 12; the anchor exists now so the rating can link to it. #}
   <div id="reviews" class="pdp__reviews"></div>
 </div>
@@ -234,4 +316,5 @@
 {% block extra_js %}
 <script src="{% static 'js/gallery.js' %}" defer></script>
 <script src="{% static 'js/variant.js' %}" defer></script>
+<script src="{% static 'js/viewer.js' %}" defer></script>
 {% endblock %}

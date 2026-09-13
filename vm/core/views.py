@@ -10,6 +10,7 @@ from django.urls import reverse
 from product.models import Product, Category
 from django.templatetags.static import static
 from core.context_processors import SIZE_GUIDE_IMAGE
+from . import telegram
 from .models import Msg
 from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
@@ -33,7 +34,8 @@ def home(request):
 
     live = Product.objects.filter(is_active=True, variants__available=True)
 
-    newest = annotate_cards(live.prefetch_related('images', 'variants')).distinct()
+    newest = annotate_cards(live.prefetch_related('images', 'variants'),
+                            user=request.user).distinct()
     return render(request, 'core/home.html', {
         # The hero photograph is the newest design, so the page leads with stock
         # that is actually for sale rather than a fixed marketing image.
@@ -51,11 +53,16 @@ def delivery(request):
 
     §7 requires the two tiers to be stated everywhere a customer might look —
     checkout, the confirmation, this page and the terms — so nobody is surprised
-    at checkout about who delivers or what it costs. The prices live in
-    DeliveryOption rows, but this page states them as copy: it has to read
-    correctly even before the rows are seeded on a fresh deploy.
+    at checkout about who delivers or what it costs. The figures come from the
+    DeliveryOption rows rather than being written here as copy: they are rows
+    precisely so a price change is not a deploy (§17 #13), and a page that
+    states the old number is how that promise breaks (§18 #18). Before the rows
+    are seeded the table simply does not render, and the prose still reads.
     """
-    return render(request, 'core/delivery.html')
+    from payment.models import DeliveryOption
+    return render(request, 'core/delivery.html', {
+        'delivery_options': list(DeliveryOption.objects.filter(is_active=True)),
+    })
 
 
 def size_guide(request):
@@ -109,10 +116,13 @@ def contact(request):
                 form_errors = True
                 messages.error(request, _("Iltimos, xabar kiriting."))
             else:
-                Msg.objects.create(user=request.user,
-                                   phone_num=request.user.phone,
-                                   topic=form_data['subject'],
-                                   msg_text=form_data['message'])
+                msg = Msg.objects.create(user=request.user,
+                                         phone_num=request.user.phone,
+                                         topic=form_data['subject'],
+                                         msg_text=form_data['message'])
+                # Straight to the owner's phone, with the number ready to tap.
+                # Fails silently and never breaks the page (§17 #17).
+                telegram.notify_message(msg)
                 messages.success(request, _("Xabar qabul qilindi."))
                 form_data = {}
     return render(request, 'core/contact.html', {

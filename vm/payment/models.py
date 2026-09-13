@@ -30,7 +30,10 @@ class DeliveryOption(models.Model):
     note_en = models.TextField(blank=True, default='')
     price = models.DecimalField(max_digits=15, decimal_places=0)
     free_from_items = models.PositiveSmallIntegerField(default=0)
-    requires_pickup_point = models.BooleanField(default=False)
+    # Region + district + a typed postal index, not a street address. Named for
+    # what the customer supplies rather than for a table, because there is no
+    # branch table any more (§17 #84).
+    requires_branch = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 
@@ -47,38 +50,132 @@ class DeliveryOption(models.Model):
         ordering = ['sort_order', 'code']
 
 
-class PickupPoint(models.Model):
-    """An Uzbekiston pochtasi branch the customer can collect an order from.
+class PaymentOption(models.Model):
+    """A way to pay, as a row rather than a constant.
 
-    Our own dataset rather than a live API: the branch list changes rarely, and
-    a seeded table keeps checkout working when the network doesn't. Refreshed by
-    the ``seed_pickup_points`` management command.
+    The shop takes Click. Cash exists in the model and in this table but ships
+    **switched off**, and the owner turns it on from the admin if he ever wants
+    it — the same reasoning as :class:`DeliveryOption` (§17 #13): a commercial
+    decision should not need a deploy.
+
+    An inactive option is not rendered at all rather than rendered greyed out.
+    A disabled control on a checkout page reads as "coming soon" and invites the
+    customer to wait for something that may never arrive; an option that is off
+    is simply absent, and the checkout refuses it server-side either way.
     """
-    code = models.CharField(max_length=20, unique=True)   # postal index, e.g. "100007"
-    name = models.CharField(max_length=160, help_text="Oʻzbekcha — asosiy matn")
-    name_ru = models.CharField(max_length=160, blank=True, default='')
-    name_en = models.CharField(max_length=160, blank=True, default='')
-    region = models.CharField(max_length=80, db_index=True)
-    district = models.CharField(max_length=80, db_index=True)
-    address = models.CharField(max_length=255, help_text="Oʻzbekcha — asosiy matn")
-    address_ru = models.CharField(max_length=255, blank=True, default='')
-    address_en = models.CharField(max_length=255, blank=True, default='')
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    working_hours = models.CharField(max_length=120, blank=True, default='')
-    phone = models.CharField(max_length=30, blank=True, default='')
+    code = models.CharField(max_length=20, unique=True)   # matches Order.PaymentMethod
+    name = models.CharField(max_length=120, help_text="Oʻzbekcha — asosiy matn")
+    name_ru = models.CharField(max_length=120, blank=True, default='')
+    name_en = models.CharField(max_length=120, blank=True, default='')
+    note = models.CharField(max_length=200, blank=True, default='',
+                            help_text="Oʻzbekcha — asosiy matn")
+    note_ru = models.CharField(max_length=200, blank=True, default='')
+    note_en = models.CharField(max_length=200, blank=True, default='')
+    is_active = models.BooleanField(default=False, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.name} ({'yoqilgan' if self.is_active else 'oʻchirilgan'})"
+
+    class Meta:
+        ordering = ['sort_order', 'code']
+
+
+class Region(models.Model):
+    """A viloyat, Qoraqalpogʻiston, or Toshkent shahri.
+
+    Fourteen rows plus one escape. They replace the branch table (§17 #84):
+    there is no public Uzpost branch list to own, but the administrative
+    divisions *are* published, and the customer supplies the one thing we
+    cannot — the postal index of their own branch.
+
+    ``postal_prefix`` is what makes a typed index safe. Uzbek indexes encode the
+    province in their leading digits, and that is two digits for most regions
+    and three for Toshkent shahri, so the check is ``startswith`` and never a
+    fixed slice. The escape row has no prefix, which is what switches the check
+    off for an address the classifier does not cover while the six-digit format
+    check still applies (§17 #86).
+    """
+    code = models.CharField(max_length=4, unique=True)      # SOATO code
+    name = models.CharField(max_length=80, help_text="Oʻzbekcha — asosiy matn")
+    name_ru = models.CharField(max_length=80, blank=True, default='')
+    name_en = models.CharField(max_length=80, blank=True, default='')
+    postal_prefix = models.CharField(max_length=3, blank=True, default='', db_index=True)
     is_active = models.BooleanField(default=True, db_index=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
-        return f"{self.code} — {self.name}"
+        return self.name
 
-    def snapshot(self):
-        """Freeze the branch as the text stored on an order (see Order.pickup_snapshot)."""
-        return f"{self.code} — {self.name}\n{self.region}, {self.district}\n{self.address}"
+    def index_matches(self, postal_index):
+        """Does ``postal_index`` belong to this region?
+
+        A region with no prefix accepts any index — that is the escape, and it
+        is deliberate: we do not know where an address we could not classify
+        sits, so the only honest answer is not to guess.
+        """
+        if not self.postal_prefix:
+            return True
+        return str(postal_index).startswith(self.postal_prefix)
 
     class Meta:
-        ordering = ['region', 'district', 'name']
+        ordering = ['sort_order', 'name']
+
+
+class District(models.Model):
+    """A tuman, a city of regional subordination, or the escape.
+
+    Both are in one table because the customer is choosing one thing — where
+    they are — and someone in Angren is looking for a city, not scanning an
+    alphabetical mix of districts. ``kind`` is what lets the drawer group them
+    under separate headings rather than flatten them (§17 #87).
+    """
+    class Kind(models.TextChoices):
+        DISTRICT = 'district', _('Tuman')
+        CITY = 'city', _('Shahar')
+        # The escape. It is a row rather than a UI-only option because an order
+        # points at a district through a PROTECT foreign key, and because
+        # `location_snapshot` has to be able to freeze what was chosen.
+        OTHER = 'other', _('Boshqa')
+
+    region = models.ForeignKey(Region, on_delete=models.PROTECT, related_name='districts')
+    code = models.CharField(max_length=8, unique=True)      # SOATO code
+    name = models.CharField(max_length=80, help_text="Oʻzbekcha — asosiy matn")
+    name_ru = models.CharField(max_length=80, blank=True, default='')
+    name_en = models.CharField(max_length=80, blank=True, default='')
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.DISTRICT)
+    is_active = models.BooleanField(default=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.region.name} — {self.name}"
+
+    class Meta:
+        ordering = ['region', 'sort_order', 'name']
+        unique_together = ('region', 'name')
+
+
+def location_text(region=None, district=None, postal_index='', location_note='',
+                  address=''):
+    """Render a destination as the text an order freezes in ``location_snapshot``.
+
+    A free function rather than a method because the checkout service needs it
+    *before* the Order exists — and freezing has to happen at that moment, not
+    later. The rows are read once, here, and never consulted again for this
+    order: that is the whole point, and it is why a district renamed or
+    deactivated a year from now cannot rewrite where a parcel was actually sent
+    (§17 #14).
+    """
+    if region is None:
+        return (address or '').strip()
+    parts = [region.name]
+    if district is not None:
+        parts.append(location_note or district.name)
+    elif location_note:
+        parts.append(location_note)
+    if postal_index:
+        parts.append(postal_index)
+    return ' · '.join(parts)
 
 
 class Order(models.Model):
@@ -88,8 +185,8 @@ class Order(models.Model):
     TextField so it can hold real multi-line addresses, and ``total_price`` is in
     whole so'm — the value Click validates the payment amount against.
 
-    ``delivery_price`` and ``pickup_snapshot`` are frozen at checkout for the
-    same reason ``CartItem.price_stat`` is: if a fee changes or a branch is
+    ``delivery_price`` and ``location_snapshot`` are frozen at checkout for the
+    same reason ``CartItem.price_stat`` is: if a fee changes or a district is
     renamed a year later, the order still records what was actually agreed.
     """
     class Status(models.TextChoices):
@@ -125,17 +222,36 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=15, decimal_places=0)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Delivery. Both FKs are PROTECT: an option or branch referenced by a real
-    # order must not vanish from under it.
+    # Delivery. Every FK here is PROTECT: something a real order points at must
+    # not vanish from under it.
     delivery_option = models.ForeignKey(DeliveryOption, on_delete=models.PROTECT,
                                         null=True, blank=True, related_name='orders')
     delivery_price = models.DecimalField(max_digits=15, decimal_places=0, default=0)
-    pickup_point = models.ForeignKey(PickupPoint, on_delete=models.PROTECT,
-                                     null=True, blank=True, related_name='orders')
-    pickup_snapshot = models.TextField(blank=True, default='')
-    # Door delivery only — where the courier is actually going.
+
+    # Branch delivery: where the parcel is going, as the customer chose it.
+    region = models.ForeignKey(Region, on_delete=models.PROTECT,
+                               null=True, blank=True, related_name='orders')
+    district = models.ForeignKey(District, on_delete=models.PROTECT,
+                                 null=True, blank=True, related_name='orders')
+    postal_index = models.CharField(max_length=6, blank=True, default='', db_index=True)
+    # Free text for the Boshqa escape — the district the classifier does not
+    # know about, in the customer's own words.
+    location_note = models.CharField(max_length=160, blank=True, default='')
+
+    # Frozen at checkout, as text, whichever method was used. Same reason
+    # CartItem.price_stat exists: a district renamed or deactivated a year later
+    # must not be able to rewrite where a parcel was actually sent.
+    location_snapshot = models.TextField(blank=True, default='')
+
+    # Home delivery only — where the courier is actually going.
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    # Whether those coordinates are the customer's own dropped pin or absent
+    # because they typed the address instead. One column, and it answers the
+    # question the courier actually has (§17 #88).
+    address_source = models.CharField(max_length=10, blank=True, default='',
+                                      choices=[('map', 'Xaritadan'),
+                                               ('manual', 'Qoʻlda kiritilgan')])
 
     def __str__(self):
         return f"Order {self.order_no or self.id} | {self.user.username} | {self.get_status_display()}"
@@ -158,12 +274,65 @@ class Order(models.Model):
         return f"{prefix}{seq:04d}"
 
     def clean(self):
-        """Delivery option and pickup point have to agree (plan §7)."""
+        """The delivery method and the address fields have to agree.
+
+        This is the point of the redesign (§17 #86), and it lives here as well
+        as in the checkout view because the view will not always be the only
+        thing that builds an order.
+
+        Three checks, in order of what they cost the customer:
+
+        * a branch order must carry a region, a district and an index, and a
+          home order must carry none of them — a half-filled order is a parcel
+          nobody can route;
+        * the index must be six digits, whatever region it is for, because a
+          five-digit index is wrong everywhere;
+        * the index's leading digits must match the chosen region's prefix.
+          That is the one error worth catching automatically: it is the typo
+          that sends a real parcel to another province, and the customer finds
+          out at the form rather than three weeks later.
+        """
         super().clean()
-        if self.delivery_option_id and self.delivery_option.requires_pickup_point and not self.pickup_point_id:
-            raise ValidationError({'pickup_point': _('Bu yetkazib berish turi uchun pochta boʻlimi tanlanishi shart.')})
-        if self.delivery_option_id and not self.delivery_option.requires_pickup_point and self.pickup_point_id:
-            raise ValidationError({'pickup_point': _('Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi.')})
+        if not self.delivery_option_id:
+            return
+
+        branch = self.delivery_option.requires_branch
+        errors = {}
+
+        if branch:
+            if not self.region_id:
+                errors['region'] = _('Viloyatni tanlang.')
+            if not self.district_id:
+                errors['district'] = _('Tuman yoki shaharni tanlang.')
+            if not self.postal_index:
+                errors['postal_index'] = _('Pochta indeksini kiriting.')
+            elif not (self.postal_index.isdigit() and len(self.postal_index) == 6):
+                errors['postal_index'] = _('Pochta indeksi 6 ta raqamdan iborat boʻlishi kerak.')
+            elif self.region_id and not self.region.index_matches(self.postal_index):
+                errors['postal_index'] = _(
+                    'Bu indeks tanlangan viloyatga toʻgʻri kelmadi. '
+                    'Indeksni yoki viloyatni tekshiring.'
+                )
+            if self.district_id and self.region_id and self.district.region_id != self.region_id:
+                errors['district'] = _('Tanlangan tuman bu viloyatga tegishli emas.')
+        else:
+            if self.region_id or self.district_id or self.postal_index:
+                errors['postal_index'] = _(
+                    'Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi.'
+                )
+            if not (self.address or '').strip():
+                # The pin adds precision on top of an address; it never replaces
+                # one, because a courier delivers to an address (§17 #91).
+                errors['address'] = _('Manzilni kiriting.')
+
+        if errors:
+            raise ValidationError(errors)
+
+    def location_text(self):
+        """This order's frozen destination text. See :func:`location_text`."""
+        return location_text(self.region if self.region_id else None,
+                             self.district if self.district_id else None,
+                             self.postal_index, self.location_note, self.address)
 
     def save(self, *args, **kwargs):
         """Normalise the phone and assign an order number on first save."""

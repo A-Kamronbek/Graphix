@@ -114,6 +114,10 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .search input { flex: 1; background: none; border: 0; outline: none; min-width: 0; }
 
 /* ========================================================= 3. product card */
+/* The card is the positioned ancestor the heart floats against. It cannot be
+   .card__media: the heart is a form, a form inside an anchor is invalid HTML,
+   and the whole media block lives inside the card's link. */
+.card { position: relative; }
 .card__media { position: relative; aspect-ratio: var(--ar-product); overflow: hidden;
   background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--r-sm);
   margin-bottom: var(--s-3); }
@@ -185,10 +189,34 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .like[aria-pressed="true"] { color: var(--c-brand); }
 .like[aria-pressed="true"] .i { fill: currentColor; }
 .like__count { font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
-.like--float { position: absolute; top: var(--s-2); right: var(--s-2);
+/* The floating heart on a card. It is the <form>, not the button: the button
+   inside keeps .like's own sizing and pressed state, and z-index puts the whole
+   thing above the card's link so the tap lands on the heart. */
+.like--float { position: absolute; top: var(--s-2); right: var(--s-2); z-index: 1;
   background: color-mix(in srgb, var(--c-bg) 66%, transparent);
   border-radius: var(--r-full); backdrop-filter: blur(4px); }
 .like--float:hover { background: var(--c-brand); color: var(--c-brand-fg); }
+/* A count of zero is hidden rather than absent, so the toggle can reveal it
+   without rebuilding the button. */
+.like__count[hidden] { display: none; }
+/* While the toggle is in flight the heart is not clickable, but it must not
+   look disabled either — it has already changed to the state it is confirming. */
+.like[aria-busy="true"] { pointer-events: none; }
+
+/* Share. On a phone the button hands off to navigator.share and this menu is
+   never built; on desktop it is the whole control, so it is anchored to the
+   button rather than floated over the page. */
+.share { position: relative; }
+.share__menu { position: absolute; right: 0; top: calc(100% + var(--s-2));
+  z-index: var(--z-drawer); min-width: 220px; padding: var(--s-2);
+  display: flex; flex-direction: column;
+  background: var(--c-surface-2); border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-md); box-shadow: var(--sh-lg); }
+.share__menu[hidden] { display: none; }
+.share__menu > * { display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3); min-height: 44px; border-radius: var(--r-sm);
+  color: var(--c-fg); text-align: left; white-space: nowrap; }
+.share__menu > *:hover { background: var(--c-surface-3); }
 
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px var(--s-2);
   border-radius: var(--r-full); font-size: var(--fs-xs); font-weight: var(--fw-semibold);
@@ -199,6 +227,33 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .badge--warning { background: var(--c-warning-bg); color: var(--c-warning); border-color: var(--c-warning); }
 .badge--danger  { background: var(--c-danger-bg);  color: var(--c-danger);  border-color: var(--c-danger); }
 .badge--info    { background: var(--c-info-bg);    color: var(--c-info);    border-color: var(--c-info); }
+
+/* ============================================ 9b. full-screen viewer */
+/* One overlay serves the size chart and the product photograph. The stage is
+   an ordinary scroll container: `touch-action: pinch-zoom` hands zooming to
+   the browser, which does it better than any transform we would write and
+   costs nothing. */
+.viewer { position: fixed; inset: 0; z-index: var(--z-modal);
+  background: var(--c-bg); display: flex; flex-direction: column; }
+.viewer[hidden] { display: none; }
+.viewer__close { position: absolute; top: var(--s-3); right: var(--s-3);
+  z-index: 1; width: 48px; height: 48px; display: grid; place-items: center;
+  color: var(--c-fg); background: var(--c-surface-2);
+  border: 1px solid var(--c-line-strong); border-radius: var(--r-full); }
+.viewer__close:hover { background: var(--c-surface-3); }
+.viewer__stage { flex: 1; overflow: auto; touch-action: pinch-zoom;
+  padding: var(--s-7) var(--s-4) var(--s-5);
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s-5); }
+.viewer__stage img { max-width: 100%; height: auto; border-radius: var(--r-sm); }
+.viewer__stage > * { width: 100%; max-width: 900px; }
+
+/* The chart block the viewer clones. Present in the document so the viewer has
+   real markup to show, and hidden until it is asked for. */
+.sizeguide[hidden] { display: none; }
+.sizeguide__table tr.is-current th,
+.sizeguide__table tr.is-current td { color: var(--c-brand); font-weight: var(--fw-bold); }
+.sizeguide__table tr.is-current th { box-shadow: inset 3px 0 0 var(--c-brand); }
 
 /* ================================================ 10. modal / mobile sheet */
 .overlay { position: fixed; inset: 0; z-index: var(--z-modal);
@@ -299,6 +354,59 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .picker__item[aria-pressed="true"] { background: var(--c-brand-bg); box-shadow: inset 3px 0 0 var(--c-brand); }
 .picker__name { display: block; font-weight: var(--fw-semibold); }
 .picker__meta { display: block; font-size: var(--fs-sm); color: var(--c-fg-muted); }
+/* A heading inside the list: Tumanlar, then Shaharlar. The reason these are
+   drawers rather than native selects — a <select> cannot group, and cannot
+   carry a search field only where one is warranted (§17 #87). */
+.picker__group { position: sticky; top: 0; z-index: 1;
+  padding: var(--s-2) var(--s-4); background: var(--c-surface);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-caps); text-transform: uppercase;
+  color: var(--c-fg-hint); border-bottom: 1px solid var(--c-line); }
+
+/* The button a drawerised <select> becomes. It keeps .select's own look so the
+   two fields do not read as different kinds of control. */
+.select--drawer { display: flex; align-items: center; text-align: left;
+  padding-right: var(--s-7); }
+.select--drawer.is-empty { color: var(--c-fg-hint); }
+
+/* The native select the drawer replaced. It stays in the document — it is
+   still what submits, and a screen reader should still meet a real select —
+   but it must take no space.
+
+   `.sr-only` on its own is not enough here: `.select` also sets a width, the
+   two tie on specificity, and the "hidden" select ended up 1 425 px wide and
+   absolutely positioned, which put 144 px of horizontal scroll on a page that
+   is supposed to have none. §17 #72 in a new costume — a rule that exists to
+   be overridden must not be able to win — so this one is written specifically
+   enough to settle it. */
+.select.sr-only { width: 1px; height: 1px; min-height: 0; padding: 0;
+  border: 0; clip-path: inset(50%); }
+
+/* The drawer itself: a sheet on a phone, a centred dialog from 720 px. */
+.picker-drawer { position: fixed; inset: 0; z-index: var(--z-modal);
+  background: var(--c-scrim); display: grid; place-items: end stretch; }
+.picker-drawer[hidden] { display: none; }
+.picker-drawer__panel { display: flex; flex-direction: column; gap: var(--s-3);
+  max-height: 86vh; padding: var(--s-4);
+  background: var(--c-surface); border-top: 1px solid var(--c-line-strong);
+  border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--sh-lg); }
+.picker-drawer__hd { display: flex; align-items: center; gap: var(--s-3); }
+.picker-drawer__hd h2 { margin-right: auto; }
+.picker-drawer .picker__list { max-height: none; flex: 1; }
+@media (min-width: 720px) {
+  .picker-drawer { place-items: center; padding: var(--s-5); }
+  .picker-drawer__panel { width: min(560px, 100%); border-radius: var(--r-lg);
+    border: 1px solid var(--c-line-strong); }
+}
+
+/* The map, on the home half of checkout only. It is never rendered when the
+   API key is blank, so there is no grey box to explain (§17 #93). */
+.map { display: flex; flex-direction: column; gap: var(--s-3); }
+.map[hidden] { display: none; }
+.map__canvas { aspect-ratio: 4 / 3; max-height: 360px;
+  background: var(--c-surface); border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-md); overflow: hidden; }
+
 .picker__map { aspect-ratio: 4 / 3; background: var(--c-surface); border: 1px solid var(--c-line);
   border-radius: var(--r-sm); display: grid; place-items: center; color: var(--c-fg-subtle); }
 @media (min-width: 860px) { .picker { grid-template-columns: 380px minmax(0, 1fr); } }

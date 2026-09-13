@@ -14,8 +14,9 @@ from click_up import ClickUp
 from click_up.models import ClickTransaction
 
 from cart.models import Cart
+from core import telegram
 from product.models import Variant
-from .models import Order
+from .models import Order, location_text
 
 
 class EmptyCart(Exception):
@@ -55,7 +56,9 @@ def _create_order(**fields):
 
 def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
                            delivery=Decimal('0'), delivery_option=None,
-                           pickup_point=None, latitude=None, longitude=None):
+                           region=None, district=None, postal_index='',
+                           location_note='', address_source='',
+                           latitude=None, longitude=None):
     """Create an Order from the cart atomically, then close the cart.
 
     The cart row is locked with ``select_for_update`` and the total is computed
@@ -65,9 +68,11 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
     EmptyCart.
 
     When a ``delivery_option`` is given, its fee is computed from the locked line
-    count and replaces ``delivery``, and the chosen branch is frozen into
-    ``pickup_snapshot``. Callers that pass a bare ``delivery`` amount keep working
-    exactly as before.
+    count and replaces ``delivery``. Either way the destination is frozen as text
+    into ``location_snapshot`` at this moment — region, district and index, or
+    the typed address — so a district renamed a year later cannot rewrite where
+    the parcel was sent. Callers that pass a bare ``delivery`` amount keep
+    working exactly as before.
     """
     with transaction.atomic():
         # Lock the cart row for the duration of the transaction.
@@ -107,13 +112,24 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
             status=Order.Status.PAYING,
             delivery_option=delivery_option,
             delivery_price=delivery,
-            pickup_point=pickup_point,
-            pickup_snapshot=pickup_point.snapshot() if pickup_point else '',
+            region=region,
+            district=district,
+            postal_index=postal_index,
+            location_note=location_note,
+            location_snapshot=location_text(region, district, postal_index,
+                                            location_note, address),
+            address_source=address_source,
             latitude=latitude,
             longitude=longitude,
         )
         locked_cart.status = False
         locked_cart.save(update_fields=['status'])
+
+        # Queued inside the transaction, sent after it commits. A notification
+        # for an order that then rolled back is worse than no notification, and
+        # an HTTP call inside the transaction would hold the cart's row lock
+        # open for the length of it (§17 #17).
+        telegram.notify_new_order(order)
 
     return order
 
@@ -162,6 +178,7 @@ def apply_successful_payment(click_trans_id):
             _move_stock(order, -1)
             order.status = Order.Status.PAID
             order.save(update_fields=['status', 'updated_at'])
+            telegram.notify_payment(order)
 
 
 def apply_cancelled_payment(click_trans_id):

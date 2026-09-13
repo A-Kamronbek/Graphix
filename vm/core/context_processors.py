@@ -40,15 +40,22 @@ def languages(request):
 def size_guide(request):
     """Whether there is a size guide to link to at all.
 
-    The guide is one image the owner drops at ``static/img/size_guide.png``.
-    Until that file exists there is no size guide, and the site says nothing
-    about one: the footer link is hidden, the product page's link is hidden and
-    the page itself 404s. A link to a page that apologises for being empty is
-    worse than no link - the visitor learns only that something is missing.
+    There are two ways for one to exist and either is enough: the image at
+    ``static/img/size_guide.png``, which the owner can overwrite with no deploy
+    (§17 #69), and the structured ``SizeChart`` rows, which Phase 6a seeds.
+    Until neither exists the site says nothing about a guide at all — the footer
+    link is hidden, the product page's link is hidden and the page itself 404s.
+    A link to a page that apologises for being empty is worse than no link: the
+    visitor learns only that something is missing.
 
-    The lookup goes through the staticfiles finders, which is what ``{% static %}``
-    uses, so it answers the same before and after ``collectstatic``. A negative
-    result is deliberately not cached: the owner uploads the file and the site
-    picks it up without a restart.
+    The image lookup goes through the staticfiles finders, which is what
+    ``{% static %}`` uses, so it answers the same before and after
+    ``collectstatic``. Neither result is cached: the owner drops the file in and
+    the site picks it up without a restart.
     """
-    return {'has_size_guide': bool(finders.find(SIZE_GUIDE_IMAGE))}
+    if finders.find(SIZE_GUIDE_IMAGE):
+        return {'has_size_guide': True}
+    # Imported here rather than at module scope: this module is loaded while the
+    # app registry is still being populated.
+    from product.models import SizeChart
+    return {'has_size_guide': SizeChart.objects.exists()}

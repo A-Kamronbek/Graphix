@@ -1,0 +1,237 @@
+level,code,region_code,name,name_ru,name_en,kind,postal_prefix,sort_order
+region,1726,,Toshkent shahri,город Ташкент,Tashkent City,,100,10
+region,1727,,Toshkent viloyati,Ташкентская область,Tashkent Region,,11,20
+region,1703,,Andijon viloyati,Андижанская область,Andijan Region,,17,30
+region,1706,,Buxoro viloyati,Бухарская область,Bukhara Region,,20,40
+region,1708,,Jizzax viloyati,Джизакская область,Jizzakh Region,,13,50
+region,1712,,Navoiy viloyati,Навоийская область,Navoiy Region,,21,60
+region,1714,,Namangan viloyati,Наманганская область,Namangan Region,,16,70
+region,1710,,Qashqadaryo viloyati,Кашкадарьинская область,Kashkadarya Region,,18,80
+region,1735,,Qoraqalpogʻiston Respublikasi,Республика Каракалпакстан,Republic of Karakalpakstan,,23,90
+region,1718,,Samarqand viloyati,Самаркандская область,Samarkand Region,,14,100
+region,1724,,Sirdaryo viloyati,Сырдарьинская область,Sirdarya Region,,12,110
+region,1722,,Surxondaryo viloyati,Сурхандарьинская область,Surkhandarya Region,,19,120
+region,1730,,Fargʻona viloyati,Ферганская область,Fergana Region,,15,130
+region,1733,,Xorazm viloyati,Хорезмская область,Khorezm Region,,22,140
+district,1703202,1703,Oltinkoʻl tumani,Алтынкульский район,Oltinkoʻl District,district,,0
+district,1703203,1703,Andijon tumani,Андижанский район,Andijon District,district,,0
+district,1703206,1703,Baliqchi tumani,Балыкчинский район,Baliqchi District,district,,0
+district,1703209,1703,Boʻston tumani,Бустонский район,Boʻston District,district,,0
+district,1703210,1703,Buloqboshi tumani,Булакбашинский район,Buloqboshi District,district,,0
+district,1703211,1703,Jalaquduq tumani,Жалакудукский район,Jalaquduq District,district,,0
+district,1703214,1703,Izboskan tumani,Избасканский район,Izboskan District,district,,0
+district,1703217,1703,Ulugʻnor tumani,Улугнорский район,Ulugʻnor District,district,,0
+district,1703220,1703,Qoʻrgʻontepa tumani,Кургантепинский район,Qoʻrgʻontepa District,district,,0
+district,1703224,1703,Asaka tumani,Асакинский район,Asaka District,district,,0
+district,1703227,1703,Marhamat tumani,Мархаматский район,Marhamat District,district,,0
+district,1703230,1703,Shahrixon tumani,Шахриханский район,Shahrixon District,district,,0
+district,1703232,1703,Paxtaobod tumani,Пахтаабадский район,Paxtaobod District,district,,0
+district,1703236,1703,Xoʻjaobod tumani,Ходжаабадский район,Xoʻjaobod District,district,,0
+district,1703401,1703,Andijon shahri,Андижан,Andijan City,city,,0
+district,1703408,1703,Xonobod shahri,Ханабад,Khanabad City,city,,0
+district,1706204,1706,Olot tumani,Алатский район,Olot District,district,,0
+district,1706207,1706,Buxoro tumani,Бухарский район,Buxoro District,district,,0
+district,1706212,1706,Vobkent tumani,Вабкентский район,Vobkent District,district,,0
+district,1706215,1706,Gʻijduvon tumani,Гиждуванский район,Gʻijduvon District,district,,0
+district,1706219,1706,Kogon tumani,Каганский район,Kogon District,district,,0
+district,1706230,1706,Qorakoʻl tumani,Каракульский район,Qorakoʻl District,district,,0
+district,1706232,1706,Qorovulbozor tumani,Караулбазарский район,Qorovulbozor District,district,,0
+district,1706240,1706,Peshku tumani,Пешкунский район,Peshku District,district,,0
+district,1706242,1706,Romitan tumani,Ромитанский район,Romitan District,district,,0
+district,1706246,1706,Jondor tumani,Жондорский район,Jondor District,district,,0
+district,1706258,1706,Shofirkon tumani,Шафирканский район,Shofirkon District,district,,0
+district,1706401,1706,Buxoro shahri,Бухара,Bukhara City,city,,0
+district,1706403,1706,Kogon shahri,Каган,Kagan City,city,,0
+district,1708201,1708,Arnasoy tumani,Арнасайский район,Arnasoy District,district,,0
+district,1708204,1708,Baxmal tumani,Бахмальский район,Baxmal District,district,,0
+district,1708209,1708,Gʻallaorol tumani,Галляаральский район,Gʻallaorol District,district,,0
+district,1708212,1708,Sharof Rashidov tumani,Шароф Рашидовский район,Sharof Rashidov District,district,,0
+district,1708215,1708,Doʻstlik tumani,Дустликский район,Doʻstlik District,district,,0
+district,1708218,1708,Zomin tumani,Зааминский район,Zomin District,district,,0
+district,1708220,1708,Zarbdor tumani,Зарбдарский район,Zarbdor District,district,,0
+district,1708223,1708,Mirzachoʻl tumani,Мирзачульский район,Mirzachoʻl District,district,,0
+district,1708225,1708,Zafarobod tumani,Зафарабадский район,Zafarobod District,district,,0
+district,1708228,1708,Paxtakor tumani,Пахтакорский район,Paxtakor District,district,,0
+district,1708235,1708,Forish tumani,Фаришский район,Forish District,district,,0
+district,1708237,1708,Yangiobod tumani,Янгиободский район,Yangiobod District,district,,0
+district,1708401,1708,Jizzax shahri,Джизак,Jizzakh City,city,,0
+district,1710207,1710,Gʻuzor tumani,Гузарский район,Gʻuzor District,district,,0
+district,1710212,1710,Dehqonobod tumani,Дехканабадский район,Dehqonobod District,district,,0
+district,1710220,1710,Qamashi tumani,Камашинский район,Qamashi District,district,,0
+district,1710224,1710,Qarshi tumani,Каршинский район,Qarshi District,district,,0
+district,1710229,1710,Koson tumani,Касанский район,Koson District,district,,0
+district,1710232,1710,Kitob tumani,Китабский район,Kitob District,district,,0
+district,1710233,1710,Mirishkor tumani,Миришкорский район,Mirishkor District,district,,0
+district,1710234,1710,Muborak tumani,Мубарекский район,Muborak District,district,,0
+district,1710235,1710,Nishon tumani,Нишанский район,Nishon District,district,,0
+district,1710237,1710,Kasbi tumani,Касбинский район,Kasbi District,district,,0
+district,1710240,1710,Koʻkdala tumani,Кукдалинский район,Koʻkdala District,district,,0
+district,1710242,1710,Chiroqchi tumani,Чиракчинский район,Chiroqchi District,district,,0
+district,1710245,1710,Shahrisabz tumani,Шахрисабзский район,Shahrisabz District,district,,0
+district,1710250,1710,Yakkabogʻ tumani,Яккабагский район,Yakkabogʻ District,district,,0
+district,1710401,1710,Qarshi shahri,Карши,Karshi City,city,,0
+district,1710405,1710,Shahrisabz shahri,Шахрисабз,Shakhrisabz City,city,,0
+district,1712211,1712,Konimex tumani,Канимехский район,Konimex District,district,,0
+district,1712216,1712,Qiziltepa tumani,Кызылтепинский район,Qiziltepa District,district,,0
+district,1712230,1712,Navbahor tumani,Навбахорский район,Navbahor District,district,,0
+district,1712234,1712,Karmana tumani,Карманинский район,Karmana District,district,,0
+district,1712238,1712,Nurota tumani,Нуратинский район,Nurota District,district,,0
+district,1712244,1712,Tomdi tumani,Тамдынский район,Tomdi District,district,,0
+district,1712248,1712,Uchquduq tumani,Учкудукский район,Uchquduq District,district,,0
+district,1712251,1712,Xatirchi tumani,Хатырчинский район,Xatirchi District,district,,0
+district,1712401,1712,Navoiy shahri,Навои,Navoi City,city,,0
+district,1712408,1712,Zarafshon shahri,Зарафшан,Zarafshan City,city,,0
+district,1712412,1712,Gʻozgʻon shahri,Газган,Gozgon City,city,,0
+district,1714204,1714,Mingbuloq tumani,Мингбулакский район,Mingbuloq District,district,,0
+district,1714207,1714,Kosonsoy tumani,Касансайский район,Kosonsoy District,district,,0
+district,1714212,1714,Namangan tumani,Наманганский район,Namangan District,district,,0
+district,1714216,1714,Norin tumani,Нарынский район,Norin District,district,,0
+district,1714219,1714,Pop tumani,Папский район,Pop District,district,,0
+district,1714224,1714,Toʻraqoʻrgʻon tumani,Туракурганский район,Toʻraqoʻrgʻon District,district,,0
+district,1714229,1714,Uychi tumani,Уйчинский район,Uychi District,district,,0
+district,1714234,1714,Uchqoʻrgʻon tumani,Учкурганский район,Uchqoʻrgʻon District,district,,0
+district,1714236,1714,Chortoq tumani,Чартакский район,Chortoq District,district,,0
+district,1714237,1714,Chust tumani,Чустский район,Chust District,district,,0
+district,1714242,1714,Yangiqoʻrgʻon tumani,Янгикурганский район,Yangiqoʻrgʻon District,district,,0
+district,1714401,1714,Namangan shahri,Наманган,Namangan City,city,,0
+district,1718203,1718,Oqdaryo tumani,Акдарьинский район,Oqdaryo District,district,,0
+district,1718206,1718,Bulungʻur tumani,Булунгурский район,Bulungʻur District,district,,0
+district,1718209,1718,Jomboy tumani,Джамбайский район,Jomboy District,district,,0
+district,1718212,1718,Ishtixon tumani,Иштыханский район,Ishtixon District,district,,0
+district,1718215,1718,Kattaqoʻrgʻon tumani,Каттакурганский район,Kattaqoʻrgʻon District,district,,0
+district,1718216,1718,Qoʻshrabot tumani,Кошрабадский район,Qoʻshrabot District,district,,0
+district,1718218,1718,Narpay tumani,Нарпайский район,Narpay District,district,,0
+district,1718224,1718,Payariq tumani,Пайарыкский район,Payariq District,district,,0
+district,1718227,1718,Pastdargʻom tumani,Пастдаргомский район,Pastdargʻom District,district,,0
+district,1718230,1718,Paxtachi tumani,Пахтачийский район,Paxtachi District,district,,0
+district,1718233,1718,Samarqand tumani,Самаркандский район,Samarqand District,district,,0
+district,1718235,1718,Nurobod tumani,Нурабадский район,Nurobod District,district,,0
+district,1718236,1718,Urgut tumani,Ургутский район,Urgut District,district,,0
+district,1718238,1718,Tayloq tumani,Тайлякский район,Tayloq District,district,,0
+district,1718401,1718,Samarqand shahri,Самарканд,Samarkand City,city,,0
+district,1718406,1718,Kattaqoʻrgʻon shahri,Каттакурган,Kattakurgan City,city,,0
+district,1722201,1722,Oltinsoy tumani,Алтынсайский район,Oltinsoy District,district,,0
+district,1722202,1722,Angor tumani,Ангорский район,Angor District,district,,0
+district,1722203,1722,Bandixon tumani,Бандихонский район,Bandixon District,district,,0
+district,1722204,1722,Boysun tumani,Байсунский район,Boysun District,district,,0
+district,1722207,1722,Muzrabot tumani,Музрабадский район,Muzrabot District,district,,0
+district,1722210,1722,Denov tumani,Денауский район,Denov District,district,,0
+district,1722212,1722,Jarqoʻrgʻon tumani,Джаркурганский район,Jarqoʻrgʻon District,district,,0
+district,1722214,1722,Qumqoʻrgʻon tumani,Кумкурганский район,Qumqoʻrgʻon District,district,,0
+district,1722215,1722,Qiziriq tumani,Кизирикский район,Qiziriq District,district,,0
+district,1722217,1722,Sariosiyo tumani,Сариасийский район,Sariosiyo District,district,,0
+district,1722220,1722,Termiz tumani,Термезский район,Termiz District,district,,0
+district,1722221,1722,Uzun tumani,Узунский район,Uzun District,district,,0
+district,1722223,1722,Sherobod tumani,Шерабадский район,Sherobod District,district,,0
+district,1722226,1722,Shoʻrchi tumani,Шурчинский район,Shoʻrchi District,district,,0
+district,1722401,1722,Termiz shahri,Термез,Termez City,city,,0
+district,1724206,1724,Oqoltin tumani,Акалтынский район,Oqoltin District,district,,0
+district,1724212,1724,Boyovut tumani,Баяутский район,Boyovut District,district,,0
+district,1724216,1724,Sayxunobod tumani,Сайхунабадский район,Sayxunobod District,district,,0
+district,1724220,1724,Guliston tumani,Гулистанский район,Guliston District,district,,0
+district,1724226,1724,Sardoba tumani,Сардобский район,Sardoba District,district,,0
+district,1724228,1724,Mirzaobod tumani,Мирзаабадский район,Mirzaobod District,district,,0
+district,1724231,1724,Sirdaryo tumani,Сырдарьинский район,Sirdaryo District,district,,0
+district,1724235,1724,Xovos tumani,Хавасский район,Xovos District,district,,0
+district,1724401,1724,Guliston shahri,Гулистан,Gulistan City,city,,0
+district,1724410,1724,Shirin shahri,Ширин,Shirin City,city,,0
+district,1724413,1724,Yangiyer shahri,Янгиер,Yangiyer City,city,,0
+district,1726262,1726,Uchtepa tumani,Учтепинский район,Uchtepa District,district,,0
+district,1726264,1726,Bektemir tumani,Бектемирский район,Bektemir District,district,,0
+district,1726266,1726,Yunusobod tumani,Юнусабадский район,Yunusobod District,district,,0
+district,1726269,1726,Mirzo Ulugʻbek tumani,Мирзо-Улугбекский район,Mirzo Ulugʻbek District,district,,0
+district,1726273,1726,Mirobod tumani,Мирабадский район,Mirobod District,district,,0
+district,1726277,1726,Shayxontohur tumani,Шайхантахурский район,Shayxontohur District,district,,0
+district,1726280,1726,Olmazor tumani,Алмазарский район,Olmazor District,district,,0
+district,1726283,1726,Sirgʻali tumani,Сергелийский район,Sirgʻali District,district,,0
+district,1726287,1726,Yakkasaroy tumani,Яккасарайский район,Yakkasaroy District,district,,0
+district,1726290,1726,Yashnobod tumani,Яшнободский район,Yashnobod District,district,,0
+district,1726292,1726,Yangihayot tumani,Янгихаётский район,Yangihayot District,district,,0
+district,1726294,1726,Chilonzor tumani,Чиланзарский район,Chilonzor District,district,,0
+district,1727206,1727,Oqqoʻrgʻon tumani,Аккурганский район,Oqqoʻrgʻon District,district,,0
+district,1727212,1727,Ohangaron tumani,Ахангаранский район,Ohangaron District,district,,0
+district,1727220,1727,Bekobod tumani,Бекабадский район,Bekobod District,district,,0
+district,1727224,1727,Boʻstonliq tumani,Бостанлыкский район,Boʻstonliq District,district,,0
+district,1727228,1727,Boʻka tumani,Букинский район,Boʻka District,district,,0
+district,1727233,1727,Quyichirchiq tumani,Куйичирчикский район,Quyichirchiq District,district,,0
+district,1727237,1727,Zangiota tumani,Зангиатинский район,Zangiota District,district,,0
+district,1727239,1727,Yuqorichirchiq tumani,Юкоричирчикский район,Yuqorichirchiq District,district,,0
+district,1727248,1727,Qibray tumani,Кибрайский район,Qibray District,district,,0
+district,1727249,1727,Parkent tumani,Паркентский район,Parkent District,district,,0
+district,1727250,1727,Piskent tumani,Пскентский район,Piskent District,district,,0
+district,1727253,1727,Oʻrtachirchiq tumani,Уртачирчикский район,Oʻrtachirchiq District,district,,0
+district,1727256,1727,Chinoz tumani,Чиназский район,Chinoz District,district,,0
+district,1727259,1727,Yangiyoʻl tumani,Янгиюльский район,Yangiyoʻl District,district,,0
+district,1727265,1727,Toshkent tumani,Ташкентский район,Toshkent District,district,,0
+district,1727401,1727,Nurafshon shahri,Нурафшон,Nurafshon City,city,,0
+district,1727404,1727,Olmaliq shahri,Алмалык,Almalyk City,city,,0
+district,1727407,1727,Angren shahri,Ангрен,Angren City,city,,0
+district,1727413,1727,Bekobod shahri,Бекабад,Bekabad City,city,,0
+district,1727415,1727,Ohangaron shahri,Ахангаран,Akhangaran City,city,,0
+district,1727419,1727,Chirchiq shahri,Чирчик,Chirchik City,city,,0
+district,1727424,1727,Yangiyoʻl shahri,Янгиюль,Yangiyul City,city,,0
+district,1730203,1730,Oltiariq tumani,Алтыарыкский район,Oltiariq District,district,,0
+district,1730206,1730,Qoʻshtepa tumani,Куштепинский район,Qoʻshtepa District,district,,0
+district,1730209,1730,Bogʻdod tumani,Багдадский район,Bogʻdod District,district,,0
+district,1730212,1730,Buvayda tumani,Бувайдинский район,Buvayda District,district,,0
+district,1730215,1730,Beshariq tumani,Бешарыкский район,Beshariq District,district,,0
+district,1730218,1730,Quva tumani,Кувинский район,Quva District,district,,0
+district,1730221,1730,Uchkoʻprik tumani,Учкуприкский район,Uchkoʻprik District,district,,0
+district,1730224,1730,Rishton tumani,Риштанский район,Rishton District,district,,0
+district,1730226,1730,Soʻx tumani,Сохский район,Soʻx District,district,,0
+district,1730227,1730,Toshloq tumani,Ташлакский район,Toshloq District,district,,0
+district,1730230,1730,Oʻzbekiston tumani,Узбекистанский район,Oʻzbekiston District,district,,0
+district,1730233,1730,Fargʻona tumani,Ферганский район,Fargʻona District,district,,0
+district,1730236,1730,Dangʻara tumani,Дангаринский район,Dangʻara District,district,,0
+district,1730238,1730,Furqat tumani,Фуркатский район,Furqat District,district,,0
+district,1730242,1730,Yozyovon tumani,Язъяванский район,Yozyovon District,district,,0
+district,1730401,1730,Fargʻona shahri,Фергана,Fergana City,city,,0
+district,1730405,1730,Qoʻqon shahri,Коканд,Kokand City,city,,0
+district,1730408,1730,Quvasoy shahri,Кувасай,Kuvasay City,city,,0
+district,1730412,1730,Margʻilon shahri,Маргилан,Margilan City,city,,0
+district,1733204,1733,Bogʻot tumani,Багатский район,Bogʻot District,district,,0
+district,1733208,1733,Gurlan tumani,Гурленский район,Gurlan District,district,,0
+district,1733212,1733,Qoʻshkoʻpir tumani,Кошкупырский район,Qoʻshkoʻpir District,district,,0
+district,1733217,1733,Urganch tumani,Ургенчский район,Urganch District,district,,0
+district,1733220,1733,Hazorasp tumani,Хазараспский район,Hazorasp District,district,,0
+district,1733221,1733,Tuproqqalʻa tumani,Тупроккалинский район,Tuproqqalʻa District,district,,0
+district,1733223,1733,Xonqa tumani,Ханкинский район,Xonqa District,district,,0
+district,1733226,1733,Xiva tumani,Хивинский район,Xiva District,district,,0
+district,1733230,1733,Shovot tumani,Шаватский район,Shovot District,district,,0
+district,1733233,1733,Yangiariq tumani,Янгиарыкский район,Yangiariq District,district,,0
+district,1733236,1733,Yangibozor tumani,Янгибазарский район,Yangibozor District,district,,0
+district,1733401,1733,Urganch shahri,Ургенч,Urgench City,city,,0
+district,1733406,1733,Xiva shahri,Хива,Khiva City,city,,0
+district,1735204,1735,Amudaryo tumani,Амударьинский район,Amudaryo District,district,,0
+district,1735207,1735,Beruniy tumani,Берунийский район,Beruniy District,district,,0
+district,1735209,1735,Boʻzatov tumani,Бозатауский район,Boʻzatov District,district,,0
+district,1735211,1735,Qoraoʻzak tumani,Караузякский район,Qoraoʻzak District,district,,0
+district,1735212,1735,Kegeyli tumani,Кегейлийский район,Kegeyli District,district,,0
+district,1735215,1735,Qoʻngʻirot tumani,Кунградский район,Qoʻngʻirot District,district,,0
+district,1735218,1735,Qanlikoʻl tumani,Канлыкульский район,Qanlikoʻl District,district,,0
+district,1735222,1735,Moʻynoq tumani,Муйнакский район,Moʻynoq District,district,,0
+district,1735225,1735,Nukus tumani,Нукусский район,Nukus District,district,,0
+district,1735228,1735,Taxiatosh tumani,Тахиаташский район,Taxiatosh District,district,,0
+district,1735230,1735,Taxtakoʻpir tumani,Тахтакупырский район,Taxtakoʻpir District,district,,0
+district,1735233,1735,Toʻrtkoʻl tumani,Турткульский район,Toʻrtkoʻl District,district,,0
+district,1735236,1735,Xoʻjayli tumani,Ходжейлийский район,Xoʻjayli District,district,,0
+district,1735240,1735,Chimboy tumani,Чимбайский район,Chimboy District,district,,0
+district,1735243,1735,Shumanay tumani,Шуманайский район,Shumanay District,district,,0
+district,1735250,1735,Ellikqala tumani,Элликкалинский район,Ellikqala District,district,,0
+district,1735401,1735,Nukus shahri,Нукус,Nukus City,city,,0
+district,1726900,1726,Boshqa,Другое,Other,other,,900
+district,1727900,1727,Boshqa,Другое,Other,other,,900
+district,1703900,1703,Boshqa,Другое,Other,other,,900
+district,1706900,1706,Boshqa,Другое,Other,other,,900
+district,1708900,1708,Boshqa,Другое,Other,other,,900
+district,1712900,1712,Boshqa,Другое,Other,other,,900
+district,1714900,1714,Boshqa,Другое,Other,other,,900
+district,1710900,1710,Boshqa,Другое,Other,other,,900
+district,1735900,1735,Boshqa,Другое,Other,other,,900
+district,1718900,1718,Boshqa,Другое,Other,other,,900
+district,1724900,1724,Boshqa,Другое,Other,other,,900
+district,1722900,1722,Boshqa,Другое,Other,other,,900
+district,1730900,1730,Boshqa,Другое,Other,other,,900
+district,1733900,1733,Boshqa,Другое,Other,other,,900
+region,0000,,Boshqa,Другое,Other,,,9990
+district,0000900,0000,Boshqa,Другое,Other,other,,900

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% load i18n i18n_fields %}
+{% load static i18n i18n_fields %}
 {% block title %}{% trans "Oʻlcham jadvali" %}{% endblock %}
+{% block extra_js %}<script src="{% static 'js/viewer.js' %}" defer></script>{% endblock %}
 
 {% comment %}
   Reached only when there is something to show - the view 404s otherwise - so
@@ -16,8 +17,10 @@
     <h1 class="h1">{% trans "Oʻlcham jadvali" %}</h1>
     <p class="lede">{% trans "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan." %}</p>
 
+    {# data-zoom opens the same full-screen viewer the product page uses: the #}
+    {# numbers on a chart are small, and a phone should be able to get at them. #}
     {% if size_guide_image %}
-      <img class="sizeguide__img" src="{{ size_guide_image }}"
+      <img class="sizeguide__img" src="{{ size_guide_image }}" data-zoom
            alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
            loading="lazy" decoding="async">
     {% endif %}

@@ -164,6 +164,25 @@ ESKIZ_EMAIL = os.environ["ESKIZ_EMAIL"]
 ESKIZ_PASSWORD = os.environ["ESKIZ_PASSWORD"]
 ESKIZ_FROM = os.environ.get("ESKIZ_FROM", "4546")
 
+# --- Google Maps ---
+# The map on the home-delivery half of checkout. It ships BLANK and the feature
+# is built around that (§17 #93): with no key the map block simply does not
+# render and the address field carries the form on its own, which is the
+# behaviour a blocked script or a denied permission has to produce anyway.
+# Turning the map on is a paste into the server .env, not a deploy.
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "")
+
+# --- Telegram ---
+# Order, payment, message and review notifications to the owner's phone. Blank
+# for the same reason: core/telegram.py logs a warning and sends nothing rather
+# than raising, so local development and a fresh deploy are unaffected.
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+# Used to build absolute links in notifications, which are read outside any
+# request and so cannot ask one for the host.
+SITE_URL = os.environ.get("SITE_URL", "https://graphix.uz")
+
 # ---- cache ----
 # Use Redis when REDIS_URL is set: it's shared across gunicorn workers, which the
 # rate limiter needs to count correctly. Otherwise fall back to per-process memory

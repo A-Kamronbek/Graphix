@@ -66,12 +66,20 @@ class SizeChart(models.Model):
     to supply; :class:`SizeChartRow` is optional structured data that, when
     present, renders as a table *in addition to* the image — better for screen
     readers and for search engines (§17 #15).
+
+    ``fit`` is what lets a chart find its own products. A garment's
+    measurements are a property of its cut, and the catalogue has exactly two
+    cuts (§17 #70), so tagging the chart with one means the owner never has to
+    remember to attach it: ``Product.resolve_size_chart`` falls back to it.
+    Leave it blank for a one-off chart that belongs to a specific product.
     """
     name = models.CharField(max_length=120)
     image = models.ImageField(upload_to='size-charts/', null=True, blank=True)
     note = models.TextField(blank=True, default='', help_text="Oʻzbekcha — asosiy matn")
     note_ru = models.TextField(blank=True, default='')
     note_en = models.TextField(blank=True, default='')
+    fit = models.CharField(max_length=20, blank=True, default='', db_index=True,
+                           help_text="Shu qolipdagi mahsulotlar uchun standart jadval.")
 
     def __str__(self):
         return self.name
@@ -162,8 +170,22 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def resolve_size_chart(self):
-        """Return the chart to show: the product's own, else its category's, else None."""
-        return self.size_chart or (self.category.size_chart if self.category else None)
+        """Return the chart to show, most specific first.
+
+        Product's own → its category's → the standard chart for its fit → none.
+        The fit fallback is what makes the seeded charts work without the owner
+        linking anything: measurements follow the cut, and the catalogue has two
+        cuts. A product with no fit set and no explicit chart still gets nothing,
+        which is correct — a chart that might not match the garment is worse than
+        no chart (§17 #95).
+        """
+        if self.size_chart_id:
+            return self.size_chart
+        if self.category_id and self.category.size_chart_id:
+            return self.category.size_chart
+        if self.fit:
+            return SizeChart.objects.filter(fit=self.fit).first()
+        return None
 
 
 class ImageP(models.Model):

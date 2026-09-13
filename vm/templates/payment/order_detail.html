@@ -54,6 +54,10 @@
             <dt>{% trans "Yetkazib berish" %}</dt>
             <dd>{{ order.delivery_option|t:"name" }}</dd>
           </div>
+          <div class="spec__row">
+            <dt>{% trans "Yetkazib berish narxi" %}</dt>
+            <dd class="num">{{ order.delivery_price|price }} {% trans "soʻm" %}</dd>
+          </div>
         {% endif %}
         <div class="spec__row cartpage__total">
           <dt>{% trans "Jami" %}</dt>
@@ -61,11 +65,16 @@
         </div>
       </dl>
 
+      {# The snapshot, not the live rows: it is what was actually agreed, and #}
+      {# it is shown back so the customer can check their own index before the #}
+      {# parcel goes (§12 risk #10). #}
       <div class="stack stack--sm">
-        <span class="label">{% trans "Manzil" %}</span>
-        <address class="small">{{ order.address|linebreaksbr }}</address>
-        {% if order.pickup_snapshot %}
-          <address class="small">{{ order.pickup_snapshot|linebreaksbr }}</address>
+        <span class="label">
+          {% if order.region_id %}{% trans "Pochta boʻlimi" %}{% else %}{% trans "Manzil" %}{% endif %}
+        </span>
+        <address class="small">{{ order.location_snapshot|default:order.address|linebreaksbr }}</address>
+        {% if order.region_id %}
+          <p class="small muted">{% trans "Joʻnatma boʻlimda bir oy saqlanadi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing." %}</p>
         {% endif %}
       </div>
 

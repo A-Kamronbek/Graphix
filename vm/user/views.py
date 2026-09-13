@@ -20,7 +20,9 @@ from .forms import (
 from .models import User
 from . import otp
 from . import password_reset as pwreset
+from cart.services import merge_guest_cart
 from payment.models import Order
+from . import services as user_services
 from core.ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
 
@@ -35,11 +37,12 @@ def _cancel_and_delete(request, reason=None):
     """
     user = request.user
     if user.is_authenticated and not user.phone_verified:
+        # Whether this account is safe to drop is decided in one place, so the
+        # middleware's copy of this path cannot disagree with it (§12 risk #4).
+        # An unverified signup that already holds a claimed cart or an order is
+        # a customer, and deleting it would CASCADE their things away.
         logout(request)  # flushes session (incl. otp_* keys)
-        try:
-            user.delete()
-        except Exception:
-            pass
+        user_services.delete_if_disposable(user)
     if reason:
         return redirect(f"{reverse('signup')}?reason={reason}")
     return redirect('signup')
@@ -59,7 +62,12 @@ def login_view(request):
             messages.error(request, RATE_LIMIT_MESSAGE)
             return render(request, 'user/login.html', {'form': form, 'rate_limited': True})
         elif form.is_valid():
+            # Read before login(): Django cycles the session key on login to
+            # prevent fixation, so afterwards this is a key no cart was ever
+            # stored against and the guest's items would silently disappear.
+            guest_key = request.session.session_key
             login(request, form.get_user())
+            merge_guest_cart(guest_key, request.user)
             messages.success(request, _("Xush kelibsiz!"))
             # Only honor a safe, internal `next`; otherwise fall back to shop.
             nxt = request.GET.get('next') or request.POST.get('next')
@@ -88,7 +96,11 @@ def signup_view(request):
             messages.error(request, RATE_LIMIT_MESSAGE)
         elif form.is_valid():
             user = form.save()
+            # Same reason as login: capture the key before it is cycled. Someone
+            # who filled a cart and then registered must find it waiting.
+            guest_key = request.session.session_key
             login(request, user)
+            merge_guest_cart(guest_key, user)
             otp.generate(request, reset_expiry=True)
             return redirect('verify_phone')
 

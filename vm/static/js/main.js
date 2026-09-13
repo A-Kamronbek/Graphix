@@ -211,8 +211,135 @@
     });
   }
 
+  /* ------------------------------------------------------------- toasts */
+  /* A transient confirmation, in a container the shell always renders with
+   * aria-live. Used by the heart and by copy-link; the server's own messages
+   * still come through the message strip, which survives with JS off. */
+  function toast(text, kind) {
+    var host = $('[data-toasts]');
+    if (!host) return;
+    var el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' toast--' + kind : '');
+    el.textContent = text;
+    host.appendChild(el);
+    setTimeout(function () { el.remove(); }, 4000);
+  }
+
+  /* --------------------------------------------------------------- heart */
+  /* The heart is a real form and works with JavaScript off — it posts and the
+   * server redirects back. This upgrades it to a fetch so the page does not
+   * jump, and paints the new state immediately, rolling back if the request
+   * fails. The server is still the authority: the count that lands on the
+   * button is the one it returns, not the one we guessed. */
+  function initLikes() {
+    document.addEventListener('submit', function (e) {
+      var form = e.target.closest('[data-like-form]');
+      if (!form) return;
+      var btn = form.id
+        ? $('[data-like][form="' + form.id + '"]') || form.querySelector('[data-like]')
+        : form.querySelector('[data-like]');
+      if (!btn) return;
+
+      e.preventDefault();
+      var wasPressed = btn.getAttribute('aria-pressed') === 'true';
+      var countEl = btn.querySelector('[data-like-count]');
+      var wasCount = countEl ? countEl.textContent : '';
+      var wasHidden = countEl ? countEl.hidden : true;
+
+      function paint(pressed, count) {
+        btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+        btn.setAttribute('aria-label', pressed ? btn.dataset.labelOn || btn.getAttribute('aria-label')
+                                               : btn.dataset.labelOff || btn.getAttribute('aria-label'));
+        if (!countEl) return;
+        if (count !== null && count !== undefined) countEl.textContent = String(count);
+        countEl.hidden = String(countEl.textContent) === '0';
+      }
+
+      /* Optimistic: the count moves by one in the direction of the tap, and is
+       * corrected to the server's number a moment later. */
+      paint(!wasPressed, countEl ? Math.max(0, (parseInt(wasCount, 10) || 0) + (wasPressed ? -1 : 1)) : null);
+      btn.setAttribute('aria-busy', 'true');
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'fetch' },
+        body: new FormData(form),
+        credentials: 'same-origin',
+      }).then(function (res) {
+        if (res.status === 401) {
+          return res.json().then(function (data) { window.location.href = data.login_url; });
+        }
+        if (!res.ok) throw new Error('like failed');
+        return res.json().then(function (data) { paint(data.liked, data.count); });
+      }).catch(function () {
+        paint(wasPressed, wasCount);
+        if (countEl) countEl.hidden = wasHidden;
+        /* No fallback string here on purpose: a message the page shows is copy,
+         * and copy lives in the template where gettext can reach it. A literal
+         * written in this file would render Uzbek to a Russian visitor. */
+        if (btn.dataset.error) toast(btn.dataset.error, 'danger');
+      }).then(function () {
+        btn.removeAttribute('aria-busy');
+      });
+    });
+  }
+
+  /* --------------------------------------------------------------- share */
+  /* navigator.share where it exists (every phone this shop sells to), and a
+   * two-item menu where it does not. Instagram has no URL that shares a link,
+   * so copy-link IS the Instagram path — offering a dead "Instagram" item
+   * would be worse than not offering one. */
+  function initShare() {
+    var wrap = $('[data-share-wrap]');
+    if (!wrap) return;
+    var btn = $('[data-share]', wrap);
+    var menu = $('[data-share-menu]', wrap);
+    var url = window.location.href;
+    var title = document.title;
+
+    wrap.hidden = false;
+
+    var tg = $('[data-share-telegram]', wrap);
+    if (tg) tg.href = 'https://t.me/share/url?url=' + encodeURIComponent(url) +
+                      '&text=' + encodeURIComponent(title);
+
+    function setOpen(open) {
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    btn.addEventListener('click', function () {
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(function () { /* dismissed */ });
+        return;
+      }
+      setOpen(menu.hidden);
+    });
+
+    var copy = $('[data-share-copy]', wrap);
+    if (copy) copy.addEventListener('click', function () {
+      var done = function () {
+        if (copy.dataset.done) toast(copy.dataset.done, 'success');
+        setOpen(false);
+      };
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, done);
+      else done();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !wrap.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !menu.hidden) { setOpen(false); btn.focus(); }
+    });
+  }
+
   GX.$ = $;
   GX.$$ = $$;
+  GX.toast = toast;
+  GX.trapFocus = trapFocus;
+  GX.lockScroll = lockScroll;
+  GX.focusablesIn = focusablesIn;
   GX.prefersReducedMotion = function () {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   };
@@ -222,5 +349,7 @@
     initSearchToggle();
     initSteppers();
     initFilterSheet();
+    initLikes();
+    initShare();
   });
 })();
