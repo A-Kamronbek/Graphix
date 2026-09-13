@@ -337,3 +337,48 @@ class PruneGuestCartsTests(TestCase):
         self.assertTrue(Cart.objects.filter(pk=fresh_guest.pk).exists())
         self.assertTrue(Cart.objects.filter(pk=owned.pk).exists())
         self.assertTrue(Cart.objects.filter(pk=closed_guest.pk).exists())
+
+
+# ------------------------------------------------------- 6a: the size guide
+
+class SizeChartTests(TestCase):
+    """The seeded charts have to reach a product without the owner linking them."""
+
+    def test_both_fits_are_seeded_with_four_measured_rows(self):
+        from product.models import SizeChart
+        for fit in ('regular', 'oversize'):
+            chart = SizeChart.objects.filter(fit=fit).first()
+            self.assertIsNotNone(chart, f'no chart seeded for {fit}')
+            self.assertEqual(chart.rows.count(), 4)
+
+    def test_a_products_fit_finds_its_chart(self):
+        product, _ = make_product('Oversize dizayn', fit='oversize')
+        chart = product.resolve_size_chart()
+        self.assertIsNotNone(chart)
+        self.assertEqual(chart.fit, 'oversize')
+
+    def test_an_explicit_chart_beats_the_fit_fallback(self):
+        from product.models import SizeChart
+        own = SizeChart.objects.create(name='Faqat shu mahsulot uchun')
+        product, _ = make_product('Maxsus', fit='oversize', size_chart=own)
+        self.assertEqual(product.resolve_size_chart(), own)
+
+    def test_a_product_with_no_fit_and_no_chart_gets_none(self):
+        """Better no chart than a chart that might not match the garment."""
+        product, _ = make_product('Qolipsiz')
+        self.assertIsNone(product.resolve_size_chart())
+
+    def test_the_chart_rows_are_on_the_product_page_for_a_screen_reader(self):
+        product, _ = make_product('Jadvalli', fit='regular')
+        response = self.client.get(reverse('item', kwargs={'slug': product.slug}))
+        self.assertContains(response, 'data-sizeguide-content')
+        self.assertContains(response, 'data-row-size')
+
+    def test_the_standalone_page_renders_now_that_charts_exist(self):
+        response = self.client.get(reverse('size_guide'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Oversize')
+
+    def test_the_guide_is_advertised_once_there_is_one(self):
+        from core.context_processors import size_guide
+        self.assertTrue(size_guide(None)['has_size_guide'])

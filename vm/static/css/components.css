@@ -228,6 +228,33 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .badge--danger  { background: var(--c-danger-bg);  color: var(--c-danger);  border-color: var(--c-danger); }
 .badge--info    { background: var(--c-info-bg);    color: var(--c-info);    border-color: var(--c-info); }
 
+/* ============================================ 9b. full-screen viewer */
+/* One overlay serves the size chart and the product photograph. The stage is
+   an ordinary scroll container: `touch-action: pinch-zoom` hands zooming to
+   the browser, which does it better than any transform we would write and
+   costs nothing. */
+.viewer { position: fixed; inset: 0; z-index: var(--z-modal);
+  background: var(--c-bg); display: flex; flex-direction: column; }
+.viewer[hidden] { display: none; }
+.viewer__close { position: absolute; top: var(--s-3); right: var(--s-3);
+  z-index: 1; width: 48px; height: 48px; display: grid; place-items: center;
+  color: var(--c-fg); background: var(--c-surface-2);
+  border: 1px solid var(--c-line-strong); border-radius: var(--r-full); }
+.viewer__close:hover { background: var(--c-surface-3); }
+.viewer__stage { flex: 1; overflow: auto; touch-action: pinch-zoom;
+  padding: var(--s-7) var(--s-4) var(--s-5);
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s-5); }
+.viewer__stage img { max-width: 100%; height: auto; border-radius: var(--r-sm); }
+.viewer__stage > * { width: 100%; max-width: 900px; }
+
+/* The chart block the viewer clones. Present in the document so the viewer has
+   real markup to show, and hidden until it is asked for. */
+.sizeguide[hidden] { display: none; }
+.sizeguide__table tr.is-current th,
+.sizeguide__table tr.is-current td { color: var(--c-brand); font-weight: var(--fw-bold); }
+.sizeguide__table tr.is-current th { box-shadow: inset 3px 0 0 var(--c-brand); }
+
 /* ================================================ 10. modal / mobile sheet */
 .overlay { position: fixed; inset: 0; z-index: var(--z-modal);
   background: var(--c-scrim); display: grid; place-items: end center; }

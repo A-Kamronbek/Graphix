@@ -1,0 +1,15 @@
+{% load i18n %}
+{# One full-screen viewer, shared by the size chart and the product gallery. #}
+{# Building it here rather than in JavaScript keeps its two strings inside #}
+{# gettext, which a script cannot reach (§17 #80). It is empty and hidden #}
+{# until something opens it, so it costs a few bytes on pages that never do. #}
+<div class="viewer" data-viewer hidden role="dialog" aria-modal="true"
+     aria-label="{% trans 'Kattalashtirilgan koʻrinish' %}">
+  <button type="button" class="viewer__close" data-viewer-close
+          aria-label="{% trans 'Yopish' %}">
+    <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
+  </button>
+  {# Scrolls and pinch-zooms natively: a phone's own zoom is better than #}
+  {# anything reimplemented with transforms, and it needs no JavaScript. #}
+  <div class="viewer__stage" data-viewer-stage></div>
+</div>

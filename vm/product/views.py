@@ -6,13 +6,16 @@ from django.core.paginator import Paginator
 from django.db.models import Exists, Min, OuterRef, Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.staticfiles import finders
 from django.http import JsonResponse
+from django.templatetags.static import static
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from core.context_processors import SIZE_GUIDE_IMAGE
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
 from . import services
 from .models import Category, Colour, Product, ProductLike, Size, Tag, Variant
@@ -222,7 +225,10 @@ def item(request, slug):
     """Product detail: gallery, variants, a price map for JS, and related items."""
     product = get_object_or_404(
         Product.objects.prefetch_related(
-            'images', 'tags', 'variants__size', 'variants__colour'
+            'images', 'tags', 'variants__size', 'variants__colour',
+            # The chart's rows render in the hidden block the viewer clones, so
+            # they are fetched with the product rather than one query per row.
+            'size_chart__rows__size', 'category__size_chart__rows__size',
         ).select_related('category', 'size_chart', 'category__size_chart'),
         slug=slug,
         is_active=True,
@@ -277,5 +283,8 @@ def item(request, slug):
         'is_purchasable': is_purchasable,
         'variants_json': json.dumps(variants_map),
         'size_chart': product.resolve_size_chart(),
+        # The drawn chart, if the owner has not replaced it with his own. Same
+        # lookup the standalone page uses, so the two never show different files.
+        'size_guide_image': finders.find(SIZE_GUIDE_IMAGE) and static(SIZE_GUIDE_IMAGE),
         'related': related,
     })

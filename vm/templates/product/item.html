@@ -93,8 +93,9 @@
             <div class="row row--between">
               <span class="label">{% trans "Oʻlcham" %}</span>
               {% if has_size_guide %}
-                {# Goes to the real page. Phase 6a turns this into a modal and #}
-                {# keeps the href as its no-JS fallback. #}
+                {# Opens the full-screen viewer. The href is not decoration: #}
+                {# with JavaScript off it is a plain link to the real page, #}
+                {# which shows the same chart and the same table. #}
                 <a class="link small" href="{% url 'size_guide' %}" data-size-guide>
                   {% trans "Oʻlcham jadvali" %}
                 </a>
@@ -234,6 +235,53 @@
     </div>
   </div>
 
+  {# The size chart the viewer shows. Rendered here, hidden, so the overlay has #}
+  {# real markup to clone rather than a second copy built in JavaScript that #}
+  {# could drift from this one — and so a screen reader and a search engine can #}
+  {# read the measurements even if the viewer is never opened. #}
+  {% if has_size_guide %}
+    <div class="sizeguide stack" data-sizeguide-content hidden>
+      {% if size_guide_image %}
+        <img class="sizeguide__img" src="{{ size_guide_image }}"
+             alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
+             loading="lazy" decoding="async">
+      {% endif %}
+
+      {% if size_chart %}
+        <h2 class="h3">{{ size_chart.name }}</h2>
+        {% if size_chart.rows.exists %}
+          <div class="scroll-x">
+            <table class="table sizeguide__table">
+              <thead>
+                <tr>
+                  <th>{% trans "Oʻlcham" %}</th>
+                  <th class="num">{% trans "Koʻkrak, sm" %}</th>
+                  <th class="num">{% trans "Uzunlik, sm" %}</th>
+                  <th class="num">{% trans "Yelka, sm" %}</th>
+                  <th class="num">{% trans "Yeng, sm" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in size_chart.rows.all %}
+                  {# data-row-size is how the viewer finds the row for the size #}
+                  {# the customer has actually picked. #}
+                  <tr data-row-size="{{ row.size_id }}">
+                    <th data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</th>
+                    <td data-label="{% trans 'Koʻkrak, sm' %}" class="num">{{ row.chest_cm }}</td>
+                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm }}</td>
+                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{{ row.shoulder_cm|default:"—" }}</td>
+                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{{ row.sleeve_cm|default:"—" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+        {% if size_chart|t:"note" %}<p class="small muted">{{ size_chart|t:"note" }}</p>{% endif %}
+      {% endif %}
+    </div>
+  {% endif %}
+
   {# Reviews land in Phase 12; the anchor exists now so the rating can link to it. #}
   <div id="reviews" class="pdp__reviews"></div>
 </div>
@@ -268,4 +316,5 @@
 {% block extra_js %}
 <script src="{% static 'js/gallery.js' %}" defer></script>
 <script src="{% static 'js/variant.js' %}" defer></script>
+<script src="{% static 'js/viewer.js' %}" defer></script>
 {% endblock %}
