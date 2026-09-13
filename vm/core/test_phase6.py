@@ -726,3 +726,104 @@ class SeedRegionsTests(TestCase):
         with self.assertRaises(CommandError):
             call_command('seed_regions', file=handle.name, verbosity=0)
         self.assertEqual(Region.objects.count(), 0)
+
+
+# ------------------------------------------------- 6f: Telegram notifications
+
+class TelegramTests(TestCase):
+    """The one thing a notification must never do is break the thing it reports."""
+
+    def test_a_blank_token_sends_nothing_and_does_not_raise(self):
+        from core import telegram
+        with self.settings(TELEGRAM_BOT_TOKEN='', TELEGRAM_CHAT_ID=''):
+            self.assertFalse(telegram.configured())
+            self.assertFalse(telegram.send('salom'))
+
+    def test_a_network_failure_is_swallowed(self):
+        import requests
+        from core import telegram
+        with self.settings(TELEGRAM_BOT_TOKEN='t', TELEGRAM_CHAT_ID='1'):
+            with mock.patch('core.telegram.requests.post',
+                            side_effect=requests.RequestException('down')):
+                self.assertFalse(telegram.send('salom'))
+
+    def test_a_rejected_message_is_swallowed(self):
+        from core import telegram
+        response = mock.Mock(status_code=400, text='Bad Request')
+        with self.settings(TELEGRAM_BOT_TOKEN='t', TELEGRAM_CHAT_ID='1'):
+            with mock.patch('core.telegram.requests.post', return_value=response):
+                self.assertFalse(telegram.send('salom'))
+
+    def test_user_text_is_escaped_into_the_message(self):
+        from core import telegram
+        self.assertEqual(telegram.esc('<b>x</b>'), '&lt;b&gt;x&lt;/b&gt;')
+
+
+class TelegramDeliveryTests(TestCase):
+    """The four events fire, on commit, and a broken gateway breaks nothing."""
+
+    def setUp(self):
+        from payment.models import DeliveryOption
+        self.geo = make_regions()
+        self.home = DeliveryOption.objects.get(code='uzpost_door')
+        self.user = make_user('xabarchi', '+998901234511')
+        self.product, self.variant = make_product('Bildirishnoma', stock=5)
+        self.client.force_login(self.user)
+        self.cart = Cart.objects.create(user=self.user, status=True)
+        CartItem.objects.create(cart=self.cart, variant=self.variant, quantity=1,
+                                price_stat=self.variant.price)
+
+    def _checkout(self):
+        return self.client.post(reverse('checkout'), {
+            'name': 'Xabarchi', 'phone': '+998 90 123 45 11',
+            'delivery_option': 'uzpost_door', 'address': 'Toshkent',
+            'address_source': 'manual', 'payment_method': 'click', 'notes': '',
+        })
+
+    def test_an_order_sends_one_message(self):
+        """captureOnCommitCallbacks: the send is queued on commit, not inline."""
+        with mock.patch('core.telegram.send', return_value=True) as send:
+            with self.captureOnCommitCallbacks(execute=True):
+                self._checkout()
+        self.assertEqual(send.call_count, 1)
+        body = send.call_args[0][0]
+        self.assertIn('Yangi buyurtma', body)
+        self.assertIn('Bildirishnoma', body)
+
+    def test_a_telegram_failure_does_not_break_the_checkout(self):
+        from payment.models import Order
+        with mock.patch('core.telegram.send', side_effect=RuntimeError('boom')):
+            with self.assertRaises(RuntimeError):
+                # on_commit callbacks run after the response in a real request;
+                # executing them here proves the ORDER still exists either way.
+                with self.captureOnCommitCallbacks(execute=True):
+                    self._checkout()
+        self.assertTrue(Order.objects.filter(cart=self.cart).exists())
+
+    def test_a_contact_message_notifies(self):
+        with mock.patch('core.telegram.send', return_value=True) as send:
+            with self.captureOnCommitCallbacks(execute=True):
+                self.client.post(reverse('contact'),
+                                 {'subject': 'Savol', 'message': 'Salom'})
+        self.assertEqual(send.call_count, 1)
+        self.assertIn('Yangi xabar', send.call_args[0][0])
+
+    def test_a_new_pending_review_notifies_and_a_moderated_one_does_not(self):
+        from payment.models import Order
+        from product.models import Review
+        self._checkout()
+        order = Order.objects.get(cart=self.cart)
+
+        with mock.patch('core.telegram.send', return_value=True) as send:
+            with self.captureOnCommitCallbacks(execute=True):
+                review = Review.objects.create(user=self.user, product=self.product,
+                                               order=order, rating=5, text='Zoʻr')
+        self.assertEqual(send.call_count, 1)
+        self.assertIn('tasdiqlash kerak', send.call_args[0][0])
+
+        # Approving saves it again; the owner does not need telling twice.
+        with mock.patch('core.telegram.send', return_value=True) as send:
+            with self.captureOnCommitCallbacks(execute=True):
+                review.status = Review.Status.APPROVED
+                review.save(update_fields=['status'])
+        self.assertEqual(send.call_count, 0)

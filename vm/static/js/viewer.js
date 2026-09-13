@@ -39,7 +39,13 @@
     if (!content) return;
     opener = from || null;
     stage.innerHTML = '';
-    stage.appendChild(content.cloneNode(true));
+    var copy = content.cloneNode(true);
+    /* The source block is rendered hidden — that is how it can sit in the
+     * document for a screen reader without showing on the page. The clone is
+     * the thing being shown, so it must not inherit that. */
+    copy.hidden = false;
+    copy.removeAttribute('hidden');
+    stage.appendChild(copy);
     viewer.hidden = false;
     if (GX.lockScroll) GX.lockScroll(true);
     if (GX.trapFocus) release = GX.trapFocus(viewer);

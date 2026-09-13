@@ -75,8 +75,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from cart.models import Cart, CartItem
         from payment.models import Order
+        from product import size_charts
         from product.models import (Category, ImageP, Product, ProductLike,
-                                    Review, ReviewImage, Size, SizeChart, Tag,
+                                    Review, ReviewImage, Size, SizeChartRow, Tag,
                                     Variant, default_colour)
 
         db = settings.DATABASES['default']
@@ -122,7 +123,13 @@ class Command(BaseCommand):
             ImageP.objects.all().delete()
             Variant.objects.all().delete()
             Product.objects.all().delete()
-            SizeChart.objects.all().delete()
+            # The CHARTS survive; only their rows go, because the rows point at
+            # the Size objects this command is about to replace. Deleting the
+            # charts themselves would take the seeded size guide away from every
+            # developer who resets the catalogue, which is precisely the
+            # "verification and development looking at different sites" problem
+            # this command exists to fix (§17 #78).
+            SizeChartRow.objects.all().delete()
             Category.objects.all().delete()
             Size.objects.all().delete()
 
@@ -132,6 +139,9 @@ class Command(BaseCommand):
             )
             colour = default_colour()
             sizes = [Size.objects.create(size=s) for s in SIZES]
+            # Rebuilt against the sizes that now exist, from the one table the
+            # measurements live in.
+            size_charts.rebuild_rows({s.size: s for s in sizes})
 
             for i, (slug, uz, ru, en, price, tag_slugs) in enumerate(CATALOGUE):
                 product = Product.objects.create(

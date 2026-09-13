@@ -10,6 +10,7 @@ from django.urls import reverse
 from product.models import Product, Category
 from django.templatetags.static import static
 from core.context_processors import SIZE_GUIDE_IMAGE
+from . import telegram
 from .models import Msg
 from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
@@ -115,10 +116,13 @@ def contact(request):
                 form_errors = True
                 messages.error(request, _("Iltimos, xabar kiriting."))
             else:
-                Msg.objects.create(user=request.user,
-                                   phone_num=request.user.phone,
-                                   topic=form_data['subject'],
-                                   msg_text=form_data['message'])
+                msg = Msg.objects.create(user=request.user,
+                                         phone_num=request.user.phone,
+                                         topic=form_data['subject'],
+                                         msg_text=form_data['message'])
+                # Straight to the owner's phone, with the number ready to tap.
+                # Fails silently and never breaks the page (§17 #17).
+                telegram.notify_message(msg)
                 messages.success(request, _("Xabar qabul qilindi."))
                 form_data = {}
     return render(request, 'core/contact.html', {

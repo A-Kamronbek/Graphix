@@ -14,6 +14,7 @@ from click_up import ClickUp
 from click_up.models import ClickTransaction
 
 from cart.models import Cart
+from core import telegram
 from product.models import Variant
 from .models import Order, location_text
 
@@ -124,6 +125,12 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
         locked_cart.status = False
         locked_cart.save(update_fields=['status'])
 
+        # Queued inside the transaction, sent after it commits. A notification
+        # for an order that then rolled back is worse than no notification, and
+        # an HTTP call inside the transaction would hold the cart's row lock
+        # open for the length of it (§17 #17).
+        telegram.notify_new_order(order)
+
     return order
 
 
@@ -171,6 +178,7 @@ def apply_successful_payment(click_trans_id):
             _move_stock(order, -1)
             order.status = Order.Status.PAID
             order.save(update_fields=['status', 'updated_at'])
+            telegram.notify_payment(order)
 
 
 def apply_cancelled_payment(click_trans_id):

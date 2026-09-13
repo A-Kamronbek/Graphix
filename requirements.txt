@@ -4,7 +4,6 @@ charset-normalizer==3.4.7
 click-pkg==0.15
 Django==6.0.4
 django-colorfield==0.14.0
-django-environ==0.13.0
 djangorestframework==3.17.1
 gunicorn==26.0.0
 idna==3.13
