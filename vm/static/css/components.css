@@ -550,9 +550,16 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
      the box would break the typographic rhythm they sit in, so the hit area
      grows instead and the text stays exactly where it was. Links inside running
      text are excluded: expanding those would make neighbouring lines overlap. */
+  /* The hit area is declared as a height, not as a negative inset. An inset of
+     -9 px gave a 27 px link a 45 px target and a `.small` 24 px link a 42 px
+     one, which is how the product page's "Oʻlcham jadvali" link ended up two
+     pixels short of a thumb — a target derived from the text size is only ever
+     right for one text size. A card name can wrap to two lines, so it keeps the
+     inset: a fixed 44 px would make a tall target smaller. */
   a.link, a.card__name { position: relative; }
-  a.link::after, a.card__name::after { content: ""; position: absolute;
-    inset: -9px -4px; }
+  a.link::after { content: ""; position: absolute; left: -4px; right: -4px;
+    top: 50%; height: 44px; transform: translateY(-50%); }
+  a.card__name::after { content: ""; position: absolute; inset: -9px -4px; }
   p a.link::after, li a.link::after, td a.link::after, .prose a.link::after { content: none; }
 
   /* Breadcrumbs are 18 px of text doing navigation work. Vertical-only growth:

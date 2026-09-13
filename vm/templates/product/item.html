@@ -26,7 +26,10 @@
     {# ------------------------------------------------------------ gallery #}
     {# The photograph is the largest, sharpest thing on the page (§8). Capped at #}
     {# min(76vh, 760px) so one image never takes more than one screen (§17 #47). #}
-    <div class="pdp__gallery" data-gallery>
+    {# The modifier is what turns the gallery into a two-column grid at 1024. #}
+    {# It goes on only when there is actually a rail to put in the first column #}
+    {# — see the note on .pdp__gallery--rail in pages.css (§17 #109). #}
+    <div class="pdp__gallery{% if product.images.count > 1 %} pdp__gallery--rail{% endif %}" data-gallery>
       <div class="pdp__frame">
         {% with product.images.first as img %}
           <img data-gallery-main

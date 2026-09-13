@@ -79,11 +79,22 @@ class SmokeTests(TestCase):
         # the one that has to keep working whatever else changes about checkout.
         # The delivery tier is now part of the form, and its fee is part of the
         # total (§17 #85).
+        # A home order carries a region and a district as well, since Phase 6h:
+        # the courier needs the province and the district, and the address field
+        # is only the street and the house number (§17 #106).
+        from payment.models import District, Region
+        region = Region.objects.create(code='2600', name='Toshkent shahri',
+                                       postal_prefix='100')
+        district = District.objects.create(region=region, code='2600401',
+                                           name='Chilonzor tumani')
+
         door = DeliveryOption.objects.get(code='uzpost_door')
         response = self.client.post(reverse('checkout'), {
             'name': 'Smoke User',
             'phone': '+998 90 123 45 67',
-            'address': 'Toshkent, Amir Temur ko\'chasi 1',
+            'region': region.pk,
+            'district': district.pk,
+            'address': 'Amir Temur ko\'chasi 1',
             'notes': '',
             'delivery_option': door.code,
             'address_source': 'manual',

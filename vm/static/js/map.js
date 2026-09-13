@@ -76,6 +76,24 @@
       });
     },
 
+    /* A read-only map of one point: the admin's view of where a courier is
+     * actually going. Deliberately not `init` with the dragging turned off —
+     * the checkout's map is a control the customer operates and this one is a
+     * picture, and keeping them apart means the admin page can never acquire a
+     * pin the customer did not drop. It also keeps its own instance, so
+     * neither can disturb the other. */
+    show: function (el, pos, zoom) {
+      if (!loaded || !el || !pos) return;
+      var shown = new google.maps.Map(el, {
+        center: pos,
+        zoom: zoom || 16,
+        mapTypeControl: false,
+        streetViewControl: false,
+        clickableIcons: false,
+      });
+      new google.maps.Marker({ position: pos, map: shown });
+    },
+
     setPin: function (pos) {
       if (!marker || !pos) return;
       marker.setPosition(pos);

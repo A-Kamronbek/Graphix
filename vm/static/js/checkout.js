@@ -23,6 +23,7 @@
   var DISTRICTS = {};
   try { DISTRICTS = JSON.parse(form.dataset.districts || '{}'); } catch (e) { DISTRICTS = {}; }
 
+  var locationFields = $('[data-location-fields]');
   var branchFields = $('[data-branch-fields]');
   var homeFields = $('[data-home-fields]');
   var regionSelect = $('[data-region]');
@@ -37,9 +38,14 @@
     return $$('[data-delivery-choice]').filter(function (r) { return r.checked; })[0] || null;
   }
 
+  /* Hiding happens here and only here, which is also why the markup ships with
+   * no `hidden` attribute on these three: a browser with the script blocked
+   * shows the whole form and it still submits (§17 #107). Region and district
+   * belong to both methods, so they appear as soon as either is chosen. */
   function syncBranch() {
     var choice = chosenDelivery();
     var branch = !!choice && choice.dataset.branch === '1';
+    if (locationFields) locationFields.hidden = !choice;
     if (branchFields) branchFields.hidden = !choice || !branch;
     if (homeFields) homeFields.hidden = !choice || branch;
     syncTotals(choice);
@@ -158,8 +164,20 @@
     if (!select || !picker) return;
     var btn = document.createElement('button');
     btn.type = 'button';
+    btn.id = select.id + '_drawer';
     btn.className = 'select select--drawer';
     btn.setAttribute('aria-haspopup', 'dialog');
+
+    /* The field's own <label> points at the select, which is about to become
+     * invisible — so the button borrows it. Without this a screen reader
+     * announces the button as "Toshkent shahri, button" with no hint that the
+     * field is the region, because the only thing naming it is the text of the
+     * value it currently holds. */
+    var field = document.querySelector('label[for="' + select.id + '"]');
+    if (field) {
+      if (!field.id) field.id = select.id + '_label';
+      btn.setAttribute('aria-labelledby', field.id + ' ' + btn.id);
+    }
 
     function label() {
       var opt = select.options[select.selectedIndex];
@@ -171,6 +189,12 @@
     select.addEventListener('change', label);
     select.classList.add('sr-only');
     select.setAttribute('tabindex', '-1');
+    /* Hidden from assistive technology as well as from the eye: it is still the
+     * element that submits, but the button above now carries the label and the
+     * value, and announcing both makes the form sound like it has two region
+     * fields. tabindex="-1" already keeps it out of the tab order, so nothing
+     * focusable is being hidden. */
+    select.setAttribute('aria-hidden', 'true');
     select.parentNode.insertBefore(btn, select.nextSibling);
     label();
   }

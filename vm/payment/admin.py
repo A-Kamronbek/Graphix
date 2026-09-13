@@ -133,15 +133,21 @@ class OrderAdmin(admin.ModelAdmin):
         'phone', 'address', 'notes', 'items_summary', 'created_at', 'updated_at',
         'delivery_option', 'delivery_price', 'region', 'district', 'postal_index',
         'location_note', 'location_snapshot', 'latitude', 'longitude',
-        'address_source', 'map_link',
+        'address_source', 'map_link', 'map_preview',
     )
     fields = (
         'order_no', 'user', 'status', 'payment_method', 'total_price',
         'phone', 'address', 'notes', 'items_summary',
         'delivery_option', 'delivery_price', 'region', 'district', 'postal_index',
         'location_note', 'location_snapshot', 'latitude', 'longitude',
-        'address_source', 'map_link', 'created_at', 'updated_at',
+        'address_source', 'map_link', 'map_preview', 'created_at', 'updated_at',
     )
+
+    class Media:
+        # Both files are inert without a pin and a key: admin_map.js returns
+        # immediately when either is missing, so an order with a typed address
+        # loads nothing from Google at all.
+        js = ('js/map.js', 'js/admin_map.js')
 
     @admin.display(description='Xaritada')
     def map_link(self, obj):
@@ -152,6 +158,32 @@ class OrderAdmin(admin.ModelAdmin):
         url = f"https://www.google.com/maps/search/?api=1&query={obj.latitude},{obj.longitude}"
         return format_html('<a href="{}" target="_blank" rel="noopener">{}, {}</a>',
                            url, obj.latitude, obj.longitude)
+
+    @admin.display(description='Joylashuv xaritasi')
+    def map_preview(self, obj):
+        """The dropped pin, drawn.
+
+        A coordinate in a read-only field is a number; the owner needs to see
+        the place. Rendered only when the customer actually dropped a pin and
+        only when a key is configured — otherwise this is a dash, and no map
+        script is fetched (§17 #93, #108).
+        """
+        from django.conf import settings
+        from django.utils.html import format_html
+        key = settings.GOOGLE_MAPS_API_KEY
+        if obj.latitude is None or obj.longitude is None or not key:
+            return '—'
+        # A fixed width, capped to the column — NOT `width: 100%`. The admin
+        # renders a readonly field inside a flex row, and a flex item that has
+        # no content of its own resolved 100% to **zero**: Google created its
+        # map into a 0 px box, the DOM looked right, and the page showed an
+        # empty strip (§17 #114).
+        return format_html(
+            '<div data-admin-map data-lat="{}" data-lng="{}" data-key="{}" '
+            'style="width:640px;max-width:100%;height:320px;border-radius:6px;'
+            'overflow:hidden"></div>',
+            obj.latitude, obj.longitude, key,
+        )
 
     @admin.display(description='Buyurtma tarkibi')
     def items_summary(self, obj):

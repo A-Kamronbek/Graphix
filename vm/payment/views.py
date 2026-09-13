@@ -63,10 +63,12 @@ def _delivery_context():
 def _read_delivery(post):
     """Pull the delivery fields out of a POST. Returns (kwargs, option).
 
-    Nothing from the branch the customer did not pick is carried forward: a home
-    order keeps no region, district or index, and a branch order keeps no
-    coordinates. That is what stops a stale value from a hidden half of the form
-    reaching the database and quietly contradicting the rest of the order.
+    Region and district are read for **both** methods (§17 #106) — the courier
+    needs them as much as the post office does. Everything below them still
+    belongs to one branch only: a home order keeps no postal index, and a branch
+    order keeps no address and no coordinates. That is what stops a stale value
+    from the hidden half of the form reaching the database and quietly
+    contradicting the rest of the order.
     """
     option = DeliveryOption.objects.filter(
         code=post.get('delivery_option', '').strip(), is_active=True
@@ -75,23 +77,25 @@ def _read_delivery(post):
     kwargs = {
         'delivery_option': option,
         'region': None, 'district': None, 'postal_index': '',
-        'location_note': '', 'address_source': '',
+        'location_note': '', 'address': '', 'address_source': '',
         'latitude': None, 'longitude': None,
     }
     if option is None:
         return kwargs, None
 
-    if option.requires_branch:
-        kwargs['region'] = Region.objects.filter(pk=_int(post.get('region')),
+    kwargs['region'] = Region.objects.filter(pk=_int(post.get('region')),
+                                             is_active=True).first()
+    kwargs['district'] = District.objects.filter(pk=_int(post.get('district')),
                                                  is_active=True).first()
-        kwargs['district'] = District.objects.filter(pk=_int(post.get('district')),
-                                                     is_active=True).first()
+    # Only meaningful for the Boshqa escape; ignored otherwise, so a stray
+    # value cannot end up on a perfectly ordinary order.
+    if kwargs['district'] is not None and kwargs['district'].kind == District.Kind.OTHER:
+        kwargs['location_note'] = post.get('location_note', '').strip()[:160]
+
+    if option.requires_branch:
         kwargs['postal_index'] = post.get('postal_index', '').strip()
-        # Only meaningful for the Boshqa escape; ignored otherwise, so a stray
-        # value cannot end up on a perfectly ordinary order.
-        if kwargs['district'] is not None and kwargs['district'].kind == District.Kind.OTHER:
-            kwargs['location_note'] = post.get('location_note', '').strip()[:160]
     else:
+        kwargs['address'] = post.get('address', '').strip()
         source = post.get('address_source', '').strip()
         kwargs['address_source'] = source if source in ('map', 'manual') else 'manual'
         if kwargs['address_source'] == 'map':
@@ -166,14 +170,17 @@ def checkout(request):
     post = request.POST
     name = post.get('name', '').strip()
     phone = post.get('phone', '').strip()
-    address = post.get('address', '').strip()
     notes = post.get('notes', '').strip()
 
     delivery_kwargs, option = _read_delivery(post)
     delivery = Decimal(option.price_for_items(item_count)) if option else Decimal('0')
 
+    # What the customer typed is what gets re-rendered on an error, even when
+    # the order itself would not keep it — losing a half-typed address because
+    # the delivery method was wrong is its own small insult.
     form_data = {
-        'name': name, 'phone': phone, 'address': address, 'notes': notes,
+        'name': name, 'phone': phone, 'notes': notes,
+        'address': post.get('address', '').strip(),
         'payment_method': post.get('payment_method', '').strip(),
         'delivery_option': option.code if option else '',
         'region': delivery_kwargs['region'].pk if delivery_kwargs['region'] else '',
@@ -212,7 +219,7 @@ def checkout(request):
     # One validator for both paths. Building an unsaved Order and asking it is
     # cheaper than repeating the rules, and it guarantees the view and
     # Order.clean can never disagree about what a valid order is.
-    probe = Order(address=address, **delivery_kwargs)
+    probe = Order(**delivery_kwargs)
     try:
         probe.clean()
     except ValidationError as e:
@@ -223,7 +230,7 @@ def checkout(request):
     try:
         order = services.create_order_from_cart(
             request.user, cart,
-            phone=phone, address=address, notes=notes,
+            phone=phone, notes=notes,
             payment_method=payment_method, delivery=delivery,
             **delivery_kwargs,
         )

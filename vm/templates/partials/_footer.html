@@ -1,4 +1,4 @@
-{% load i18n i18n_fields %}
+{% load i18n i18n_fields price_format %}
 <footer class="foot">
   <div class="wrap">
     <div class="foot__grid">
@@ -27,13 +27,18 @@
 
       <div>
         <h2>{% trans "Yetkazib berish" %}</h2>
-        {# The two tiers, stated everywhere a customer might look for them, so #}
+        {# The tiers, stated everywhere a customer might look for them, so #}
         {# nobody is surprised at checkout about who delivers or what it costs. #}
         <ul>
-          {# Non-breaking spaces inside the amounts: this column is narrow enough #}
-          {# on a phone to split "15 000" across two lines otherwise. #}
-          <li>{% trans "Pochta boʻlimiga — 15 000 soʻm" %}</li>
-          <li>{% trans "Eshikkacha — 30 000 soʻm" %}</li>
+          {# Read from the rows rather than written out here. These two lines #}
+          {# were literal text, and when the door tier went from 30 000 to #}
+          {# 40 000 the footer went on saying 30 000 on every page of the site — #}
+          {# including the checkout page whose own form said 40 000 a few #}
+          {# hundred pixels above it (§17 #111). #}
+          {% for tier in delivery_tiers %}
+            <li>{{ tier|t:"name" }} —
+              <span class="num">{{ tier.price|price }}&nbsp;{% trans "soʻm" %}</span></li>
+          {% endfor %}
           <li class="subtle">{% trans "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi" %}</li>
           <li><a class="link" href="{% url 'delivery' %}">{% trans "Batafsil" %}</a></li>
         </ul>

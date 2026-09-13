@@ -69,10 +69,10 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
 
     When a ``delivery_option`` is given, its fee is computed from the locked line
     count and replaces ``delivery``. Either way the destination is frozen as text
-    into ``location_snapshot`` at this moment — region, district and index, or
-    the typed address — so a district renamed a year later cannot rewrite where
-    the parcel was sent. Callers that pass a bare ``delivery`` amount keep
-    working exactly as before.
+    into ``location_snapshot`` at this moment — region and district for both
+    methods, then either the postal index or the street address — so a district
+    renamed a year later cannot rewrite where the parcel was sent. Callers that
+    pass a bare ``delivery`` amount keep working exactly as before.
     """
     with transaction.atomic():
         # Lock the cart row for the duration of the transaction.

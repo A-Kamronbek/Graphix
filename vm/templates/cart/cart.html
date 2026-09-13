@@ -94,7 +94,8 @@
   {% else %}
     <div class="empty">
       <svg class="i" aria-hidden="true"><use href="#i-cart"></use></svg>
-      <h3>{% trans "Savat boʻsh" %}</h3>
+      {# h2: the empty state is the page's one section under the h1. #}
+      <h2 class="h3">{% trans "Savat boʻsh" %}</h2>
       <p>{% trans "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi." %}</p>
       <a class="btn btn--primary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
     </div>
