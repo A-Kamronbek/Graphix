@@ -125,12 +125,31 @@
     },
 
     /* Coordinates to a human address. Best-effort by definition: a failure
-     * leaves the address field exactly as the customer left it. */
+     * leaves the form exactly as the customer left it.
+     *
+     * The callback gets (text, parts). `parts` is a flat object keyed by
+     * Google's component type — administrative_area_level_1, route and so on —
+     * because the checkout does not want a formatted string, it wants to fill
+     * a region, a district and a street separately (§17 #116). It stays a
+     * plain object rather than a google.* structure so nothing outside this
+     * file learns which provider we use (§17 #27).
+     *
+     * Every result is scanned, not just the first: the nearest match to a
+     * point is often a plus code or a building, and the district can be
+     * several results down. */
     reverseGeocode: function (pos, onDone) {
-      if (!loaded || !pos) { onDone(null); return; }
+      if (!loaded || !pos) { onDone(null, {}); return; }
       new google.maps.Geocoder().geocode({ location: pos }, function (results, status) {
-        if (status === 'OK' && results && results[0]) onDone(results[0].formatted_address);
-        else onDone(null);
+        if (status !== 'OK' || !results || !results.length) { onDone(null, {}); return; }
+        var parts = {};
+        results.forEach(function (result) {
+          (result.address_components || []).forEach(function (c) {
+            (c.types || []).forEach(function (type) {
+              if (!parts[type]) parts[type] = c.long_name;
+            });
+          });
+        });
+        onDone(results[0].formatted_address, parts);
       });
     },
   };

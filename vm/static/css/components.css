@@ -488,9 +488,13 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 /* ================================================= 19. language switcher */
 .lang { display: inline-flex; border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
   overflow: hidden; }
+/* One <form> per language, because each button posts a different destination
+   (§17 #115) — `display: contents` keeps the buttons as the flex children the
+   rule below is written for, so the wrapper is invisible to the layout. */
+.lang form { display: contents; }
 .lang button { padding: var(--s-2) var(--s-3); font-size: var(--fs-sm); font-weight: var(--fw-semibold);
   color: var(--c-fg-muted); border-right: 1px solid var(--c-line-strong); min-height: 40px; }
-.lang button:last-child { border-right: 0; }
+.lang form:last-child button { border-right: 0; }
 .lang button[aria-pressed="true"] { background: var(--c-surface-3); color: var(--c-fg); }
 
 /* ================================================= 20. messages / notices */

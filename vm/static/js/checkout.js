@@ -336,6 +336,177 @@
     link.addEventListener('click', saveDraft);
   });
 
+  /* --------------------------------- matching a place name to one of ours */
+  /* Google names a place in its own words: Chilonzor comes back as
+   * "Chilanzar District" in English and "Чиланзарский район" in Russian, and
+   * the classifier we built `regions.csv` from spells it "Chilonzor tumani".
+   * So the comparison has to survive both a different transliteration and a
+   * different suffix — otherwise a dropped pin fills nothing, which is worse
+   * than not offering to fill it (§17 #116). */
+
+  /* Words that say what KIND of place something is rather than which one.
+   * One line on purpose: a regular expression literal cannot be wrapped. */
+  var NOISE = new RegExp(
+    '(^| )(tumani|tuman|shahri|shahar|shaharchasi|viloyati|viloyat|respublikasi'
+    + '|rayon|rayonu|rajon|raion|district|districts|city|town|region|province'
+    + '|район|районы'
+    + '|районный'
+    + '|городской'
+    + '|город|области'
+    + '|область|обл)( |$)', 'g');
+
+  function normalise(value) {
+    var out = String(value || '')
+      .toLowerCase()
+      /* The apostrophes Uzbek uses for oʻ and gʻ, however they were typed:
+       * U+02BB, U+02BC, U+2018, U+2019, U+0027, U+00B4, U+0060. */
+      .replace(/[ʻʼ‘’'´`]/g, '')
+      .replace(/[^a-zЀ-ӿ0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    /* Twice: the words can sit next to each other ("shahar tumani"), and one
+     * pass consumes the space the next match needs. */
+    out = out.replace(NOISE, ' ').replace(NOISE, ' ');
+    return out.replace(/\s+/g, ' ').trim();
+  }
+
+  /* Edit distance, capped — two short strings, so the simple table is fine. */
+  function distance(a, b) {
+    if (a === b) return 0;
+    if (!a.length || !b.length) return Math.max(a.length, b.length);
+    var prev = [], row = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      row = [i];
+      for (j = 1; j <= b.length; j++) {
+        row[j] = Math.min(prev[j] + 1, row[j - 1] + 1,
+                          prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      prev = row;
+    }
+    return prev[b.length];
+  }
+
+  /* A deliberately strict test. A wrong district is a parcel sent to the wrong
+   * place and it looks completely plausible on the form, so anything less than
+   * a near-exact match leaves the field alone for the customer to fill. */
+  function same(a, b) {
+    a = normalise(a); b = normalise(b);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    var shortest = Math.min(a.length, b.length);
+    if (shortest < 4) return false;
+    var allowed = shortest >= 6 ? 2 : 1;
+    return distance(a, b) <= allowed;
+  }
+
+  /* Every option one name could be. */
+  function matches(candidate, options) {
+    return options.filter(function (option) {
+      return option.names.some(function (name) { return same(candidate, name); });
+    });
+  }
+
+  /* Both pickers below follow the same rule: an ambiguous name is skipped
+   * rather than resolved by position. First-in-the-list is not a reason to
+   * believe anything, and a field left empty costs the customer one tap while
+   * a field filled wrongly costs them the parcel. */
+
+  /* Is this the name of a province, or of a city in its own right? Read from
+   * the raw name, before `normalise` throws those very words away. */
+  function kindOf(name) {
+    var s = String(name || '').toLowerCase();
+    if (/viloyat|region|област/.test(s)) return 'province';
+    if (/shahri|shahar|\bcity\b|город/.test(s)) return 'city';
+    return '';
+  }
+
+  function optionKind(option) {
+    for (var i = 0; i < option.names.length; i++) {
+      var k = kindOf(option.names[i]);
+      if (k) return k;
+    }
+    return '';
+  }
+
+  /* Tashkent is why this is not just `pick`.
+   *
+   * Google calls the capital "Toshkent" and the province around it "Toshkent
+   * viloyati" — and once the word *viloyat* is stripped as noise, both are the
+   * single word "toshkent" and match both of our rows. Sending a city order to
+   * the province is a parcel that goes to the wrong place and a form that
+   * looks perfectly filled in, so the collision is broken on evidence rather
+   * than left to chance: the province wins when Google said province, and the
+   * city wins when the name it gave for the region is also the name it gave
+   * for the locality — which is what happens, and only happens, inside a city
+   * that is its own region. Anything else leaves the field empty. */
+  function pickRegion(parts, options) {
+    var admin = parts.administrative_area_level_1;
+    var locality = parts.locality;
+    var candidates = [admin, locality];
+
+    for (var c = 0; c < candidates.length; c++) {
+      if (!candidates[c]) continue;
+      var found = matches(candidates[c], options);
+      if (found.length === 1) return found[0].value;
+      if (found.length > 1) {
+        var want = kindOf(candidates[c]);
+        if (!want && locality && admin && same(admin, locality)) want = 'city';
+        if (!want) continue;
+        var narrowed = found.filter(function (o) { return optionKind(o) === want; });
+        if (narrowed.length === 1) return narrowed[0].value;
+      }
+    }
+    return null;
+  }
+
+  function regionOptions() {
+    return $$('option', regionSelect).slice(1).map(function (opt) {
+      return { value: opt.value, names: (opt.dataset.match || '').split('|') };
+    });
+  }
+
+  function districtOptions(regionId) {
+    var data = DISTRICTS[regionId] || {};
+    var out = [];
+    ['district', 'city', 'other'].forEach(function (kind) {
+      (data[kind] || []).forEach(function (it) {
+        out.push({ value: String(it.id), names: it.match || [it.name], kind: kind });
+      });
+    });
+    return out;
+  }
+
+  /* The same collision one level down, and the same way out of it.
+   *
+   * Most provinces have a *tuman* and a *shahar* of the same name — Samarqand
+   * tumani is the countryside around Samarqand shahri, and they are different
+   * places with different post offices. Stripping the word that distinguishes
+   * them makes both rows match the one name Google gives, so the row's own
+   * `kind` decides: a `locality` is a city, an administrative area or a
+   * sublocality is a district. `kind` is the column Phase 6d added for the
+   * drawer's headings (§17 #87), doing a second job it happens to be exactly
+   * right for. */
+  function pickDistrict(parts, options) {
+    var candidates = [
+      { name: parts.administrative_area_level_2, kind: 'district' },
+      { name: parts.sublocality_level_1, kind: 'district' },
+      { name: parts.sublocality, kind: 'district' },
+      { name: parts.locality, kind: 'city' },
+    ];
+    for (var c = 0; c < candidates.length; c++) {
+      if (!candidates[c].name) continue;
+      var found = matches(candidates[c].name, options);
+      if (found.length === 1) return found[0].value;
+      if (found.length > 1) {
+        var want = kindOf(candidates[c].name) || candidates[c].kind;
+        var narrowed = found.filter(function (o) { return o.kind === want; });
+        if (narrowed.length === 1) return narrowed[0].value;
+      }
+    }
+    return null;
+  }
+
   /* ------------------------------------------------------------- the map */
 
   var sourceToggle = $('[data-address-source-toggle]');
@@ -374,11 +545,7 @@
       if (!pos) return;
       if (latInput) latInput.value = pos.lat.toFixed(6);
       if (lngInput) lngInput.value = pos.lng.toFixed(6);
-      GX.map.reverseGeocode(pos, function (text) {
-        /* Fills the address in, and the customer can then edit it freely. It
-         * never overwrites something they typed themselves. */
-        if (text && addressInput && !addressInput.value.trim()) addressInput.value = text;
-      });
+      GX.map.reverseGeocode(pos, applyPlace);
     });
     var locate = $('[data-map-locate]', mapBlock);
     if (locate) locate.addEventListener('click', function () {
@@ -386,8 +553,53 @@
         if (!pos) return;
         if (latInput) latInput.value = pos.lat.toFixed(6);
         if (lngInput) lngInput.value = pos.lng.toFixed(6);
+        GX.map.reverseGeocode(pos, applyPlace);
       });
     });
+  }
+
+  /* What a dropped pin does to the form.
+   *
+   * Moving the pin is a deliberate act, so it fills all three fields rather
+   * than only an empty one: region, district and the street line, each of them
+   * still editable afterwards. That is a change from the original rule, which
+   * only filled the address and only when it was blank — a customer who has
+   * just pointed at their own front door should not then have to find their
+   * district in a list of two hundred (§17 #117, amending #91).
+   *
+   * Nothing here is ever a guess. A name that does not match one of our rows
+   * to within an edit or two leaves that field exactly as it was: an empty
+   * district the customer fills in themselves is a small annoyance, and a
+   * wrong one that looks plausible is a parcel in another district. */
+  function applyPlace(text, parts) {
+    parts = parts || {};
+
+    var regionId = pickRegion(parts, regionOptions());
+    if (regionId && regionSelect && regionSelect.value !== regionId) {
+      regionSelect.value = regionId;
+      /* The real change event: it clears the district, refills the list for
+       * the new region and relabels the drawer button, exactly as it does when
+       * a person picks a region by hand. */
+      regionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    var current = regionSelect ? regionSelect.value : '';
+    if (current && districtSelect) {
+      var districtId = pickDistrict(parts, districtOptions(current));
+      if (districtId) {
+        districtSelect.value = districtId;
+        districtSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+
+    if (addressInput) {
+      /* The street line only — the region and the district are their own
+       * fields now, and repeating them here is how an address ends up saying
+       * "Toshkent, Toshkent, Chilonzor, Chilonzor". */
+      var street = [parts.route, parts.street_number].filter(Boolean).join(' ');
+      if (street) addressInput.value = street;
+      else if (text && !addressInput.value.trim()) addressInput.value = text;
+    }
   }
 
   if (sourceToggle) {
@@ -396,8 +608,18 @@
     });
     /* The toggle only appears once a provider has actually loaded. Until then
      * there is nothing to toggle to, and offering a choice that leads to a
-     * blank grey box is worse than not offering one. */
-    if (GX.map) GX.map.ready(function () { sourceToggle.hidden = false; });
+     * blank grey box is worse than not offering one.
+     *
+     * And once it does load, the state the page came back with is restored.
+     * Submitting the form with a field missing re-renders it with
+     * `address_source` still set to `map` and the coordinates still in their
+     * hidden inputs — but nothing put the map back on screen, so the customer
+     * was shown the manual form and their pin survived only as two numbers
+     * they could not see. The pin is still there; now so is the map (§17 #118). */
+    if (GX.map) GX.map.ready(function () {
+      sourceToggle.hidden = false;
+      if (sourceInput && sourceInput.value === 'map') setSource('map');
+    });
   }
 
   /* ------------------------------------------------------------- startup */

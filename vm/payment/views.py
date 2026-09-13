@@ -47,7 +47,15 @@ def _delivery_context():
     for d in districts:
         bucket = by_region.get(d.region_id)
         if bucket is not None:
-            bucket[d.kind].append({'id': d.pk, 'name': tfield(d, 'name')})
+            bucket[d.kind].append({
+                'id': d.pk,
+                'name': tfield(d, 'name'),
+                # All three spellings travel with the row so the map can match
+                # whatever Google calls the place against any of them (§17 #116).
+                # Google's Uzbek for Chilonzor is "Chilanzar" in English and
+                # "Чиланзар" in Russian; one column would match one of those.
+                'match': [n for n in (d.name, d.name_ru, d.name_en) if n],
+            })
 
     return {
         'delivery_options': list(DeliveryOption.objects.filter(is_active=True)),
