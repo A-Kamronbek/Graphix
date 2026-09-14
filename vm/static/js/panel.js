@@ -309,3 +309,102 @@
     post(url, body);
   });
 })();
+
+
+/* ------------------------------------------- moderation, inbox, reference */
+/* Three more screens, all the same shape: a control changes, one thing saves,
+   the page says so. Sharing the fetch helper below rather than each screen
+   bringing its own. */
+(function () {
+  'use strict';
+
+  function token() {
+    var field = document.querySelector('[name=csrfmiddlewaretoken]');
+    return field ? field.value : '';
+  }
+
+  function send(url, body) {
+    return fetch(url, {
+      method: 'POST', body: body,
+      headers: {'X-Requested-With': 'fetch', 'X-CSRFToken': token()},
+      credentials: 'same-origin'
+    }).then(function (r) { return r.json().catch(function () { return {ok: false}; }); });
+  }
+
+  /* ------------------------------------------------------------ reviews */
+  document.addEventListener('click', function (e) {
+    var button = e.target.closest('[data-mod]');
+    if (!button) return;
+    var card = button.closest('[data-review]');
+    if (!card) return;
+
+    var body = new FormData();
+    body.append('status', button.dataset.mod);
+    card.querySelectorAll('[data-mod]').forEach(function (b) { b.disabled = true; });
+
+    send(card.dataset.url, body).then(function (data) {
+      card.querySelectorAll('[data-mod]').forEach(function (b) { b.disabled = false; });
+      if (!data.ok) { window.alert(data.error || 'Saqlanmadi'); return; }
+
+      var badge = card.querySelector('[data-mod-badge]');
+      if (badge) {
+        badge.className = 'badge ' + (data.status === 'approved'
+          ? 'badge--success' : 'badge--danger');
+        badge.textContent = button.textContent.trim();
+      }
+      /* The product's rating moves with the decision, and seeing it move is
+         the confirmation that the approval actually did something. */
+      var rating = card.querySelector('[data-mod-rating]');
+      if (rating) rating.textContent = data.rating + ' — ' + data.count;
+      /* Dimmed, not removed: a decision made by accident should still be on
+         the screen a second later, with its own page one click away. */
+      card.classList.add('is-done');
+    });
+  });
+
+  /* -------------------------------------------------------------- inbox */
+  document.addEventListener('change', function (e) {
+    var box = e.target.closest('[data-msg-read]');
+    if (!box) return;
+    var card = box.closest('[data-msg]');
+    if (!card) return;
+
+    var body = new FormData();
+    body.append('value', box.checked ? '1' : '0');
+    send(card.dataset.url, body).then(function (data) {
+      if (!data.ok) return;
+      card.classList.toggle('is-unread', !data.value);
+    });
+  });
+
+  /* ---------------------------------------------------------- reference */
+  /* One endpoint behind all of these, and it is safe because of an allowlist
+     on the server — `panel/reference.py` names what may be written. */
+  function saveField(control) {
+    var row = control.closest('[data-ref]');
+    if (!row) return;
+
+    var body = new FormData();
+    body.append('field', control.dataset.refField);
+    body.append('value', control.type === 'checkbox'
+      ? (control.checked ? '1' : '0') : control.value);
+
+    control.classList.add('is-saving-field');
+    /* The URL comes from the row, written by `{% url %}`. Assembling it here
+       would mean guessing the language prefix, which is the bug this file
+       already made once on the catalogue list. */
+    send(row.dataset.refUrl, body)
+      .then(function (data) {
+        control.classList.remove('is-saving-field');
+        if (!data.ok) { window.alert(data.error || 'Saqlanmadi'); return; }
+        control.classList.add('is-saved-field');
+        setTimeout(function () { control.classList.remove('is-saved-field'); }, 1200);
+      })
+      .catch(function () { control.classList.remove('is-saving-field'); });
+  }
+
+  document.addEventListener('change', function (e) {
+    var control = e.target.closest('[data-ref-field]');
+    if (control) saveField(control);
+  });
+})();

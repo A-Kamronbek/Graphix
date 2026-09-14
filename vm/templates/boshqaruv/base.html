@@ -48,8 +48,9 @@
     </div>
   </header>
 
-  {# The whole panel is four screens, so the navigation is four links and a #}
-  {# horizontal scroll on a phone rather than a drawer nobody would open. #}
+  {# A scrolling row rather than a drawer: a tab you can see is a tab you will #}
+  {# use, and the panel is few enough screens that hiding them behind a burger #}
+  {# would cost more than it saved. #}
   <nav class="pnl__nav" aria-label="{% trans 'Boshqaruv menyusi' %}">
     <a href="{% url 'panel_dashboard' %}"
        {% if screen == 'dashboard' %}aria-current="page"{% endif %}>{% trans "Bugun" %}</a>
@@ -57,6 +58,12 @@
        {% if screen == 'orders' %}aria-current="page"{% endif %}>{% trans "Buyurtmalar" %}</a>
     <a href="{% url 'panel_products' %}"
        {% if screen == 'products' %}aria-current="page"{% endif %}>{% trans "Mahsulotlar" %}</a>
+    <a href="{% url 'panel_reviews' %}"
+       {% if screen == 'reviews' %}aria-current="page"{% endif %}>{% trans "Sharhlar" %}</a>
+    <a href="{% url 'panel_messages' %}"
+       {% if screen == 'messages' %}aria-current="page"{% endif %}>{% trans "Xabarlar" %}</a>
+    <a href="{% url 'panel_settings' %}"
+       {% if screen == 'settings' %}aria-current="page"{% endif %}>{% trans "Sozlamalar" %}</a>
     <a href="{% url 'admin:index' %}">{% trans "Django admin" %}</a>
     <a href="{% url 'style_guide' %}">{% trans "Dizayn tizimi" %}</a>
   </nav>

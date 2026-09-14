@@ -1,0 +1,87 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Hududlar" %}{% endblock %}
+
+{% comment %}
+  Fourteen regions and about two hundred districts, built from stat.uz's own
+  SOATO classifier. The screen exists so a district rename never needs a deploy
+  (§9 Phase 7 item 5).
+
+  The postal prefix is editable because it is what decides whether a customer's
+  typed index is accepted (§17 #86), and it is the field most likely to need
+  correcting — administrative divisions are not permanent. The SOATO `code` is
+  not editable, and deliberately: it is what ties the row to the classifier it
+  came from, and changing it would quietly detach the two.
+{% endcomment %}
+
+{% block content %}
+<div class="row row--between pnl__head">
+  <h1 class="pnl__title">{% trans "Hududlar" %}</h1>
+  <a class="link small" href="{% url 'panel_settings' %}">{% trans "Sozlamalar" %}</a>
+</div>
+
+<form class="pnl__filter" method="get" action="{% url 'panel_regions' %}">
+  <label class="search">
+    <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+    <span class="sr-only">{% trans "Qidirish" %}</span>
+    <input type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Tuman yoki kod' %}" autocomplete="off">
+  </label>
+</form>
+
+<form hidden>{% csrf_token %}</form>
+
+<div class="pnl__section stack stack--lg">
+  {% for region in regions %}
+    {% if region.districts.all or not query %}
+      <section class="panel-card stack stack--sm" data-ref="region" data-id="{{ region.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='region' pk=region.pk %}">
+        <div class="row row--between">
+          <div class="row">
+            <span class="badge badge--info num">{{ region.code }}</span>
+            <input class="input" type="text" value="{{ region.name }}" data-ref-field="name"
+                   aria-label="{% trans 'Nomi' %} (uz)">
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-ref-field="is_active" {% if region.is_active %}checked{% endif %}>
+            <span>{% trans "Faol" %}</span>
+          </label>
+        </div>
+        <div class="row--fields">
+          <input class="input" type="text" value="{{ region.name_ru }}" data-ref-field="name_ru"
+                 aria-label="{% trans 'Nomi' %} (ru)">
+          <input class="input" type="text" value="{{ region.name_en }}" data-ref-field="name_en"
+                 aria-label="{% trans 'Nomi' %} (en)">
+          <label class="field field--narrow">
+            <span class="label">{% trans "Indeks prefiksi" %}</span>
+            <input class="input num" type="text" inputmode="numeric" maxlength="3"
+                   value="{{ region.postal_prefix }}" data-ref-field="postal_prefix">
+          </label>
+        </div>
+
+        {% if region.districts.all %}
+          <details {% if query %}open{% endif %}>
+            <summary class="label">{% blocktrans count n=region.districts.all|length %}{{ n }} ta tuman{% plural %}{{ n }} ta tuman{% endblocktrans %}</summary>
+            <div class="stack stack--sm">
+              {% for district in region.districts.all %}
+                <div class="row--fields" data-ref="district" data-id="{{ district.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='district' pk=district.pk %}">
+                  <span class="badge badge--info num">{{ district.code }}</span>
+                  <input class="input" type="text" value="{{ district.name }}" data-ref-field="name"
+                         aria-label="{% trans 'Nomi' %} (uz)">
+                  <input class="input" type="text" value="{{ district.name_ru }}" data-ref-field="name_ru"
+                         aria-label="{% trans 'Nomi' %} (ru)">
+                  <input class="input" type="text" value="{{ district.name_en }}" data-ref-field="name_en"
+                         aria-label="{% trans 'Nomi' %} (en)">
+                  <label class="switch">
+                    <input type="checkbox" data-ref-field="is_active" {% if district.is_active %}checked{% endif %}>
+                    <span class="sr-only">{% trans "Faol" %}</span>
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          </details>
+        {% endif %}
+      </section>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

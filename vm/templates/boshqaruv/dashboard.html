@@ -52,12 +52,12 @@
       <span class="stat__label">{% trans "Toʻlov kutilmoqda" %}</span>
     </a>
     <a class="stat {% if pending_reviews %}stat--todo{% endif %}"
-       href="{% url 'admin:product_review_changelist' %}?status__exact=pending">
+       href="{% url 'panel_reviews' %}">
       <span class="stat__n">{{ pending_reviews }}</span>
       <span class="stat__label">{% trans "Sharhlar navbatda" %}</span>
     </a>
     <a class="stat {% if unread %}stat--todo{% endif %}"
-       href="{% url 'admin:core_msg_changelist' %}?is_read__exact=0">
+       href="{% url 'panel_messages' %}?show=unread">
       <span class="stat__n">{{ unread }}</span>
       <span class="stat__label">{% trans "Oʻqilmagan xabarlar" %}</span>
     </a>

@@ -242,3 +242,79 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
   .prod__pic { grid-row: auto; }
   .prod__side { grid-column: auto; justify-content: flex-end; }
 }
+
+
+/* ------------------------------------------------------------------ tabs */
+/* A row of statuses above a queue. Same shape as the panel's nav, one level in. */
+.pnl__tabs { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none;
+  margin-bottom: var(--s-4); }
+.pnl__tabs::-webkit-scrollbar { display: none; }
+.pnl__tabs a { flex: none; display: inline-flex; align-items: center; min-height: 40px;
+  padding: 0 var(--s-4); border-radius: var(--r-full);
+  color: var(--c-fg-muted); font-size: var(--fs-sm); white-space: nowrap; }
+.pnl__tabs a:hover { color: var(--c-fg); }
+.pnl__tabs a[aria-current="page"] { background: var(--c-surface-2); color: var(--c-fg);
+  font-weight: var(--fw-semibold); }
+
+/* ------------------------------------------------------------- moderation */
+/* The photographs are the reason this screen exists, so they are shown at a
+   size somebody can judge. A moderation queue with thumbnails is a queue where
+   everything gets approved, because nobody squints before tapping green. */
+.mod { padding: var(--s-5); border-radius: var(--r-md);
+  background: var(--c-surface); border: 1px solid var(--c-line); }
+.mod__hd { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
+  margin-bottom: var(--s-3); }
+.mod__hd time { margin-left: auto; }
+.mod__text { color: var(--c-fg-muted); margin-bottom: var(--s-4); }
+.mod__pics { display: flex; gap: var(--s-3); overflow-x: auto; padding-bottom: var(--s-2);
+  margin-bottom: var(--s-4); }
+.mod__pics img { flex: none; width: min(260px, 62vw); border-radius: var(--r-sm);
+  background: var(--c-surface-2); }
+.mod__foot { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+.mod.is-done { opacity: .45; }
+
+/* ---------------------------------------------------------------- inbox */
+.note { padding: var(--s-4); border-radius: var(--r-md);
+  background: var(--c-surface); border: 1px solid var(--c-line); }
+.note + .note { margin-top: var(--s-3); }
+/* Unread is a brass edge, not a bold row: the list is read top to bottom and
+   a wall of bold is the same as no bold at all. */
+.note.is-unread { border-left: 3px solid var(--c-brand); }
+.note__hd { display: flex; align-items: baseline; gap: var(--s-3);
+  justify-content: space-between; margin-bottom: var(--s-2); }
+.note__text { color: var(--c-fg-muted); font-size: var(--fs-sm);
+  margin-bottom: var(--s-3); }
+.note__foot { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
+.note__foot .switch { margin-left: auto; }
+
+/* ------------------------------------------------------------- reference */
+.field--num { flex: 1 1 12ch; }
+.field--wide { flex: 1 1 20ch; }
+.field--narrow { flex: 0 1 16ch; }
+.chart__thumb { width: 64px; height: 64px; object-fit: cover;
+  border-radius: var(--r-sm); background: var(--c-surface-2); }
+/* A saved field flashes its border rather than showing a toast: the eye is
+   already on the box that was typed in. */
+.is-saved-field { border-color: var(--c-brand) !important; }
+.is-saving-field { opacity: .55; }
+details > summary { cursor: pointer; padding: var(--s-2) 0; }
+
+
+/* ----------------------------------------------------- rows that stack */
+/* A row of text fields is a row only when there is room for one. Three inputs
+   sharing 390 px is three inputs showing four characters each — which is §17
+   #148 for the third time, with a third cause: there it was border-box width
+   and an auto table, here it is flex children being allowed to shrink. Below
+   the breakpoint they stack, which is the only arrangement that fits. */
+.row--fields { display: grid; gap: var(--s-3); grid-template-columns: 1fr; }
+.row--fields .input, .row--fields .select { width: 100%; }
+@media (min-width: 640px) {
+  .row--fields { grid-template-columns: repeat(auto-fit, minmax(15ch, 1fr));
+    align-items: end; }
+  .row--fields .btn { align-self: end; }
+}
+
+/* The two decisions stay a pair: pushed to the end together and wrapping
+   together, rather than one going right and the other dropping to its own
+   line looking like a different control. */
+.mod__actions { display: flex; gap: var(--s-3); margin-left: auto; }
