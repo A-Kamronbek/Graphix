@@ -17,18 +17,21 @@ Three things are deliberately hidden from the owner and handled here:
   with a 301; they do not change by accident).
 * **image order.** The owner drags; the numbers are ours.
 """
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import ProtectedError
 from django.utils.translation import gettext_lazy as _
 
 from product import images as image_pipeline
 from product.models import (Category, ImageP, Product, Size, SizeChart, Tag,
                             Variant, default_colour)
 
-#: Photographs per product. Four is what the storefront's gallery is built for
-#: and what the Definition of Done asks to be creatable in one sitting.
+#: Photographs per product. The storefront's gallery is built around four —
+#: which is what the Definition of Done asks to be creatable in one sitting —
+#: and the ceiling is twice that, so a drop with a couple of detail shots and a
+#: size reference does not run out of room.
 MAX_IMAGES = 8
 
 
@@ -37,14 +40,19 @@ class Refused(ValidationError):
 
 
 def _decimal(raw, field):
-    """Parse a price. Blank is not zero — zero is a price, blank is a mistake."""
+    """Parse a price. Blank is not zero — zero is a price, blank is a mistake.
+
+    Rounds half up rather than to even, for the same reason the rest of the
+    project does: 2500.5 soʻm is 2501, and Python's default would make it 2500
+    while making 2501.5 into 2502 (§17, Phase 12).
+    """
     try:
         value = Decimal(str(raw).strip().replace(' ', '').replace(',', '.'))
     except (InvalidOperation, AttributeError):
         raise Refused(_('“%(field)s” uchun notoʻgʻri narx.') % {'field': field})
     if value < 0:
         raise Refused(_('Narx manfiy boʻlishi mumkin emas.'))
-    return value.quantize(Decimal('1'))
+    return value.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
 
 
 def price_of(raw):
@@ -53,10 +61,27 @@ def price_of(raw):
 
 
 def _int(raw, default=0):
+    """Read a whole number out of the form. Never negative, never raises."""
     try:
         return max(0, int(str(raw).strip() or default))
     except (TypeError, ValueError):
         return default
+
+
+def _text(data, name, label):
+    """Read one text field, refusing anything longer than its column.
+
+    The form carries `maxlength` on every one of these, so the only way to get
+    here with an over-long value is a POST that did not come from the screen —
+    but "did not come from the screen" is exactly when a 500 is least useful,
+    and Postgres refuses an over-long value with one.
+    """
+    value = (data.get(name) or '').strip()
+    limit = Product._meta.get_field(name).max_length
+    if limit and len(value) > limit:
+        raise Refused(_('“%(field)s” juda uzun — koʻpi bilan %(n)d ta belgi.')
+                      % {'field': label, 'n': limit})
+    return value
 
 
 @transaction.atomic
@@ -66,14 +91,14 @@ def save_product(data, product=None):
     Everything in one transaction: a product whose photographs saved and whose
     grid did not would be live on the storefront and unbuyable.
     """
-    name = (data.get('name') or '').strip()
+    name = _text(data, 'name', _('Nomi'))
     if not name:
         raise Refused(_('Nomi kerak.'))
 
     product = product or Product()
     product.name = name
-    product.name_ru = (data.get('name_ru') or '').strip()
-    product.name_en = (data.get('name_en') or '').strip()
+    product.name_ru = _text(data, 'name_ru', _('Nomi'))
+    product.name_en = _text(data, 'name_en', _('Nomi'))
     product.description = (data.get('description') or '').strip()
     product.description_ru = (data.get('description_ru') or '').strip()
     product.description_en = (data.get('description_en') or '').strip()
@@ -90,9 +115,9 @@ def save_product(data, product=None):
     # of being buried in prose in the description.
     gsm = (data.get('gsm') or '').strip()
     product.gsm = _int(gsm) or None if gsm else None
-    product.material = (data.get('material') or '').strip()
-    product.material_ru = (data.get('material_ru') or '').strip()
-    product.material_en = (data.get('material_en') or '').strip()
+    product.material = _text(data, 'material', _('Mato'))
+    product.material_ru = _text(data, 'material_ru', _('Mato'))
+    product.material_en = _text(data, 'material_en', _('Mato'))
 
     method = (data.get('print_method') or '').strip()
     product.print_method = method if method in Product.PrintMethod.values else ''
@@ -118,9 +143,9 @@ def save_grid(product, data):
     expects when they clear it.
 
     A variant that a customer has already ordered cannot be deleted (the cart
-    line points at it), so one that cannot go is switched off instead. Losing
-    the history of what somebody bought to tidy a form is not a trade worth
-    making.
+    line points at it under ``PROTECT``), so one that cannot go is switched off
+    instead. Losing the history of what somebody bought to tidy a form is not a
+    trade worth making.
     """
     colour = default_colour()
     seen = []
@@ -145,9 +170,12 @@ def save_grid(product, data):
     for variant in product.variants.exclude(pk__in=seen):
         try:
             variant.delete()
-        except Exception:
-            # Something points at it — an order's cart line. Switch it off and
-            # keep the row, so the order still knows what was bought.
+        except ProtectedError:
+            # An order's cart line points at it. Switch it off and keep the
+            # row, so the order still knows what was bought. Caught by name
+            # rather than by `Exception`: Django raises this one before it
+            # sends any SQL, so the surrounding transaction is still usable —
+            # a bare catch would have swallowed the errors that are not.
             Variant.objects.filter(pk=variant.pk).update(available=False, stock=0)
     return len(seen)
 

@@ -31,9 +31,15 @@
     <section class="panel-card">
       <h2>{% trans "Mahsulotlar" %}</h2>
       <dl class="facts">
+        {# The line total, not the price of one. `price_stat` is the unit price #}
+        {# frozen at checkout and the order's total is the sum of price × #}
+        {# quantity, so printing the unit price beside "× 2" left three numbers #}
+        {# on the page that did not add up. The unit price is still there, in #}
+        {# the label, for anyone who needs it. #}
         {% for item in items %}
-          <dt>{{ item.variant.product.name }}{% if item.variant.size %} · {{ item.variant.size.size }}{% endif %} × {{ item.quantity }}</dt>
-          <dd class="num">{{ item.price_stat|price }} {% trans "soʻm" %}</dd>
+          <dt>{{ item.variant.product.name }}{% if item.variant.size %} · {{ item.variant.size.size }}{% endif %}
+            · <span class="small muted">{{ item.quantity }} × {{ item.price_stat|price }}</span></dt>
+          <dd class="num">{{ item.line_total|price }} {% trans "soʻm" %}</dd>
         {% endfor %}
         <dt>{% trans "Yetkazib berish" %}</dt>
         <dd class="num">{{ order.delivery_price|price }} {% trans "soʻm" %}</dd>
@@ -64,7 +70,7 @@
           {# `unlocalize`, or Uzbek formatting turns 41.315050 into "41,315050" #}
           {# and a coordinate written with commas as decimal points is a #}
           {# coordinate nobody can paste anywhere. #}
-          <dd><a class="link" href="{{ map_url }}" target="_blank" rel="noopener">
+          <dd><a class="link tap" href="{{ map_url }}" target="_blank" rel="noopener">
             {{ order.latitude|unlocalize }}, {{ order.longitude|unlocalize }}</a></dd>
         {% endif %}
         {% if order.notes %}
@@ -81,7 +87,9 @@
         <dt>{% trans "Ism" %}</dt>
         <dd>{{ order.user.first_name|default:order.user.username }}</dd>
         <dt>{% trans "Telefon" %}</dt>
-        <dd><a class="link" href="tel:{{ order.phone }}">{{ order.phone }}</a></dd>
+        {# The spaces come out of the href: numbers are stored grouped, and a #}
+        {# `tel:` URI with spaces in it is one some Android dialers refuse. #}
+        <dd><a class="link tap" href="tel:{{ order.phone|cut:' ' }}">{{ order.phone }}</a></dd>
         <dt>{% trans "Sana" %}</dt>
         <dd>{{ order.created_at|date:"j E Y, H:i" }}</dd>
         <dt>{% trans "Toʻlov" %}</dt>

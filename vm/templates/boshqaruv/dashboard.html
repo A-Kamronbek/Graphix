@@ -20,7 +20,10 @@
     <span class="stat__label">{% trans "Bugungi buyurtmalar" %}</span>
   </div>
   <div class="stat">
-    <span class="stat__n stat__n--brand">{{ revenue_today|price }}</span>
+    {# With its unit. Every other sum on the project carries "soʻm" and these #}
+    {# two did not, so the one pair of numbers on the panel that is money read #}
+    {# exactly like the pair beside it that is a count. #}
+    <span class="stat__n stat__n--brand">{{ revenue_today|price }}<span class="stat__unit">{% trans "soʻm" %}</span></span>
     <span class="stat__label">{% trans "Bugungi tushum" %}</span>
   </div>
   <div class="stat">
@@ -28,7 +31,7 @@
     <span class="stat__label">{% trans "Shu hafta" %}</span>
   </div>
   <div class="stat">
-    <span class="stat__n stat__n--brand">{{ revenue_week|price }}</span>
+    <span class="stat__n stat__n--brand">{{ revenue_week|price }}<span class="stat__unit">{% trans "soʻm" %}</span></span>
     <span class="stat__label">{% trans "Haftalik tushum" %}</span>
   </div>
 </section>
@@ -38,8 +41,12 @@
   <div class="pnl__stats">
     {# Each of these is a filtered orders list, so tapping the number lands on #}
     {# exactly the orders it counted. #}
+    {# Both statuses, because that is what the number counts: a paid order and #}
+    {# one already being picked are both parcels waiting. The link used to #}
+    {# carry `paid` alone, so the tile said one number and the list it opened #}
+    {# showed fewer rows than the number promised. #}
     <a class="stat {% if to_pack %}stat--todo{% endif %}"
-       href="{% url 'panel_orders' %}?status=paid">
+       href="{% url 'panel_orders' %}?status=paid,processing">
       <span class="stat__n">{{ to_pack }}</span>
       <span class="stat__label">{% trans "Yigʻiladi" %}</span>
     </a>
@@ -62,7 +69,7 @@
       <span class="stat__label">{% trans "Oʻqilmagan xabarlar" %}</span>
     </a>
     <a class="stat {% if low_stock_count %}stat--todo{% endif %}"
-       href="{% url 'panel_products' %}">
+       href="{% url 'panel_products' %}?low=1">
       <span class="stat__n">{{ low_stock_count }}</span>
       <span class="stat__label">{% trans "Zaxira tugayapti" %}</span>
     </a>
@@ -86,7 +93,7 @@
 <section class="pnl__section">
   <div class="row row--between">
     <h2>{% trans "Soʻnggi buyurtmalar" %}</h2>
-    <a class="link small" href="{% url 'panel_orders' %}">{% trans "Barchasi" %}</a>
+    <a class="link small tap" href="{% url 'panel_orders' %}">{% trans "Barchasi" %}</a>
   </div>
   {% for order in latest %}
     {% include "boshqaruv/_order_row.html" %}

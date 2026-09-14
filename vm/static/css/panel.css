@@ -194,9 +194,17 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
   z-index: 1; display: grid; place-items: center; width: 20px; height: 20px;
   border-radius: 50%; background: var(--c-brand); color: var(--c-brand-fg);
   font-size: var(--fs-xs); font-weight: var(--fw-bold); }
+/* 32 px drawn, 44 px to hit. The button stays small because it sits on top of
+   the photograph and a big red circle over a product shot is the panel
+   shouting; the hit area is the project's floor (§8) because a control you
+   cannot reliably tap on a phone is a control you tap twice — and the second
+   tap on a 96 px thumbnail lands on the drag handle. The area is an overlay
+   rather than a bigger box, so the corner it occupies does not grow. */
 .shot__x { position: absolute; top: 4px; right: 4px; display: grid;
-  place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  place-items: center; width: 32px; height: 32px; border-radius: 50%;
   background: var(--c-scrim); color: var(--c-fg); }
+.shot__x::after { content: ""; position: absolute; top: 50%; left: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%); }
 .shot__x:hover { background: var(--c-danger); color: var(--c-brand-fg); }
 
 /* ------------------------------------------------------------------ chips */
@@ -213,9 +221,19 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
 /* ------------------------------------------------------------------- grid */
 /* Size × price × stock. A table, because that is what it is. */
 .grid { width: 100%; border-collapse: collapse; }
-.grid th, .grid td { padding: var(--s-2) var(--s-2) var(--s-2) 0; text-align: left; }
-.grid thead th { font-size: var(--fs-sm); font-weight: var(--fw-normal);
-  color: var(--c-fg-muted); }
+.grid th, .grid td { padding: var(--s-2) var(--s-1) var(--s-2) 0; text-align: left; }
+/* `--fw-regular`, not `--fw-normal`: there has never been a `--fw-normal` in
+   tokens.css, so this declaration was invalid and the header rendered at the
+   browser's own bold. The same typo is in pages.css on the reviews table.
+   `overflow-wrap` is what stops this table clipping anything again. A fixed
+   layout clips rather than pushing, and a heading that is one long word —
+   "Oʻlcham", "Sotuvda", "В продаже" — has no break opportunity, so it ran into
+   the next column instead of wrapping. Allowed to break anywhere, a heading
+   that does not fit takes a second line and costs nineteen pixels once, and
+   the columns no longer have to be budgeted around the longest word in three
+   languages. */
+.grid thead th { font-size: var(--fs-xs); font-weight: var(--fw-regular);
+  color: var(--c-fg-muted); overflow-wrap: anywhere; }
 .grid tbody th { font-weight: var(--fw-semibold); white-space: nowrap;
   padding-right: var(--s-4); }
 /* The columns are set, not left to the browser: an auto table hands its width
@@ -223,10 +241,15 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
    empty input — so at 390 px the price ended up narrower than its own number
    while "Sotuvda" took the room (the same shape as §17 #125). */
 .grid { table-layout: fixed; }
-.grid th:first-child { width: 5ch; }
+/* Sized for the DATA, now that the headings wrap: a size label, a six-digit
+   price, a stock count and a checkbox. Price is the `auto` column and takes
+   everything left over, because it is the one that holds the longest value —
+   giving the heading its width instead put a 6-digit soʻm price in a 67 px box
+   at 390 px, which is §17 #148 for a fourth time and this time self-inflicted. */
+.grid th:first-child { width: 8ch; }
 .grid th:nth-child(2) { width: auto; }
-.grid th:nth-child(3) { width: 22%; }
-.grid th:last-child { width: 7ch; }
+.grid th:nth-child(3) { width: 54px; }
+.grid th:last-child { width: 8ch; }
 .grid .input { width: 100%; min-width: 0; }
 .grid td:last-child { text-align: center; }
 .grid input[type="checkbox"] { appearance: none; width: 24px; height: 24px;
@@ -249,7 +272,9 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
 .pnl__tabs { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none;
   margin-bottom: var(--s-4); }
 .pnl__tabs::-webkit-scrollbar { display: none; }
-.pnl__tabs a { flex: none; display: inline-flex; align-items: center; min-height: 40px;
+/* 44, not 40. The floor is 44 px (§8) and these were four short of it — which
+   the panel's own sweep found the first time anybody pointed it at the panel. */
+.pnl__tabs a { flex: none; display: inline-flex; align-items: center; min-height: 44px;
   padding: 0 var(--s-4); border-radius: var(--r-full);
   color: var(--c-fg-muted); font-size: var(--fs-sm); white-space: nowrap; }
 .pnl__tabs a:hover { color: var(--c-fg); }
@@ -318,3 +343,32 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
    together, rather than one going right and the other dropping to its own
    line looking like a different control. */
 .mod__actions { display: flex; gap: var(--s-3); margin-left: auto; }
+
+
+/* ------------------------------------------------------- things you tap */
+/* A link that is a control rather than a word in a sentence gets the project's
+   44 px floor (§8), and on the panel that is most of them: the phone number
+   beside an order, the order number itself, the map link, the breadcrumb back
+   to the list. They were 18–25 px tall — the tap-to-call link the Definition
+   of Done names was twenty pixels — because an inline link is only as tall as
+   its text and nothing had given these any.
+   The area is a pseudo-element rather than padding, and the difference is
+   visible: padding on an inline-flex link pushes the underline to the bottom
+   of the padded box, so a tapped-up map link wore its underline five pixels
+   clear of the text. An overlaid `::after` changes no layout at all — the link
+   stays ordinary inline text, the underline stays under the words, and a
+   finger landing anywhere in the 44 px band still hits the link. */
+.pnl .tap, .pnl .crumbs a { position: relative; }
+.pnl .tap::after, .pnl .crumbs a::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%); }
+
+/* The unit under a money tile. Small and muted, because the number is the
+   thing being read and "soʻm" is only there so the number is not a count. */
+.stat__unit { margin-left: var(--s-2); font-family: var(--f-body);
+  font-size: var(--fs-sm); font-weight: var(--fw-regular); color: var(--c-fg-muted); }
+
+/* A tag row carries a kind badge that must not be stretched to a column of its
+   own width by `auto-fit`: it is a marker, not a field. */
+.row--tag { align-items: end; }
+.row--fields > .badge { align-self: center; justify-self: start; }

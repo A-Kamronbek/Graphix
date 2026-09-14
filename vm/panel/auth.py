@@ -10,6 +10,11 @@ not be, and the honest answer is "no", not "try again".
 An anonymous visitor is a different case and gets the site's own login form
 with a ``next``, because the person that actually happens to is the owner on a
 phone whose session has expired.
+
+Every panel response is also marked never-cache, for the same reason Django's
+own admin does it: these pages carry customers' names, phone numbers and
+addresses, and a page held in the back/forward cache is a page still readable
+after somebody signs out on a shared laptop.
 """
 from functools import wraps
 from urllib.parse import urlencode
@@ -17,6 +22,7 @@ from urllib.parse import urlencode
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 
 
 def staff_only(view):
@@ -29,4 +35,4 @@ def staff_only(view):
         if not user.is_staff:
             raise PermissionDenied
         return view(request, *args, **kwargs)
-    return guard
+    return never_cache(guard)

@@ -211,11 +211,25 @@ class ImageP(models.Model):
 
 
 class Size(models.Model):
-    """A selectable size value."""
+    """A selectable size value, in the order the shop sells them.
+
+    The ordering matters and was missing. ``Variant`` orders by ``size``, which
+    is by id, so the storefront and the panel's list already showed S, M, L, XL
+    — but ``Size.objects.all()`` had no ordering at all, and the panel's
+    size/price/stock grid is built from exactly that. Postgres is free to hand
+    back an unordered scan in any order it likes, and it changes the order of a
+    row it has updated, so the grid on the most important screen in the panel
+    was one edit away from coming back shuffled. Ordering by id is the order
+    the sizes were seeded in, which is the order everything else already
+    assumes.
+    """
     size = models.CharField(max_length=50)
 
     def __str__(self):
         return self.size
+
+    class Meta:
+        ordering = ['id']
 
 
 class Colour(models.Model):

@@ -10,7 +10,34 @@
  * No framework and no build step (§3). One delegated listener, because the
  * orders list is twenty forms and twenty listeners is twenty things to unbind
  * the day the list starts paginating in place.
+ *
+ * Every sentence this file can show a person comes from `SAY`, which is read
+ * out of a JSON block the shell renders through `{% trans %}`. A string typed
+ * into a .js file is a string that cannot be translated (§4), and the panel is
+ * read in three languages like everything else.
  */
+var SAY = (function () {
+  'use strict';
+  var node = document.getElementById('pnl-i18n');
+  var fallback = {failed: 'Saqlanmadi', upload: 'Yuklanmadi', remove: 'Oʻchirish',
+                  tooMany: 'Koʻpi bilan {n} ta rasm.', tooBig: '“{name}” juda katta.',
+                  badType: '“{name}” — qoʻllab-quvvatlanmaydigan tur.',
+                  tooManyPixels: '“{name}” — rasm oʻlchami juda katta.',
+                  notAnImage: '“{name}” — rasm sifatida oʻqib boʻlmadi.'};
+  var data = fallback;
+  try {
+    if (node) data = JSON.parse(node.textContent);
+  } catch (e) { /* A broken block must not take the panel down with it. */ }
+  return function (key, values) {
+    var text = data[key] || fallback[key] || key;
+    for (var name in (values || {})) {
+      text = text.replace('{' + name + '}', values[name]);
+    }
+    return text;
+  };
+})();
+
+
 (function () {
   'use strict';
 
@@ -41,8 +68,20 @@
     var badge = badgeFor(form);
     if (!select) return;
 
-    select.disabled = true;
+    /* The body is built BEFORE the control is disabled, and that order is the
+       whole bug this control had: a disabled field is not in its form's data,
+       so disabling first posted no `status` at all — the endpoint answered 400,
+       the fall-back full post did the same, and the panel's most-used control
+       had never once saved anything in a browser. */
     var body = new FormData(form);
+    select.disabled = true;
+
+    /* Re-enable, then post the real form. A disabled select would leave the
+       reload just as empty-handed as the fetch was. */
+    function fallBack() {
+      select.disabled = false;
+      form.submit();
+    }
 
     fetch(form.action, {
       method: 'POST',
@@ -57,8 +96,8 @@
       if (!data.ok) {
         /* Put the control back where it was and say so out loud rather than
            leaving a select showing a status the order is not in. */
-        window.alert(data.error || select.dataset.error || 'Saqlanmadi');
-        form.submit();
+        window.alert(data.error || SAY('failed'));
+        fallBack();
         return;
       }
       if (badge) {
@@ -69,7 +108,7 @@
     }).catch(function () {
       /* Offline, or the session expired. The full post will either work or
          land on the login page, and either is more useful than a dead select. */
-      form.submit();
+      fallBack();
     });
   }
 
@@ -131,8 +170,15 @@
       .then(function (data) {
         if (box) box.classList.remove('is-saving');
         if (!data.ok) {
-          window.alert(data.error || 'Saqlanmadi');
+          window.alert(data.error || SAY('failed'));
           return;
+        }
+        /* Show what was actually stored: "12 000" typed into the price box is
+           saved as 12000, and a box still reading the typed form invites a
+           second save of a number the server has already tidied. */
+        if (input.type !== 'checkbox' && data.value !== undefined
+            && String(data.value) !== input.value) {
+          input.value = data.value;
         }
         if (box) {
           box.classList.add('is-saved');
@@ -181,27 +227,28 @@
   function check(file) {
     return new Promise(function (resolve) {
       if (maxBytes && file.size > maxBytes) {
-        resolve('“' + file.name + '” juda katta.');
+        resolve(SAY('tooBig', {name: file.name}));
         return;
       }
-      if (!/^image\/(jpeg|png|webp|avif)$/.test(file.type)) {
-        resolve('“' + file.name + '” — qoʻllab-quvvatlanmaydigan tur.');
+      /* An empty type is not a refusal: some Android pickers hand over a file
+         with no MIME type at all, and the server reads the bytes regardless. */
+      if (file.type && !/^image\/(jpeg|png|webp|avif)$/.test(file.type)) {
+        resolve(SAY('badType', {name: file.name}));
         return;
       }
       if (!maxPixels) { resolve(''); return; }
       /* Dimensions need the file decoded, so this is the one check that
-         cannot be a property read. createImageBitmap does it off the main
-         thread where it exists. */
+         cannot be a property read. */
       var url = URL.createObjectURL(file);
       var img = new Image();
       img.onload = function () {
         URL.revokeObjectURL(url);
         resolve(img.naturalWidth * img.naturalHeight > maxPixels
-          ? '“' + file.name + '” — rasm oʻlchami juda katta.' : '');
+          ? SAY('tooManyPixels', {name: file.name}) : '');
       };
       img.onerror = function () {
         URL.revokeObjectURL(url);
-        resolve('“' + file.name + '” — rasm sifatida oʻqib boʻlmadi.');
+        resolve(SAY('notAnImage', {name: file.name}));
       };
       img.src = url;
     });
@@ -222,7 +269,7 @@
       x.type = 'button';
       x.className = 'shot__x';
       x.dataset.shotDelete = image.id;
-      x.setAttribute('aria-label', 'Oʻchirish');
+      x.setAttribute('aria-label', SAY('remove'));
       x.innerHTML = '<svg class="i i--sm" aria-hidden="true"><use href="#i-close"></use></svg>';
       li.appendChild(img);
       li.appendChild(x);
@@ -236,7 +283,7 @@
     say('');
 
     if (list.children.length + files.length > maxShots) {
-      say('Koʻpi bilan ' + maxShots + ' ta rasm.');
+      say(SAY('tooMany', {n: maxShots}));
       input.value = '';
       return;
     }
@@ -250,7 +297,7 @@
       files.forEach(function (file) { body.append('images', file); });
       post(url, body).then(function (data) {
         input.value = '';
-        if (!data.ok) { say(data.error || 'Yuklanmadi'); return; }
+        if (!data.ok) { say(data.error || SAY('upload')); return; }
         render(data.images);
       });
     });
@@ -344,18 +391,23 @@
 
     send(card.dataset.url, body).then(function (data) {
       card.querySelectorAll('[data-mod]').forEach(function (b) { b.disabled = false; });
-      if (!data.ok) { window.alert(data.error || 'Saqlanmadi'); return; }
+      if (!data.ok) { window.alert(data.error || SAY('failed')); return; }
 
       var badge = card.querySelector('[data-mod-badge]');
       if (badge) {
         badge.className = 'badge ' + (data.status === 'approved'
           ? 'badge--success' : 'badge--danger');
-        badge.textContent = button.textContent.trim();
+        /* The label comes from the server, because the button says what you
+           are about to do and the badge says what the review now is. Copying
+           the button's own text put "Tasdiqlash" — approve — where
+           "Tasdiqlangan" — approved — belongs. */
+        badge.textContent = data.label;
       }
       /* The product's rating moves with the decision, and seeing it move is
-         the confirmation that the approval actually did something. */
+         the confirmation that the approval actually did something. Rendered
+         by the server, so the line reads the same before and after. */
       var rating = card.querySelector('[data-mod-rating]');
-      if (rating) rating.textContent = data.rating + ' — ' + data.count;
+      if (rating) rating.textContent = data.rating_line;
       /* Dimmed, not removed: a decision made by accident should still be on
          the screen a second later, with its own page one click away. */
       card.classList.add('is-done');
@@ -374,6 +426,13 @@
     send(card.dataset.url, body).then(function (data) {
       if (!data.ok) return;
       card.classList.toggle('is-unread', !data.value);
+      /* The count in the header is the same number the dashboard shows; the
+         server has already worked it out, so the page should not go stale. */
+      var counter = document.querySelector('[data-unread-count]');
+      if (counter) {
+        counter.textContent = data.unread;
+        counter.hidden = !data.unread;
+      }
     });
   });
 
@@ -396,7 +455,11 @@
     send(row.dataset.refUrl, body)
       .then(function (data) {
         control.classList.remove('is-saving-field');
-        if (!data.ok) { window.alert(data.error || 'Saqlanmadi'); return; }
+        if (!data.ok) { window.alert(data.error || SAY('failed')); return; }
+        if (control.type !== 'checkbox' && data.value !== undefined
+            && String(data.value) !== control.value) {
+          control.value = data.value;
+        }
         control.classList.add('is-saved-field');
         setTimeout(function () { control.classList.remove('is-saved-field'); }, 1200);
       })

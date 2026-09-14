@@ -65,14 +65,25 @@
 
   <div class="panel-card stack stack--sm">
     {% for tag in tags %}
-      <div class="row--fields" data-ref="tag" data-id="{{ tag.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='tag' pk=tag.pk %}">
+      {# Every box says which language it is. They had `aria-label` only, so a #}
+      {# sighted person editing tags at 390 px was looking at three identical #}
+      {# unlabelled boxes stacked in a column and guessing — and the delivery #}
+      {# tiers directly above, on this same screen, have labelled theirs all #}
+      {# along. #}
+      <div class="row--fields row--tag" data-ref="tag" data-id="{{ tag.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='tag' pk=tag.pk %}">
         <span class="badge badge--info">{{ tag.get_kind_display }}</span>
-        <input class="input" type="text" value="{{ tag.name }}" data-ref-field="name"
-               aria-label="{% trans 'Nomi' %} (uz)">
-        <input class="input" type="text" value="{{ tag.name_ru }}" data-ref-field="name_ru"
-               aria-label="{% trans 'Nomi' %} (ru)">
-        <input class="input" type="text" value="{{ tag.name_en }}" data-ref-field="name_en"
-               aria-label="{% trans 'Nomi' %} (en)">
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (uz)</span>
+          <input class="input" type="text" value="{{ tag.name }}" maxlength="60" data-ref-field="name">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (ru)</span>
+          <input class="input" type="text" value="{{ tag.name_ru }}" maxlength="60" data-ref-field="name_ru">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (en)</span>
+          <input class="input" type="text" value="{{ tag.name_en }}" maxlength="60" data-ref-field="name_en">
+        </label>
       </div>
     {% endfor %}
   </div>
@@ -80,13 +91,28 @@
   <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_tag_new' %}">
     {% csrf_token %}
     <h3 class="label">{% trans "Yangi teg" %}</h3>
+    {# Labelled, not placeholdered. A placeholder is gone the moment somebody #}
+    {# types, so a row of four of them is a row nobody can check before they #}
+    {# press the button. #}
     <div class="row--fields">
-      <input class="input" type="text" name="name" required placeholder="{% trans 'Nomi (uz)' %}">
-      <input class="input" type="text" name="name_ru" placeholder="{% trans 'Nomi (ru)' %}">
-      <input class="input" type="text" name="name_en" placeholder="{% trans 'Nomi (en)' %}">
-      <select class="select" name="kind" aria-label="{% trans 'Turi' %}">
-        {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-      </select>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (uz)</span>
+        <input class="input" type="text" name="name" required maxlength="60">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (ru)</span>
+        <input class="input" type="text" name="name_ru" maxlength="60">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (en)</span>
+        <input class="input" type="text" name="name_en" maxlength="60">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Turi" %}</span>
+        <select class="select" name="kind">
+          {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+      </label>
       <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
     </div>
   </form>
@@ -124,13 +150,24 @@
     {% csrf_token %}
     <h3 class="label">{% trans "Yangi jadval" %}</h3>
     <div class="row--fields">
-      <input class="input" type="text" name="name" required placeholder="{% trans 'Nomi' %}">
-      <select class="select" name="fit" aria-label="{% trans 'Qolipi' %}">
-        <option value="">—</option>
-        {% for value, label in fits %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-      </select>
-      <input class="input" type="file" name="image" required
-             accept="image/jpeg,image/png,image/webp,image/avif">
+      <label class="field">
+        <span class="label">{% trans "Nomi" %}</span>
+        <input class="input" type="text" name="name" required maxlength="120">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Qolipi" %}</span>
+        <select class="select" name="fit">
+          <option value="">—</option>
+          {% for value, label in fits %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      {# The file input had no label of any kind — the only control on the #}
+      {# panel a screen reader could not name at all. #}
+      <label class="field field--wide">
+        <span class="label">{% trans "Rasm" %}</span>
+        <input class="input" type="file" name="image" required
+               accept="image/jpeg,image/png,image/webp,image/avif">
+      </label>
       <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
     </div>
   </form>

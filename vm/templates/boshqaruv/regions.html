@@ -35,22 +35,34 @@
   {% for region in regions %}
     {% if region.districts.all or not query %}
       <section class="panel-card stack stack--sm" data-ref="region" data-id="{{ region.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='region' pk=region.pk %}">
+        {# The SOATO code and the switch are their own row. They used to sit #}
+        {# either side of the Uzbek name in a flex row, and flex children #}
+        {# shrink before they wrap (§17 #151), so the one field that matters #}
+        {# most here — the name in the source language — was the narrowest #}
+        {# thing on the screen and read "Toshkent shal". #}
         <div class="row row--between">
-          <div class="row">
-            <span class="badge badge--info num">{{ region.code }}</span>
-            <input class="input" type="text" value="{{ region.name }}" data-ref-field="name"
-                   aria-label="{% trans 'Nomi' %} (uz)">
-          </div>
+          <span class="badge badge--info num">{{ region.code }}</span>
           <label class="switch">
             <input type="checkbox" data-ref-field="is_active" {% if region.is_active %}checked{% endif %}>
             <span>{% trans "Faol" %}</span>
           </label>
         </div>
         <div class="row--fields">
-          <input class="input" type="text" value="{{ region.name_ru }}" data-ref-field="name_ru"
-                 aria-label="{% trans 'Nomi' %} (ru)">
-          <input class="input" type="text" value="{{ region.name_en }}" data-ref-field="name_en"
-                 aria-label="{% trans 'Nomi' %} (en)">
+          <label class="field">
+            <span class="label">{% trans "Nomi" %} (uz)</span>
+            <input class="input" type="text" value="{{ region.name }}" maxlength="80"
+                   data-ref-field="name">
+          </label>
+          <label class="field">
+            <span class="label">{% trans "Nomi" %} (ru)</span>
+            <input class="input" type="text" value="{{ region.name_ru }}" maxlength="80"
+                   data-ref-field="name_ru">
+          </label>
+          <label class="field">
+            <span class="label">{% trans "Nomi" %} (en)</span>
+            <input class="input" type="text" value="{{ region.name_en }}" maxlength="80"
+                   data-ref-field="name_en">
+          </label>
           <label class="field field--narrow">
             <span class="label">{% trans "Indeks prefiksi" %}</span>
             <input class="input num" type="text" inputmode="numeric" maxlength="3"
@@ -63,14 +75,27 @@
             <summary class="label">{% blocktrans count n=region.districts.all|length %}{{ n }} ta tuman{% plural %}{{ n }} ta tuman{% endblocktrans %}</summary>
             <div class="stack stack--sm">
               {% for district in region.districts.all %}
+                {# Labelled like the region above it. Two hundred rows of #}
+                {# anonymous boxes is two hundred chances to rename the wrong #}
+                {# language — and the labels are what make it readable at #}
+                {# 390 px, where the three fields stack. #}
                 <div class="row--fields" data-ref="district" data-id="{{ district.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='district' pk=district.pk %}">
                   <span class="badge badge--info num">{{ district.code }}</span>
-                  <input class="input" type="text" value="{{ district.name }}" data-ref-field="name"
-                         aria-label="{% trans 'Nomi' %} (uz)">
-                  <input class="input" type="text" value="{{ district.name_ru }}" data-ref-field="name_ru"
-                         aria-label="{% trans 'Nomi' %} (ru)">
-                  <input class="input" type="text" value="{{ district.name_en }}" data-ref-field="name_en"
-                         aria-label="{% trans 'Nomi' %} (en)">
+                  <label class="field">
+                    <span class="label">{% trans "Nomi" %} (uz)</span>
+                    <input class="input" type="text" value="{{ district.name }}" maxlength="80"
+                           data-ref-field="name">
+                  </label>
+                  <label class="field">
+                    <span class="label">{% trans "Nomi" %} (ru)</span>
+                    <input class="input" type="text" value="{{ district.name_ru }}" maxlength="80"
+                           data-ref-field="name_ru">
+                  </label>
+                  <label class="field">
+                    <span class="label">{% trans "Nomi" %} (en)</span>
+                    <input class="input" type="text" value="{{ district.name_en }}" maxlength="80"
+                           data-ref-field="name_en">
+                  </label>
                   <label class="switch">
                     <input type="checkbox" data-ref-field="is_active" {% if district.is_active %}checked{% endif %}>
                     <span class="sr-only">{% trans "Faol" %}</span>
