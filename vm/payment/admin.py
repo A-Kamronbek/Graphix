@@ -149,6 +149,23 @@ class OrderAdmin(admin.ModelAdmin):
         # loads nothing from Google at all.
         js = ('js/map.js', 'js/admin_map.js')
 
+    def save_model(self, request, obj, form, change):
+        """Route a status change through the panel's service, so it is logged.
+
+        The admin can move a status from the change form *and* straight from
+        the list via ``list_editable``, and Django calls this for both. Without
+        it the admin would be a second, silent way to change an order — which
+        is exactly the hole the Phase 7 audit log exists to close. Every other
+        field on this model is read-only, so a save that is not a status change
+        has nothing else to do.
+        """
+        from panel.services import set_status
+        changed = getattr(form, 'changed_data', []) if form is not None else []
+        if change and 'status' in changed:
+            set_status(obj, obj.status, by=request.user, note='Django admin')
+            return
+        super().save_model(request, obj, form, change)
+
     @admin.display(description='Xaritada')
     def map_link(self, obj):
         """A maps deep link for the courier, when there is a pin to follow."""

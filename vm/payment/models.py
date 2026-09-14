@@ -197,17 +197,23 @@ class Order(models.Model):
     same reason ``CartItem.price_stat`` is: if a fee changes or a district is
     renamed a year later, the order still records what was actually agreed.
     """
+    # Translated, and spelt with U+02BB. These labels are on the customer's own
+    # orders page and in every status badge on the site, and they were plain
+    # Uzbek strings with ASCII apostrophes — so a Russian customer was told
+    # "To'lanmoqda" in the middle of an otherwise Russian page, and the
+    # apostrophe was the wrong character in Uzbek as well. They predate §4's
+    # no-hardcoded-strings rule, which is exactly why nothing caught them.
     class Status(models.TextChoices):
-        PAYING = 'paying', 'To\'lanmoqda'
-        PAID = 'paid', 'To\'langan'
-        PROCESSING = 'processing', 'Jarayonda'
-        ON_THE_WAY = 'on_the_way', 'Yo\'lda'
-        DONE = 'done', 'Bajarildi'
-        CANCELLED = 'cancelled', 'Bekor qilindi'
+        PAYING = 'paying', _('Toʻlanmoqda')
+        PAID = 'paid', _('Toʻlangan')
+        PROCESSING = 'processing', _('Jarayonda')
+        ON_THE_WAY = 'on_the_way', _('Yoʻlda')
+        DONE = 'done', _('Bajarildi')
+        CANCELLED = 'cancelled', _('Bekor qilindi')
 
     class PaymentMethod(models.TextChoices):
-        CLICK = 'click', 'Click'
-        CASH = 'cash', 'Naqd pul'
+        CLICK = 'click', 'Click'          # a brand name; the same in all three
+        CASH = 'cash', _('Naqd pul')
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     cart = models.OneToOneField(Cart, on_delete=models.CASCADE, related_name='order')
@@ -258,8 +264,8 @@ class Order(models.Model):
     # because they typed the address instead. One column, and it answers the
     # question the courier actually has (§17 #88).
     address_source = models.CharField(max_length=10, blank=True, default='',
-                                      choices=[('map', 'Xaritadan'),
-                                               ('manual', 'Qoʻlda kiritilgan')])
+                                      choices=[('map', _('Xaritadan')),
+                                               ('manual', _('Qoʻlda kiritilgan'))])
 
     def __str__(self):
         return f"Order {self.order_no or self.id} | {self.user.username} | {self.get_status_display()}"

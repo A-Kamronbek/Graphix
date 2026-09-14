@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     'product',
     'user',
     'cart',
+    # The staff panel (Phase 7). Views over the models above, plus the one
+    # table that records who moved an order's status.
+    'panel',
     'colorfield',
     'rest_framework',
     'click_up',
