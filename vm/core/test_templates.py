@@ -64,9 +64,11 @@ class RenderedPageTests(TestCase):
     """No page ships template syntax in its output."""
 
     def test_key_pages_render_no_template_syntax(self):
+        # follow=True: an unprefixed path is now a redirect into /uz/ and the
+        # redirect body has no template output to inspect (§17 #121).
         for url in ('/', '/shop/'):
             with self.subTest(url=url):
-                html = self.client.get(url).content.decode('utf-8')
+                html = self.client.get(url, follow=True).content.decode('utf-8')
                 for token in ('{#', '{%', '{{'):
                     self.assertNotIn(
                         token, html,

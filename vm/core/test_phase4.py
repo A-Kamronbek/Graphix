@@ -73,13 +73,26 @@ class SlugTests(TestCase):
 
 
 class LegacyUrlTests(TestCase):
-    """The pre-Phase-4 /item/<pk>/ URL keeps working, with a 301."""
+    """The pre-Phase-4 /item/<pk>/ URL keeps working, with a 301.
+
+    Since §17 #121 it takes two hops from the unprefixed form: the language
+    prefix is negotiated first (302, because the destination depends on who is
+    asking), and the move from id to slug is still permanent (301).
+    """
 
     def test_old_integer_url_permanently_redirects_to_the_slug_url(self):
         product, _ = make_product('Eski havola')
-        response = self.client.get(f"/item/{product.pk}/")
+        response = self.client.get(f"/uz/item/{product.pk}/")
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response['Location'], reverse('item', kwargs={'slug': product.slug}))
+
+    def test_the_unprefixed_legacy_url_still_reaches_the_product(self):
+        """The oldest links in the wild have neither a language nor a slug."""
+        product, _ = make_product('Juda eski havola')
+        response = self.client.get(f"/item/{product.pk}/", follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.redirect_chain[-1][0],
+                         reverse('item', kwargs={'slug': product.slug}))
 
     def test_the_slug_url_renders(self):
         product, _ = make_product('Yangi havola')

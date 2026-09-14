@@ -3,7 +3,7 @@
   "short_name": "GRAPHIX",
   "description": "Grafik futbolkalar do'koni. Premium sifat, 100+ dizayn, O'zbekiston bo'ylab yetkazib berish.",
   "lang": "uz",
-  "start_url": "/",
+  "start_url": "/uz/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#000000",

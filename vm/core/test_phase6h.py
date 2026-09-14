@@ -17,18 +17,23 @@ from .test_phase4 import make_product
 
 # The pages a visitor is most likely to be on when they reach for the switcher.
 PAGES = ['/', '/shop/', '/about/', '/yetkazib-berish/']
-PREFIX = {'uz': '', 'ru': '/ru', 'en': '/en'}
+PREFIX = {'uz': '/uz', 'ru': '/ru', 'en': '/en'}
 
 
 class LanguageSwitchTests(TestCase):
     """Every language reachable from every language, on every page.
 
-    Uzbek is unprefixed, which is what broke this: `/i18n/setlang/` carries no
-    language prefix either, and Django forces the default language on any
-    unprefixed path when `prefix_default_language=False`. `set_language` was
-    therefore always running in Uzbek and could not resolve a `/ru/` path in
-    order to translate it, so it redirected to whatever it was given — which
-    was the page the visitor was already on (§17 #115).
+    What broke this: `/i18n/setlang/` carries no language prefix, and while
+    Uzbek was unprefixed Django forced the default language on every unprefixed
+    path. `set_language` therefore always ran in Uzbek and could not resolve a
+    `/ru/` path in order to translate it, so it redirected to whatever it was
+    given — which was the page the visitor was already on (§17 #115).
+
+    Two things now stop that: every button posts its own already-translated
+    URL, and every language carries a prefix so the forcing rule no longer
+    applies at all (§17 #121). These tests are written against the behaviour —
+    land on the same page in the chosen language — so they hold whichever of
+    the two is doing the work.
     """
 
     @classmethod
@@ -91,7 +96,7 @@ class LanguageSwitchTests(TestCase):
 
     def test_the_switcher_is_in_the_mobile_drawer_too(self):
         """It has its own copy of the control, and it had the same defect."""
-        html = self.client.get('/').content.decode()
+        html = self.client.get('/', follow=True).content.decode()
         drawer = html.split('drawer__lang', 1)
         self.assertEqual(len(drawer), 2, 'the drawer switcher is missing')
         self.assertIn('name="next" value="/ru/"', drawer[1])

@@ -25,8 +25,9 @@ def languages(request):
         except Exception:
             # translate_url raises on a path the URLconf can't resolve — a 404,
             # or the admin. Falling back to the site root keeps the switcher
-            # usable instead of 500ing the page it is rendered on.
-            url = '/' if code == settings.LANGUAGE_CODE else f'/{code}/'
+            # usable instead of 500ing the page it is rendered on. Every
+            # language has a prefix now, Uzbek included (§17 #121).
+            url = f'/{code}/'
         items.append({
             'code': code,
             'name': name,
