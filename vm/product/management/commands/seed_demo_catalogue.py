@@ -76,9 +76,9 @@ class Command(BaseCommand):
         from cart.models import Cart, CartItem
         from payment.models import Order
         from product import size_charts
-        from product.models import (Category, ImageP, Product, ProductLike,
-                                    Review, ReviewImage, Size, SizeChartRow, Tag,
-                                    Variant, default_colour)
+        from product.models import (Category, ImageP, PrintMethod, Product,
+                                    ProductLike, Review, ReviewImage, Size,
+                                    SizeChartRow, Tag, Variant, default_colour)
 
         db = settings.DATABASES['default']
         host = (db.get('HOST') or '').strip()
@@ -152,7 +152,9 @@ class Command(BaseCommand):
                     gsm=200,
                     material='100% paxta', material_ru='100% хлопок',
                     material_en='100% cotton',
-                    print_method=Product.PrintMethod.DTF,
+                    # A row now rather than a choice (§17, Phase 7 recheck);
+                    # migration 0019 seeds the four the code used to hold.
+                    print_method=PrintMethod.objects.filter(slug='dtf').first(),
                     # Two fits only (§17 #70); alternated so both render somewhere.
                     fit=Product.Fit.OVERSIZE if i % 3 else Product.Fit.REGULAR,
                     # Phase 6b maintains this; seeded so the hearts are not all zero.

@@ -37,10 +37,12 @@
         </button>
       </div>
 
-      {% for kind_label, tags in tag_groups %}
+      {# The kind is a row now, not a choice, so its heading is a translated #}
+      {# field like every other name on the site (§17, Phase 7 recheck). #}
+      {% for kind, tags in tag_groups %}
         {% if tags %}
           <div class="filters__group">
-            <span class="label">{{ kind_label }}</span>
+            <span class="label">{{ kind|t:"name" }}</span>
             <div class="chips">
               {% for tag in tags %}
                 <button type="submit" name="tag" value="{{ tag.slug }}"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 20:34+0500\n"
+"POT-Creation-Date: 2026-09-14 22:43+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,59 +55,70 @@ msgstr ""
 msgid "“%(field)s” uchun notoʻgʻri narx."
 msgstr "“%(field)s” uchun notoʻgʻri narx."
 
-#: .\panel\catalogue.py:54 .\panel\reference.py:61
+#: .\panel\catalogue.py:54 .\panel\reference.py:82
 msgid "Narx manfiy boʻlishi mumkin emas."
 msgstr "Narx manfiy boʻlishi mumkin emas."
 
 #: .\panel\catalogue.py:60 .\templates\boshqaruv\_product_row.html:62
-#: .\templates\boshqaruv\product_form.html:182
-#: .\templates\boshqaruv\settings.html:36
+#: .\templates\boshqaruv\product_form.html:206
+#: .\templates\boshqaruv\settings.html:46
 msgid "Narx"
 msgstr "Narx"
 
-#: .\panel\catalogue.py:82
+#: .\panel\catalogue.py:90
+#, python-format
+msgid "“%(field)s” uchun notoʻgʻri zaxira."
+msgstr "“%(field)s” uchun notoʻgʻri zaxira."
+
+#: .\panel\catalogue.py:105
 #, python-format
 msgid "“%(field)s” juda uzun — koʻpi bilan %(n)d ta belgi."
 msgstr "“%(field)s” juda uzun — koʻpi bilan %(n)d ta belgi."
 
-#: .\panel\catalogue.py:94 .\panel\catalogue.py:100 .\panel\catalogue.py:101
-#: .\templates\boshqaruv\product_form.html:72
-#: .\templates\boshqaruv\product_form.html:77
-#: .\templates\boshqaruv\product_form.html:82
+#: .\panel\catalogue.py:117 .\panel\catalogue.py:123 .\panel\catalogue.py:124
+#: .\templates\boshqaruv\_lookup_new.html:24
+#: .\templates\boshqaruv\_lookup_new.html:28
+#: .\templates\boshqaruv\_lookup_new.html:32
+#: .\templates\boshqaruv\_lookup_row.html:22
+#: .\templates\boshqaruv\_lookup_row.html:26
+#: .\templates\boshqaruv\_lookup_row.html:30
+#: .\templates\boshqaruv\product_form.html:76
+#: .\templates\boshqaruv\product_form.html:81
+#: .\templates\boshqaruv\product_form.html:86
 #: .\templates\boshqaruv\regions.html:52 .\templates\boshqaruv\regions.html:57
 #: .\templates\boshqaruv\regions.html:62 .\templates\boshqaruv\regions.html:85
 #: .\templates\boshqaruv\regions.html:90 .\templates\boshqaruv\regions.html:95
-#: .\templates\boshqaruv\settings.html:47
-#: .\templates\boshqaruv\settings.html:51
-#: .\templates\boshqaruv\settings.html:55
-#: .\templates\boshqaruv\settings.html:76
-#: .\templates\boshqaruv\settings.html:80
-#: .\templates\boshqaruv\settings.html:84
-#: .\templates\boshqaruv\settings.html:99
-#: .\templates\boshqaruv\settings.html:103
-#: .\templates\boshqaruv\settings.html:107
-#: .\templates\boshqaruv\settings.html:132
-#: .\templates\boshqaruv\settings.html:154
+#: .\templates\boshqaruv\settings.html:58
+#: .\templates\boshqaruv\settings.html:62
+#: .\templates\boshqaruv\settings.html:66
+#: .\templates\boshqaruv\settings.html:122
+#: .\templates\boshqaruv\settings.html:126
+#: .\templates\boshqaruv\settings.html:130
+#: .\templates\boshqaruv\settings.html:152
+#: .\templates\boshqaruv\settings.html:156
+#: .\templates\boshqaruv\settings.html:160
+#: .\templates\boshqaruv\settings.html:209
+#: .\templates\boshqaruv\settings.html:239
 msgid "Nomi"
 msgstr "Nomi"
 
-#: .\panel\catalogue.py:96 .\panel\views.py:669
+#: .\panel\catalogue.py:119 .\panel\views.py:743 .\panel\views.py:776
 msgid "Nomi kerak."
 msgstr "Nomi kerak."
 
-#: .\panel\catalogue.py:118 .\panel\catalogue.py:119 .\panel\catalogue.py:120
-#: .\templates\boshqaruv\product_form.html:117
+#: .\panel\catalogue.py:141 .\panel\catalogue.py:142 .\panel\catalogue.py:143
 #: .\templates\boshqaruv\product_form.html:122
 #: .\templates\boshqaruv\product_form.html:127
+#: .\templates\boshqaruv\product_form.html:132
 #: .\templates\product\item.html:210
 msgid "Mato"
 msgstr "Mato"
 
-#: .\panel\catalogue.py:168
+#: .\panel\catalogue.py:192
 msgid "Kamida bitta oʻlcham uchun narx kiriting."
 msgstr "Kamida bitta oʻlcham uchun narx kiriting."
 
-#: .\panel\catalogue.py:194
+#: .\panel\catalogue.py:218
 #, python-format
 msgid "Koʻpi bilan %(n)d ta rasm."
 msgstr "Koʻpi bilan %(n)d ta rasm."
@@ -120,34 +131,50 @@ msgstr "Holat oʻzgarishi"
 msgid "Holat oʻzgarishlari"
 msgstr "Holat oʻzgarishlari"
 
-#: .\panel\reference.py:59
+#: .\panel\reference.py:80
 msgid "Notoʻgʻri narx."
 msgstr "Notoʻgʻri narx."
 
-#: .\panel\reference.py:74
+#: .\panel\reference.py:95
 msgid "Indeks prefiksi 2 yoki 3 ta raqam boʻlishi kerak."
 msgstr "Indeks prefiksi 2 yoki 3 ta raqam boʻlishi kerak."
 
-#: .\panel\reference.py:93
+#: .\panel\reference.py:125
+msgid "Bunday teg turi yoʻq."
+msgstr "Bunday teg turi yoʻq."
+
+#: .\panel\reference.py:134
 msgid "Notoʻgʻri son."
 msgstr "Notoʻgʻri son."
 
-#: .\panel\reference.py:115
+#: .\panel\reference.py:157 .\panel\views.py:770
 msgid "Notoʻgʻri jadval."
 msgstr "Notoʻgʻri jadval."
 
-#: .\panel\reference.py:118 .\panel\views.py:461
+#: .\panel\reference.py:160 .\panel\views.py:519
 msgid "Notoʻgʻri maydon."
 msgstr "Notoʻgʻri maydon."
 
-#: .\panel\reference.py:122
+#: .\panel\reference.py:164 .\panel\reference.py:205
 msgid "Topilmadi."
 msgstr "Topilmadi."
 
-#: .\panel\reference.py:134
+#: .\panel\reference.py:173
+msgid "Nomi boʻsh boʻlishi mumkin emas."
+msgstr "Nomi boʻsh boʻlishi mumkin emas."
+
+#: .\panel\reference.py:183
 #, python-format
 msgid "Juda uzun — koʻpi bilan %(n)d ta belgi."
 msgstr "Juda uzun — koʻpi bilan %(n)d ta belgi."
+
+#: .\panel\reference.py:200
+msgid "Bu jadvaldan oʻchirib boʻlmaydi."
+msgstr "Bu jadvaldan oʻchirib boʻlmaydi."
+
+#: .\panel\reference.py:213
+msgid "Bundan foydalanilmoqda — avval boʻshating."
+msgstr "Bundan foydalanilmoqda — avval boʻshating."
 
 #: .\panel\templatetags\panel_i18n.py:23
 msgid "Saqlanmadi"
@@ -158,7 +185,10 @@ msgid "Yuklanmadi"
 msgstr "Yuklanmadi"
 
 #: .\panel\templatetags\panel_i18n.py:25
-#: .\templates\boshqaruv\product_form.html:50
+#: .\templates\boshqaruv\_lookup_row.html:37
+#: .\templates\boshqaruv\product_form.html:54
+#: .\templates\boshqaruv\settings.html:137
+#: .\templates\boshqaruv\settings.html:226
 msgid "Oʻchirish"
 msgstr "Oʻchirish"
 
@@ -187,6 +217,16 @@ msgstr "“{name}” — rasm oʻlchami juda katta."
 msgid "“{name}” — rasm sifatida oʻqib boʻlmadi."
 msgstr "“{name}” — rasm sifatida oʻqib boʻlmadi."
 
+#: .\panel\templatetags\panel_i18n.py:31
+#, python-brace-format
+msgid "“{name}” oʻchirilsinmi?"
+msgstr "“{name}” oʻchirilsinmi?"
+
+#: .\panel\templatetags\panel_i18n.py:32
+#: .\templates\boshqaruv\settings.html:256
+msgid "Tanlanmagan"
+msgstr "Tanlanmagan"
+
 #: .\panel\views.py:291 .\panel\views.py:293
 msgid "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
 msgstr "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
@@ -200,32 +240,48 @@ msgstr "Notoʻgʻri holat."
 msgid "%(no)s — holat yangilandi."
 msgstr "%(no)s — holat yangilandi."
 
-#: .\panel\views.py:397 .\product\views.py:218
+#: .\panel\views.py:423 .\product\views.py:223
 msgid "Saqlandi."
 msgstr "Saqlandi."
 
-#: .\panel\views.py:490
+#: .\panel\views.py:512
+msgid "Faqat raqam kiriting."
+msgstr "Faqat raqam kiriting."
+
+#: .\panel\views.py:548
 msgid "Notoʻgʻri amal."
 msgstr "Notoʻgʻri amal."
 
-#: .\panel\views.py:543
+#: .\panel\views.py:601
 msgid "Notoʻgʻri qaror."
 msgstr "Notoʻgʻri qaror."
 
-#: .\panel\views.py:561 .\templates\boshqaruv\reviews.html:57
+#: .\panel\views.py:619 .\templates\boshqaruv\reviews.html:57
 #, python-format
 msgid "%(avg)s — %(n)s ta"
 msgstr "%(avg)s — %(n)s ta"
 
-#: .\panel\views.py:685
+#: .\panel\views.py:753
 msgid "Teg qoʻshildi."
 msgstr "Teg qoʻshildi."
 
-#: .\panel\views.py:696
+#: .\panel\views.py:766
+msgid "Teg turi qoʻshildi."
+msgstr "Teg turi qoʻshildi."
+
+#: .\panel\views.py:767
+msgid "Bosma usuli qoʻshildi."
+msgstr "Bosma usuli qoʻshildi."
+
+#: .\panel\views.py:768
+msgid "Turkum qoʻshildi."
+msgstr "Turkum qoʻshildi."
+
+#: .\panel\views.py:810
 msgid "Nomi va rasm kerak."
 msgstr "Nomi va rasm kerak."
 
-#: .\panel\views.py:709
+#: .\panel\views.py:823
 msgid "Jadval qoʻshildi."
 msgstr "Jadval qoʻshildi."
 
@@ -367,68 +423,65 @@ msgstr "Bu rasm turi qoʻllab-quvvatlanmaydi. JPEG yoki PNG yuboring."
 msgid "Rasmni qayta ishlab boʻlmadi. Boshqa rasm yuboring."
 msgstr "Rasmni qayta ishlab boʻlmadi. Boshqa rasm yuboring."
 
-#: .\product\models.py:45
-msgid "Uslub"
-msgstr ""
+#: .\product\models.py:59
+msgid "Teg turi"
+msgstr "Teg turi"
 
-#: .\product\models.py:46 .\templates\core\contact.html:18
-msgid "Mavzu"
-msgstr ""
+#: .\product\models.py:60 .\templates\boshqaruv\settings.html:93
+msgid "Teg turlari"
+msgstr "Teg turlari"
 
-#: .\product\models.py:47
-msgid "Kolleksiya"
-msgstr ""
+#: .\product\models.py:81 .\templates\boshqaruv\product_form.html:137
+msgid "Bosma usuli"
+msgstr "Bosma usuli"
 
-#: .\product\models.py:117
-msgid "Trafaret"
-msgstr ""
+#: .\product\models.py:82 .\templates\boshqaruv\settings.html:28
+#: .\templates\boshqaruv\settings.html:176
+msgid "Bosma usullari"
+msgstr "Bosma usullari"
 
-#: .\product\models.py:118
-msgid "Naqsh"
-msgstr ""
-
-#: .\product\models.py:125
+#: .\product\models.py:165
 msgid "Oddiy"
 msgstr ""
 
-#: .\product\models.py:126
+#: .\product\models.py:166
 msgid "Oversize"
 msgstr ""
 
-#: .\product\models.py:344
+#: .\product\models.py:391
 msgid "Kutilmoqda"
 msgstr ""
 
-#: .\product\models.py:345
+#: .\product\models.py:392
 msgid "Tasdiqlangan"
 msgstr ""
 
-#: .\product\models.py:346
+#: .\product\models.py:393
 msgid "Rad etilgan"
 msgstr ""
 
-#: .\product\views.py:218
+#: .\product\views.py:223
 msgid "Saqlanganlardan olib tashlandi."
 msgstr ""
 
-#: .\product\views.py:435
+#: .\product\views.py:440
 msgid "Bahoni tanlang."
 msgstr "Bahoni tanlang."
 
-#: .\product\views.py:440
+#: .\product\views.py:445
 #, python-format
 msgid "Fikringiz %(n)d belgidan oshmasligi kerak."
 msgstr "Fikringiz %(n)d belgidan oshmasligi kerak."
 
-#: .\product\views.py:446
+#: .\product\views.py:451
 msgid "Bu mahsulotga sharh qoldirib boʻlmaydi."
 msgstr "Bu mahsulotga sharh qoldirib boʻlmaydi."
 
-#: .\product\views.py:455
+#: .\product\views.py:460
 msgid "Sharhingiz uchun rahmat. U koʻrib chiqilgandan keyin sahifada paydo boʻladi."
 msgstr "Sharhingiz uchun rahmat. U koʻrib chiqilgandan keyin sahifada paydo boʻladi."
 
-#: .\product\views.py:496
+#: .\product\views.py:501
 #, python-format
 msgid "Koʻpi bilan %(n)d ta rasm yuborish mumkin."
 msgstr "Koʻpi bilan %(n)d ta rasm yuborish mumkin."
@@ -446,7 +499,7 @@ msgid "Hisobingizga kirgan boʻlsangiz ham, bu sahifa siz uchun ochiq emas."
 msgstr ""
 
 #: .\templates\403.html:12 .\templates\partials\_drawer.html:21
-#: .\templates\partials\_nav.html:46 .\templates\user\login.html:3
+#: .\templates\partials\_nav.html:53 .\templates\user\login.html:3
 #: .\templates\user\login.html:10 .\templates\user\login.html:38
 #: .\templates\user\signup.html:73
 msgid "Kirish"
@@ -473,7 +526,7 @@ msgstr ""
 #: .\templates\404.html:12 .\templates\cart\cart.html:100
 #: .\templates\core\about.html:21 .\templates\core\home.html:19
 #: .\templates\partials\_footer.html:8 .\templates\product\liked.html:27
-#: .\templates\product\shop.html:19 .\templates\product\shop.html:143
+#: .\templates\product\shop.html:19 .\templates\product\shop.html:145
 #: .\templates\user\account.html:31 .\templates\user\account_orders.html:22
 msgid "Barcha dizaynlar"
 msgstr ""
@@ -501,6 +554,17 @@ msgstr ""
 #: .\templates\base.html:59 .\templates\boshqaruv\base.html:34
 msgid "Asosiy qismga oʻtish"
 msgstr ""
+
+#: .\templates\boshqaruv\_lookup_new.html:18
+#: .\templates\boshqaruv\_lookup_row.html:16
+msgid "Tartib"
+msgstr "Tartib"
+
+#: .\templates\boshqaruv\_lookup_new.html:35
+#: .\templates\boshqaruv\settings.html:170
+#: .\templates\boshqaruv\settings.html:258
+msgid "Qoʻshish"
+msgstr "Qoʻshish"
 
 #: .\templates\boshqaruv\_order_row.html:19
 #: .\templates\boshqaruv\_product_row.html:66
@@ -531,7 +595,7 @@ msgstr "Holat"
 
 #: .\templates\boshqaruv\_order_row.html:49
 #: .\templates\boshqaruv\order.html:117
-#: .\templates\boshqaruv\product_form.html:213
+#: .\templates\boshqaruv\product_form.html:240
 #: .\templates\product\_card.html:47 .\templates\product\_card.html:49
 #: .\templates\product\item.html:141 .\templates\product\item.html:143
 #: .\templates\user\account_settings.html:36
@@ -539,7 +603,7 @@ msgid "Saqlash"
 msgstr ""
 
 #: .\templates\boshqaruv\_product_row.html:49
-#: .\templates\boshqaruv\product_form.html:198
+#: .\templates\boshqaruv\product_form.html:225
 #, python-format
 msgid "%(size)s zaxirasi"
 msgstr "%(size)s zaxirasi"
@@ -549,8 +613,8 @@ msgid "Oʻlchamlar kiritilmagan"
 msgstr "Oʻlchamlar kiritilmagan"
 
 #: .\templates\boshqaruv\_product_row.html:71
-#: .\templates\boshqaruv\product_form.html:184
-#: .\templates\boshqaruv\product_form.html:211
+#: .\templates\boshqaruv\product_form.html:208
+#: .\templates\boshqaruv\product_form.html:238
 #: .\templates\boshqaruv\products.html:36
 msgid "Sotuvda"
 msgstr "Sotuvda"
@@ -578,7 +642,7 @@ msgid "Buyurtmalar"
 msgstr "Buyurtmalar"
 
 #: .\templates\boshqaruv\base.html:60 .\templates\boshqaruv\order.html:32
-#: .\templates\boshqaruv\product_form.html:22
+#: .\templates\boshqaruv\product_form.html:26
 #: .\templates\boshqaruv\products.html:3 .\templates\boshqaruv\products.html:14
 #: .\templates\cart\cart.html:67 .\templates\payment\checkout.html:240
 msgid "Mahsulotlar"
@@ -595,20 +659,16 @@ msgid "Xabarlar"
 msgstr "Xabarlar"
 
 #: .\templates\boshqaruv\base.html:66 .\templates\boshqaruv\regions.html:20
-#: .\templates\boshqaruv\settings.html:3 .\templates\boshqaruv\settings.html:17
+#: .\templates\boshqaruv\settings.html:3 .\templates\boshqaruv\settings.html:21
 #: .\templates\partials\_account_nav.html:7
 #: .\templates\user\account_settings.html:3
 #: .\templates\user\account_settings.html:7
 msgid "Sozlamalar"
 msgstr "Sozlamalar"
 
-#: .\templates\boshqaruv\base.html:67
+#: .\templates\boshqaruv\base.html:70
 msgid "Django admin"
 msgstr "Django admin"
-
-#: .\templates\boshqaruv\base.html:68
-msgid "Dizayn tizimi"
-msgstr "Dizayn tizimi"
 
 #: .\templates\boshqaruv\dashboard.html:20
 msgid "Bugungi buyurtmalar"
@@ -686,7 +746,7 @@ msgid "Xabar yoʻq."
 msgstr "Xabar yoʻq."
 
 #: .\templates\boshqaruv\order.html:16
-#: .\templates\boshqaruv\product_form.html:20
+#: .\templates\boshqaruv\product_form.html:24
 #: .\templates\payment\order_detail.html:7 .\templates\product\item.html:13
 #: .\templates\product\liked.html:8 .\templates\product\review_form.html:18
 #: .\templates\product\shop.html:12
@@ -694,10 +754,11 @@ msgid "Yoʻnalish"
 msgstr ""
 
 #: .\templates\boshqaruv\order.html:44 .\templates\boshqaruv\order.html:52
-#: .\templates\boshqaruv\orders.html:43 .\templates\boshqaruv\settings.html:22
-#: .\templates\cart\cart.html:71 .\templates\core\delivery.html:3
-#: .\templates\core\delivery.html:8 .\templates\partials\_footer.html:29
-#: .\templates\payment\checkout.html:59 .\templates\payment\checkout.html:248
+#: .\templates\boshqaruv\orders.html:43 .\templates\boshqaruv\settings.html:25
+#: .\templates\boshqaruv\settings.html:34 .\templates\cart\cart.html:71
+#: .\templates\core\delivery.html:3 .\templates\core\delivery.html:8
+#: .\templates\partials\_footer.html:29 .\templates\payment\checkout.html:59
+#: .\templates\payment\checkout.html:248
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Yetkazib berish"
@@ -782,7 +843,7 @@ msgstr "Holat hali oʻzgartirilmagan."
 
 #: .\templates\boshqaruv\orders.html:17 .\templates\boshqaruv\products.html:21
 #: .\templates\boshqaruv\regions.html:26 .\templates\partials\_nav.html:21
-#: .\templates\partials\_nav.html:29 .\templates\payment\checkout.html:281
+#: .\templates\partials\_nav.html:36 .\templates\payment\checkout.html:281
 msgid "Qidirish"
 msgstr ""
 
@@ -829,107 +890,129 @@ msgid "Bu shartlarga mos buyurtma yoʻq."
 msgstr "Bu shartlarga mos buyurtma yoʻq."
 
 #: .\templates\boshqaruv\product_form.html:3
-#: .\templates\boshqaruv\product_form.html:28
+#: .\templates\boshqaruv\product_form.html:32
 #: .\templates\boshqaruv\products.html:15
 msgid "Yangi mahsulot"
 msgstr "Yangi mahsulot"
 
-#: .\templates\boshqaruv\product_form.html:23
+#: .\templates\boshqaruv\product_form.html:27
 msgid "Yangi"
 msgstr "Yangi"
 
-#: .\templates\boshqaruv\product_form.html:30
+#: .\templates\boshqaruv\product_form.html:34
 msgid "Saytda koʻrish"
 msgstr "Saytda koʻrish"
 
-#: .\templates\boshqaruv\product_form.html:41 .\templates\product\item.html:46
+#: .\templates\boshqaruv\product_form.html:45 .\templates\product\item.html:46
 #: .\templates\product\review_form.html:100
 msgid "Rasmlar"
 msgstr ""
 
-#: .\templates\boshqaruv\product_form.html:43
+#: .\templates\boshqaruv\product_form.html:47
 #, python-format
 msgid "Koʻpi bilan %(n)s ta. Birinchisi asosiy rasm — tartibni surib oʻzgartiring."
 msgstr "Koʻpi bilan %(n)s ta. Birinchisi asosiy rasm — tartibni surib oʻzgartiring."
 
-#: .\templates\boshqaruv\product_form.html:56
+#: .\templates\boshqaruv\product_form.html:60
 msgid "Rasm qoʻshish"
 msgstr "Rasm qoʻshish"
 
-#: .\templates\boshqaruv\product_form.html:67
+#: .\templates\boshqaruv\product_form.html:71
 msgid "Nomi va tavsifi"
 msgstr "Nomi va tavsifi"
 
-#: .\templates\boshqaruv\product_form.html:87
 #: .\templates\boshqaruv\product_form.html:91
 #: .\templates\boshqaruv\product_form.html:95
+#: .\templates\boshqaruv\product_form.html:99
 msgid "Tavsifi"
 msgstr "Tavsifi"
 
-#: .\templates\boshqaruv\product_form.html:101
+#: .\templates\boshqaruv\product_form.html:105
 msgid "Xususiyatlari"
 msgstr "Xususiyatlari"
 
-#: .\templates\boshqaruv\product_form.html:103
+#: .\templates\boshqaruv\product_form.html:107
 #: .\templates\boshqaruv\products.html:26
 msgid "Turkum"
 msgstr "Turkum"
 
-#: .\templates\boshqaruv\product_form.html:112
+#: .\templates\boshqaruv\product_form.html:114
+msgid "Yangi turkum — Sozlamalar sahifasida."
+msgstr "Yangi turkum — Sozlamalar sahifasida."
+
+#: .\templates\boshqaruv\product_form.html:117
 msgid "Zichligi (g/m²)"
 msgstr "Zichligi (g/m²)"
 
-#: .\templates\boshqaruv\product_form.html:132
-msgid "Bosma usuli"
-msgstr "Bosma usuli"
+#: .\templates\boshqaruv\product_form.html:144
+msgid "Yangi usul — Sozlamalar sahifasida."
+msgstr "Yangi usul — Sozlamalar sahifasida."
 
-#: .\templates\boshqaruv\product_form.html:141
-#: .\templates\boshqaruv\settings.html:136
-#: .\templates\boshqaruv\settings.html:158
+#: .\templates\boshqaruv\product_form.html:147
+#: .\templates\boshqaruv\settings.html:213
+#: .\templates\boshqaruv\settings.html:243
 msgid "Qolipi"
 msgstr "Qolipi"
 
-#: .\templates\boshqaruv\product_form.html:150
+#: .\templates\boshqaruv\product_form.html:156
 #: .\templates\core\size_guide.html:3 .\templates\core\size_guide.html:17
 #: .\templates\partials\_footer.html:22 .\templates\product\item.html:103
 msgid "Oʻlcham jadvali"
 msgstr ""
 
-#: .\templates\boshqaruv\product_form.html:152
+#: .\templates\boshqaruv\product_form.html:158
 msgid "Qolipga qarab avtomatik"
 msgstr "Qolipga qarab avtomatik"
 
-#: .\templates\boshqaruv\product_form.html:161
-#: .\templates\boshqaruv\settings.html:63
+#: .\templates\boshqaruv\product_form.html:167
+#: .\templates\boshqaruv\settings.html:27
+#: .\templates\boshqaruv\settings.html:104
 msgid "Teglar"
 msgstr "Teglar"
 
+#: .\templates\boshqaruv\product_form.html:174
 #: .\templates\boshqaruv\product_form.html:176
+msgid "Teg qidirish"
+msgstr "Teg qidirish"
+
+#: .\templates\boshqaruv\product_form.html:181
+msgid "Turi koʻrsatilmagan"
+msgstr "Turi koʻrsatilmagan"
+
+#: .\templates\boshqaruv\product_form.html:194
+msgid "Hali teg yoʻq — Sozlamalar sahifasida qoʻshing."
+msgstr "Hali teg yoʻq — Sozlamalar sahifasida qoʻshing."
+
+#: .\templates\boshqaruv\product_form.html:196
+msgid "Mos teg topilmadi."
+msgstr "Mos teg topilmadi."
+
+#: .\templates\boshqaruv\product_form.html:200
 msgid "Oʻlchamlar va zaxira"
 msgstr "Oʻlchamlar va zaxira"
 
-#: .\templates\boshqaruv\product_form.html:177
+#: .\templates\boshqaruv\product_form.html:201
 msgid "Narxi boʻsh qolgan oʻlcham mahsulotda koʻrinmaydi."
 msgstr "Narxi boʻsh qolgan oʻlcham mahsulotda koʻrinmaydi."
 
-#: .\templates\boshqaruv\product_form.html:181 .\templates\cart\cart.html:28
-#: .\templates\core\size_guide.html:42 .\templates\core\size_guide.html:52
+#: .\templates\boshqaruv\product_form.html:205 .\templates\cart\cart.html:28
+#: .\templates\core\size_guide.html:46 .\templates\core\size_guide.html:56
 #: .\templates\payment\order_detail.html:36 .\templates\product\item.html:97
 #: .\templates\product\item.html:107 .\templates\product\item.html:260
-#: .\templates\product\item.html:272 .\templates\product\shop.html:68
+#: .\templates\product\item.html:272 .\templates\product\shop.html:70
 msgid "Oʻlcham"
 msgstr "Oʻlcham"
 
-#: .\templates\boshqaruv\product_form.html:183
+#: .\templates\boshqaruv\product_form.html:207
 msgid "Zaxira"
 msgstr "Zaxira"
 
-#: .\templates\boshqaruv\product_form.html:194
+#: .\templates\boshqaruv\product_form.html:221
 #, python-format
 msgid "%(size)s narxi"
 msgstr "%(size)s narxi"
 
-#: .\templates\boshqaruv\product_form.html:201
+#: .\templates\boshqaruv\product_form.html:228
 #, python-format
 msgid "%(size)s sotuvda"
 msgstr "%(size)s sotuvda"
@@ -963,7 +1046,7 @@ msgid "Mahsulot topilmadi."
 msgstr "Mahsulot topilmadi."
 
 #: .\templates\boshqaruv\regions.html:3 .\templates\boshqaruv\regions.html:19
-#: .\templates\boshqaruv\settings.html:23
+#: .\templates\boshqaruv\settings.html:30
 msgid "Hududlar"
 msgstr "Hududlar"
 
@@ -985,63 +1068,109 @@ msgid "%(n)s ta tuman"
 msgid_plural "%(n)s ta tuman"
 msgstr[0] "%(n)s ta tuman"
 
-#: .\templates\boshqaruv\reviews.html:60
+#: .\templates\boshqaruv\reviews.html:67
 msgid "Rad etish"
 msgstr "Rad etish"
 
-#: .\templates\boshqaruv\reviews.html:61
+#: .\templates\boshqaruv\reviews.html:69
 #: .\templates\user\password_reset_verify.html:34
 #: .\templates\user\verify_phone.html:34
 msgid "Tasdiqlash"
 msgstr ""
 
-#: .\templates\boshqaruv\reviews.html:66
+#: .\templates\boshqaruv\reviews.html:74
 msgid "Bu yerda hech narsa yoʻq."
 msgstr "Bu yerda hech narsa yoʻq."
 
-#: .\templates\boshqaruv\settings.html:31
-msgid "Yoqilgan"
-msgstr "Yoqilgan"
+#: .\templates\boshqaruv\settings.html:24
+msgid "Boʻlimlar"
+msgstr "Boʻlimlar"
 
-#: .\templates\boshqaruv\settings.html:41
-msgid "Bepul (dona)"
-msgstr "Bepul (dona)"
+#: .\templates\boshqaruv\settings.html:26
+#: .\templates\boshqaruv\settings.html:80
+msgid "Turkumlar"
+msgstr "Turkumlar"
 
-#: .\templates\boshqaruv\settings.html:64
-msgid "Teglar tavsiyalar uchun asosiy signal — turkum emas."
-msgstr "Teglar tavsiyalar uchun asosiy signal — turkum emas."
-
-#: .\templates\boshqaruv\settings.html:93
-msgid "Yangi teg"
-msgstr "Yangi teg"
-
-#: .\templates\boshqaruv\settings.html:111
-msgid "Turi"
-msgstr "Turi"
-
-#: .\templates\boshqaruv\settings.html:116
-#: .\templates\boshqaruv\settings.html:171
-msgid "Qoʻshish"
-msgstr "Qoʻshish"
-
-#: .\templates\boshqaruv\settings.html:122
+#: .\templates\boshqaruv\settings.html:29
+#: .\templates\boshqaruv\settings.html:189
 msgid "Oʻlcham jadvallari"
 msgstr "Oʻlcham jadvallari"
 
-#: .\templates\boshqaruv\settings.html:123
+#: .\templates\boshqaruv\settings.html:41
+msgid "Yoqilgan"
+msgstr "Yoqilgan"
+
+#: .\templates\boshqaruv\settings.html:51
+msgid "Bepul (dona)"
+msgstr "Bepul (dona)"
+
+#: .\templates\boshqaruv\settings.html:81
+msgid "Mahsulot qaysi turkumga tegishli. Oʻchirilsa, mahsulotlar turkumsiz qoladi."
+msgstr "Mahsulot qaysi turkumga tegishli. Oʻchirilsa, mahsulotlar turkumsiz qoladi."
+
+#: .\templates\boshqaruv\settings.html:86
+#: .\templates\boshqaruv\settings.html:99
+#: .\templates\boshqaruv\settings.html:141
+#: .\templates\boshqaruv\settings.html:182
+#: .\templates\boshqaruv\settings.html:230
+msgid "Hozircha yoʻq."
+msgstr "Hozircha yoʻq."
+
+#: .\templates\boshqaruv\settings.html:89
+msgid "Yangi turkum"
+msgstr "Yangi turkum"
+
+#: .\templates\boshqaruv\settings.html:94
+msgid "Teglar shu turlarga boʻlinadi — doʻkondagi filtrlar ham shunday guruhlanadi."
+msgstr "Teglar shu turlarga boʻlinadi — doʻkondagi filtrlar ham shunday guruhlanadi."
+
+#: .\templates\boshqaruv\settings.html:102
+msgid "Yangi teg turi"
+msgstr "Yangi teg turi"
+
+#: .\templates\boshqaruv\settings.html:105
+msgid "Teglar tavsiyalar uchun asosiy signal — turkum emas."
+msgstr "Teglar tavsiyalar uchun asosiy signal — turkum emas."
+
+#: .\templates\boshqaruv\settings.html:113
+#: .\templates\boshqaruv\settings.html:164
+msgid "Turi"
+msgstr "Turi"
+
+#: .\templates\boshqaruv\settings.html:147
+msgid "Yangi teg"
+msgstr "Yangi teg"
+
+#: .\templates\boshqaruv\settings.html:177
+msgid "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."
+msgstr "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."
+
+#: .\templates\boshqaruv\settings.html:185
+msgid "Yangi bosma usuli"
+msgstr "Yangi bosma usuli"
+
+#: .\templates\boshqaruv\settings.html:190
 msgid "Rasm — asosiy mazmun. Qolip tanlansa, jadval shu qolipdagi mahsulotlarga oʻzi biriktiriladi."
 msgstr "Rasm — asosiy mazmun. Qolip tanlansa, jadval shu qolipdagi mahsulotlarga oʻzi biriktiriladi."
 
-#: .\templates\boshqaruv\settings.html:151
+#: .\templates\boshqaruv\settings.html:204
+msgid "Rasm yoʻq"
+msgstr "Rasm yoʻq"
+
+#: .\templates\boshqaruv\settings.html:236
 msgid "Yangi jadval"
 msgstr "Yangi jadval"
 
-#: .\templates\boshqaruv\settings.html:167
+#: .\templates\boshqaruv\settings.html:252
 msgid "Rasm"
 msgstr "Rasm"
 
+#: .\templates\boshqaruv\settings.html:253
+msgid "Rasm tanlash"
+msgstr "Rasm tanlash"
+
 #: .\templates\cart\cart.html:4 .\templates\cart\cart.html:8
-#: .\templates\partials\_drawer.html:16 .\templates\partials\_nav.html:40
+#: .\templates\partials\_drawer.html:16 .\templates\partials\_nav.html:47
 msgid "Savat"
 msgstr ""
 
@@ -1127,7 +1256,7 @@ msgid "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Bos
 msgstr ""
 
 #: .\templates\core\about.html:20 .\templates\core\contact.html:3
-#: .\templates\core\contact.html:10 .\templates\core\size_guide.html:67
+#: .\templates\core\contact.html:10 .\templates\core\size_guide.html:71
 #: .\templates\partials\_drawer.html:25 .\templates\partials\_footer.html:18
 #: .\templates\partials\_nav.html:14 .\templates\terms.html:51
 msgid "Bogʻlanish"
@@ -1135,6 +1264,10 @@ msgstr ""
 
 #: .\templates\core\contact.html:11
 msgid "Savolingiz bormi yoki oʻz dizayningizni bosdirmoqchimisiz? Yozing."
+msgstr ""
+
+#: .\templates\core\contact.html:18
+msgid "Mavzu"
 msgstr ""
 
 #: .\templates\core\contact.html:23
@@ -1249,27 +1382,27 @@ msgstr ""
 msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 msgstr ""
 
-#: .\templates\core\size_guide.html:43 .\templates\core\size_guide.html:53
+#: .\templates\core\size_guide.html:47 .\templates\core\size_guide.html:57
 #: .\templates\product\item.html:261 .\templates\product\item.html:273
 msgid "Koʻkrak, sm"
 msgstr ""
 
-#: .\templates\core\size_guide.html:44 .\templates\core\size_guide.html:54
+#: .\templates\core\size_guide.html:48 .\templates\core\size_guide.html:58
 #: .\templates\product\item.html:262 .\templates\product\item.html:274
 msgid "Uzunlik, sm"
 msgstr ""
 
-#: .\templates\core\size_guide.html:45 .\templates\core\size_guide.html:55
+#: .\templates\core\size_guide.html:49 .\templates\core\size_guide.html:59
 #: .\templates\product\item.html:263 .\templates\product\item.html:275
 msgid "Yelka, sm"
 msgstr ""
 
-#: .\templates\core\size_guide.html:46 .\templates\core\size_guide.html:56
+#: .\templates\core\size_guide.html:50 .\templates\core\size_guide.html:60
 #: .\templates\product\item.html:264 .\templates\product\item.html:276
 msgid "Yeng, sm"
 msgstr ""
 
-#: .\templates\core\size_guide.html:66
+#: .\templates\core\size_guide.html:70
 msgid "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz."
 msgstr ""
 
@@ -1289,7 +1422,7 @@ msgstr ""
 msgid "Buyurtmalarim"
 msgstr ""
 
-#: .\templates\partials\_account_nav.html:6 .\templates\partials\_nav.html:35
+#: .\templates\partials\_account_nav.html:6 .\templates\partials\_nav.html:42
 #: .\templates\product\liked.html:4 .\templates\product\liked.html:11
 #: .\templates\product\liked.html:15
 msgid "Saqlanganlar"
@@ -1300,7 +1433,7 @@ msgid "Chiqish"
 msgstr ""
 
 #: .\templates\partials\_drawer.html:6 .\templates\partials\_drawer.html:8
-#: .\templates\partials\_nav.html:51
+#: .\templates\partials\_nav.html:58
 msgid "Menyu"
 msgstr ""
 
@@ -1321,7 +1454,7 @@ msgstr ""
 msgid "Roʻyxatdan oʻtish"
 msgstr ""
 
-#: .\templates\partials\_drawer.html:33
+#: .\templates\partials\_drawer.html:32
 msgid "Til"
 msgstr ""
 
@@ -1345,7 +1478,7 @@ msgstr ""
 msgid "Aloqa"
 msgstr ""
 
-#: .\templates\partials\_footer.html:73
+#: .\templates\partials\_footer.html:76
 msgid "Barcha huquqlar himoyalangan."
 msgstr ""
 
@@ -1755,55 +1888,55 @@ msgid "Qidiruv"
 msgstr ""
 
 #: .\templates\product\shop.html:28 .\templates\product\shop.html:33
-#: .\templates\product\shop.html:102
+#: .\templates\product\shop.html:104
 msgid "Filtrlar"
 msgstr ""
 
-#: .\templates\product\shop.html:56
+#: .\templates\product\shop.html:58
 msgid "Kategoriya"
 msgstr ""
 
-#: .\templates\product\shop.html:80
+#: .\templates\product\shop.html:82
 msgid "Filtrlarni tozalash"
 msgstr ""
 
-#: .\templates\product\shop.html:96
+#: .\templates\product\shop.html:98
 msgid "Topildi"
 msgstr ""
 
-#: .\templates\product\shop.html:110 .\templates\product\shop.html:118
+#: .\templates\product\shop.html:112 .\templates\product\shop.html:120
 msgid "Tartiblash"
 msgstr ""
 
-#: .\templates\product\shop.html:112
+#: .\templates\product\shop.html:114
 msgid "Yangilari"
 msgstr ""
 
-#: .\templates\product\shop.html:113
+#: .\templates\product\shop.html:115
 msgid "Ommabop"
 msgstr ""
 
-#: .\templates\product\shop.html:114
+#: .\templates\product\shop.html:116
 msgid "Reyting boʻyicha"
 msgstr ""
 
-#: .\templates\product\shop.html:115
+#: .\templates\product\shop.html:117
 msgid "Narx: arzondan"
 msgstr ""
 
-#: .\templates\product\shop.html:116
+#: .\templates\product\shop.html:118
 msgid "Narx: qimmatdan"
 msgstr ""
 
-#: .\templates\product\shop.html:134
+#: .\templates\product\shop.html:136
 msgid "Hech narsa topilmadi"
 msgstr ""
 
-#: .\templates\product\shop.html:137
+#: .\templates\product\shop.html:139
 msgid "Soʻrovingizga mos dizayn yoʻq. Filtrlarni kamaytirib koʻring."
 msgstr ""
 
-#: .\templates\product\shop.html:139
+#: .\templates\product\shop.html:141
 msgid "Hozircha dizaynlar qoʻshilmagan. Tez orada qaytib kelib koʻring."
 msgstr ""
 
@@ -2144,6 +2277,9 @@ msgstr ""
 #: .\user\views.py:409
 msgid "Parol yangilandi. Endi kirishingiz mumkin."
 msgstr ""
+
+#~ msgid "Dizayn tizimi"
+#~ msgstr "Dizayn tizimi"
 
 #~ msgid "Nomi (uz)"
 #~ msgstr "Nomi (uz)"

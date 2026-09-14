@@ -47,7 +47,13 @@ urlpatterns = [
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),
     path('boshqaruv/sozlamalar/teg/', views.tag_new, name='panel_tag_new'),
     path('boshqaruv/sozlamalar/jadval/', views.chart_new, name='panel_chart_new'),
+    # Tag kinds, print methods and categories: three tables of the same shape,
+    # so one route with the table in the path rather than three near-copies.
+    path('boshqaruv/sozlamalar/yangi/<str:kind>/', views.lookup_new,
+         name='panel_lookup_new'),
     path('boshqaruv/hududlar/', views.regions, name='panel_regions'),
     path('boshqaruv/malumot/<str:kind>/<int:pk>/', views.reference_inline,
          name='panel_reference_inline'),
+    path('boshqaruv/malumot/<str:kind>/<int:pk>/ochirish/', views.reference_delete,
+         name='panel_reference_delete'),
 ]

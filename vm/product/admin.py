@@ -10,9 +10,9 @@ from django.db.models import Min, Count
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from .models import (Category, Colour, ImageP, Product, ProductLike, Review,
-                     ReviewImage, Size, SizeChart, SizeChartRow, Tag, Variant,
-                     default_colour)
+from .models import (Category, Colour, ImageP, PrintMethod, Product,
+                     ProductLike, Review, ReviewImage, Size, SizeChart,
+                     SizeChartRow, Tag, TagKind, Variant, default_colour)
 
 
 def _thumb(picture, size=60):
@@ -151,11 +151,28 @@ class VariantAdmin(admin.ModelAdmin):
         return obj.is_purchasable
 
 
+class LookupAdmin(admin.ModelAdmin):
+    """The shape both small lookup tables want: name, order, and a slug.
+
+    ``TagKind`` and ``PrintMethod`` are edited from the panel; this is the
+    fallback, and it exists mainly so a superuser can see what is in them.
+    """
+    list_display = ('name', 'slug', 'order', 'name_ru', 'name_en')
+    list_editable = ('order',)
+    search_fields = ('name', 'name_ru', 'name_en', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+
+
+admin.site.register(TagKind, LookupAdmin)
+admin.site.register(PrintMethod, LookupAdmin)
+
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Tag lookup admin. Tags, not categories, drive filtering and recommendations."""
     list_display = ('name', 'kind', 'slug', 'product_count')
     list_filter = ('kind',)
+    list_select_related = ('kind',)
     search_fields = ('name', 'name_ru', 'name_en', 'slug')
     prepopulated_fields = {'slug': ('name',)}
     fieldsets = (

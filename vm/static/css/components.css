@@ -553,6 +553,21 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .lang form:last-child button { border-right: 0; }
 .lang button[aria-pressed="true"] { background: var(--c-surface-3); color: var(--c-fg); }
 
+/* The header's copy: two-letter codes in a pill, the active one filled. There
+   is room for six characters beside the cart and the account icon and not for
+   "Oʻzbekcha", and a language control somebody has to scroll to the bottom of
+   the page for is a language control they do not find.
+   Hidden below the desktop breakpoint, where the drawer carries it instead:
+   the header row already holds five controls at 390 px. */
+.lang--compact { display: none; border-radius: var(--r-full); border-color: var(--c-line); }
+@media (min-width: 860px) { .lang--compact { display: inline-flex; } }
+.lang--compact button { border-right: 0; border-radius: var(--r-full);
+  min-width: 38px; min-height: 38px; padding: 0 var(--s-2);
+  font-size: var(--fs-sm); letter-spacing: .04em; }
+.lang--compact button:hover { color: var(--c-fg); }
+.lang--compact button[aria-pressed="true"] { background: var(--c-fg);
+  color: var(--c-bg); font-weight: var(--fw-bold); }
+
 /* ================================================= 20. messages / notices */
 .msg { display: flex; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-sm);
   border: 1px solid var(--c-line-strong); background: var(--c-surface-2); font-size: var(--fs-sm); }
@@ -586,6 +601,7 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
   .btn--sm { min-height: 44px; }
 
   .lang button { min-height: 44px; }
+  .lang--compact button { min-width: 44px; min-height: 44px; }
 
   /* The whole label is the target for a checkbox or radio, not the 22 px box. */
   .check { min-height: 44px; }

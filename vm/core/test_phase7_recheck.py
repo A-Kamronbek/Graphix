@@ -26,7 +26,7 @@ from core.models import Msg
 from panel import catalogue, reference
 from payment.models import DeliveryOption, Order, Region
 from product import services as product_services
-from product.models import Product, Review, Size, Tag
+from product.models import Product, Review, Size, Tag, TagKind
 
 from .test_phase4 import make_product
 from .test_phase6 import make_user
@@ -147,7 +147,7 @@ class ReferenceLengthTests(TestCase):
     def setUp(self):
         self.staff = make_staff('ref', '+998901250030')
         self.tag = Tag.objects.create(slug='rechek', name='Rechek',
-                                      kind=Tag.Kind.THEME)
+                                      kind=TagKind.objects.get(slug='theme'))
         self.client.force_login(self.staff)
 
     def test_the_service_refuses_it(self):
@@ -281,9 +281,15 @@ class MarkupTests(TestCase):
         self.assertContains(response, '>Nomi (uz)<')
 
     def test_the_chart_upload_is_named(self):
-        """It was the one control on the panel with no label of any kind."""
+        """It was the one control on the panel with no label of any kind.
+
+        It is now a visually-hidden input driven by a styled `<label for=…>`,
+        which is also what keeps the browser's own English "Choose File" off an
+        Uzbek screen — so the assertion is that the label points at it.
+        """
         response = self.client.get(reverse('panel_settings'))
-        self.assertContains(response, 'type="file" name="image"')
+        self.assertContains(response, 'name="image"')
+        self.assertContains(response, 'for="chart-image"')
         self.assertContains(response, '>Rasm<')
 
 

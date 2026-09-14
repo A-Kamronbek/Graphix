@@ -23,7 +23,8 @@ var SAY = (function () {
                   tooMany: 'Koʻpi bilan {n} ta rasm.', tooBig: '“{name}” juda katta.',
                   badType: '“{name}” — qoʻllab-quvvatlanmaydigan tur.',
                   tooManyPixels: '“{name}” — rasm oʻlchami juda katta.',
-                  notAnImage: '“{name}” — rasm sifatida oʻqib boʻlmadi.'};
+                  notAnImage: '“{name}” — rasm sifatida oʻqib boʻlmadi.',
+                  confirmDelete: '“{name}” oʻchirilsinmi?', noFile: 'Tanlanmagan'};
   var data = fallback;
   try {
     if (node) data = JSON.parse(node.textContent);
@@ -203,6 +204,34 @@ var SAY = (function () {
     e.preventDefault();
     input.blur();
   });
+
+  /* ----------------------------------------------------- filtering chips */
+  /* Forty tags in one block is a wall. Typing narrows it; a group with nothing
+     left in it goes with them, so the headings do not sit over empty space.
+     A chip that is already ticked always stays visible — hiding a choice
+     somebody has made is how a filter loses a selection without saying so. */
+  var chipBox = document.querySelector('[data-chips]');
+  if (chipBox) {
+    var chipFilter = chipBox.querySelector('[data-chip-filter]');
+    var chipEmpty = chipBox.querySelector('[data-chip-empty]');
+    chipFilter.addEventListener('input', function () {
+      var needle = chipFilter.value.trim().toLowerCase();
+      var shown = 0;
+      chipBox.querySelectorAll('[data-chip-group]').forEach(function (group) {
+        var visible = 0;
+        group.querySelectorAll('.chip').forEach(function (chip) {
+          var box = chip.querySelector('input');
+          var hit = !needle || (chip.dataset.chip || '').toLowerCase().indexOf(needle) >= 0;
+          var keep = hit || (box && box.checked);
+          chip.classList.toggle('is-hidden', !keep);
+          if (keep) visible += 1;
+        });
+        group.classList.toggle('is-hidden', visible === 0);
+        shown += visible;
+      });
+      if (chipEmpty) chipEmpty.hidden = shown > 0;
+    });
+  }
 
   /* --------------------------------------------------------- the gallery */
   var editor = document.querySelector('[data-gallery-editor]');
@@ -408,6 +437,11 @@ var SAY = (function () {
          by the server, so the line reads the same before and after. */
       var rating = card.querySelector('[data-mod-rating]');
       if (rating) rating.textContent = data.rating_line;
+      /* Only the decision that would still change something stays on screen:
+         an approved review offering "Approve" is a button that does nothing. */
+      card.querySelectorAll('[data-mod]').forEach(function (b) {
+        b.hidden = b.dataset.mod === data.status;
+      });
       /* Dimmed, not removed: a decision made by accident should still be on
          the screen a second later, with its own page one click away. */
       card.classList.add('is-done');
@@ -469,5 +503,37 @@ var SAY = (function () {
   document.addEventListener('change', function (e) {
     var control = e.target.closest('[data-ref-field]');
     if (control) saveField(control);
+  });
+
+  /* ------------------------------------------------- removing a row */
+  /* Confirmed first, because this is the one control on the panel that
+     destroys something, and then removed from the page rather than reloading
+     it — the settings screen is long and a reload loses your place in it.
+     What cannot be removed is refused by the server, not by the button: the
+     database is what knows whether a tag kind still has tags on it. */
+  document.addEventListener('click', function (e) {
+    var button = e.target.closest('[data-ref-delete]');
+    if (!button) return;
+    var row = button.closest('[data-ref]');
+    if (!row) return;
+    if (!window.confirm(SAY('confirmDelete', {name: button.dataset.refName || ''}))) return;
+
+    button.disabled = true;
+    send(button.dataset.refDelete, new FormData()).then(function (data) {
+      button.disabled = false;
+      if (!data.ok) { window.alert(data.error || SAY('failed')); return; }
+      row.remove();
+    });
+  });
+
+  /* The chart upload is a styled label over a hidden input, so the browser's
+     own "no file chosen" — in English, on an Uzbek screen — never appears.
+     Nothing else would say a file had been picked, so this does. */
+  document.addEventListener('change', function (e) {
+    var input = e.target.closest('[data-file-name]');
+    if (!input) return;
+    var label = input.parentElement.querySelector('[data-file-label]');
+    if (label) label.textContent = input.files.length ? input.files[0].name
+                                                     : SAY('noFile');
   });
 })();

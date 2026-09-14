@@ -35,8 +35,8 @@ from core.models import Msg
 from payment.models import DeliveryOption, District, Order, Region
 from product import images as image_pipeline
 from product import services as product_services
-from product.models import (Category, Product, Review, Size, SizeChart, Tag,
-                            Variant)
+from product.models import (Category, PrintMethod, Product, Review, Size,
+                            SizeChart, Tag, TagKind, Variant)
 
 from . import catalogue, reference
 from .auth import staff_only
@@ -367,6 +367,26 @@ def products(request):
     })
 
 
+#: Every text field on the product form, so a refused save and a fresh edit
+#: can be rendered from the same dictionary.
+PRODUCT_FIELDS = ('name', 'name_ru', 'name_en', 'description', 'description_ru',
+                  'description_en', 'gsm', 'material', 'material_ru', 'material_en')
+
+
+def _saved_values(product):
+    """The product as the form's boxes want it: a flat dict of strings."""
+    if product is None:
+        # A new product starts on sale; everything else starts empty.
+        return {'is_active': '1'}
+    values = {name: (getattr(product, name) or '') for name in PRODUCT_FIELDS}
+    values['category'] = product.category_id or ''
+    values['size_chart'] = product.size_chart_id or ''
+    values['print_method'] = product.print_method_id or ''
+    values['fit'] = product.fit
+    values['is_active'] = '1' if product.is_active else ''
+    return values
+
+
 @staff_only
 def product_form(request, slug=None):
     """Create a product, or edit one. One screen, because it is one job.
@@ -379,6 +399,7 @@ def product_form(request, slug=None):
     losing anything.
     """
     product = get_object_or_404(Product, slug=slug) if slug else None
+    posted = None
 
     if request.method == 'POST':
         try:
@@ -392,27 +413,59 @@ def product_form(request, slug=None):
                 catalogue.save_grid(product, request.POST)
         except ValidationError as exc:
             product = Product.objects.filter(slug=slug).first() if slug else None
+            # What was typed comes back with the refusal. Re-reading the row
+            # instead throws away everything on the screen because one price
+            # was wrong, which is §17 #133 on a form ten times longer than the
+            # review box that finding came from.
+            posted = request.POST
             messages.error(request, exc.messages[0])
         else:
             messages.success(request, _('Saqlandi.'))
             return redirect('panel_product', slug=product.slug)
+
+    # Chips grouped under the axis they belong to. A flat list of every tag is
+    # readable at eight and unreadable at forty, and the axis is the thing the
+    # owner is thinking in when they pick one.
+    tag_groups = [(kind, list(kind.tags.all()))
+                  for kind in TagKind.objects.prefetch_related('tags')]
+    loose = list(Tag.objects.filter(kind__isnull=True))
+    if loose:
+        tag_groups.append((None, loose))
 
     sizes = Size.objects.all()
     # The grid, as rows the template can render without looking anything up:
     # every size the shop sells, carrying this product's numbers where it has
     # them and blanks where it does not.
     by_size = {v.size_id: v for v in product.variants.all()} if product else {}
-    grid = [{'size': size, 'variant': by_size.get(size.pk)} for size in sizes]
+    grid = []
+    for size in sizes:
+        variant = by_size.get(size.pk)
+        if posted is None:
+            row = {'price': variant.price if variant else '',
+                   'stock': variant.stock if variant else '',
+                   'available': bool(variant and variant.available)}
+        else:
+            row = {'price': posted.get('price_%s' % size.pk, ''),
+                   'stock': posted.get('stock_%s' % size.pk, ''),
+                   'available': bool(posted.get('available_%s' % size.pk))}
+        row['size'] = size
+        grid.append(row)
 
     return render(request, 'boshqaruv/product_form.html', {
         'screen': 'products',
         'product': product,
+        # What to put in every box: the row as saved, or what was typed and
+        # refused. `field` reads one or the other so the template does not have
+        # to ask twice on every line.
+        'form': posted if posted is not None else _saved_values(product),
         'grid': grid,
         'categories': Category.objects.all(),
         'charts': SizeChart.objects.all(),
-        'tags': Tag.objects.all(),
-        'chosen_tags': set(product.tags.values_list('pk', flat=True)) if product else set(),
-        'print_methods': Product.PrintMethod.choices,
+        'tag_groups': tag_groups,
+        'chosen_tags': (set(_int(t) for t in posted.getlist('tags')) if posted is not None
+                        else set(product.tags.values_list('pk', flat=True)) if product
+                        else set()),
+        'print_methods': PrintMethod.objects.all(),
         'fits': Product.Fit.choices,
         'max_images': catalogue.MAX_IMAGES,
         'max_bytes': image_pipeline.MAX_BYTES,
@@ -453,7 +506,12 @@ def product_inline(request, slug):
     if field == 'stock':
         variant = get_object_or_404(Variant, product=product,
                                     size_id=_int(request.POST.get('size')))
-        variant.stock = max(0, _int(raw))
+        # Refused, not rounded down to zero: "sa" in a stock box used to take
+        # the size off sale silently, which is the one outcome nobody wants.
+        if not str(raw).strip().isdigit():
+            return JsonResponse({'ok': False, 'error': _('Faqat raqam kiriting.')},
+                                status=400)
+        variant.stock = _int(raw)
         variant.save(update_fields=['stock'])
         return JsonResponse({'ok': True, 'value': variant.stock,
                              'purchasable': variant.is_purchasable})
@@ -615,9 +673,11 @@ def settings_screen(request):
     return render(request, 'boshqaruv/settings.html', {
         'screen': 'settings',
         'tiers': DeliveryOption.objects.all(),
-        'tags': Tag.objects.all(),
+        'tags': Tag.objects.select_related('kind'),
         'charts': SizeChart.objects.all(),
-        'kinds': Tag.Kind.choices,
+        'kinds': TagKind.objects.all(),
+        'methods': PrintMethod.objects.all(),
+        'categories': Category.objects.all(),
         'fits': Product.Fit.choices,
     })
 
@@ -659,31 +719,85 @@ def reference_inline(request, kind, pk):
     return JsonResponse({'ok': True, 'value': value})
 
 
+def _free_slug(model, name, fallback):
+    """A slug from the Uzbek name, with a -2 suffix until it is free.
+
+    ``slugify`` drops the Uzbek modifier letters (oʻ, gʻ), which is the URL we
+    want; a name that slugifies to nothing falls back to a fixed stem.
+    """
+    from django.utils.text import slugify
+    base = slugify(name, allow_unicode=False) or fallback
+    slug, n = base[:55], 1
+    while model.objects.filter(slug=slug).exists():
+        n += 1
+        slug = '%s-%d' % (base[:50], n)
+    return slug
+
+
 @staff_only
 @require_POST
 def tag_new(request):
     """Create a tag. Its slug comes from the Uzbek name, like everything else."""
-    from django.utils.text import slugify
     name = (request.POST.get('name') or '').strip()
     if not name:
         messages.error(request, _('Nomi kerak.'))
         return redirect('panel_settings')
 
-    kind = request.POST.get('kind', '')
-    base = slugify(name, allow_unicode=False) or 'teg'
-    slug, n = base, 1
-    while Tag.objects.filter(slug=slug).exists():
-        n += 1
-        slug = '%s-%d' % (base, n)
-
+    kind_id = request.POST.get('kind', '')
     Tag.objects.create(
-        slug=slug, name=name,
-        name_ru=(request.POST.get('name_ru') or '').strip(),
-        name_en=(request.POST.get('name_en') or '').strip(),
-        kind=kind if kind in Tag.Kind.values else Tag.Kind.THEME,
+        slug=_free_slug(Tag, name, 'teg'), name=name[:60],
+        name_ru=(request.POST.get('name_ru') or '').strip()[:60],
+        name_en=(request.POST.get('name_en') or '').strip()[:60],
+        kind=TagKind.objects.filter(pk=kind_id).first() if kind_id.isdigit() else None,
     )
     messages.success(request, _('Teg qoʻshildi.'))
     return redirect('panel_settings')
+
+
+@staff_only
+@require_POST
+def lookup_new(request, kind):
+    """Create a tag kind, a print method or a category.
+
+    Three tables, one endpoint, because they are the same shape: a name in
+    three languages and nothing else the owner has to think about. `kind` is
+    matched against the allowlist, so this cannot reach a fourth table.
+    """
+    models = {'tagkind': (TagKind, 'tur', _('Teg turi qoʻshildi.')),
+              'method': (PrintMethod, 'usul', _('Bosma usuli qoʻshildi.')),
+              'category': (Category, 'turkum', _('Turkum qoʻshildi.'))}
+    if kind not in models:
+        messages.error(request, _('Notoʻgʻri jadval.'))
+        return redirect('panel_settings')
+
+    model, stem, done = models[kind]
+    name = (request.POST.get('name') or '').strip()
+    if not name:
+        messages.error(request, _('Nomi kerak.'))
+        return redirect('panel_settings')
+
+    limit = model._meta.get_field('name').max_length
+    row = model(name=name[:limit],
+                name_ru=(request.POST.get('name_ru') or '').strip()[:limit],
+                name_en=(request.POST.get('name_en') or '').strip()[:limit])
+    row.slug = _free_slug(model, name, stem)
+    # Both lookup tables carry an order; a category does not.
+    if hasattr(row, 'order'):
+        row.order = _int(request.POST.get('order'), 0)
+    row.save()
+    messages.success(request, done)
+    return redirect('panel_settings')
+
+
+@staff_only
+@require_POST
+def reference_delete(request, kind, pk):
+    """Remove one reference row, when nothing is holding on to it."""
+    try:
+        name = reference.delete_row(kind, pk)
+    except ValidationError as exc:
+        return JsonResponse({'ok': False, 'error': exc.messages[0]}, status=400)
+    return JsonResponse({'ok': True, 'name': name})
 
 
 @staff_only

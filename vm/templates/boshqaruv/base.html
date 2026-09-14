@@ -64,8 +64,10 @@
        {% if screen == 'messages' %}aria-current="page"{% endif %}>{% trans "Xabarlar" %}</a>
     <a href="{% url 'panel_settings' %}"
        {% if screen == 'settings' %}aria-current="page"{% endif %}>{% trans "Sozlamalar" %}</a>
+    {# The style guide is a development page and stays reachable at #}
+    {# /boshqaruv/style/, but it is not daily work and does not earn a tab #}
+    {# somebody scrolls past every morning. #}
     <a href="{% url 'admin:index' %}">{% trans "Django admin" %}</a>
-    <a href="{% url 'style_guide' %}">{% trans "Dizayn tizimi" %}</a>
   </nav>
 
   <main id="main" class="pnl__main">

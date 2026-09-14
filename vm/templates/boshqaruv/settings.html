@@ -1,27 +1,37 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n %}
+{% load i18n i18n_fields %}
 {% block title %}{% trans "Sozlamalar" %}{% endblock %}
 
 {% comment %}
-  Delivery tiers, tags and size charts: rows somebody changes two or three
-  times a year. One screen rather than three, because three nav items for
-  things touched twice a year is three things to scroll past every day.
+  The reference tables: delivery tiers, categories, tag kinds, tags, print
+  methods and size charts. Rows somebody changes two or three times a year.
+
+  One screen rather than six, because six nav items for things touched twice a
+  year is six things to scroll past every day.
 
   Every field here saves on its own through one endpoint, and that endpoint is
   safe because of an allowlist — `panel/reference.py` names what may be
   written, and nothing else on these models is reachable. `Region.code` is the
-  SOATO code and is not in it.
+  SOATO code and is not in it. Deleting has a second, shorter allowlist:
+  regions, districts and delivery tiers are missing from it because an order
+  points at all three.
 {% endcomment %}
 
 {% block content %}
 <h1 class="pnl__title">{% trans "Sozlamalar" %}</h1>
 <form hidden>{% csrf_token %}</form>
 
-<section class="pnl__section">
-  <div class="row row--between">
-    <h2>{% trans "Yetkazib berish" %}</h2>
-    <a class="link small" href="{% url 'panel_regions' %}">{% trans "Hududlar" %}</a>
-  </div>
+<nav class="pnl__tabs" aria-label="{% trans 'Boʻlimlar' %}">
+  <a href="#yetkazish">{% trans "Yetkazib berish" %}</a>
+  <a href="#turkumlar">{% trans "Turkumlar" %}</a>
+  <a href="#teglar">{% trans "Teglar" %}</a>
+  <a href="#bosma">{% trans "Bosma usullari" %}</a>
+  <a href="#jadvallar">{% trans "Oʻlcham jadvallari" %}</a>
+  <a href="{% url 'panel_regions' %}">{% trans "Hududlar" %}</a>
+</nav>
+
+<section class="pnl__section" id="yetkazish">
+  <h2>{% trans "Yetkazib berish" %}</h2>
   {% for tier in tiers %}
     <div class="panel-card stack stack--sm" data-ref="delivery" data-id="{{ tier.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='delivery' pk=tier.pk %}">
       <div class="row row--between">
@@ -34,44 +44,80 @@
       <div class="row">
         <label class="field field--num">
           <span class="label">{% trans "Narx" %}</span>
-          <input class="input num" type="text" inputmode="numeric"
+          <input class="input num" type="number" inputmode="numeric" min="0" step="1"
                  value="{{ tier.price|floatformat:"0" }}" data-ref-field="price">
         </label>
         <label class="field field--num">
           <span class="label">{% trans "Bepul (dona)" %}</span>
-          <input class="input num" type="text" inputmode="numeric"
+          <input class="input num" type="number" inputmode="numeric" min="0" step="1"
                  value="{{ tier.free_from_items }}" data-ref-field="free_from_items">
         </label>
       </div>
-      <label class="field">
-        <span class="label">{% trans "Nomi" %} (uz)</span>
-        <input class="input" type="text" value="{{ tier.name }}" data-ref-field="name">
-      </label>
-      <label class="field">
-        <span class="label">{% trans "Nomi" %} (ru)</span>
-        <input class="input" type="text" value="{{ tier.name_ru }}" data-ref-field="name_ru">
-      </label>
-      <label class="field">
-        <span class="label">{% trans "Nomi" %} (en)</span>
-        <input class="input" type="text" value="{{ tier.name_en }}" data-ref-field="name_en">
-      </label>
+      <div class="row--fields">
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (uz)</span>
+          <input class="input" type="text" value="{{ tier.name }}" maxlength="120" data-ref-field="name">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (ru)</span>
+          <input class="input" type="text" value="{{ tier.name_ru }}" maxlength="120" data-ref-field="name_ru">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (en)</span>
+          <input class="input" type="text" value="{{ tier.name_en }}" maxlength="120" data-ref-field="name_en">
+        </label>
+      </div>
     </div>
   {% endfor %}
 </section>
 
-<section class="pnl__section">
+{% comment %}
+  Turkum, teg turi and bosma usuli are the same shape — a name in three
+  languages — so they share one row partial and one create form partial. Three
+  copies of the same markup is three places for them to drift apart.
+{% endcomment %}
+<section class="pnl__section" id="turkumlar">
+  <h2>{% trans "Turkumlar" %}</h2>
+  <p class="field__hint">{% trans "Mahsulot qaysi turkumga tegishli. Oʻchirilsa, mahsulotlar turkumsiz qoladi." %}</p>
+  <div class="panel-card stack stack--sm">
+    {% for row in categories %}
+      {% include "boshqaruv/_lookup_row.html" with row=row kind='category' %}
+    {% empty %}
+      <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+    {% endfor %}
+  </div>
+  {% include "boshqaruv/_lookup_new.html" with kind='category' legend=_("Yangi turkum") %}
+</section>
+
+<section class="pnl__section" id="teglar">
+  <h2>{% trans "Teg turlari" %}</h2>
+  <p class="field__hint">{% trans "Teglar shu turlarga boʻlinadi — doʻkondagi filtrlar ham shunday guruhlanadi." %}</p>
+  <div class="panel-card stack stack--sm">
+    {% for row in kinds %}
+      {% include "boshqaruv/_lookup_row.html" with row=row kind='tagkind' ordered=1 %}
+    {% empty %}
+      <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+    {% endfor %}
+  </div>
+  {% include "boshqaruv/_lookup_new.html" with kind='tagkind' legend=_("Yangi teg turi") ordered=1 %}
+
   <h2>{% trans "Teglar" %}</h2>
   <p class="field__hint">{% trans "Teglar tavsiyalar uchun asosiy signal — turkum emas." %}</p>
 
   <div class="panel-card stack stack--sm">
     {% for tag in tags %}
-      {# Every box says which language it is. They had `aria-label` only, so a #}
-      {# sighted person editing tags at 390 px was looking at three identical #}
-      {# unlabelled boxes stacked in a column and guessing — and the delivery #}
-      {# tiers directly above, on this same screen, have labelled theirs all #}
-      {# along. #}
+      {# Every box says which language it is: three identical unlabelled boxes #}
+      {# in a column at 390 px is a guessing game. #}
       <div class="row--fields row--tag" data-ref="tag" data-id="{{ tag.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='tag' pk=tag.pk %}">
-        <span class="badge badge--info">{{ tag.get_kind_display }}</span>
+        <label class="field field--narrow">
+          <span class="label">{% trans "Turi" %}</span>
+          <select class="select" data-ref-field="kind">
+            <option value="">—</option>
+            {% for kind in kinds %}
+              <option value="{{ kind.pk }}" {% if tag.kind_id == kind.pk %}selected{% endif %}>{{ kind|t:"name" }}</option>
+            {% endfor %}
+          </select>
+        </label>
         <label class="field">
           <span class="label">{% trans "Nomi" %} (uz)</span>
           <input class="input" type="text" value="{{ tag.name }}" maxlength="60" data-ref-field="name">
@@ -84,7 +130,15 @@
           <span class="label">{% trans "Nomi" %} (en)</span>
           <input class="input" type="text" value="{{ tag.name_en }}" maxlength="60" data-ref-field="name_en">
         </label>
+        <button type="button" class="btn btn--ghost btn--sm ref__x"
+                data-ref-delete="{% url 'panel_reference_delete' kind='tag' pk=tag.pk %}"
+                data-ref-name="{{ tag.name }}">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+          <span class="sr-only">{% trans "Oʻchirish" %}</span>
+        </button>
       </div>
+    {% empty %}
+      <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
     {% endfor %}
   </div>
 
@@ -92,8 +146,7 @@
     {% csrf_token %}
     <h3 class="label">{% trans "Yangi teg" %}</h3>
     {# Labelled, not placeholdered. A placeholder is gone the moment somebody #}
-    {# types, so a row of four of them is a row nobody can check before they #}
-    {# press the button. #}
+    {# types, so a row of four of them is a row nobody can check. #}
     <div class="row--fields">
       <label class="field">
         <span class="label">{% trans "Nomi" %} (uz)</span>
@@ -110,7 +163,8 @@
       <label class="field">
         <span class="label">{% trans "Turi" %}</span>
         <select class="select" name="kind">
-          {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+          <option value="">—</option>
+          {% for kind in kinds %}<option value="{{ kind.pk }}">{{ kind|t:"name" }}</option>{% endfor %}
         </select>
       </label>
       <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
@@ -118,19 +172,42 @@
   </form>
 </section>
 
-<section class="pnl__section">
+<section class="pnl__section" id="bosma">
+  <h2>{% trans "Bosma usullari" %}</h2>
+  <p class="field__hint">{% trans "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi." %}</p>
+  <div class="panel-card stack stack--sm">
+    {% for row in methods %}
+      {% include "boshqaruv/_lookup_row.html" with row=row kind='method' ordered=1 %}
+    {% empty %}
+      <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+    {% endfor %}
+  </div>
+  {% include "boshqaruv/_lookup_new.html" with kind='method' legend=_("Yangi bosma usuli") ordered=1 %}
+</section>
+
+<section class="pnl__section" id="jadvallar">
   <h2>{% trans "Oʻlcham jadvallari" %}</h2>
   <p class="field__hint">{% trans "Rasm — asosiy mazmun. Qolip tanlansa, jadval shu qolipdagi mahsulotlarga oʻzi biriktiriladi." %}</p>
 
   {% for chart in charts %}
-    <div class="panel-card stack stack--sm" data-ref="chart" data-id="{{ chart.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='chart' pk=chart.pk %}">
-      <div class="row--fields">
-        {% if chart.image %}
-          <img class="chart__thumb" src="{{ chart.image.url }}" alt="" loading="lazy">
-        {% endif %}
-        <label class="field field--wide">
+    <div class="panel-card chart" data-ref="chart" data-id="{{ chart.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='chart' pk=chart.pk %}">
+      {# The image IS the chart (§17 #15), so it is shown at a size somebody #}
+      {# can recognise rather than as a 64 px square — and when there is none, #}
+      {# the row says so instead of leaving a gap. #}
+      {% if chart.image %}
+        <a class="chart__shot" href="{{ chart.image.url }}" target="_blank" rel="noopener">
+          <img src="{{ chart.image.url }}" alt="{{ chart.name }}" loading="lazy" decoding="async">
+        </a>
+      {% else %}
+        <span class="chart__shot chart__shot--empty">
+          <svg class="i" aria-hidden="true"><use href="#i-image"></use></svg>
+          <span class="small">{% trans "Rasm yoʻq" %}</span>
+        </span>
+      {% endif %}
+      <div class="chart__body stack stack--sm">
+        <label class="field">
           <span class="label">{% trans "Nomi" %}</span>
-          <input class="input" type="text" value="{{ chart.name }}" data-ref-field="name">
+          <input class="input" type="text" value="{{ chart.name }}" maxlength="120" data-ref-field="name">
         </label>
         <label class="field field--narrow">
           <span class="label">{% trans "Qolipi" %}</span>
@@ -142,7 +219,15 @@
           </select>
         </label>
       </div>
+      <button type="button" class="btn btn--ghost btn--sm ref__x"
+              data-ref-delete="{% url 'panel_reference_delete' kind='chart' pk=chart.pk %}"
+              data-ref-name="{{ chart.name }}">
+        <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+        <span class="sr-only">{% trans "Oʻchirish" %}</span>
+      </button>
     </div>
+  {% empty %}
+    <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
   {% endfor %}
 
   <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_chart_new' %}"
@@ -161,13 +246,15 @@
           {% for value, label in fits %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select>
       </label>
-      {# The file input had no label of any kind — the only control on the #}
-      {# panel a screen reader could not name at all. #}
-      <label class="field field--wide">
+      {# A styled label driving a hidden input, so the control does not wear #}
+      {# the browser's own English "Choose File" on an Uzbek screen. #}
+      <div class="field field--wide">
         <span class="label">{% trans "Rasm" %}</span>
-        <input class="input" type="file" name="image" required
-               accept="image/jpeg,image/png,image/webp,image/avif">
-      </label>
+        <label class="btn btn--secondary" for="chart-image">{% trans "Rasm tanlash" %}</label>
+        <input class="sr-only" type="file" id="chart-image" name="image" required
+               accept="image/jpeg,image/png,image/webp,image/avif" data-file-name>
+        <span class="small muted" data-file-label>{% trans "Tanlanmagan" %}</span>
+      </div>
       <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
     </div>
   </form>

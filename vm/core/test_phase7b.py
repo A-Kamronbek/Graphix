@@ -15,8 +15,8 @@ from django.urls import reverse
 from PIL import Image
 
 from panel import catalogue
-from product.models import (Category, ImageP, Product, Size, Tag, Variant,
-                            default_colour)
+from product.models import (Category, ImageP, PrintMethod, Product, Size, Tag,
+                            Variant, default_colour)
 
 from .test_phase4 import make_product
 from .test_phase6 import make_user
@@ -229,7 +229,9 @@ class DefinitionOfDoneTests(TestCase):
             'category': self.category.pk,
             'gsm': '190', 'material': '100% paxta', 'material_ru': '100% хлопок',
             'material_en': '100% cotton',
-            'print_method': 'dtf', 'fit': 'oversize',
+            # A row now rather than a choice, so the form posts its id.
+            'print_method': PrintMethod.objects.get(slug='dtf').pk,
+            'fit': 'oversize',
             'tags': [tag.pk for tag in self.tags],
             'is_active': 'on',
         }
@@ -247,7 +249,7 @@ class DefinitionOfDoneTests(TestCase):
         self.assertEqual(product.category, self.category)
         self.assertEqual(product.gsm, 190)
         self.assertEqual(product.material_ru, '100% хлопок')
-        self.assertEqual(product.print_method, 'dtf')
+        self.assertEqual(product.print_method.slug, 'dtf')
         self.assertEqual(product.fit, 'oversize')
         self.assertEqual(product.tags.count(), 2)
         self.assertEqual(product.variants.count(), len(self.sizes))

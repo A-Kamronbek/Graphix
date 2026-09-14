@@ -1,24 +1,29 @@
 """Editing the small reference tables from the panel.
 
-Regions, districts, delivery tiers, tags and size charts are rows somebody
-changes two or three times a year: a district gets renamed, a delivery price
-moves, a new collection tag appears. The screens exist so that none of those
-needs a deploy (§9 Phase 7 items 5–8).
+Regions, districts, delivery tiers, tags, tag kinds, print methods, categories
+and size charts are rows somebody changes two or three times a year: a district
+gets renamed, a delivery price moves, a new collection tag appears. The screens
+exist so that none of those needs a deploy (§9 Phase 7 items 5–8).
 
 Every one of them is "a list of rows, a few fields editable in place", so
-rather than five bespoke endpoints there is one — and the thing that makes one
-endpoint safe is this table. A field that is not named here cannot be written,
-whatever arrives in the POST. Without it, an endpoint that takes a model, a
-field and a value is a way to set *anything* on *any* row, which is a hole
-large enough to change a price to zero through.
+rather than eight bespoke endpoints there is one — and the thing that makes one
+endpoint safe is the table below. A field that is not named there cannot be
+written, whatever arrives in the POST. Without it, an endpoint that takes a
+model, a field and a value is a way to set *anything* on *any* row, which is a
+hole large enough to change a price to zero through.
+
+Deleting is a second, shorter allowlist. Regions, districts and delivery tiers
+are missing from it deliberately: an order points at all three, and the history
+of where a parcel went is not something a tidy-up should be able to remove.
 """
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
+from django.db.models import ProtectedError
 from django.utils.translation import gettext as _
 
 from payment.models import DeliveryOption, District, Region
-from product.models import SizeChart, Tag
+from product.models import (Category, PrintMethod, SizeChart, Tag, TagKind)
 
 #: What each screen is allowed to change, and how to read the value. Nothing
 #: else on any of these models is reachable from the panel.
@@ -38,12 +43,28 @@ EDITABLE = {
     }),
     'tag': (Tag, {
         'name': 'text', 'name_ru': 'text', 'name_en': 'text',
+        'kind': 'tagkind',
+    }),
+    'tagkind': (TagKind, {
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text', 'order': 'count',
+    }),
+    'method': (PrintMethod, {
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text', 'order': 'count',
+    }),
+    'category': (Category, {
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text',
     }),
     'chart': (SizeChart, {
         'name': 'text', 'note': 'text', 'note_ru': 'text', 'note_en': 'text',
         'fit': 'fit',
     }),
 }
+
+#: What may be removed, and what it costs. Everything here is either unlinked
+#: on delete (a tag comes off its products, a chart and a category fall back to
+#: null) or protected by the database (a kind or a method that is in use).
+#: Anything an order points at is absent on purpose.
+DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart'}
 
 
 def _money(raw):
@@ -76,13 +97,33 @@ def _prefix(raw):
 
 
 def _fit(raw):
-    """A fit, or nothing. Anything unrecognised becomes nothing rather than an
-    error: the control is a ``<select>`` of exactly these values, so a value
-    outside them did not come from a person using the screen.
+    """A fit, or nothing.
+
+    Still a fixed list: the catalogue has exactly two cuts, a size chart finds
+    its products through this field, and adding a third is a decision rather
+    than a default (§17 #70). Anything unrecognised becomes nothing rather than
+    an error, because the control is a ``<select>`` of exactly these values and
+    a value outside them did not come from a person using the screen.
     """
     from product.models import Product
     value = str(raw).strip()
     return value if value in Product.Fit.values else ''
+
+
+def _tagkind(raw):
+    """The axis a tag sits on, by id, or nothing.
+
+    A tag with no kind is a real state — it is the one a tag is in a second
+    after somebody types its name — so a blank clears the field rather than
+    being refused.
+    """
+    value = str(raw).strip()
+    if not value.isdigit():
+        return None
+    kind = TagKind.objects.filter(pk=value).first()
+    if kind is None:
+        raise ValidationError(_('Bunday teg turi yoʻq.'))
+    return kind
 
 
 def _count(raw):
@@ -100,6 +141,7 @@ READERS = {
     'prefix': _prefix,
     'count': _count,
     'fit': _fit,
+    'tagkind': _tagkind,
 }
 
 
@@ -123,16 +165,52 @@ def set_field(kind, pk, field, raw):
 
     value = READERS[fields[field]](raw)
 
+    # The Uzbek name is the source every other language falls back to, and it
+    # is what the site renders — a size chart whose name was cleared put an
+    # empty <h2> on the public size-guide page. Russian and English may be
+    # blank; this one may not.
+    if field == 'name' and not value:
+        raise ValidationError(_('Nomi boʻsh boʻlishi mumkin emas.'))
+
     # A name longer than its column is a validation problem, and it was being
     # answered with a 500: the value went straight to Postgres, which refuses
     # it, and the screen showed "could not save" while the log filled up with
     # tracebacks. A paste is all it takes — none of these boxes is longer than
-    # 120 characters and none of them said so.
-    limit = model._meta.get_field(field).max_length
+    # 255 characters and none of them said so.
+    limit = getattr(model._meta.get_field(field), 'max_length', None)
     if limit and isinstance(value, str) and len(value) > limit:
         raise ValidationError(
             _('Juda uzun — koʻpi bilan %(n)d ta belgi.') % {'n': limit})
 
     setattr(row, field, value)
     row.save(update_fields=[field])
-    return value
+    # A foreign key answers with its own name, because that is what the screen
+    # has to show once the select has been changed.
+    return getattr(value, 'name', value)
+
+
+def delete_row(kind, pk):
+    """Remove one reference row. Returns what it was called.
+
+    Refuses what the database refuses: a tag kind with tags on it and a print
+    method a product is marked with are both ``PROTECT``, and the honest answer
+    is "something is using this", not a cascade that quietly unfiles them.
+    """
+    if kind not in DELETABLE:
+        raise ValidationError(_('Bu jadvaldan oʻchirib boʻlmaydi.'))
+
+    model, _fields = EDITABLE[kind]
+    row = model.objects.filter(pk=pk).first()
+    if row is None:
+        raise ValidationError(_('Topilmadi.'))
+
+    name = getattr(row, 'name', str(row))
+    # The file goes with the row; nothing else will ever read it again.
+    picture = getattr(row, 'image', None)
+    try:
+        row.delete()
+    except ProtectedError:
+        raise ValidationError(_('Bundan foydalanilmoqda — avval boʻshating.'))
+    if picture:
+        picture.delete(save=False)
+    return name

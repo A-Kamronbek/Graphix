@@ -11,6 +11,7 @@ import re
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import translation
 
 from .test_phase4 import make_product
 
@@ -144,8 +145,14 @@ class PinDataTests(TestCase):
 
     def test_the_maps_loader_asks_for_the_pages_language(self):
         """Names in the page's language match our rows more often, and the
-        address line comes back readable rather than transliterated."""
-        with self.settings(GOOGLE_MAPS_API_KEY='test-key'):
+        address line comes back readable rather than transliterated.
+
+        Pinned to Uzbek, because the assertion is about the page's language and
+        `LocaleMiddleware` leaves whatever it last activated active for the
+        rest of the process (§17 #124) — so a test that switched language
+        earlier decides which URL `reverse` builds here.
+        """
+        with translation.override('uz'), self.settings(GOOGLE_MAPS_API_KEY='test-key'):
             html = self.client.get(reverse('checkout')).content.decode()
         self.assertIn('language=uz', html)
         self.assertIn('region=UZ', html)

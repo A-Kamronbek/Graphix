@@ -22,7 +22,7 @@ from core.i18n import tfield
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
 from . import images, services
 from .models import (Category, Colour, Product, ProductLike, Review, Size, Tag,
-                     Variant)
+                     TagKind, Variant)
 
 
 def annotate_cards(qs, user=None):
@@ -140,9 +140,14 @@ def _listing(request, search_page=False):
         'total_count': paginator.count,
         'categories': Category.objects.all(),
         'sizes': Size.objects.all(),
+        # Built from the rows rather than from a fixed list of choices, so an
+        # axis the owner adds appears here on its own (§17, Phase 7 recheck).
+        # An axis with no tags on it yet is left out: an empty filter group is
+        # a heading with nothing under it.
         'tag_groups': [
-            (kind_label, Tag.objects.filter(kind=kind_value))
-            for kind_value, kind_label in Tag.Kind.choices
+            (kind, list(kind.tags.all()))
+            for kind in TagKind.objects.prefetch_related('tags')
+            if kind.tags.exists()
         ],
         'selected_category': category,
         'selected_size': size,

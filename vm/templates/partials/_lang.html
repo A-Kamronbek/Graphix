@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %}
+  The language switcher, in one place. It was written out twice — in the footer
+  and in the drawer — and is now wanted in the header as well; three copies of
+  a control with this much reasoning behind it is three copies to get wrong.
+
+  One form per language, each carrying the URL of THIS page in that language,
+  already worked out by the context processor while the active language still
+  matches the path. `set_language` cannot do that translation itself: the
+  /i18n/setlang/ path carries no language prefix, so the view cannot resolve a
+  /ru/ or /en/ path in order to translate it. Posting one `next` for all three
+  buttons is why every switch after the first silently did nothing (§17 #115).
+
+  `compact` renders the two-letter code instead of the language's own name, for
+  the header, where there is room for six characters and not for "Oʻzbekcha".
+  The full name is still the button's accessible name, because "ru" read out on
+  its own is not a language.
+
+  Guarded on `languages` because Django renders 500.html with no context at all
+  — no request, no context processors — so on a real server error this would
+  otherwise be a box of forms with no CSRF token and no `next`, which could not
+  work even if somebody clicked it.
+{% endcomment %}
+{% if languages %}
+  <div class="lang{% if compact %} lang--compact{% endif %}">
+    {% for l in languages %}
+      <form action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ l.url }}">
+        <input type="hidden" name="language" value="{{ l.code }}">
+        <button type="submit" lang="{{ l.code }}"
+                aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}"
+                {% if l.is_active %}aria-current="true"{% endif %}
+                {% if compact %}title="{{ l.name }}" aria-label="{{ l.name }}"{% endif %}>{% if compact %}{{ l.code }}{% else %}{{ l.name }}{% endif %}</button>
+      </form>
+    {% endfor %}
+  </div>
+{% endif %}

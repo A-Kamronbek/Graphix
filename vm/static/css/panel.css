@@ -372,3 +372,60 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
    own width by `auto-fit`: it is a marker, not a field. */
 .row--tag { align-items: end; }
 .row--fields > .badge { align-self: center; justify-self: start; }
+/* A sort order is two digits and a delete button is an icon; neither earns the
+   15ch minimum the name fields share. */
+.field--tiny { flex: 0 0 6ch; }
+@media (min-width: 640px) {
+  .row--fields:has(.field--tiny) { grid-template-columns: 6ch repeat(auto-fit, minmax(14ch, 1fr)) auto; }
+  .row--fields > .ref__x { align-self: end; }
+}
+
+
+/* ------------------------------------------------------------- deleting */
+/* The one control on the panel that destroys something, so it reads as an
+   afterthought rather than a call to action: a ghost button at the end of the
+   row, red only once a finger or a pointer is on it. */
+.ref__x { flex: none; color: var(--c-fg-subtle); padding-inline: var(--s-3); }
+.ref__x:hover, .ref__x:focus-visible { color: var(--c-danger);
+  border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-line)); }
+
+
+/* ---------------------------------------------------------- size charts */
+/* The image IS the chart (§17 #15), so the row leads with it at a size
+   somebody can recognise a chart from — a 64 px square told the owner nothing
+   about which of two charts they were editing. */
+.chart { display: grid; gap: var(--s-4); grid-template-columns: 1fr;
+  align-items: start; }
+.chart + .chart, .chart + form { margin-top: var(--s-3); }
+.chart__shot { display: block; border-radius: var(--r-sm); overflow: hidden;
+  background: var(--c-surface-2); border: 1px solid var(--c-line); }
+.chart__shot img { display: block; width: 100%; height: auto; max-height: 260px;
+  object-fit: contain; }
+/* The icon may be subtle; the sentence may not. `--c-fg-subtle` on
+   `--c-surface-2` measures 3.67 against a 4.5 floor (§5), and "Rasm yoʻq" is
+   the only thing telling the owner why the box is empty. */
+.chart__shot--empty { display: grid; place-items: center; gap: var(--s-2);
+  min-height: 120px; color: var(--c-fg-subtle); }
+.chart__shot--empty .small { color: var(--c-fg-muted); }
+@media (min-width: 640px) {
+  .chart { grid-template-columns: 200px minmax(0, 1fr) auto; }
+  .chart__shot img { max-height: 180px; }
+}
+
+
+/* ------------------------------------------------------------- tag chips */
+/* Grouped under the axis they belong to, with a filter above them: a flat list
+   of every tag is readable at eight and unreadable at forty. */
+.chips__group { display: grid; gap: var(--s-2); }
+.chips__group > .label { color: var(--c-fg-hint); }
+.search--sm { max-width: 22rem; }
+.chip.is-hidden, .chips__group.is-hidden { display: none; }
+
+
+/* --------------------------------------------------------- number fields */
+/* The spinners are noise on a phone and a mis-click on a laptop — a scroll
+   over a focused number field changes it. The field is still `type=number`,
+   which is the point: it will not accept letters. */
+.pnl .input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+.pnl .input[type="number"]::-webkit-outer-spin-button,
+.pnl .input[type="number"]::-webkit-inner-spin-button { appearance: none; margin: 0; }
