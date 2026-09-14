@@ -351,6 +351,18 @@ class Review(models.Model):
     class Meta:
         unique_together = ('user', 'product')
         ordering = ['-created_at']
+        constraints = [
+            # `choices` is a form-and-admin convenience; it is not enforced by
+            # anything that writes through the ORM. This column feeds
+            # `Product.rating_avg`, which is a public number on a public page,
+            # so a six-star row would quietly poison it with no way to notice.
+            # The view validates the rating for the customer's benefit; this is
+            # the guarantee.
+            models.CheckConstraint(
+                condition=models.Q(rating__gte=1, rating__lte=5),
+                name='review_rating_between_1_and_5',
+            ),
+        ]
 
 
 class ReviewImage(models.Model):

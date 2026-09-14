@@ -324,10 +324,15 @@ def _reviews(request, product):
                 .select_related('user')
                 .prefetch_related('images'))
 
-    total = product.review_count
     # The distribution bars. One grouped query rather than five counts, and
     # read from the same rows the list is drawn from.
     counts = dict(approved.values_list('rating').annotate(n=Count('id')))
+    # The denominator is the sum of those rows, not `product.review_count`.
+    # They are kept in step by `recompute_rating` and should always agree — but
+    # if they ever did not, dividing live counts by a stale total would draw
+    # bars that add up to more or less than the whole, which is the one thing a
+    # distribution must never do.
+    total = sum(counts.values())
     distribution = [
         {
             'stars': stars,
@@ -403,47 +408,80 @@ def review_create(request, order_id):
     """
     from payment.models import Order
     order = get_object_or_404(Order, pk=order_id, user=request.user)
-    rows = services.reviewable(request.user, order)
+
+    #: What the customer typed, ready to go back onto the page if the
+    #: submission is refused. A redirect would throw it away, and a rejected
+    #: photograph must not cost somebody the paragraph they just wrote — §17
+    #: #118 says a form re-rendered after an error is put back into the state
+    #: it was in. The one thing that cannot come back is the file input: no
+    #: browser lets a page refill one, for good reasons.
+    submitted = {}
 
     if request.method == 'POST':
         product = get_object_or_404(Product, pk=_int(request.POST.get('product')),
                                     is_active=True)
-        try:
-            services.check_may_review(request.user, order, product)
-        except services.NotEligible:
-            messages.error(request, _("Bu mahsulotga sharh qoldirib boʻlmaydi."))
-            return redirect('review_create', order_id=order.pk)
-
         rating = _int(request.POST.get('rating'))
-        if rating not in (1, 2, 3, 4, 5):
-            messages.error(request, _("Bahoni tanlang."))
-            return redirect('review_create', order_id=order.pk)
+        text = (request.POST.get('text') or '').strip()
+        submitted = {'product': product.pk, 'rating': rating, 'text': text}
 
-        try:
-            photos = _clean_photos(request.FILES.getlist('photos'))
-        except ValidationError as exc:
-            messages.error(request, exc.messages[0])
-            return redirect('review_create', order_id=order.pk)
+        error, photos = None, []
+        # First, and before anything reads a file. Every other write on the
+        # site is rate limited (the heart, the OTPs, the password reset); this
+        # one accepts four uploads of up to 12 MB each and re-encodes them, so
+        # a refused submission retried in a loop is the expensive case.
+        if is_rate_limited(request, 'review', 10, 3600, ident=f"u{request.user.pk}"):
+            error = RATE_LIMIT_MESSAGE
+        elif rating not in (1, 2, 3, 4, 5):
+            error = _("Bahoni tanlang.")
+        elif len(text) > MAX_TEXT:
+            # The textarea carries `maxlength` too, but that is a convenience
+            # in a browser and not a limit: the field behind it is a TextField
+            # and the POST does not have to come from our page.
+            error = _("Fikringiz %(n)d belgidan oshmasligi kerak.") % {'n': MAX_TEXT}
+        else:
+            try:
+                services.check_may_review(request.user, order, product)
+                photos = _clean_photos(request.FILES.getlist('photos'))
+            except services.NotEligible:
+                error = _("Bu mahsulotga sharh qoldirib boʻlmaydi.")
+            except ValidationError as exc:
+                error = exc.messages[0]
 
-        services.create_review(request.user, order, product, rating,
-                               text=request.POST.get('text', ''), photos=photos)
-        messages.success(
-            request,
-            _("Sharhingiz uchun rahmat. U koʻrib chiqilgandan keyin "
-              "sahifada paydo boʻladi."))
-        return redirect('order_detail', pk=order.pk)
+        if error is None:
+            services.create_review(request.user, order, product, rating,
+                                   text=text, photos=photos)
+            messages.success(
+                request,
+                _("Sharhingiz uchun rahmat. U koʻrib chiqilgandan keyin "
+                  "sahifada paydo boʻladi."))
+            return redirect('order_detail', pk=order.pk)
+        messages.error(request, error)
 
     return render(request, 'product/review_form.html', {
         'order': order,
-        'rows': rows,
+        # Read after the POST, so a refusal re-renders against the current
+        # state rather than against a list built before anything happened.
+        'rows': services.reviewable(request.user, order),
         'can_review': order.status == order.Status.DONE,
         'max_photos': MAX_PHOTOS,
+        'max_text': MAX_TEXT,
+        # Integers, 5 first — the CSS reverses the row so 1 sits on the left.
+        # From here rather than from a string in the template, because the
+        # label beside each star is a plural and a plural needs a number.
+        'rating_choices': (5, 4, 3, 2, 1),
+        'submitted': submitted,
     })
 
 
 #: Four is the plan's number (§9 Phase 12 item 1). Enforced server-side; the
 #: file input's `multiple` attribute is a convenience, not a limit.
 MAX_PHOTOS = 4
+
+#: Characters of free text. Long enough for anything a customer wants to say
+#: about a t-shirt and short enough that a card stays a card. The template
+#: reads this rather than repeating it, because a number written down twice is
+#: a number that will eventually disagree with itself (§17 #111).
+MAX_TEXT = 2000
 
 
 def _clean_photos(uploads):

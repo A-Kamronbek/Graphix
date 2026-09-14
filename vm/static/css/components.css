@@ -65,6 +65,20 @@
   background-position: right 22px center, right 16px center;
   background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; }
 .input:disabled, .textarea:disabled, .select:disabled { opacity: .5; cursor: not-allowed; }
+/* The review form put the site's first file input on a page, and the browser
+   draws its own grey button inside it — the one control anywhere on the site
+   that did not look like the site. `::file-selector-button` restyles the real
+   control rather than replacing it, so the field still works with JavaScript
+   off, still opens the system picker, and still announces itself properly. */
+.input[type="file"] { padding: var(--s-2); align-items: center; }
+.input[type="file"]::file-selector-button {
+  font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+  margin-right: var(--s-3); padding: var(--s-2) var(--s-4);
+  background: var(--c-surface-3); color: var(--c-fg);
+  border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
+  cursor: pointer; transition: border-color var(--t-fast), background var(--t-fast);
+}
+.input[type="file"]:hover::file-selector-button { border-color: var(--c-fg-subtle); }
 
 .field--error .input, .field--error .textarea, .field--error .select { border-color: var(--c-danger); }
 .field__error { color: var(--c-danger); font-size: var(--fs-sm); }
@@ -163,7 +177,13 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .rating { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); }
 .rating__count { color: var(--c-fg-muted); }
 /* Input: radios reversed so ~ can light the stars to the left of the hovered one */
-.stars--input { display: inline-flex; flex-direction: row-reverse; }
+/* `align-self` because `display: inline-flex` does not survive a flex parent:
+   `.field` is a column flex container, which blockifies its children, so the
+   row stretched to the full field width and `row-reverse` then packed the five
+   stars against the RIGHT edge — a rating control that looked misplaced rather
+   than designed. Pinned to the start, it shrink-wraps again. */
+.stars--input { display: inline-flex; flex-direction: row-reverse;
+  align-self: start; }
 .stars--input input { position: absolute; opacity: 0; width: 0; }
 .stars--input label { padding: 2px; color: var(--c-fg-subtle); cursor: pointer; }
 .stars--input label .i { fill: currentColor; stroke: none; width: 26px; height: 26px; }
@@ -436,6 +456,10 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
    the sort of misalignment nobody can name but everybody sees. */
 .nav { position: sticky; top: 0; z-index: var(--z-sticky);
   display: flex; align-items: center; gap: var(--s-4);
+  /* Pinned to the token so that anything scrolling a target clear of the
+     header can trust the token instead of guessing. It is the height the
+     header already had; this only stops the two drifting apart. */
+  min-height: var(--nav-h);
   padding-block: var(--s-3);
   padding-inline: max(var(--pad-x), calc((100% - var(--container)) / 2 + var(--pad-x)));
   border-bottom: 1px solid var(--c-line);

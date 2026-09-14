@@ -15,6 +15,7 @@ covered by their own tests.
 Nothing here may raise: ``core.telegram`` swallows its own failures, and the
 send is queued on transaction commit rather than run inline.
 """
+from django.db import transaction
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
@@ -32,7 +33,13 @@ def notify_pending_review(sender, instance, created, **kwargs):
     just made.
     """
     if created and instance.status == Review.Status.PENDING:
-        telegram.notify_review(instance)
+        # Composed at commit, not here. `create_review` writes the review first
+        # and its photographs immediately after, both inside one transaction —
+        # so at the moment this signal fires the review has no images yet, and
+        # the "a photograph is attached" line never appeared on the one kind of
+        # review that most needs a human to look at it. `notify` already defers
+        # the *send*; what has to be deferred is reading the row.
+        transaction.on_commit(lambda: telegram.notify_review(instance))
 
 
 @receiver(post_save, sender=Review, dispatch_uid='review_saved_rating')

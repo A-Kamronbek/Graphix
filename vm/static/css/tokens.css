@@ -87,6 +87,13 @@
   /* -------------------------------------------------------------- layout */
   --container:      1280px;
   --pad-x: clamp(16px, 5vw, 48px);
+  /* The sticky header's height: 44 px of tap target, its own padding, and the
+     rule under it. Anything that scrolls a target into view has to clear it,
+     and until this existed the one place that tried used a spacing token that
+     happened to be five pixels short — so the reviews heading landed *under*
+     the header every time somebody tapped the rating. `.nav` pins itself to
+     this value, so the token is the measurement rather than a guess about it. */
+  --nav-h: calc(44px + 2 * var(--s-3) + 1px);
 
   /* Product imagery is 4:5 across the whole catalogue (§8). */
   --ar-product: 4 / 5;

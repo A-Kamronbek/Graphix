@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 13:41+0500\n"
+"POT-Creation-Date: 2026-09-14 14:51+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,642 +18,953 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
+#: .\cart\services.py:125
 msgid "Tovar notoʻgʻri tanlangan"
 msgstr "Товар выбран неверно"
 
+#: .\cart\services.py:129
 msgid "Ushbu tovar sotuvda yoʻq"
 msgstr "Этот товар не продаётся"
 
+#: .\cart\services.py:131 .\cart\services.py:154 .\cart\services.py:180
 msgid "Ushbu oʻlcham tugagan"
 msgstr "Этот размер закончился"
 
+#: .\cart\views.py:88
 #, python-format
 msgid "%(name)s savatga qoʻshildi."
 msgstr "«%(name)s» добавлен в корзину."
 
+#: .\cart\views.py:110
 msgid "Olib tashlandi."
 msgstr "Удалено."
 
+#: .\core\ratelimit.py:12
 msgid "Juda koʻp urinish. Iltimos, birozdan soʻng qayta urinib koʻring."
 msgstr "Слишком много попыток. Пожалуйста, повторите чуть позже."
 
+#: .\core\views.py:117
 msgid "Iltimos, xabar kiriting."
 msgstr "Пожалуйста, введите сообщение."
 
+#: .\core\views.py:126
 msgid "Xabar qabul qilindi."
 msgstr "Сообщение отправлено."
 
+#: .\payment\models.py:134
 msgid "Tuman"
 msgstr "Район"
 
+#: .\payment\models.py:135
 msgid "Shahar"
 msgstr "Город"
 
+#: .\payment\models.py:139
 msgid "Boshqa"
 msgstr "Другое"
 
+#: .\payment\models.py:315
 msgid "Viloyatni tanlang."
 msgstr "Выберите область."
 
+#: .\payment\models.py:317
 msgid "Tuman yoki shaharni tanlang."
 msgstr "Выберите район или город."
 
+#: .\payment\models.py:319
 msgid "Tanlangan tuman bu viloyatga tegishli emas."
 msgstr "Выбранный район не относится к этой области."
 
+#: .\payment\models.py:323
 msgid "Pochta indeksini kiriting."
 msgstr "Укажите почтовый индекс."
 
+#: .\payment\models.py:325
 msgid "Pochta indeksi 6 ta raqamdan iborat boʻlishi kerak."
 msgstr "Почтовый индекс состоит из 6 цифр."
 
+#: .\payment\models.py:328
 msgid "Bu indeks tanlangan viloyatga toʻgʻri kelmadi. Indeksni yoki viloyatni tekshiring."
 msgstr "Этот индекс не относится к выбранной области. Проверьте индекс или область."
 
+#: .\payment\models.py:334
 msgid "Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi."
 msgstr "При доставке до двери отделение почты не выбирается."
 
+#: .\payment\models.py:339
 msgid "Manzilni kiriting."
 msgstr "Укажите адрес."
 
+#: .\payment\views.py:152 .\payment\views.py:249
 msgid "Savat boʻsh."
 msgstr "Корзина пуста."
 
+#: .\payment\views.py:210
 msgid "Toʻlov usulini tanlang."
 msgstr "Выберите способ оплаты."
 
+#: .\payment\views.py:214
 msgid "Yetkazib berish turini tanlang."
 msgstr "Выберите способ доставки."
 
+#: .\payment\views.py:218
 msgid "Ism va telefon raqamni toʻldiring."
 msgstr "Заполните имя и номер телефона."
 
+#: .\payment\views.py:246
 msgid "Buyurtma allaqachon rasmiylashtirilgan."
 msgstr "Заказ уже оформлен."
 
+#: .\payment\views.py:252
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
 msgstr "Заказ принят. Перейдите к оплате."
 
+#: .\payment\views.py:275
 msgid "Bu buyurtma uchun toʻlov holati allaqachon oʻzgargan."
 msgstr "Статус оплаты этого заказа уже изменился."
 
+#: .\payment\views.py:322
 #, python-format
 msgid "#%(no)s bekor qilindi."
 msgstr "Заказ №%(no)s отменён."
 
+#: .\payment\views.py:324
 msgid "Buyurtmani bekor qilib boʻlmadi."
 msgstr "Не удалось отменить заказ."
 
+#: .\product\images.py:71
 msgid "Rasm hajmi 12 MB dan oshmasligi kerak."
 msgstr "Размер изображения не должен превышать 12 МБ."
 
+#: .\product\images.py:90 .\product\images.py:104
+msgid "Rasm juda katta. Kichikroq rasm yuboring."
+msgstr "Изображение слишком большое. Загрузите файл поменьше."
+
+#: .\product\images.py:93
 msgid "Faylni rasm sifatida oʻqib boʻlmadi."
 msgstr "Не удалось прочитать файл как изображение."
 
+#: .\product\images.py:97
 msgid "Bu rasm turi qoʻllab-quvvatlanmaydi. JPEG yoki PNG yuboring."
 msgstr "Этот тип изображения не поддерживается. Отправьте JPEG или PNG."
 
+#: .\product\images.py:131
 msgid "Rasmni qayta ishlab boʻlmadi. Boshqa rasm yuboring."
 msgstr "Не удалось обработать изображение. Отправьте другое."
 
+#: .\product\models.py:45
 msgid "Uslub"
 msgstr "Стиль"
 
+#: .\product\models.py:46 .\templates\core\contact.html:18
 msgid "Mavzu"
 msgstr "Тема"
 
+#: .\product\models.py:47
 msgid "Kolleksiya"
 msgstr "Коллекция"
 
+#: .\product\models.py:117
 msgid "Trafaret"
 msgstr "Трафаретная печать"
 
+#: .\product\models.py:118
 msgid "Naqsh"
 msgstr "Вышивка"
 
+#: .\product\models.py:125
 msgid "Oddiy"
 msgstr "Обычный"
 
+#: .\product\models.py:126
 msgid "Oversize"
 msgstr "Оверсайз"
 
+#: .\product\models.py:330
 msgid "Kutilmoqda"
 msgstr "На модерации"
 
+#: .\product\models.py:331
 msgid "Tasdiqlangan"
 msgstr "Одобрен"
 
+#: .\product\models.py:332
 msgid "Rad etilgan"
 msgstr "Отклонён"
 
+#: .\product\views.py:218
 msgid "Saqlandi."
 msgstr "Сохранено."
 
+#: .\product\views.py:218
 msgid "Saqlanganlardan olib tashlandi."
 msgstr "Удалено из сохранённых."
 
-msgid "Bu mahsulotga sharh qoldirib boʻlmaydi."
-msgstr "Оставить отзыв на этот товар нельзя."
-
+#: .\product\views.py:435
 msgid "Bahoni tanlang."
 msgstr "Выберите оценку."
 
+#: .\product\views.py:440
+#, python-format
+msgid "Fikringiz %(n)d belgidan oshmasligi kerak."
+msgstr "Отзыв не должен превышать %(n)d символов."
+
+#: .\product\views.py:446
+msgid "Bu mahsulotga sharh qoldirib boʻlmaydi."
+msgstr "Оставить отзыв на этот товар нельзя."
+
+#: .\product\views.py:455
 msgid "Sharhingiz uchun rahmat. U koʻrib chiqilgandan keyin sahifada paydo boʻladi."
 msgstr "Спасибо за отзыв. Он появится на странице после проверки."
 
+#: .\product\views.py:496
 #, python-format
 msgid "Koʻpi bilan %(n)d ta rasm yuborish mumkin."
 msgstr "Можно отправить не более %(n)d изображений."
 
+#: .\templates\403.html:3
 msgid "Ruxsat yoʻq"
 msgstr "Доступ закрыт"
 
+#: .\templates\403.html:9
 msgid "Bu sahifaga ruxsat yoʻq"
 msgstr "К этой странице нет доступа"
 
+#: .\templates\403.html:10
 msgid "Hisobingizga kirgan boʻlsangiz ham, bu sahifa siz uchun ochiq emas."
 msgstr "Даже после входа в аккаунт эта страница остаётся закрытой."
 
+#: .\templates\403.html:12 .\templates\partials\_drawer.html:21
+#: .\templates\partials\_nav.html:46 .\templates\user\login.html:3
+#: .\templates\user\login.html:10 .\templates\user\login.html:38
+#: .\templates\user\signup.html:73
 msgid "Kirish"
 msgstr "Войти"
 
+#: .\templates\403.html:13 .\templates\404.html:13 .\templates\500.html:11
+#: .\templates\base.html:13 .\templates\product\item.html:15
+#: .\templates\product\liked.html:10 .\templates\product\shop.html:14
 msgid "Bosh sahifa"
 msgstr "Главная"
 
+#: .\templates\404.html:3
 msgid "Sahifa topilmadi"
 msgstr "Страница не найдена"
 
+#: .\templates\404.html:9
 msgid "Bunday sahifa yoʻq"
 msgstr "Такой страницы нет"
 
+#: .\templates\404.html:10
 msgid "Havola eskirgan boʻlishi mumkin. Doʻkondan boshlang."
 msgstr "Ссылка могла устареть. Начните с магазина."
 
+#: .\templates\404.html:12 .\templates\cart\cart.html:100
+#: .\templates\core\about.html:21 .\templates\core\home.html:19
+#: .\templates\partials\_footer.html:8 .\templates\product\liked.html:27
+#: .\templates\product\shop.html:19 .\templates\product\shop.html:143
+#: .\templates\user\account.html:31 .\templates\user\account_orders.html:22
 msgid "Barcha dizaynlar"
 msgstr "Все дизайны"
 
+#: .\templates\500.html:3
 msgid "Xatolik"
 msgstr "Ошибка"
 
+#: .\templates\500.html:9
 msgid "Nimadir notoʻgʻri ketdi"
 msgstr "Что-то пошло не так"
 
+#: .\templates\500.html:10
 msgid "Xatolik bizning tomonda. Biroz kutib, qayta urinib koʻring."
 msgstr "Ошибка на нашей стороне. Подождите немного и попробуйте снова."
 
+#: .\templates\base.html:14 .\templates\base.html:29
 msgid "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish."
 msgstr "Магазин футболок с принтами. Премиальное качество, 100+ дизайнов, доставка по Узбекистану."
 
+#: .\templates\base.html:28
 msgid "grafik futbolkalar"
 msgstr "футболки с принтами"
 
+#: .\templates\base.html:59
 msgid "Asosiy qismga oʻtish"
 msgstr "Перейти к содержимому"
 
+#: .\templates\cart\cart.html:4 .\templates\cart\cart.html:8
+#: .\templates\partials\_drawer.html:16 .\templates\partials\_nav.html:40
 msgid "Savat"
 msgstr "Корзина"
 
+#: .\templates\cart\cart.html:28 .\templates\core\size_guide.html:42
+#: .\templates\core\size_guide.html:52 .\templates\payment\order_detail.html:36
+#: .\templates\product\item.html:97 .\templates\product\item.html:107
+#: .\templates\product\item.html:260 .\templates\product\item.html:272
+#: .\templates\product\shop.html:68
 msgid "Oʻlcham"
 msgstr "Размер"
 
+#: .\templates\cart\cart.html:29 .\templates\cart\cart.html:49
+#: .\templates\cart\cart.html:68 .\templates\cart\cart.html:76
+#: .\templates\core\delivery.html:22 .\templates\partials\_footer.html:40
+#: .\templates\partials\_orders_table.html:22
+#: .\templates\payment\checkout.html:69 .\templates\payment\checkout.html:241
+#: .\templates\payment\checkout.html:249 .\templates\payment\checkout.html:254
+#: .\templates\payment\order_detail.html:37
+#: .\templates\payment\order_detail.html:40
+#: .\templates\payment\order_detail.html:59
+#: .\templates\payment\order_detail.html:64 .\templates\payment\payment.html:12
+#: .\templates\payment\status.html:12 .\templates\product\_card.html:33
+#: .\templates\product\item.html:81 .\templates\product\item.html:200
+#: .\templates\product\item.html:314 .\templates\terms.html:30
 msgid "soʻm"
 msgstr "сум"
 
+#: .\templates\cart\cart.html:37 .\templates\product\item.html:122
 msgid "Kamaytirish"
 msgstr "Уменьшить"
 
+#: .\templates\cart\cart.html:42 .\templates\product\item.html:120
+#: .\templates\product\item.html:127
 msgid "Soni"
 msgstr "Количество"
 
+#: .\templates\cart\cart.html:43 .\templates\product\item.html:128
 msgid "Koʻpaytirish"
 msgstr "Увеличить"
 
+#: .\templates\cart\cart.html:46
 msgid "Yangilash"
 msgstr "Обновить"
 
+#: .\templates\cart\cart.html:54
 #, python-format
 msgid "%(name)s — olib tashlash"
 msgstr "Удалить %(name)s"
 
+#: .\templates\cart\cart.html:64 .\templates\partials\_orders_table.html:7
+#: .\templates\partials\_orders_table.html:17
+#: .\templates\payment\checkout.html:225
+#: .\templates\payment\order_detail.html:3 .\templates\payment\payment.html:10
+#: .\templates\payment\status.html:10
 msgid "Buyurtma"
 msgstr "Заказ"
 
+#: .\templates\cart\cart.html:67 .\templates\payment\checkout.html:240
 msgid "Mahsulotlar"
 msgstr "Товары"
 
+#: .\templates\cart\cart.html:71 .\templates\core\delivery.html:3
+#: .\templates\core\delivery.html:8 .\templates\partials\_footer.html:29
+#: .\templates\payment\checkout.html:59 .\templates\payment\checkout.html:248
+#: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Доставка"
 
+#: .\templates\cart\cart.html:72
 msgid "Keyingi qadamda"
 msgstr "На следующем шаге"
 
+#: .\templates\cart\cart.html:75 .\templates\payment\checkout.html:252
+#: .\templates\payment\order_detail.html:63
 msgid "Jami"
 msgstr "Итого"
 
+#: .\templates\cart\cart.html:84 .\templates\cart\cart.html:87
+#: .\templates\payment\checkout.html:3 .\templates\payment\checkout.html:36
 msgid "Rasmiylashtirish"
 msgstr "Оформить заказ"
 
+#: .\templates\cart\cart.html:88
 msgid "Buyurtma berish uchun kirish kerak. Savatingiz saqlanib qoladi."
 msgstr "Чтобы оформить заказ, нужно войти. Корзина сохранится."
 
+#: .\templates\cart\cart.html:90
 msgid "Xaridni davom ettirish"
 msgstr "Продолжить покупки"
 
+#: .\templates\cart\cart.html:98
 msgid "Savat boʻsh"
 msgstr "Корзина пуста"
 
+#: .\templates\cart\cart.html:99
 msgid "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi."
 msgstr "Выберите понравившийся дизайн — он появится здесь."
 
+#: .\templates\core\about.html:3 .\templates\core\about.html:8
+#: .\templates\core\home.html:90 .\templates\partials\_drawer.html:24
+#: .\templates\partials\_footer.html:19 .\templates\partials\_nav.html:13
 msgid "Biz haqimizda"
 msgstr "О нас"
 
+#: .\templates\core\about.html:10
 msgid "Siz izlagan grafik futbolkalar — bir joyda, omborda, yetkazishga tayyor."
 msgstr "Футболки с принтами, которые вы искали — в одном месте, на складе, готовы к отправке."
 
-msgid "Maʻlum bir grafika yoki dizayndagi futbolkani izlash qancha vaqt olishini bilamiz. Shuning uchun bu ishni siz uchun yengillashtirdik: saytdagi har bir dizayn Toshkentda, omborda turadi va bugunoq joʻnatilishi mumkin."
+#: .\templates\core\about.html:12
+msgid "Maʼlum bir grafika yoki dizayndagi futbolkani izlash qancha vaqt olishini bilamiz. Shuning uchun bu ishni siz uchun yengillashtirdik: saytdagi har bir dizayn Toshkentda, omborda turadi va bugunoq joʻnatilishi mumkin."
 msgstr "Мы знаем, сколько времени уходит на поиск футболки с нужным принтом. Поэтому упростили эту задачу: каждый дизайн на сайте лежит на складе в Ташкенте и может уехать к вам сегодня же."
 
+#: .\templates\core\about.html:14
 msgid "Har bir mahsulot sifat jihatidan tekshiriladi — sifatsiz print ham, arzon mato ham yoʻq. Doʻkonga qoʻyilgan har bir futbolka oʻzimiz ham kiyadigan darajada."
 msgstr "Каждая вещь проходит проверку качества — ни плохой печати, ни дешёвой ткани. Всё, что попадает в магазин, мы носим и сами."
 
+#: .\templates\core\about.html:16 .\templates\core\home.html:20
 msgid "Oʻz dizayningiz"
 msgstr "Свой дизайн"
 
+#: .\templates\core\about.html:17
 msgid "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual dizaynli futbolka tayyorlaymiz."
 msgstr "Есть своя картинка или идея, а в нашей коллекции её нет? Не тратьте время на поиски — напишите нам. Сделаем футболку с вашим дизайном под заказ."
 
+#: .\templates\core\about.html:20 .\templates\core\contact.html:3
+#: .\templates\core\contact.html:10 .\templates\core\size_guide.html:67
+#: .\templates\partials\_drawer.html:25 .\templates\partials\_footer.html:18
+#: .\templates\partials\_nav.html:14 .\templates\terms.html:51
 msgid "Bogʻlanish"
 msgstr "Контакты"
 
+#: .\templates\core\contact.html:11
 msgid "Savolingiz bormi yoki oʻz dizayningizni bosdirmoqchimisiz? Yozing."
 msgstr "Есть вопрос или хотите напечатать свой дизайн? Напишите нам."
 
+#: .\templates\core\contact.html:23
 msgid "Xabar"
 msgstr "Сообщение"
 
+#: .\templates\core\contact.html:27 .\templates\product\review_form.html:108
 msgid "Yuborish"
 msgstr "Отправить"
 
+#: .\templates\core\contact.html:29 .\templates\user\login.html:40
+#: .\templates\user\password_reset_request.html:31
+#: .\templates\user\password_reset_verify.html:36
+#: .\templates\user\signup.html:68 .\templates\user\verify_phone.html:36
 msgid "Juda koʻp urinish. Biroz kuting va qayta urining."
 msgstr "Слишком много попыток. Подождите немного и попробуйте снова."
 
+#: .\templates\core\contact.html:37
 #, python-format
 msgid "Xabar yuborish uchun <a class=\"link\" href=\"%(login_url)s\">hisobingizga kiring</a>."
 msgstr "Чтобы отправить сообщение, <a class=\"link\" href=\"%(login_url)s\">войдите в аккаунт</a>."
 
+#: .\templates\core\contact.html:44
 msgid "Toʻgʻridan-toʻgʻri"
 msgstr "Напрямую"
 
+#: .\templates\core\contact.html:47
 msgid "Telegram"
 msgstr "Telegram"
 
+#: .\templates\core\contact.html:51 .\templates\payment\checkout.html:51
+#: .\templates\payment\order_detail.html:50
+#: .\templates\user\password_reset_request.html:22
+#: .\templates\user\signup.html:37
 msgid "Telefon"
 msgstr "Телефон"
 
+#: .\templates\core\contact.html:55 .\templates\partials\_footer.html:65
 msgid "Elektron pochta"
 msgstr "Эл. почта"
 
+#: .\templates\core\delivery.html:9
 msgid "Butun Oʻzbekiston boʻylab, Oʻzbekiston pochtasi orqali — Toshkentda ham, viloyatlarda ham."
 msgstr "По всему Узбекистану, через «Узбекистон почтаси» — и в Ташкенте, и в областях."
 
+#: .\templates\core\delivery.html:28
 msgid "Pochta boʻlimiga"
 msgstr "До отделения почты"
 
+#: .\templates\core\delivery.html:29
 msgid "Rasmiylashtirishda viloyat va tumaningizni tanlab, oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksini yozasiz. Indeksni bilmasangiz, Oʻzbekiston pochtasining boʻlimlar xaritasidan topishingiz mumkin — havola rasmiylashtirish sahifasida."
 msgstr "При оформлении вы выбираете область и район и указываете шестизначный индекс того отделения, где будете забирать заказ. Не знаете индекс — найдите отделение на карте «Узбекистон почтаси»; ссылка есть на странице оформления."
 
+#: .\templates\core\delivery.html:31
 msgid "Eshikkacha"
 msgstr "До двери"
 
+#: .\templates\core\delivery.html:32
 msgid "Kuryer buyurtmani siz koʻrsatgan manzilga olib boradi. Manzilni qoʻlda yozishingiz yoki xaritada belgilab qoʻyishingiz mumkin — xaritadagi belgi manzilni aniqlashtiradi, lekin manzilning oʻzi baribir kerak."
 msgstr "Курьер привезёт заказ по указанному адресу. Адрес можно ввести вручную или отметить точкой на карте — точка уточняет адрес, но сам адрес нужен в любом случае."
 
+#: .\templates\core\delivery.html:35
 msgid "Qancha vaqt ketadi?"
 msgstr "Сколько идёт доставка?"
 
+#: .\templates\core\delivery.html:36 .\templates\payment\checkout.html:197
 msgid "Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab 1–6 kun ichida yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
 msgstr "«Узбекистон почтаси» доставляет отправления по стране за 1–6 дней. При доставке до двери курьеру может потребоваться ещё один день."
 
+#: .\templates\core\delivery.html:38
 msgid "Buyurtmani olib ketmasangiz nima boʻladi?"
 msgstr "Что будет, если не забрать заказ?"
 
+#: .\templates\core\delivery.html:39
 msgid "Joʻnatma pochta boʻlimida bir oy saqlanadi. Shu muddat ichida olib ketilmasa, u bizga qaytariladi. Shuning uchun boʻlim indeksini diqqat bilan tekshiring — buyurtma tasdiqlangandan keyin uni tasdiq sahifasida qayta koʻrishingiz mumkin."
 msgstr "Отправление хранится в отделении один месяц. Если за это время его не забрать, оно вернётся к нам. Поэтому внимательно проверьте индекс отделения — после оформления его можно ещё раз посмотреть на странице заказа."
 
+#: .\templates\core\delivery.html:42
 msgid "Savolingiz bormi?"
 msgstr "Есть вопрос?"
 
+#: .\templates\core\home.html:4
 msgid "Grafik futbolkalar"
 msgstr "Футболки с принтами"
 
+#: .\templates\core\home.html:15
 msgid "Toshkentdan, omborda mavjud"
 msgstr "Из Ташкента, есть на складе"
 
+#: .\templates\core\home.html:16
 msgid "Kiyishga arziydigan grafika."
 msgstr "Графика, которую стоит носить."
 
+#: .\templates\core\home.html:17
 msgid "Premium sifat · 100+ dizayn · Oʻzbekiston boʻylab yetkazib berish"
 msgstr "Премиальное качество · 100+ дизайнов · Доставка по Узбекистану"
 
+#: .\templates\core\home.html:48
 msgid "Yangi kelganlar"
 msgstr "Новые поступления"
 
+#: .\templates\core\home.html:49 .\templates\user\account.html:22
 msgid "Barchasi"
 msgstr "Все"
 
+#: .\templates\core\home.html:62
 msgid "Siz uchun"
 msgstr "Для вас"
 
+#: .\templates\core\home.html:75
 msgid "Kategoriyalar"
 msgstr "Категории"
 
+#: .\templates\core\home.html:88
 msgid "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
 msgstr "Каждая футболка проверяется до печати. Ни плохой печати, ни дешёвой ткани — всё, что есть в магазине, мы носим и сами."
 
+#: .\templates\core\size_guide.html:3 .\templates\core\size_guide.html:17
+#: .\templates\partials\_footer.html:22 .\templates\product\item.html:103
 msgid "Oʻlcham jadvali"
 msgstr "Таблица размеров"
 
+#: .\templates\core\size_guide.html:18
 msgid "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan."
 msgstr "Размеры в сантиметрах, сняты с самой вещи."
 
+#: .\templates\core\size_guide.html:24 .\templates\product\item.html:249
 msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 msgstr "Таблица размеров футболок GRAPHIX"
 
+#: .\templates\core\size_guide.html:43 .\templates\core\size_guide.html:53
+#: .\templates\product\item.html:261 .\templates\product\item.html:273
 msgid "Koʻkrak, sm"
 msgstr "Грудь, см"
 
+#: .\templates\core\size_guide.html:44 .\templates\core\size_guide.html:54
+#: .\templates\product\item.html:262 .\templates\product\item.html:274
 msgid "Uzunlik, sm"
 msgstr "Длина, см"
 
+#: .\templates\core\size_guide.html:45 .\templates\core\size_guide.html:55
+#: .\templates\product\item.html:263 .\templates\product\item.html:275
 msgid "Yelka, sm"
 msgstr "Плечо, см"
 
+#: .\templates\core\size_guide.html:46 .\templates\core\size_guide.html:56
+#: .\templates\product\item.html:264 .\templates\product\item.html:276
 msgid "Yeng, sm"
 msgstr "Рукав, см"
 
+#: .\templates\core\size_guide.html:66
 msgid "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz."
 msgstr "Сомневаетесь — напишите нам, назовём точные размеры изделия."
 
+#: .\templates\partials\_account_nav.html:3
+#: .\templates\partials\_account_nav.html:4
+#: .\templates\partials\_drawer.html:18 .\templates\payment\order_detail.html:9
+#: .\templates\user\account.html:3
 msgid "Kabinet"
 msgstr "Кабинет"
 
+#: .\templates\partials\_account_nav.html:5
+#: .\templates\partials\_drawer.html:19
+#: .\templates\payment\order_detail.html:10 .\templates\payment\status.html:45
+#: .\templates\product\review_form.html:20
+#: .\templates\user\account_orders.html:3
+#: .\templates\user\account_orders.html:7
 msgid "Buyurtmalarim"
 msgstr "Мои заказы"
 
+#: .\templates\partials\_account_nav.html:6 .\templates\partials\_nav.html:35
+#: .\templates\product\liked.html:4 .\templates\product\liked.html:11
+#: .\templates\product\liked.html:15
 msgid "Saqlanganlar"
 msgstr "Сохранённые"
 
+#: .\templates\partials\_account_nav.html:7
+#: .\templates\user\account_settings.html:3
+#: .\templates\user\account_settings.html:7
 msgid "Sozlamalar"
 msgstr "Настройки"
 
+#: .\templates\partials\_account_nav.html:13
 msgid "Chiqish"
 msgstr "Выйти"
 
+#: .\templates\partials\_drawer.html:6 .\templates\partials\_drawer.html:8
+#: .\templates\partials\_nav.html:51
 msgid "Menyu"
 msgstr "Меню"
 
+#: .\templates\partials\_drawer.html:9 .\templates\partials\_viewer.html:9
+#: .\templates\payment\checkout.html:273 .\templates\product\shop.html:35
 msgid "Yopish"
 msgstr "Закрыть"
 
+#: .\templates\partials\_drawer.html:15 .\templates\partials\_footer.html:6
+#: .\templates\partials\_nav.html:12 .\templates\product\item.html:16
+#: .\templates\product\shop.html:4 .\templates\product\shop.html:5
+#: .\templates\product\shop.html:15
 msgid "Doʻkon"
 msgstr "Магазин"
 
+#: .\templates\partials\_drawer.html:22 .\templates\user\login.html:45
+#: .\templates\user\signup.html:3 .\templates\user\signup.html:10
 msgid "Roʻyxatdan oʻtish"
 msgstr "Регистрация"
 
+#: .\templates\partials\_drawer.html:33
 msgid "Til"
 msgstr "Язык"
 
+#: .\templates\partials\_footer.html:16
 msgid "Yordam"
 msgstr "Помощь"
 
+#: .\templates\partials\_footer.html:24
 msgid "Shartlar"
 msgstr "Условия"
 
+#: .\templates\partials\_footer.html:42
 msgid "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi"
 msgstr "По всему Узбекистану, «Узбекистон почтаси»"
 
+#: .\templates\partials\_footer.html:43
 msgid "Batafsil"
 msgstr "Подробнее"
 
+#: .\templates\partials\_footer.html:48 .\templates\payment\checkout.html:44
 msgid "Aloqa"
 msgstr "Связаться"
 
+#: .\templates\partials\_footer.html:73
 msgid "Barcha huquqlar himoyalangan."
 msgstr "Все права защищены."
 
+#: .\templates\partials\_nav.html:11
 msgid "Asosiy menyu"
 msgstr "Основное меню"
 
+#: .\templates\partials\_nav.html:21 .\templates\partials\_nav.html:29
+#: .\templates\payment\checkout.html:281
 msgid "Qidirish"
 msgstr "Поиск"
 
+#: .\templates\partials\_nav.html:23
 msgid "Dizayn qidirish..."
 msgstr "Искать дизайн..."
 
+#: .\templates\partials\_orders_table.html:8
+#: .\templates\partials\_orders_table.html:18
+#: .\templates\payment\order_detail.html:49
 msgid "Sana"
 msgstr "Дата"
 
+#: .\templates\partials\_orders_table.html:9
+#: .\templates\partials\_orders_table.html:19
 msgid "Holati"
 msgstr "Статус"
 
+#: .\templates\partials\_orders_table.html:10
+#: .\templates\partials\_orders_table.html:22
 msgid "Summa"
 msgstr "Сумма"
 
+#: .\templates\partials\_orders_table.html:11
 msgid "Amallar"
 msgstr "Действия"
 
+#: .\templates\partials\_orders_table.html:24
 msgid "Koʻrish"
 msgstr "Открыть"
 
+#: .\templates\partials\_orders_table.html:29
+#: .\templates\product\review_form.html:22
 msgid "Sharh"
 msgstr "Отзыв"
 
+#: .\templates\partials\_otp_cells.html:5
+#: .\templates\user\password_reset_verify.html:10
 msgid "Tasdiqlash kodi"
 msgstr "Код подтверждения"
 
+#: .\templates\partials\_otp_cells.html:10
 #, python-format
 msgid "Kodning %(n)s-raqami"
 msgstr "%(n)s-я цифра кода"
 
+#: .\templates\partials\_viewer.html:7
 msgid "Kattalashtirilgan koʻrinish"
 msgstr "Увеличенный просмотр"
 
+#: .\templates\payment\checkout.html:46
+#: .\templates\user\account_settings.html:23 .\templates\user\signup.html:30
 msgid "Ismingiz"
 msgstr "Ваше имя"
 
+#: .\templates\payment\checkout.html:54
 msgid "Kuryer shu raqamga qoʻngʻiroq qiladi."
 msgstr "Курьер позвонит на этот номер."
 
+#: .\templates\payment\checkout.html:78 .\templates\payment\checkout.html:85
 msgid "Viloyat"
 msgstr "Область"
 
+#: .\templates\payment\checkout.html:86 .\templates\payment\checkout.html:103
+#: .\templates\payment\checkout.html:271
 msgid "Tanlang"
 msgstr "Выберите"
 
+#: .\templates\payment\checkout.html:98 .\templates\payment\checkout.html:102
 msgid "Tuman yoki shahar"
 msgstr "Район или город"
 
+#: .\templates\payment\checkout.html:104
 msgid "Tumanlar"
 msgstr "Районы"
 
+#: .\templates\payment\checkout.html:105
 msgid "Shaharlar"
 msgstr "Города"
 
+#: .\templates\payment\checkout.html:106
 msgid "Avval viloyatni tanlang"
 msgstr "Сначала выберите область"
 
+#: .\templates\payment\checkout.html:113
 msgid "Tuman yoki shahar nomi"
 msgstr "Название района или города"
 
+#: .\templates\payment\checkout.html:116
 msgid "Qoʻlda yozing"
 msgstr "Впишите вручную"
 
+#: .\templates\payment\checkout.html:123
 msgid "Pochta indeksi"
 msgstr "Почтовый индекс"
 
+#: .\templates\payment\checkout.html:129
 msgid "Indeks 6 ta raqamdan iborat boʻlishi kerak."
 msgstr "Индекс состоит из 6 цифр."
 
+#: .\templates\payment\checkout.html:130
 msgid "Bu indeks tanlangan viloyatga toʻgʻri kelmadi."
 msgstr "Этот индекс не относится к выбранной области."
 
+#: .\templates\payment\checkout.html:132
 msgid "Oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksi."
 msgstr "Шестизначный индекс отделения, где вы заберёте заказ."
 
+#: .\templates\payment\checkout.html:139
 msgid "Indeksni bilmaysizmi? Pochta boʻlimlari xaritasi"
 msgstr "Не знаете индекс? Карта почтовых отделений"
 
+#: .\templates\payment\checkout.html:149
 msgid "Manzilni kiritish usuli"
 msgstr "Способ ввода адреса"
 
+#: .\templates\payment\checkout.html:153
 msgid "Xaritadan"
 msgstr "На карте"
 
+#: .\templates\payment\checkout.html:156
 msgid "Qoʻlda kiritish"
 msgstr "Вручную"
 
+#: .\templates\payment\checkout.html:163
 msgid "Yetkazib berish manzili xaritasi"
 msgstr "Карта адреса доставки"
 
+#: .\templates\payment\checkout.html:166
 msgid "Joylashuvimni aniqlash"
 msgstr "Определить моё местоположение"
 
+#: .\templates\payment\checkout.html:169
 msgid "Belgini kerakli joyga suring. Manzil quyida toʻldiriladi — uni tahrirlashingiz mumkin."
 msgstr "Перетащите метку в нужное место. Адрес подставится ниже — его можно отредактировать."
 
+#: .\templates\payment\checkout.html:179
 msgid "Koʻcha va uy"
 msgstr "Улица и дом"
 
+#: .\templates\payment\checkout.html:182
 msgid "Koʻcha, uy, xonadon"
 msgstr "Улица, дом, квартира"
 
+#: .\templates\payment\checkout.html:184
 msgid "Viloyat va tumanni yuqorida tanladingiz — bu yerga faqat koʻcha va uy raqamini yozing."
 msgstr "Область и район вы выбрали выше — здесь укажите только улицу и номер дома."
 
+#: .\templates\payment\checkout.html:190
+#: .\templates\payment\order_detail.html:83
 msgid "Izoh"
 msgstr "Комментарий"
 
+#: .\templates\payment\checkout.html:192
 msgid "Majburiy emas"
 msgstr "Необязательно"
 
+#: .\templates\payment\checkout.html:202
+#: .\templates\payment\order_detail.html:51 .\templates\payment\payment.html:3
+#: .\templates\payment\status.html:22
 msgid "Toʻlov"
 msgstr "Оплата"
 
+#: .\templates\payment\checkout.html:216
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr "Способы оплаты сейчас недоступны. Пожалуйста, свяжитесь с нами."
 
+#: .\templates\payment\checkout.html:221
 msgid "Buyurtma berish"
 msgstr "Оформить заказ"
 
+#: .\templates\payment\checkout.html:258
 msgid "Savatga qaytish"
 msgstr "Вернуться в корзину"
 
+#: .\templates\payment\checkout.html:283
 msgid "Qidirish..."
 msgstr "Поиск..."
 
+#: .\templates\payment\order_detail.html:7 .\templates\product\item.html:13
+#: .\templates\product\liked.html:8 .\templates\product\review_form.html:18
+#: .\templates\product\shop.html:12
 msgid "Yoʻnalish"
 msgstr "Навигация"
 
+#: .\templates\payment\order_detail.html:47 .\templates\payment\status.html:44
 msgid "Tafsilotlar"
 msgstr "Детали"
 
+#: .\templates\payment\order_detail.html:58
 msgid "Yetkazib berish narxi"
 msgstr "Стоимость доставки"
 
+#: .\templates\payment\order_detail.html:73
 msgid "Pochta boʻlimi"
 msgstr "Почтовое отделение"
 
+#: .\templates\payment\order_detail.html:73
 msgid "Manzil"
 msgstr "Адрес"
 
+#: .\templates\payment\order_detail.html:77
 msgid "Joʻnatma boʻlimda bir oy saqlanadi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
 msgstr "Отправление хранится в отделении один месяц. Если индекс указан неверно, сразу напишите нам."
 
+#: .\templates\payment\order_detail.html:88
 msgid "Holatini kuzatish"
 msgstr "Отследить статус"
 
+#: .\templates\payment\order_detail.html:90 .\templates\payment\status.html:50
 msgid "Toʻlovni yakunlash"
 msgstr "Завершить оплату"
 
+#: .\templates\payment\order_detail.html:96
+#: .\templates\product\review_form.html:3
+#: .\templates\product\review_form.html:26
 msgid "Sharh qoldirish"
 msgstr "Оставить отзыв"
 
+#: .\templates\payment\payment.html:11
 msgid "Click orqali toʻlov"
 msgstr "Оплата через Click"
 
+#: .\templates\payment\payment.html:26
 msgid "Toʻlovga oʻtish"
 msgstr "Перейти к оплате"
 
+#: .\templates\payment\payment.html:30
 msgid "Buyurtma tafsilotlari"
 msgstr "Детали заказа"
 
+#: .\templates\payment\payment.html:33 .\templates\payment\status.html:53
+#: .\templates\user\verify_phone.html:52
 msgid "Bekor qilish"
 msgstr "Отменить"
 
+#: .\templates\payment\status.html:3
 msgid "Buyurtma holati"
 msgstr "Статус заказа"
 
+#: .\templates\payment\status.html:16
 msgid "Bu buyurtma bekor qilingan."
 msgstr "Этот заказ отменён."
 
+#: .\templates\payment\status.html:26
 msgid "Qabul qilindi"
 msgstr "Принят"
 
+#: .\templates\payment\status.html:30
 msgid "Tayyorlanmoqda"
 msgstr "Собирается"
 
+#: .\templates\payment\status.html:34
 msgid "Yoʻlda"
 msgstr "В пути"
 
+#: .\templates\payment\status.html:38
 msgid "Yetkazildi"
 msgstr "Доставлен"
 
+#: .\templates\product\_card.html:26 .\templates\product\item.html:175
+#: .\templates\product\item.html:319
 msgid "Tugadi"
 msgstr "Нет в наличии"
 
+#: .\templates\product\_card.html:47 .\templates\product\_card.html:48
+#: .\templates\product\item.html:141 .\templates\product\item.html:142
 msgid "Saqlanganlardan olib tashlash"
 msgstr "Удалить из сохранённых"
 
+#: .\templates\product\_card.html:47 .\templates\product\_card.html:49
+#: .\templates\product\item.html:141 .\templates\product\item.html:143
+#: .\templates\user\account_settings.html:36
 msgid "Saqlash"
 msgstr "Сохранить"
 
+#: .\templates\product\_card.html:50 .\templates\product\item.html:144
 msgid "Xatolik yuz berdi. Qayta urinib koʻring."
 msgstr "Произошла ошибка. Попробуйте ещё раз."
 
+#: .\templates\product\_pager.html:4
 msgid "Sahifalar"
 msgstr "Страницы"
 
+#: .\templates\product\_pager.html:7
 msgid "Oldingi sahifa"
 msgstr "Предыдущая страница"
 
+#: .\templates\product\_pager.html:24
 msgid "Keyingi sahifa"
 msgstr "Следующая страница"
 
+#: .\templates\product\_reviews.html:18
 msgid "Sharhlar"
 msgstr "Отзывы"
 
+#: .\templates\product\_reviews.html:29
 #, python-format
 msgid "%(n)s ta sharh"
 msgid_plural "%(n)s ta sharh"
@@ -662,423 +973,569 @@ msgstr[1] "%(n)s отзыва"
 msgstr[2] "%(n)s отзывов"
 msgstr[3] "%(n)s отзыва"
 
+#: .\templates\product\_reviews.html:36
 msgid "Baholar taqsimoti"
 msgstr "Распределение оценок"
 
+#: .\templates\product\_reviews.html:42 .\templates\product\review_form.html:81
 #, python-format
 msgid "%(n)s yulduz"
-msgstr "%(n)s звёзд"
+msgid_plural "%(n)s yulduz"
+msgstr[0] "%(n)s звезда"
+msgstr[1] "%(n)s звезды"
+msgstr[2] "%(n)s звёзд"
+msgstr[3] "%(n)s звезды"
 
+#: .\templates\product\_reviews.html:64
 #, python-format
 msgid "Baho: %(n)s"
 msgstr "Оценка: %(n)s"
 
+#: .\templates\product\_reviews.html:70
 msgid "Tasdiqlangan xarid"
 msgstr "Подтверждённая покупка"
 
+#: .\templates\product\_reviews.html:81
 #, python-format
 msgid "%(name)s — mijoz rasmi"
 msgstr "%(name)s — фото покупателя"
 
+#: .\templates\product\_reviews.html:93
 msgid "Sharhlar sahifalari"
 msgstr "Страницы отзывов"
 
+#: .\templates\product\_reviews.html:95
 msgid "Oldingi"
 msgstr "Назад"
 
+#: .\templates\product\_reviews.html:98
 #, python-format
 msgid "%(current)s / %(total)s"
 msgstr "%(current)s / %(total)s"
 
+#: .\templates\product\_reviews.html:101
 msgid "Keyingi"
 msgstr "Вперёд"
 
+#: .\templates\product\item.html:46 .\templates\product\review_form.html:100
 msgid "Rasmlar"
 msgstr "Фотографии"
 
+#: .\templates\product\item.html:51
 #, python-format
 msgid "Rasm %(n)s"
 msgstr "Фото %(n)s"
 
+#: .\templates\product\item.html:111
 msgid "tugagan"
 msgstr "нет в наличии"
 
+#: .\templates\product\item.html:155
 msgid "Ulashish"
 msgstr "Поделиться"
 
+#: .\templates\product\item.html:164
 msgid "Havola nusxalandi"
 msgstr "Ссылка скопирована"
 
+#: .\templates\product\item.html:166
 msgid "Havolani nusxalash"
 msgstr "Скопировать ссылку"
 
+#: .\templates\product\item.html:175
 msgid "Savatga qoʻshish"
 msgstr "Добавить в корзину"
 
+#: .\templates\product\item.html:210
 msgid "Mato"
 msgstr "Ткань"
 
+#: .\templates\product\item.html:213
 msgid "Zichlik"
 msgstr "Плотность"
 
+#: .\templates\product\item.html:216
 msgid "Bosma"
 msgstr "Печать"
 
+#: .\templates\product\item.html:219
 msgid "Qolip"
 msgstr "Посадка"
 
+#: .\templates\product\item.html:226
 msgid "Tavsif"
 msgstr "Описание"
 
+#: .\templates\product\item.html:300
 msgid "Sizga yoqishi mumkin"
 msgstr "Вам может понравиться"
 
+#: .\templates\product\item.html:319
 msgid "Savatga"
 msgstr "В корзину"
 
+#: .\templates\product\liked.html:25
 msgid "Hali hech narsa saqlanmagan"
 msgstr "Пока ничего не сохранено"
 
+#: .\templates\product\liked.html:26
 msgid "Yoqqan dizaynni yurakcha bilan belgilang — u shu yerda toʻplanadi."
 msgstr "Отмечайте понравившиеся дизайны сердечком — они соберутся здесь."
 
+#: .\templates\product\review_form.html:31
 msgid "Sharhni buyurtma yetkazib berilgandan keyin qoldirish mumkin."
 msgstr "Оставить отзыв можно после доставки заказа."
 
+#: .\templates\product\review_form.html:39
 msgid "Mahsulot"
 msgstr "Товар"
 
+#: .\templates\product\review_form.html:48
 msgid "Sharhingiz koʻrib chiqilmoqda."
 msgstr "Ваш отзыв на проверке."
 
+#: .\templates\product\review_form.html:50
 msgid "Sharhingiz chop etilgan."
 msgstr "Ваш отзыв опубликован."
 
+#: .\templates\product\review_form.html:52
 msgid "Sharhingiz chop etilmadi."
 msgstr "Ваш отзыв не опубликован."
 
+#: .\templates\product\review_form.html:70
 msgid "Bahoyingiz"
 msgstr "Ваша оценка"
 
+#: .\templates\product\review_form.html:89
 msgid "Fikringiz"
 msgstr "Ваш отзыв"
 
+#: .\templates\product\review_form.html:90
 msgid "(majburiy emas)"
 msgstr "(необязательно)"
 
+#: .\templates\product\review_form.html:96
 msgid "Oʻlchami toʻgʻri keldimi? Mato qanday?"
 msgstr "Размер подошёл? Какая ткань?"
 
+#: .\templates\product\review_form.html:104
 #, python-format
-msgid "Koʻpi bilan %(n)s ta rasm. Rasmdagi joylashuv maʻlumotlari oʻchiriladi."
+msgid "Koʻpi bilan %(n)s ta rasm. Rasmdagi joylashuv maʼlumotlari oʻchiriladi."
 msgstr "Не более %(n)s изображений. Данные о местоположении из фото удаляются."
 
+#: .\templates\product\review_form.html:113
 msgid "Bu buyurtmada sharh qoldiriladigan mahsulot yoʻq."
 msgstr "В этом заказе нет товаров для отзыва."
 
+#: .\templates\product\shop.html:19
 #, python-format
 msgid "“%(q)s” uchun natijalar"
 msgstr "Результаты по запросу «%(q)s»"
 
+#: .\templates\product\shop.html:19
 msgid "Qidiruv"
 msgstr "Поиск"
 
+#: .\templates\product\shop.html:28 .\templates\product\shop.html:33
+#: .\templates\product\shop.html:102
 msgid "Filtrlar"
 msgstr "Фильтры"
 
+#: .\templates\product\shop.html:56
 msgid "Kategoriya"
 msgstr "Категория"
 
+#: .\templates\product\shop.html:80
 msgid "Filtrlarni tozalash"
 msgstr "Сбросить фильтры"
 
+#: .\templates\product\shop.html:96
 msgid "Topildi"
 msgstr "Найдено"
 
+#: .\templates\product\shop.html:110 .\templates\product\shop.html:118
 msgid "Tartiblash"
 msgstr "Сортировка"
 
+#: .\templates\product\shop.html:112
 msgid "Yangilari"
 msgstr "Новинки"
 
+#: .\templates\product\shop.html:113
 msgid "Ommabop"
 msgstr "Популярные"
 
+#: .\templates\product\shop.html:114
 msgid "Reyting boʻyicha"
 msgstr "По рейтингу"
 
+#: .\templates\product\shop.html:115
 msgid "Narx: arzondan"
 msgstr "Цена: по возрастанию"
 
+#: .\templates\product\shop.html:116
 msgid "Narx: qimmatdan"
 msgstr "Цена: по убыванию"
 
+#: .\templates\product\shop.html:134
 msgid "Hech narsa topilmadi"
 msgstr "Ничего не найдено"
 
+#: .\templates\product\shop.html:137
 msgid "Soʻrovingizga mos dizayn yoʻq. Filtrlarni kamaytirib koʻring."
 msgstr "По вашему запросу дизайнов нет. Попробуйте снять часть фильтров."
 
+#: .\templates\product\shop.html:139
 msgid "Hozircha dizaynlar qoʻshilmagan. Tez orada qaytib kelib koʻring."
 msgstr "Дизайнов пока нет. Зайдите чуть позже."
 
+#: .\templates\terms.html:3 .\templates\terms.html:8
 msgid "Shartlar va qoidalar"
 msgstr "Условия и правила"
 
+#: .\templates\terms.html:15
 msgid "1. Umumiy shartlar"
 msgstr "1. Общие условия"
 
+#: .\templates\terms.html:16
 msgid "Saytimizdan foydalanish va buyurtma berish orqali siz ushbu shartlarga rozilik bildirgan hisoblanasiz. Biz bu shartlarni istalgan vaqtda yangilash huquqiga egamiz. Kiritilgan oʻzgarishlar saytga joylangan zahoti kuchga kiradi."
 msgstr "Пользуясь сайтом и оформляя заказ, вы соглашаетесь с этими условиями. Мы вправе обновлять их в любое время; изменения вступают в силу с момента публикации на сайте."
 
+#: .\templates\terms.html:18
 msgid "2. Buyurtma va toʻlov"
 msgstr "2. Заказ и оплата"
 
-msgid "Buyurtma rasmiylashtirish sahifasida koʻrsatilgan toʻlov usullari orqali toʻlanadi. Toʻlovni amalga oshirishdan avval yetkazib berish maʻlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil uchun javobgarlikni oʻz zimmamizga olmaymiz."
+#: .\templates\terms.html:23
+msgid "Buyurtma rasmiylashtirish sahifasida koʻrsatilgan toʻlov usullari orqali toʻlanadi. Toʻlovni amalga oshirishdan avval yetkazib berish maʼlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil uchun javobgarlikni oʻz zimmamizga olmaymiz."
 msgstr "Заказ оплачивается теми способами, которые указаны на странице оформления. Перед оплатой внимательно проверьте данные доставки: за адрес, указанный покупателем неверно, мы ответственности не несём."
 
+#: .\templates\terms.html:25
 msgid "3. Yetkazib berish"
 msgstr "3. Доставка"
 
+#: .\templates\terms.html:27
 msgid "Barcha buyurtmalar Oʻzbekiston pochtasi orqali yuboriladi — Toshkentda ham, viloyatlarda ham. Bepul yetkazish chegarasi hozircha yoʻq."
 msgstr "Все заказы отправляются через «Узбекистон почтаси» — и в Ташкенте, и в областях. Порога бесплатной доставки пока нет."
 
+#: .\templates\terms.html:33
 msgid "Buyurtmalarni imkon qadar tez joʻnatishga harakat qilamiz. Yetkazib berish muddati pochta xizmatining ish tartibiga bogʻliq."
 msgstr "Стараемся отправлять заказы как можно быстрее. Срок доставки зависит от работы почтовой службы."
 
+#: .\templates\terms.html:35
 msgid "4. Qaytarish va almashtirish"
 msgstr "4. Возврат и обмен"
 
+#: .\templates\terms.html:36
 msgid "Agar mahsulot shikastlangan holatda yetib borsa, olganingizdan keyin 24 soat ichida muammoni koʻrsatuvchi qisqa foto yoki video yuboring — mahsulotni almashtirib beramiz."
 msgstr "Если вещь приехала повреждённой, в течение 24 часов после получения пришлите короткое фото или видео с проблемой — заменим товар."
 
+#: .\templates\terms.html:37
 msgid "Oʻlcham mos kelmasa, kiyilmagan, yuvilmagan va asl holatidagi mahsulotni mos oʻlchamga almashtirib beramiz."
 msgstr "Если размер не подошёл, обменяем вещь на нужный — при условии, что она не ношена, не стирана и в исходном виде."
 
+#: .\templates\terms.html:38
 msgid "Maxsus buyurtmalar aynan sizning soʻrovingiz asosida tayyorlanadi, shuning uchun ishlab chiqarish boshlangandan keyin ular qaytarilmaydi."
 msgstr "Индивидуальные заказы делаются точно по вашему запросу, поэтому после запуска в производство они возврату не подлежат."
 
+#: .\templates\terms.html:40
 msgid "5. Mahsulot koʻrinishining aniqligi"
 msgstr "5. Точность изображения товара"
 
+#: .\templates\terms.html:41
 msgid "Futbolkalarimizning rangi va detallarini imkon qadar aniq koʻrsatishga harakat qilamiz. Ranglar ekran sozlamalariga qarab biroz farq qilishi mumkin."
 msgstr "Стараемся показывать цвет и детали футболок максимально точно. Оттенки могут немного отличаться в зависимости от настроек экрана."
 
+#: .\templates\terms.html:43
 msgid "6. Maxfiylik siyosati"
 msgstr "6. Политика конфиденциальности"
 
-msgid "Siz taqdim etgan ism, telefon raqami va manzil faqat buyurtmangizni bajarish va yetkazib berish uchun ishlatiladi. Shaxsiy maʻlumotlaringiz marketing maqsadida uchinchi tomonlarga berilmaydi."
+#: .\templates\terms.html:44
+msgid "Siz taqdim etgan ism, telefon raqami va manzil faqat buyurtmangizni bajarish va yetkazib berish uchun ishlatiladi. Shaxsiy maʼlumotlaringiz marketing maqsadida uchinchi tomonlarga berilmaydi."
 msgstr "Имя, номер телефона и адрес, которые вы указываете, используются только для выполнения и доставки заказа. Персональные данные не передаются третьим лицам в маркетинговых целях."
 
+#: .\templates\terms.html:46
 msgid "7. Aloqa"
 msgstr "7. Связаться с нами"
 
+#: .\templates\terms.html:47
 msgid "Savollaringiz boʻlsa, Telegram orqali yoki aloqa sahifasidan bogʻlaning."
 msgstr "Если есть вопросы, напишите в Telegram или через страницу контактов."
 
+#: .\templates\terms.html:50
 msgid "Orqaga"
 msgstr "Назад"
 
+#: .\templates\user\account.html:14
 msgid "Hisob"
 msgstr "Аккаунт"
 
+#: .\templates\user\account.html:21
 msgid "Soʻnggi buyurtmalar"
 msgstr "Последние заказы"
 
+#: .\templates\user\account.html:30 .\templates\user\account_orders.html:20
 msgid "Hali buyurtma yoʻq"
 msgstr "Заказов пока нет"
 
+#: .\templates\user\account_orders.html:21
 msgid "Birinchi buyurtmangiz shu yerda koʻrinadi."
 msgstr "Ваш первый заказ появится здесь."
 
+#: .\templates\user\account_settings.html:14
 msgid "Profil"
 msgstr "Профиль"
 
+#: .\templates\user\account_settings.html:30 .\templates\user\login.html:21
+#: .\templates\user\signup.html:22 .\user\forms.py:63
 msgid "Foydalanuvchi nomi"
 msgstr "Имя пользователя"
 
+#: .\templates\user\account_settings.html:41
 msgid "Parolni oʻzgartirish"
 msgstr "Смена пароля"
 
+#: .\templates\user\account_settings.html:50 .\user\forms.py:79
 msgid "Joriy parol"
 msgstr "Текущий пароль"
 
+#: .\templates\user\account_settings.html:57
+#: .\templates\user\password_reset_set.html:3
+#: .\templates\user\password_reset_set.html:9
+#: .\templates\user\password_reset_set.html:18 .\user\forms.py:48
+#: .\user\forms.py:80
 msgid "Yangi parol"
 msgstr "Новый пароль"
 
+#: .\templates\user\account_settings.html:64
+#: .\templates\user\password_reset_set.html:25 .\templates\user\signup.html:51
 msgid "Parolni takrorlang"
 msgstr "Повторите пароль"
 
+#: .\templates\user\account_settings.html:71
+#: .\templates\user\password_reset_set.html:31
 msgid "Parolni saqlash"
 msgstr "Сохранить пароль"
 
+#: .\templates\user\account_settings.html:77
 msgid "Joriy parolni eslay olmayapman"
 msgstr "Не помню текущий пароль"
 
+#: .\templates\user\login.html:11
 msgid "Buyurtmalaringiz va saqlanganlaringiz shu yerda."
 msgstr "Здесь ваши заказы и сохранённые дизайны."
 
+#: .\templates\user\login.html:29 .\templates\user\signup.html:44
 msgid "Parol"
 msgstr "Пароль"
 
+#: .\templates\user\login.html:30
 msgid "Unutdingizmi?"
 msgstr "Забыли?"
 
+#: .\templates\user\login.html:45
 msgid "Hisob yoʻqmi?"
 msgstr "Нет аккаунта?"
 
+#: .\templates\user\password_reset_request.html:3
+#: .\templates\user\password_reset_request.html:10
 msgid "Parolni tiklash"
 msgstr "Восстановление пароля"
 
+#: .\templates\user\password_reset_request.html:11
 msgid "Telefon raqamingizni kiriting — tasdiqlash kodini yuboramiz."
 msgstr "Введите номер телефона — пришлём код подтверждения."
 
+#: .\templates\user\password_reset_request.html:29
 msgid "Kodni yuborish"
 msgstr "Отправить код"
 
+#: .\templates\user\password_reset_request.html:35
+#: .\templates\user\password_reset_set.html:34
 msgid "Kirish sahifasiga qaytish"
 msgstr "Вернуться ко входу"
 
+#: .\templates\user\password_reset_verify.html:3
 msgid "Parolni tiklash — kod"
 msgstr "Восстановление пароля — код"
 
+#: .\templates\user\password_reset_verify.html:13
+#: .\templates\user\verify_phone.html:13
 #, python-format
 msgid "Kod %(phone)s raqamiga yuborildi."
 msgstr "Код отправлен на номер %(phone)s."
 
+#: .\templates\user\password_reset_verify.html:15
+#: .\templates\user\verify_phone.html:15
 msgid "Kod yuborildi."
 msgstr "Код отправлен."
 
+#: .\templates\user\password_reset_verify.html:20
+#: .\templates\user\verify_phone.html:20
 msgid "Kod amal qilish muddati"
 msgstr "Код действителен ещё"
 
+#: .\templates\user\password_reset_verify.html:34
+#: .\templates\user\verify_phone.html:34
 msgid "Tasdiqlash"
 msgstr "Подтвердить"
 
+#: .\templates\user\password_reset_verify.html:44
+#: .\templates\user\password_reset_verify.html:46
+#: .\templates\user\verify_phone.html:44 .\templates\user\verify_phone.html:46
 msgid "Qayta yuborish"
 msgstr "Отправить снова"
 
+#: .\templates\user\password_reset_verify.html:46
+#: .\templates\user\verify_phone.html:46
 #, python-format
 msgid "Qayta yuborish (%(n)ss)"
 msgstr "Отправить снова (%(n)s с)"
 
+#: .\templates\user\password_reset_verify.html:49
 msgid "Raqamni qaytadan kiritish"
 msgstr "Ввести номер заново"
 
+#: .\templates\user\signup.html:11
 msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
 msgstr "Подтвердим номер телефона — он нужен для доставки заказа."
 
+#: .\templates\user\signup.html:61
 #, python-format
 msgid "Barcha <a class=\"link\" href=\"%(terms_url)s\">shartlar</a>ga rozilik beraman."
 msgstr "Соглашаюсь со всеми <a class=\"link\" href=\"%(terms_url)s\">условиями</a>."
 
+#: .\templates\user\signup.html:66
 msgid "Hisob yaratish"
 msgstr "Создать аккаунт"
 
+#: .\templates\user\signup.html:73
 msgid "Hisob bormi?"
 msgstr "Уже есть аккаунт?"
 
+#: .\templates\user\verify_phone.html:3
 msgid "Telefon raqamni tasdiqlash"
 msgstr "Подтверждение номера"
 
+#: .\templates\user\verify_phone.html:10
 msgid "Telefon raqamni tasdiqlang"
 msgstr "Подтвердите номер телефона"
 
+#: .\user\forms.py:11
 msgid "Harflar, raqamlar va _ mumkin"
 msgstr "Разрешены буквы, цифры и _"
 
+#: .\user\forms.py:17
 msgid "Foydalanuvchi nomi yoki parol notoʻgʻri."
 msgstr "Неверное имя пользователя или пароль."
 
+#: .\user\forms.py:18
 msgid "Bu hisob faol emas."
 msgstr "Этот аккаунт неактивен."
 
+#: .\user\forms.py:25
 msgid "6 ta raqam kiriting."
 msgstr "Введите 6 цифр."
 
+#: .\user\forms.py:26
 msgid "Kodni kiriting."
 msgstr "Введите код."
 
+#: .\user\forms.py:34
 msgid "Telefon raqamni kiriting."
 msgstr "Введите номер телефона."
 
+#: .\user\forms.py:49 .\user\forms.py:81
 msgid "Yangi parolni qayta kiriting"
 msgstr "Повторите новый пароль"
 
+#: .\user\forms.py:50 .\user\forms.py:83 .\user\forms.py:95
 msgid "Parollar mos kelmadi."
 msgstr "Пароли не совпадают."
 
+#: .\user\forms.py:62
 msgid "Ism"
 msgstr "Имя"
 
+#: .\user\forms.py:71
 msgid "Bu foydalanuvchi nomi band."
 msgstr "Это имя пользователя занято."
 
+#: .\user\forms.py:82
 msgid "Joriy parol notoʻgʻri."
 msgstr "Текущий пароль неверный."
 
+#: .\user\forms.py:110
 msgid "Koʻpi bilan 50 ta belgi. Harflar, raqamlar va _"
 msgstr "Не более 50 символов. Буквы, цифры и _"
 
+#: .\user\forms.py:122
 msgid "Bu raqam roʻyxatdan oʻtgan."
 msgstr "Этот номер уже зарегистрирован."
 
+#: .\user\models.py:18
 msgid "format: +998 XX XXX XX XX"
 msgstr "формат: +998 XX XXX XX XX"
 
+#: .\user\models.py:54
 msgid "Ushbu raqam allaqachon roʻyxatdan oʻtgan."
 msgstr "Этот номер уже зарегистрирован."
 
+#: .\user\password_reset.py:22
 msgid "Kod muddati tugadi. Iltimos, qaytadan urinib koʻring."
 msgstr "Срок действия кода истёк. Попробуйте снова."
 
+#: .\user\validators.py:18 .\user\validators.py:24
 msgid "Parol 8 belgidan kam boʻlmasligi kerak."
 msgstr "Пароль должен содержать не менее 8 символов."
 
+#: .\user\views.py:71
 msgid "Xush kelibsiz!"
 msgstr "Добро пожаловать!"
 
+#: .\user\views.py:110
 msgid "Tasdiqlash kodi muddati tugadi. Iltimos, qaytadan roʻyxatdan oʻting."
 msgstr "Срок действия кода подтверждения истёк. Пожалуйста, зарегистрируйтесь заново."
 
+#: .\user\views.py:112
 msgid "Roʻyxatdan oʻtish bekor qilindi."
 msgstr "Регистрация отменена."
 
+#: .\user\views.py:146 .\user\views.py:340
 msgid "Kod notoʻgʻri."
 msgstr "Неверный код."
 
+#: .\user\views.py:151
 msgid "Telefon raqam tasdiqlandi."
 msgstr "Номер телефона подтверждён."
 
+#: .\user\views.py:180 .\user\views.py:362
 msgid "Iltimos biroz kuting."
 msgstr "Пожалуйста, подождите немного."
 
+#: .\user\views.py:184 .\user\views.py:374
 msgid "Yangi kod yuborildi."
 msgstr "Новый код отправлен."
 
-msgid "Maʻlumotlar yangilandi."
+#: .\user\views.py:243
+msgid "Maʼlumotlar yangilandi."
 msgstr "Данные обновлены."
 
+#: .\user\views.py:251
 msgid "Parol yangilandi."
 msgstr "Пароль обновлён."
 
+#: .\user\views.py:299
 msgid "Ushbu raqam roʻyxatdan oʻtmagan."
 msgstr "Этот номер не зарегистрирован."
 
+#: .\user\views.py:303
 msgid "Tasdiqlash kodi yuborildi."
 msgstr "Код подтверждения отправлен."
 
+#: .\user\views.py:337
 msgid "Juda koʻp urinish. Iltimos, qaytadan urinib koʻring."
 msgstr "Слишком много попыток. Пожалуйста, начните заново."
 
+#: .\user\views.py:409
 msgid "Parol yangilandi. Endi kirishingiz mumkin."
 msgstr "Пароль обновлён. Теперь вы можете войти."
-
-#~ msgid "Pochta boʻlimiga — 15 000 soʻm"
-#~ msgstr "До отделения почты — 15 000 сум"
-
-#~ msgid "Eshikkacha — 30 000 soʻm"
-#~ msgstr "До двери — 30 000 сум"
-
-#~ msgid "Viloyat, tuman, koʻcha, uy"
-#~ msgstr "Область, район, улица, дом"
