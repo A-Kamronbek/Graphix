@@ -25,6 +25,13 @@
   </form>
 
   <div class="nav__actions">
+    {# The language belongs where somebody looks for it — beside the account #}
+    {# and the cart, not at the bottom of a page they have to scroll to the #}
+    {# end of. Two-letter codes, because there is room for six characters #}
+    {# here and not for "Oʻzbekcha". On a phone it stays in the drawer: this #}
+    {# row already carries five controls at 390 px. #}
+    {% include "partials/_lang.html" with compact=1 %}
+
     <button type="button" class="nav__search-toggle" data-search-toggle
             aria-label="{% trans 'Qidirish' %}" aria-expanded="false">
       <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>

@@ -69,38 +69,11 @@
       </div>
     </div>
 
+    {# The language switcher used to live here. It is in the header now, where #}
+    {# somebody looks for it, and in the drawer on a phone — see #}
+    {# partials/_lang.html, which holds the one copy of it and the reasoning. #}
     <div class="foot__bot">
       <span>© {% now "Y" %} GRAPHIX. {% trans "Barcha huquqlar himoyalangan." %}</span>
-
-      {# Language switcher. POSTs to set_language, which redirects to the #}
-      {# translated version of the page the visitor was on rather than home. #}
-      {# Guarded on `languages` because Django renders 500.html with no context #}
-      {# at all - no request, no context processors - so on a real server error #}
-      {# this would otherwise be an empty box above a form with no CSRF token #}
-      {# and no `next`, which could not work even if a visitor clicked it. #}
-      {% if languages %}
-        {# One form per language, each posting the URL of THIS page in that #}
-        {# language — already worked out by the context processor, where the #}
-        {# active language still matches the path. #}
-        {# `set_language` cannot do that translation itself: /i18n/setlang/ #}
-        {# carries no language prefix, and with `prefix_default_language=False` #}
-        {# Django forces the default language on any unprefixed path, so the #}
-        {# view always runs in Uzbek and cannot resolve a /ru/ or /en/ path to #}
-        {# translate it. Posting one `next` for all three buttons is why every #}
-        {# switch after the first one silently did nothing (§17 #115). #}
-        <div class="lang">
-          {% for l in languages %}
-            <form action="{% url 'set_language' %}" method="post">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ l.url }}">
-              <input type="hidden" name="language" value="{{ l.code }}">
-              <button type="submit"
-                      aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}"
-                      {% if l.is_active %}aria-current="true"{% endif %}>{{ l.name }}</button>
-            </form>
-          {% endfor %}
-        </div>
-      {% endif %}
     </div>
   </div>
 </footer>

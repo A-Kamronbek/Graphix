@@ -35,25 +35,71 @@ def unique_slug(instance, source):
     return slug
 
 
+class TagKind(models.Model):
+    """The axis a tag sits on — style, theme, collection, or whatever comes next.
+
+    A table rather than ``TextChoices`` (§17, Phase 7 recheck). The three that
+    shipped are the ones the shop's filters were designed around, but the owner
+    writes the tags (§17 #71) and a taxonomy whose axes need a deploy is a
+    taxonomy that stops growing at three. ``Tag.kind`` protects these rows: an
+    axis that tags are using cannot be deleted out from under them.
+    """
+    slug = models.SlugField(max_length=30, unique=True)
+    name = models.CharField(max_length=60, help_text="Oʻzbekcha — asosiy matn")
+    name_ru = models.CharField(max_length=60, blank=True, default='')
+    name_en = models.CharField(max_length=60, blank=True, default='')
+    #: The order the shop's filter groups appear in. Ties break on slug.
+    order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['order', 'slug']
+        verbose_name = _('Teg turi')
+        verbose_name_plural = _('Teg turlari')
+
+
+class PrintMethod(models.Model):
+    """How a design is put on the garment — DTF, silkscreen, and so on.
+
+    A table for the same reason as :class:`TagKind`: it is a line in the spec
+    strip on the product page, and a shop that adds a technique should not need
+    a migration to say so.
+    """
+    slug = models.SlugField(max_length=30, unique=True)
+    name = models.CharField(max_length=60, help_text="Oʻzbekcha — asosiy matn")
+    name_ru = models.CharField(max_length=60, blank=True, default='')
+    name_en = models.CharField(max_length=60, blank=True, default='')
+    order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['order', 'slug']
+        verbose_name = _('Bosma usuli')
+        verbose_name_plural = _('Bosma usullari')
+
+
 class Tag(models.Model):
     """A style, theme or collection label.
 
     Tags — not categories — are what the Phase 13 recommender reads: every
     product is a t-shirt, so ``Category`` carries almost no signal (§17 #26).
     """
-    class Kind(models.TextChoices):
-        STYLE = 'style', _('Uslub')
-        THEME = 'theme', _('Mavzu')
-        COLLECTION = 'collection', _('Kolleksiya')
-
     slug = models.SlugField(max_length=60, unique=True)
     name = models.CharField(max_length=60, help_text="Oʻzbekcha — asosiy matn")
     name_ru = models.CharField(max_length=60, blank=True, default='')
     name_en = models.CharField(max_length=60, blank=True, default='')
-    kind = models.CharField(max_length=20, choices=Kind.choices, default=Kind.THEME, db_index=True)
+    # PROTECT, so removing an axis that tags are on fails loudly rather than
+    # quietly unfiling every tag under it. Nullable because a tag with no axis
+    # yet is a real state — it is one the owner has just typed.
+    kind = models.ForeignKey(TagKind, on_delete=models.PROTECT, null=True,
+                             blank=True, related_name='tags')
 
     def __str__(self):
-        return f"{self.get_kind_display()}: {self.name}"
+        return f"{self.kind.name if self.kind_id else '—'}: {self.name}"
 
     class Meta:
         ordering = ['kind', 'slug']
@@ -111,12 +157,6 @@ class Category(models.Model):
 class Product(models.Model):
     """A catalog product; its sizes, colours, and prices live on related Variants."""
 
-    class PrintMethod(models.TextChoices):
-        DTF = 'dtf', 'DTF'
-        DTG = 'dtg', 'DTG'
-        SILKSCREEN = 'silkscreen', _('Trafaret')
-        EMBROIDERY = 'embroidery', _('Naqsh')
-
     class Fit(models.TextChoices):
         # Two fits only, confirmed by the owner. `boxy` shipped in Phase 4 from
         # the tag examples in plan §7 and was never used; migration 0014 folds
@@ -153,7 +193,14 @@ class Product(models.Model):
                                 help_text="Oʻzbekcha — asosiy matn, masalan: 100% paxta")
     material_ru = models.CharField(max_length=60, blank=True, default='')
     material_en = models.CharField(max_length=60, blank=True, default='')
-    print_method = models.CharField(max_length=20, choices=PrintMethod.choices, blank=True, default='')
+    # PROTECT: a technique a product is marked with cannot be deleted out from
+    # under it. Nullable, because "not stated" is a real answer for a design
+    # somebody else printed.
+    print_method = models.ForeignKey(PrintMethod, on_delete=models.PROTECT,
+                                     null=True, blank=True, related_name='products')
+    # Still choices, and deliberately: the catalogue has exactly two cuts, a
+    # chart finds its products through this field, and adding a third is a
+    # decision rather than a default (§17 #70).
     fit = models.CharField(max_length=20, choices=Fit.choices, blank=True, default='')
 
     def __str__(self):

@@ -25,22 +25,11 @@
     <li><a href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a></li>
   </ul>
 
-  {# One form per language, each carrying the URL of this page in that #}
-  {# language. The footer's copy of this control carries the full reasoning; #}
-  {# the short version is that `set_language` cannot translate the path itself #}
-  {# when Uzbek is unprefixed, so the page has to do it (§17 #115). #}
+  {# The switcher a phone actually uses: the header's copy is hidden below the #}
+  {# desktop breakpoint, because that row already carries five controls at #}
+  {# 390 px. Full names here, where there is room for them. #}
   <div class="drawer__lang">
     <span class="label">{% trans "Til" %}</span>
-    <div class="lang">
-      {% for l in languages %}
-        <form action="{% url 'set_language' %}" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ l.url }}">
-          <input type="hidden" name="language" value="{{ l.code }}">
-          <button type="submit"
-                  aria-pressed="{% if l.is_active %}true{% else %}false{% endif %}">{{ l.name }}</button>
-        </form>
-      {% endfor %}
-    </div>
+    {% include "partials/_lang.html" %}
   </div>
 </nav>

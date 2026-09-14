@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}
+  One row of a small lookup table — a category, a tag kind, a print method.
+
+  All three are the same shape: a name in three languages, sometimes a sort
+  order, and a delete button. One partial rather than three copies, because
+  three copies is three places for them to drift apart.
+
+  `kind` is the key in `panel/reference.py`'s allowlist, which is what decides
+  that this row can be written at all.
+{% endcomment %}
+<div class="row--fields" data-ref="{{ kind }}" data-id="{{ row.pk }}"
+     data-ref-url="{% url 'panel_reference_inline' kind=kind pk=row.pk %}">
+  {% if ordered %}
+    <label class="field field--tiny">
+      <span class="label">{% trans "Tartib" %}</span>
+      <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+             value="{{ row.order }}" data-ref-field="order">
+    </label>
+  {% endif %}
+  <label class="field">
+    <span class="label">{% trans "Nomi" %} (uz)</span>
+    <input class="input" type="text" value="{{ row.name }}" maxlength="60" data-ref-field="name">
+  </label>
+  <label class="field">
+    <span class="label">{% trans "Nomi" %} (ru)</span>
+    <input class="input" type="text" value="{{ row.name_ru }}" maxlength="60" data-ref-field="name_ru">
+  </label>
+  <label class="field">
+    <span class="label">{% trans "Nomi" %} (en)</span>
+    <input class="input" type="text" value="{{ row.name_en }}" maxlength="60" data-ref-field="name_en">
+  </label>
+  <button type="button" class="btn btn--ghost btn--sm ref__x"
+          data-ref-delete="{% url 'panel_reference_delete' kind=kind pk=row.pk %}"
+          data-ref-name="{{ row.name }}">
+    <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+    <span class="sr-only">{% trans "Oʻchirish" %}</span>
+  </button>
+</div>

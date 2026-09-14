@@ -27,7 +27,11 @@
 
     {% for chart in charts %}
       <section class="stack">
-        <h2 class="h3">{{ chart.name }}</h2>
+        {# Only when there is one. A chart whose name was cleared put an empty #}
+        {# heading on this page — the panel refuses that now, but the Django #}
+        {# admin can still write one and a heading with nothing in it is worse #}
+        {# than no heading at all. #}
+        {% if chart.name %}<h2 class="h3">{{ chart.name }}</h2>{% endif %}
         {% if chart.image %}
           <img class="sizeguide__img" src="{{ chart.image.url }}" alt="{{ chart.name }}"
                loading="lazy" decoding="async">

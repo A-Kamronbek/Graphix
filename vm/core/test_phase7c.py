@@ -12,7 +12,7 @@ from django.urls import reverse
 from core.models import Msg
 from payment.models import DeliveryOption, District, Region
 from product import services as product_services
-from product.models import Product, Review, SizeChart, Tag
+from product.models import Product, Review, SizeChart, Tag, TagKind
 
 from .test_phase4 import make_product
 from .test_phase6 import make_user
@@ -215,11 +215,13 @@ class ReferenceTests(TestCase):
                          ('Uz', 'Ru', 'En'))
 
     def test_a_new_tag_gets_a_slug_without_anyone_typing_one(self):
+        # The kind is a row now, so the form posts its id rather than a slug.
+        collection = TagKind.objects.get(slug='collection')
         self.client.post(reverse('panel_tag_new'),
-                         {'name': 'Yangi Kolleksiya', 'kind': 'collection'})
+                         {'name': 'Yangi Kolleksiya', 'kind': collection.pk})
         tag = Tag.objects.get(name='Yangi Kolleksiya')
         self.assertEqual(tag.slug, 'yangi-kolleksiya')
-        self.assertEqual(tag.kind, 'collection')
+        self.assertEqual(tag.kind, collection)
 
     def test_two_tags_with_the_same_name_get_different_slugs(self):
         self.client.post(reverse('panel_tag_new'), {'name': 'Takror'})

@@ -28,4 +28,6 @@ def panel_strings():
         'badType': _('“{name}” — qoʻllab-quvvatlanmaydigan tur.'),
         'tooManyPixels': _('“{name}” — rasm oʻlchami juda katta.'),
         'notAnImage': _('“{name}” — rasm sifatida oʻqib boʻlmadi.'),
+        'confirmDelete': _('“{name}” oʻchirilsinmi?'),
+        'noFile': _('Tanlanmagan'),
     }

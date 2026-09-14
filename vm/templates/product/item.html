@@ -213,7 +213,7 @@
             <div class="spec__row"><dt>{% trans "Zichlik" %}</dt><dd class="num">{{ product.gsm }} g/m²</dd></div>
           {% endif %}
           {% if product.print_method %}
-            <div class="spec__row"><dt>{% trans "Bosma" %}</dt><dd>{{ product.get_print_method_display }}</dd></div>
+            <div class="spec__row"><dt>{% trans "Bosma" %}</dt><dd>{{ product.print_method|t:"name" }}</dd></div>
           {% endif %}
           {% if product.fit %}
             <div class="spec__row"><dt>{% trans "Qolip" %}</dt><dd>{{ product.get_fit_display }}</dd></div>

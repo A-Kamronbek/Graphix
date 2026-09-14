@@ -56,9 +56,17 @@
         <span class="small muted" data-mod-rating>
           {% blocktrans with avg=review.product.rating_avg n=review.product.review_count %}{{ avg }} — {{ n }} ta{% endblocktrans %}
         </span>
+        {# Only the decision that would change something. An approved review #}
+        {# offering "Approve" is a button that does nothing, and a screen full #}
+        {# of buttons that do nothing is a screen nobody reads. #}
+        {# Both are rendered and one is hidden, rather than one being left out: #}
+        {# a decision made here changes which of them applies, and the script #}
+        {# swaps them without a reload. #}
         <div class="mod__actions">
-          <button class="btn btn--secondary btn--sm" type="button" data-mod="rejected">{% trans "Rad etish" %}</button>
-          <button class="btn btn--primary btn--sm" type="button" data-mod="approved">{% trans "Tasdiqlash" %}</button>
+          <button class="btn btn--secondary btn--sm" type="button" data-mod="rejected"
+                  {% if review.status == 'rejected' %}hidden{% endif %}>{% trans "Rad etish" %}</button>
+          <button class="btn btn--primary btn--sm" type="button" data-mod="approved"
+                  {% if review.status == 'approved' %}hidden{% endif %}>{% trans "Tasdiqlash" %}</button>
         </div>
       </div>
     </article>

@@ -297,11 +297,11 @@ class TagSeedTests(TestCase):
     def test_the_plan_tags_exist_with_their_kinds(self):
         from product.models import Tag
         self.assertEqual(
-            set(Tag.objects.filter(kind='style').values_list('slug', flat=True)),
+            set(Tag.objects.filter(kind__slug='style').values_list('slug', flat=True)),
             {'oversize', 'boxy'},
         )
         self.assertEqual(
-            set(Tag.objects.filter(kind='theme').values_list('slug', flat=True)),
+            set(Tag.objects.filter(kind__slug='theme').values_list('slug', flat=True)),
             {'anime', 'streetwear', 'music', 'sport', 'minimal', 'vintage'},
         )
 

@@ -25,8 +25,8 @@ from django.db.models import ProtectedError
 from django.utils.translation import gettext_lazy as _
 
 from product import images as image_pipeline
-from product.models import (Category, ImageP, Product, Size, SizeChart, Tag,
-                            Variant, default_colour)
+from product.models import (Category, ImageP, PrintMethod, Product, Size,
+                            SizeChart, Tag, Variant, default_colour)
 
 #: Photographs per product. The storefront's gallery is built around four —
 #: which is what the Definition of Done asks to be creatable in one sitting —
@@ -61,11 +61,34 @@ def price_of(raw):
 
 
 def _int(raw, default=0):
-    """Read a whole number out of the form. Never negative, never raises."""
+    """Read a whole number out of the form. Never negative, never raises.
+
+    For the fields where a wrong number is only a wrong number — the GSM box,
+    an image id. The grid's stock boxes do NOT use this; see :func:`_count`.
+    """
     try:
         return max(0, int(str(raw).strip() or default))
     except (TypeError, ValueError):
         return default
+
+
+def _count(raw, field):
+    """Read a stock count, refusing anything that is not one.
+
+    ``_int`` turns "sa" into 0, which is the worst answer available: the size
+    goes out of stock, the storefront stops selling it, and nothing on the
+    screen says why. A count somebody mistyped is a question, not a zero.
+    """
+    # A missing box is not a wrong one: a size priced with nothing typed in its
+    # stock box has a stock of zero, which is what "none left yet" means.
+    if raw is None:
+        return 0
+    value = str(raw).strip()
+    if not value:
+        return 0
+    if not value.isdigit():
+        raise Refused(_('“%(field)s” uchun notoʻgʻri zaxira.') % {'field': field})
+    return int(value)
 
 
 def _text(data, name, label):
@@ -119,8 +142,9 @@ def save_product(data, product=None):
     product.material_ru = _text(data, 'material_ru', _('Mato'))
     product.material_en = _text(data, 'material_en', _('Mato'))
 
-    method = (data.get('print_method') or '').strip()
-    product.print_method = method if method in Product.PrintMethod.values else ''
+    method_id = (data.get('print_method') or '').strip()
+    product.print_method = (PrintMethod.objects.filter(pk=method_id).first()
+                            if method_id.isdigit() else None)
     fit = (data.get('fit') or '').strip()
     product.fit = fit if fit in Product.Fit.values else ''
 
@@ -155,7 +179,7 @@ def save_grid(product, data):
         if not raw_price:
             continue
         price = _decimal(raw_price, size.size)
-        stock = _int(data.get('stock_%s' % size.pk))
+        stock = _count(data.get('stock_%s' % size.pk), size.size)
         available = bool(data.get('available_%s' % size.pk))
 
         variant, _created = Variant.objects.update_or_create(

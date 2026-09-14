@@ -1,5 +1,5 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n %}
+{% load i18n i18n_fields %}
 {% block title %}{% if product %}{{ product.name }}{% else %}{% trans "Yangi mahsulot" %}{% endif %}{% endblock %}
 
 {% comment %}
@@ -10,6 +10,10 @@
   with the gallery and the grid waiting — which is also what makes the DoD's
   "in one sitting on a phone" true: the text goes in, it saves, and the
   photographs go on afterwards without anything being lost.
+
+  Every box is filled from `form`, which is the saved row normally and what was
+  typed when a save was refused. A refusal that cleared this screen would cost
+  somebody ten minutes of typing over one mistyped price.
 
   Colour is nowhere on this page. Every design ships in one colourway, the
   storefront renders no picker (§17 #23), and the owner should never have to
@@ -27,7 +31,7 @@
 <div class="row row--between pnl__head">
   <h1 class="pnl__title">{% if product %}{{ product.name }}{% else %}{% trans "Yangi mahsulot" %}{% endif %}</h1>
   {% if product %}
-    <a class="link small" href="{{ product.get_absolute_url }}" target="_blank" rel="noopener">{% trans "Saytda koʻrish" %}</a>
+    <a class="link small tap" href="{{ product.get_absolute_url }}" target="_blank" rel="noopener">{% trans "Saytda koʻrish" %}</a>
   {% endif %}
 </div>
 
@@ -71,29 +75,29 @@
     <div class="field">
       <label class="label" for="p-name">{% trans "Nomi" %} (uz)</label>
       <input class="input" type="text" name="name" id="p-name" required maxlength="255"
-             value="{{ product.name|default:'' }}">
+             value="{{ form.name|default:'' }}">
     </div>
     <div class="field">
       <label class="label" for="p-name-ru">{% trans "Nomi" %} (ru)</label>
       <input class="input" type="text" name="name_ru" id="p-name-ru" maxlength="255"
-             value="{{ product.name_ru|default:'' }}">
+             value="{{ form.name_ru|default:'' }}">
     </div>
     <div class="field">
       <label class="label" for="p-name-en">{% trans "Nomi" %} (en)</label>
       <input class="input" type="text" name="name_en" id="p-name-en" maxlength="255"
-             value="{{ product.name_en|default:'' }}">
+             value="{{ form.name_en|default:'' }}">
     </div>
     <div class="field">
       <label class="label" for="p-desc">{% trans "Tavsifi" %} (uz)</label>
-      <textarea class="textarea" name="description" id="p-desc" rows="4">{{ product.description|default:'' }}</textarea>
+      <textarea class="textarea" name="description" id="p-desc" rows="4">{{ form.description|default:'' }}</textarea>
     </div>
     <div class="field">
       <label class="label" for="p-desc-ru">{% trans "Tavsifi" %} (ru)</label>
-      <textarea class="textarea" name="description_ru" id="p-desc-ru" rows="4">{{ product.description_ru|default:'' }}</textarea>
+      <textarea class="textarea" name="description_ru" id="p-desc-ru" rows="4">{{ form.description_ru|default:'' }}</textarea>
     </div>
     <div class="field">
       <label class="label" for="p-desc-en">{% trans "Tavsifi" %} (en)</label>
-      <textarea class="textarea" name="description_en" id="p-desc-en" rows="4">{{ product.description_en|default:'' }}</textarea>
+      <textarea class="textarea" name="description_en" id="p-desc-en" rows="4">{{ form.description_en|default:'' }}</textarea>
     </div>
   </section>
 
@@ -104,45 +108,47 @@
       <select class="select" name="category" id="p-cat">
         <option value="">—</option>
         {% for category in categories %}
-          <option value="{{ category.pk }}" {% if product.category_id == category.pk %}selected{% endif %}>{{ category.name }}</option>
+          <option value="{{ category.pk }}" {% if form.category|stringformat:"s" == category.pk|stringformat:"s" %}selected{% endif %}>{{ category|t:"name" }}</option>
         {% endfor %}
       </select>
+      <p class="field__hint">{% trans "Yangi turkum — Sozlamalar sahifasida." %}</p>
     </div>
     <div class="field">
       <label class="label" for="p-gsm">{% trans "Zichligi (g/m²)" %}</label>
-      <input class="input num" type="text" inputmode="numeric" name="gsm" id="p-gsm"
-             value="{{ product.gsm|default_if_none:'' }}">
+      <input class="input num" type="number" inputmode="numeric" min="0" max="999" step="1"
+             name="gsm" id="p-gsm" value="{{ form.gsm|default:'' }}">
     </div>
     <div class="field">
       <label class="label" for="p-mat">{% trans "Mato" %} (uz)</label>
       <input class="input" type="text" name="material" id="p-mat" maxlength="60"
-             placeholder="100% paxta" value="{{ product.material|default:'' }}">
+             placeholder="100% paxta" value="{{ form.material|default:'' }}">
     </div>
     <div class="field">
       <label class="label" for="p-mat-ru">{% trans "Mato" %} (ru)</label>
       <input class="input" type="text" name="material_ru" id="p-mat-ru" maxlength="60"
-             value="{{ product.material_ru|default:'' }}">
+             value="{{ form.material_ru|default:'' }}">
     </div>
     <div class="field">
       <label class="label" for="p-mat-en">{% trans "Mato" %} (en)</label>
       <input class="input" type="text" name="material_en" id="p-mat-en" maxlength="60"
-             value="{{ product.material_en|default:'' }}">
+             value="{{ form.material_en|default:'' }}">
     </div>
     <div class="field">
       <label class="label" for="p-print">{% trans "Bosma usuli" %}</label>
       <select class="select" name="print_method" id="p-print">
         <option value="">—</option>
-        {% for value, label in print_methods %}
-          <option value="{{ value }}" {% if product.print_method == value %}selected{% endif %}>{{ label }}</option>
+        {% for method in print_methods %}
+          <option value="{{ method.pk }}" {% if form.print_method|stringformat:"s" == method.pk|stringformat:"s" %}selected{% endif %}>{{ method|t:"name" }}</option>
         {% endfor %}
       </select>
+      <p class="field__hint">{% trans "Yangi usul — Sozlamalar sahifasida." %}</p>
     </div>
     <div class="field">
       <label class="label" for="p-fit">{% trans "Qolipi" %}</label>
       <select class="select" name="fit" id="p-fit">
         <option value="">—</option>
         {% for value, label in fits %}
-          <option value="{{ value }}" {% if product.fit == value %}selected{% endif %}>{{ label }}</option>
+          <option value="{{ value }}" {% if form.fit == value %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
     </div>
@@ -151,25 +157,43 @@
       <select class="select" name="size_chart" id="p-chart">
         <option value="">{% trans "Qolipga qarab avtomatik" %}</option>
         {% for chart in charts %}
-          <option value="{{ chart.pk }}" {% if product.size_chart_id == chart.pk %}selected{% endif %}>{{ chart.name }}</option>
+          <option value="{{ chart.pk }}" {% if form.size_chart|stringformat:"s" == chart.pk|stringformat:"s" %}selected{% endif %}>{{ chart.name }}</option>
         {% endfor %}
       </select>
     </div>
   </section>
 
-  <section class="panel-card stack">
+  <section class="panel-card stack" data-chips>
     <h2>{% trans "Teglar" %}</h2>
     {# Tags, not categories, are what the Phase 13 recommender reads (§17 #26), #}
     {# which is why they are a visible block rather than a field at the bottom. #}
-    <div class="chips">
-      {% for tag in tags %}
-        <label class="chip">
-          <input type="checkbox" name="tags" value="{{ tag.pk }}"
-                 {% if tag.pk in chosen_tags %}checked{% endif %}>
-          <span>{{ tag.name }}</span>
-        </label>
-      {% endfor %}
-    </div>
+    {# Grouped under their axis and filtered by a search box: a flat list is #}
+    {# readable at eight tags and unreadable at forty. #}
+    <label class="search search--sm">
+      <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+      <span class="sr-only">{% trans "Teg qidirish" %}</span>
+      <input type="search" autocomplete="off" data-chip-filter
+             placeholder="{% trans 'Teg qidirish' %}">
+    </label>
+    {% for kind, tags in tag_groups %}
+      {% if tags %}
+        <div class="chips__group" data-chip-group>
+          <span class="label">{% if kind %}{{ kind|t:"name" }}{% else %}{% trans "Turi koʻrsatilmagan" %}{% endif %}</span>
+          <div class="chips">
+            {% for tag in tags %}
+              <label class="chip" data-chip="{{ tag.name }} {{ tag.name_ru }} {{ tag.name_en }}">
+                <input type="checkbox" name="tags" value="{{ tag.pk }}"
+                       {% if tag.pk in chosen_tags %}checked{% endif %}>
+                <span>{{ tag|t:"name" }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% empty %}
+      <p class="muted small">{% trans "Hali teg yoʻq — Sozlamalar sahifasida qoʻshing." %}</p>
+    {% endfor %}
+    <p class="muted small" data-chip-empty hidden>{% trans "Mos teg topilmadi." %}</p>
   </section>
 
   <section class="panel-card stack">
@@ -185,19 +209,22 @@
         </tr>
       </thead>
       <tbody>
+        {# `type="number"`: these are counts and sums, and a box that accepts #}
+        {# "wqe" is a box that refuses the save afterwards — or worse, used to #}
+        {# read the stock as zero and take the size off sale. #}
         {% for row in grid %}
           <tr>
             <th scope="row">{{ row.size.size }}</th>
-            <td><input class="input num" type="text" inputmode="numeric"
+            <td><input class="input num" type="number" inputmode="numeric" min="0" step="1"
                        name="price_{{ row.size.pk }}"
-                       value="{{ row.variant.price|default_if_none:''|floatformat:"0" }}"
+                       value="{{ row.price|default_if_none:'' }}"
                        aria-label="{% blocktrans with size=row.size.size %}{{ size }} narxi{% endblocktrans %}"></td>
-            <td><input class="input num" type="text" inputmode="numeric"
+            <td><input class="input num" type="number" inputmode="numeric" min="0" step="1"
                        name="stock_{{ row.size.pk }}"
-                       value="{{ row.variant.stock|default_if_none:'' }}"
+                       value="{{ row.stock|default_if_none:'' }}"
                        aria-label="{% blocktrans with size=row.size.size %}{{ size }} zaxirasi{% endblocktrans %}"></td>
             <td><input type="checkbox" name="available_{{ row.size.pk }}"
-                       {% if row.variant.available %}checked{% endif %}
+                       {% if row.available %}checked{% endif %}
                        aria-label="{% blocktrans with size=row.size.size %}{{ size }} sotuvda{% endblocktrans %}"></td>
           </tr>
         {% endfor %}
@@ -207,7 +234,7 @@
 
   <div class="row row--between">
     <label class="switch">
-      <input type="checkbox" name="is_active" {% if product.is_active or not product %}checked{% endif %}>
+      <input type="checkbox" name="is_active" {% if form.is_active %}checked{% endif %}>
       <span>{% trans "Sotuvda" %}</span>
     </label>
     <button class="btn btn--primary" type="submit">{% trans "Saqlash" %}</button>

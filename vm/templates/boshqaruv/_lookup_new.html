@@ -1,0 +1,37 @@
+{% load i18n %}
+{% comment %}
+  The create form for a small lookup table. Same three tables, same shape, one
+  endpoint — `kind` is matched against an allowlist in the view, so this cannot
+  reach a fourth table however it is posted.
+
+  Labelled rather than placeholdered: a placeholder disappears the moment
+  somebody types, so a row of them is a row nobody can check before pressing
+  the button.
+{% endcomment %}
+<form class="panel-card stack stack--sm" method="post"
+      action="{% url 'panel_lookup_new' kind=kind %}">
+  {% csrf_token %}
+  <h3 class="label">{{ legend }}</h3>
+  <div class="row--fields">
+    {% if ordered %}
+      <label class="field field--tiny">
+        <span class="label">{% trans "Tartib" %}</span>
+        <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+               name="order" value="0">
+      </label>
+    {% endif %}
+    <label class="field">
+      <span class="label">{% trans "Nomi" %} (uz)</span>
+      <input class="input" type="text" name="name" required maxlength="60">
+    </label>
+    <label class="field">
+      <span class="label">{% trans "Nomi" %} (ru)</span>
+      <input class="input" type="text" name="name_ru" maxlength="60">
+    </label>
+    <label class="field">
+      <span class="label">{% trans "Nomi" %} (en)</span>
+      <input class="input" type="text" name="name_en" maxlength="60">
+    </label>
+    <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
+  </div>
+</form>
