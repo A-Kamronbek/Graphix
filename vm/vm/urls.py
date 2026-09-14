@@ -57,6 +57,9 @@ urlpatterns += i18n_patterns(
     path('', include('product.urls')),
     path('cart/', include('cart.urls')),
     path('', include('payment.urls')),
+    # The staff panel. Prefixed like every other page a person reads; nothing
+    # under it is called by a machine.
+    path('', include('panel.urls')),
     # Uzbek is prefixed too (§17 #121). Stated explicitly rather than left to
     # the default, because this line is the whole URL shape of the site and the
     # next person should not have to know what Django's default is.

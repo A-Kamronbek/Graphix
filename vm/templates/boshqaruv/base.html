@@ -1,0 +1,76 @@
+{% load static i18n %}<!doctype html>
+{# The staff panel's shell. #}
+{# #}
+{# Standalone rather than extending the storefront's base.html, and the reason #}
+{# is the header: base.html's nav is a shop window — search, cart, saved items, #}
+{# a language switcher — and none of that belongs on a screen whose job is to #}
+{# pack parcels. What IS shared is the thing that matters: the same tokens, the #}
+{# same base and the same components, so the panel cannot drift into looking #}
+{# like a different product (§9 Phase 7 DoD). `panel.css` holds only the #}
+{# panel's own layout. #}
+{# #}
+{# noindex on every page: the panel is behind a guard, but a staff member #}
+{# pasting a link into a chat should not be able to put it in an index either. #}
+<html lang="{{ LANGUAGE_CODE|default:'uz' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#100E0C">
+  <title>{% block title %}{% trans "Boshqaruv" %}{% endblock %} — GRAPHIX</title>
+
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{% static 'fonts/playfair-display-var.woff2' %}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{% static 'fonts/onest-var.woff2' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="pnl">
+  <a class="skip" href="#main">{% trans "Asosiy qismga oʻtish" %}</a>
+
+  {# The storefront's sprite, not a copy of it: one definition of every icon #}
+  {# on the project, so a redrawn icon changes here too (§9 Phase 2 item 9). #}
+  {% include "partials/_icons.svg.html" %}
+
+  <header class="pnl__bar">
+    <a class="pnl__brand" href="{% url 'panel_dashboard' %}">
+      <svg class="i i--lg" aria-hidden="true"><use href="#i-mark"></use></svg>
+      <span>{% trans "Boshqaruv" %}</span>
+    </a>
+    <div class="pnl__who">
+      <span class="small muted">{{ request.user.first_name|default:request.user.username }}</span>
+      <a class="link small" href="{% url 'home' %}">{% trans "Saytga" %}</a>
+    </div>
+  </header>
+
+  {# The whole panel is four screens, so the navigation is four links and a #}
+  {# horizontal scroll on a phone rather than a drawer nobody would open. #}
+  <nav class="pnl__nav" aria-label="{% trans 'Boshqaruv menyusi' %}">
+    <a href="{% url 'panel_dashboard' %}"
+       {% if screen == 'dashboard' %}aria-current="page"{% endif %}>{% trans "Bugun" %}</a>
+    <a href="{% url 'panel_orders' %}"
+       {% if screen == 'orders' %}aria-current="page"{% endif %}>{% trans "Buyurtmalar" %}</a>
+    <a href="{% url 'admin:index' %}">{% trans "Django admin" %}</a>
+    <a href="{% url 'style_guide' %}">{% trans "Dizayn tizimi" %}</a>
+  </nav>
+
+  <main id="main" class="pnl__main">
+    {% if messages %}
+      <div class="stack stack--sm pnl__msgs">
+        {% for message in messages %}
+          <p class="msg {% if message.tags == 'error' %}msg--warn{% else %}msg--ok{% endif %}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{% static 'js/panel.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

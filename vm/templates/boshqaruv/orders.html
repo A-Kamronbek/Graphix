@@ -1,0 +1,71 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Buyurtmalar" %}{% endblock %}
+
+{% comment %}
+  The list. The filters are a GET form on purpose: a filtered list is then a
+  URL, so "everything to pack" can be a bookmark and "this customer's orders"
+  can be pasted into a message. Kept in a session it would be neither.
+{% endcomment %}
+
+{% block content %}
+<h1 class="pnl__title">{% trans "Buyurtmalar" %}</h1>
+
+<form class="pnl__filter" method="get" action="{% url 'panel_orders' %}">
+  <label class="search">
+    <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+    <span class="sr-only">{% trans "Qidirish" %}</span>
+    <input type="search" name="q" value="{{ filters.q }}"
+           placeholder="{% trans 'Raqam, telefon yoki mijoz' %}" autocomplete="off">
+  </label>
+
+  <div class="row">
+    <label class="sr-only" for="f-status">{% trans "Holat" %}</label>
+    <select class="select" name="status" id="f-status">
+      <option value="">{% trans "Barcha holatlar" %}</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <label class="sr-only" for="f-method">{% trans "Toʻlov" %}</label>
+    <select class="select" name="method" id="f-method">
+      <option value="">{% trans "Barcha toʻlovlar" %}</option>
+      {% for value, label in methods %}
+        <option value="{{ value }}" {% if filters.method == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <label class="sr-only" for="f-tier">{% trans "Yetkazib berish" %}</label>
+    <select class="select" name="tier" id="f-tier">
+      <option value="">{% trans "Barcha usullar" %}</option>
+      {% for tier in tiers %}
+        <option value="{{ tier.pk }}" {% if filters.tier == tier.pk|stringformat:"s" %}selected{% endif %}>{{ tier.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="row">
+    <label class="sr-only" for="f-since">{% trans "Sanadan" %}</label>
+    <input class="input" type="date" name="since" id="f-since" value="{{ filters.since }}">
+    <label class="sr-only" for="f-until">{% trans "Sanagacha" %}</label>
+    <input class="input" type="date" name="until" id="f-until" value="{{ filters.until }}">
+    <button class="btn btn--primary" type="submit">{% trans "Filtrlash" %}</button>
+    <a class="btn btn--ghost" href="{% url 'panel_orders' %}">{% trans "Tozalash" %}</a>
+  </div>
+</form>
+
+<p class="small muted">{% blocktrans count n=total %}{{ n }} ta buyurtma{% plural %}{{ n }} ta buyurtma{% endblocktrans %}</p>
+
+<div class="pnl__section">
+  {% for order in orders %}
+    {% include "boshqaruv/_order_row.html" %}
+  {% empty %}
+    <p class="muted">{% trans "Bu shartlarga mos buyurtma yoʻq." %}</p>
+  {% endfor %}
+</div>
+
+{# The shop's pager, not a second one: it already keeps the current filters #}
+{# and numbers the pages, and two pagers on a project drift apart. #}
+{% include "product/_pager.html" with page_obj=orders base_query=base_query %}
+{% endblock %}

@@ -1,0 +1,122 @@
+/* GRAPHIX staff panel — layout only.
+ *
+ * Everything visual comes from tokens.css and components.css: the panel uses
+ * the storefront's buttons, badges, inputs, tables and cards unchanged, so it
+ * cannot drift into looking like a second product (§9 Phase 7 DoD). What lives
+ * here is the panel's own frame — a bar, a row of tabs, a content column, and
+ * the two arrangements the screens need: a grid of numbers and a list of
+ * orders that becomes a table on a wide screen.
+ *
+ * Mobile-first, and 390 px is the design surface (§8): the owner does this job
+ * standing up, on a phone, with one hand.
+ */
+
+.pnl { min-height: 100dvh; background: var(--c-bg); }
+
+/* ------------------------------------------------------------------- bar */
+.pnl__bar { position: sticky; top: 0; z-index: var(--z-sticky);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-4); min-height: var(--nav-h);
+  padding: var(--s-3) var(--pad-x);
+  border-bottom: 1px solid var(--c-line);
+  background: color-mix(in srgb, var(--c-bg) 94%, transparent);
+  backdrop-filter: blur(8px); }
+.pnl__brand { display: flex; align-items: center; gap: var(--s-2); min-height: 44px; }
+.pnl__brand span { font-family: var(--f-display); font-weight: var(--fw-bold);
+  font-size: var(--fs-lg); letter-spacing: .08em; }
+.pnl__who { display: flex; align-items: center; gap: var(--s-4); }
+
+/* ------------------------------------------------------------------- nav */
+/* A scrolling row rather than a drawer: four links do not earn a drawer, and a
+   tab you can see is a tab you will use. */
+.pnl__nav { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none;
+  padding: var(--s-2) var(--pad-x); border-bottom: 1px solid var(--c-line); }
+.pnl__nav::-webkit-scrollbar { display: none; }
+.pnl__nav a { flex: none; display: inline-flex; align-items: center; min-height: 44px;
+  padding: 0 var(--s-4); border-radius: var(--r-full);
+  color: var(--c-fg-muted); font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+  white-space: nowrap; transition: color var(--t-fast), background var(--t-fast); }
+.pnl__nav a:hover { color: var(--c-fg); }
+.pnl__nav a[aria-current="page"] { background: var(--c-surface-2); color: var(--c-fg); }
+
+/* ------------------------------------------------------------------ main */
+.pnl__main { padding: var(--s-5) var(--pad-x) var(--s-10);
+  max-width: var(--container); margin-inline: auto; }
+.pnl__msgs { margin-bottom: var(--s-5); }
+.pnl__title { font-family: var(--f-display); font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold); margin-bottom: var(--s-5); }
+/* A title with a badge beside it: they line up on their baselines, not on
+   their boxes, or the badge floats above a 32 px display face. */
+.pnl__head { align-items: baseline; margin-bottom: var(--s-5); }
+.pnl__head .pnl__title { margin-bottom: 0; }
+
+/* --------------------------------------------------------------- numbers */
+/* Two columns on a phone, because one number per screen-width makes the
+   dashboard a scroll and the point of it is to be read at a glance. */
+.pnl__stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3); }
+.stat { display: block; padding: var(--s-4); border-radius: var(--r-md);
+  background: var(--c-surface); border: 1px solid var(--c-line);
+  transition: border-color var(--t-fast); }
+a.stat:hover { border-color: var(--c-fg-subtle); }
+.stat__n { font-family: var(--f-display); font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold); line-height: 1; font-variant-numeric: tabular-nums; }
+.stat__n--brand { color: var(--c-brand); }
+.stat__label { display: block; margin-top: var(--s-2);
+  color: var(--c-fg-muted); font-size: var(--fs-sm); }
+/* A count that needs doing reads differently from a count that is just true. */
+.stat--todo { border-color: color-mix(in srgb, var(--c-brand) 45%, var(--c-line)); }
+.pnl__section { margin-top: var(--s-7); }
+.pnl__section > h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold);
+  margin-bottom: var(--s-4); }
+
+/* ---------------------------------------------------------------- orders */
+/* One card per order on a phone; the same markup becomes a table from 900 px,
+   because a 40-row list is read as a table on a laptop and as cards in a hand. */
+.ord { display: grid; gap: var(--s-3); padding: var(--s-4);
+  border-radius: var(--r-md); background: var(--c-surface);
+  border: 1px solid var(--c-line); }
+.ord + .ord { margin-top: var(--s-3); }
+.ord__hd { display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-3); flex-wrap: wrap; }
+.ord__no { font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
+.ord__when { color: var(--c-fg-hint); font-size: var(--fs-sm); }
+.ord__body { display: grid; gap: var(--s-1); color: var(--c-fg-muted);
+  font-size: var(--fs-sm); }
+.ord__body strong { color: var(--c-fg); font-weight: var(--fw-semibold); }
+.ord__foot { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+.ord__foot .select { min-height: 44px; width: auto; flex: 1 1 180px; }
+
+/* ---------------------------------------------------------------- filter */
+.pnl__filter { display: grid; gap: var(--s-3); margin-bottom: var(--s-5); }
+.pnl__filter .row { display: flex; gap: var(--s-3); flex-wrap: wrap; }
+.pnl__filter .select, .pnl__filter .input { flex: 1 1 160px; width: auto; }
+
+/* ------------------------------------------------------------------ detail */
+.pnl__cols { display: grid; gap: var(--s-5); }
+.panel-card { padding: var(--s-5); border-radius: var(--r-md);
+  background: var(--c-surface); border: 1px solid var(--c-line); }
+.panel-card > h2 { font-size: var(--fs-base); font-weight: var(--fw-semibold);
+  margin-bottom: var(--s-4); }
+/* A definition list is what an order's facts are; the label column sizes to
+   its longest label and the value takes the rest. */
+.facts { display: grid; grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-2) var(--s-4); font-size: var(--fs-sm); }
+.facts dt { color: var(--c-fg-muted); }
+.facts dd { color: var(--c-fg); overflow-wrap: anywhere; }
+.trail { display: grid; gap: var(--s-3); font-size: var(--fs-sm); }
+.trail__row { display: flex; gap: var(--s-3); flex-wrap: wrap;
+  color: var(--c-fg-muted); }
+.trail__row time { color: var(--c-fg-hint); margin-left: auto; }
+
+@media (min-width: 640px) {
+  .pnl__stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 900px) {
+  .pnl__cols { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+  .ord { grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) auto;
+    align-items: center; gap: var(--s-5); }
+  .ord__hd { display: block; }
+  .ord__foot { justify-content: flex-end; }
+}

@@ -195,6 +195,25 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .stars--input input:focus-visible + label { outline: 2px solid var(--c-brand);
   outline-offset: 2px; border-radius: var(--r-sm); }
 
+/* Both shells use it — the storefront's and the panel's — which is why it
+   is a component and not a page style. It was in pages.css, which the
+   panel does not load, so the panel showed it as an ordinary link above
+   the header on every screen. */
+/* ------------------------------------------------------------- skip link */
+/* First focusable element on every page, so a keyboard user can jump the nav. */
+.skip {
+  position: absolute;
+  left: var(--s-4);
+  top: -100%;
+  z-index: calc(var(--z-drawer) + 1);
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-brand);
+  color: var(--c-brand-fg);
+  font-weight: var(--fw-semibold);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+}
+.skip:focus { top: 0; }
+
 /* ============================================================ 8. review card */
 .review { padding: var(--s-5) 0; border-top: 1px solid var(--c-line); }
 .review__hd { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;

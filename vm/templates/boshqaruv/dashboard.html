@@ -1,0 +1,97 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n price_format %}
+{% block title %}{% trans "Bugun" %}{% endblock %}
+
+{% comment %}
+  The dashboard. Every tile answers a question the owner has when they open
+  the panel, and every tile that represents work is a link to the screen that
+  can do it — a number with nowhere to go is read once and then ignored.
+
+  Two columns on a phone on purpose: one number per screen-width turns a
+  glance into a scroll, and the whole point of this screen is the glance.
+{% endcomment %}
+
+{% block content %}
+<h1 class="pnl__title">{% trans "Bugun" %}</h1>
+
+<section class="pnl__stats">
+  <div class="stat">
+    <span class="stat__n">{{ orders_today }}</span>
+    <span class="stat__label">{% trans "Bugungi buyurtmalar" %}</span>
+  </div>
+  <div class="stat">
+    <span class="stat__n stat__n--brand">{{ revenue_today|price }}</span>
+    <span class="stat__label">{% trans "Bugungi tushum" %}</span>
+  </div>
+  <div class="stat">
+    <span class="stat__n">{{ orders_week }}</span>
+    <span class="stat__label">{% trans "Shu hafta" %}</span>
+  </div>
+  <div class="stat">
+    <span class="stat__n stat__n--brand">{{ revenue_week|price }}</span>
+    <span class="stat__label">{% trans "Haftalik tushum" %}</span>
+  </div>
+</section>
+
+<section class="pnl__section">
+  <h2>{% trans "Ish" %}</h2>
+  <div class="pnl__stats">
+    {# Each of these is a filtered orders list, so tapping the number lands on #}
+    {# exactly the orders it counted. #}
+    <a class="stat {% if to_pack %}stat--todo{% endif %}"
+       href="{% url 'panel_orders' %}?status=paid">
+      <span class="stat__n">{{ to_pack }}</span>
+      <span class="stat__label">{% trans "Yigʻiladi" %}</span>
+    </a>
+    <a class="stat" href="{% url 'panel_orders' %}?status=on_the_way">
+      <span class="stat__n">{{ on_the_way }}</span>
+      <span class="stat__label">{% trans "Yoʻlda" %}</span>
+    </a>
+    <a class="stat" href="{% url 'panel_orders' %}?status=paying">
+      <span class="stat__n">{{ awaiting }}</span>
+      <span class="stat__label">{% trans "Toʻlov kutilmoqda" %}</span>
+    </a>
+    <a class="stat {% if pending_reviews %}stat--todo{% endif %}"
+       href="{% url 'admin:product_review_changelist' %}?status__exact=pending">
+      <span class="stat__n">{{ pending_reviews }}</span>
+      <span class="stat__label">{% trans "Sharhlar navbatda" %}</span>
+    </a>
+    <a class="stat {% if unread %}stat--todo{% endif %}"
+       href="{% url 'admin:core_msg_changelist' %}?is_read__exact=0">
+      <span class="stat__n">{{ unread }}</span>
+      <span class="stat__label">{% trans "Oʻqilmagan xabarlar" %}</span>
+    </a>
+    <a class="stat {% if low_stock_count %}stat--todo{% endif %}"
+       href="{% url 'admin:product_variant_changelist' %}">
+      <span class="stat__n">{{ low_stock_count }}</span>
+      <span class="stat__label">{% trans "Zaxira tugayapti" %}</span>
+    </a>
+  </div>
+</section>
+
+{% if low_stock %}
+  <section class="pnl__section">
+    <h2>{% trans "Zaxira tugayapti" %}</h2>
+    <div class="panel-card">
+      <dl class="facts">
+        {% for variant in low_stock %}
+          <dt>{{ variant.product.name }}{% if variant.size %} · {{ variant.size.size }}{% endif %}</dt>
+          <dd class="num">{{ variant.stock }}</dd>
+        {% endfor %}
+      </dl>
+    </div>
+  </section>
+{% endif %}
+
+<section class="pnl__section">
+  <div class="row row--between">
+    <h2>{% trans "Soʻnggi buyurtmalar" %}</h2>
+    <a class="link small" href="{% url 'panel_orders' %}">{% trans "Barchasi" %}</a>
+  </div>
+  {% for order in latest %}
+    {% include "boshqaruv/_order_row.html" %}
+  {% empty %}
+    <p class="muted">{% trans "Bu hafta buyurtma boʻlmadi." %}</p>
+  {% endfor %}
+</section>
+{% endblock %}

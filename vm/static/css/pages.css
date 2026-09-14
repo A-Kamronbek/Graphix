@@ -6,21 +6,6 @@
 
    Depends on tokens.css. Loads last. */
 
-/* ------------------------------------------------------------- skip link */
-/* First focusable element on every page, so a keyboard user can jump the nav. */
-.skip {
-  position: absolute;
-  left: var(--s-4);
-  top: -100%;
-  z-index: calc(var(--z-drawer) + 1);
-  padding: var(--s-3) var(--s-4);
-  background: var(--c-brand);
-  color: var(--c-brand-fg);
-  font-weight: var(--fw-semibold);
-  border-radius: 0 0 var(--r-md) var(--r-md);
-}
-.skip:focus { top: 0; }
-
 /* ----------------------------------------------------------------- shell */
 /* The search field is the widest thing in the header on desktop, because
    finding a design is the main job here. Below 860 px it is hidden and the
