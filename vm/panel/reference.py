@@ -12,10 +12,10 @@ whatever arrives in the POST. Without it, an endpoint that takes a model, a
 field and a value is a way to set *anything* on *any* row, which is a hole
 large enough to change a price to zero through.
 """
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from payment.models import DeliveryOption, District, Region
 from product.models import SizeChart, Tag
@@ -47,13 +47,19 @@ EDITABLE = {
 
 
 def _money(raw):
+    """Read a price out of a text box: spaces stripped, comma as a decimal point.
+
+    Rounds half **up**, not to even. Python's default rounds 2500.5 down to
+    2500 and 2501.5 up to 2502, which is correct for statistics and wrong for
+    money — §17 already settled this once, for a product rating.
+    """
     try:
         value = Decimal(str(raw).strip().replace(' ', '').replace(',', '.'))
     except (InvalidOperation, AttributeError):
         raise ValidationError(_('Notoʻgʻri narx.'))
     if value < 0:
         raise ValidationError(_('Narx manfiy boʻlishi mumkin emas.'))
-    return value.quantize(Decimal('1'))
+    return value.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
 
 
 def _prefix(raw):
@@ -70,12 +76,17 @@ def _prefix(raw):
 
 
 def _fit(raw):
+    """A fit, or nothing. Anything unrecognised becomes nothing rather than an
+    error: the control is a ``<select>`` of exactly these values, so a value
+    outside them did not come from a person using the screen.
+    """
     from product.models import Product
     value = str(raw).strip()
     return value if value in Product.Fit.values else ''
 
 
 def _count(raw):
+    """A whole number of items, never negative. Blank counts as zero."""
     try:
         return max(0, int(str(raw).strip() or 0))
     except (TypeError, ValueError):
@@ -111,6 +122,17 @@ def set_field(kind, pk, field, raw):
         raise ValidationError(_('Topilmadi.'))
 
     value = READERS[fields[field]](raw)
+
+    # A name longer than its column is a validation problem, and it was being
+    # answered with a 500: the value went straight to Postgres, which refuses
+    # it, and the screen showed "could not save" while the log filled up with
+    # tracebacks. A paste is all it takes — none of these boxes is longer than
+    # 120 characters and none of them said so.
+    limit = model._meta.get_field(field).max_length
+    if limit and isinstance(value, str) and len(value) > limit:
+        raise ValidationError(
+            _('Juda uzun — koʻpi bilan %(n)d ta belgi.') % {'n': limit})
+
     setattr(row, field, value)
     row.save(update_fields=[field])
     return value

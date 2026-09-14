@@ -13,7 +13,9 @@
 {% block content %}
 <div class="row row--between pnl__head">
   <h1 class="pnl__title">{% trans "Xabarlar" %}</h1>
-  {% if unread %}<span class="badge badge--brand">{{ unread }}</span>{% endif %}
+  {# The script keeps this in step as messages are marked read, so the count #}
+  {# does not sit there contradicting the list under it. #}
+  <span class="badge badge--brand" data-unread-count {% if not unread %}hidden{% endif %}>{{ unread }}</span>
 </div>
 
 <nav class="pnl__tabs" aria-label="{% trans 'Filtr' %}">
@@ -37,7 +39,7 @@
         {# The first thing somebody does with a message is ring back — when #}
         {# there is a number. An empty `tel:` is a link that does nothing. #}
         {% if msg.phone_num %}
-          <a class="link" href="tel:{{ msg.phone_num }}">{{ msg.phone_num }}</a>
+          <a class="link tap" href="tel:{{ msg.phone_num|cut:' ' }}">{{ msg.phone_num }}</a>
         {% endif %}
         <label class="switch">
           <input type="checkbox" data-msg-read {% if msg.is_read %}checked{% endif %}>

@@ -11,7 +11,7 @@
 {% endcomment %}
 <article class="ord" data-order="{{ order.order_no }}">
   <div class="ord__hd">
-    <a class="ord__no" href="{% url 'panel_order' order_no=order.order_no %}">{{ order.order_no }}</a>
+    <a class="ord__no tap" href="{% url 'panel_order' order_no=order.order_no %}">{{ order.order_no }}</a>
     <time class="ord__when" datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:"j E, H:i" }}</time>
   </div>
 
@@ -19,7 +19,7 @@
     <span><strong>{{ order.total_price|price }}</strong> {% trans "soʻm" %}
       · {{ order.get_payment_method_display }}</span>
     <span>{{ order.user.first_name|default:order.user.username }}
-      · <a class="link" href="tel:{{ order.phone }}">{{ order.phone }}</a></span>
+      · <a class="link tap" href="tel:{{ order.phone|cut:' ' }}">{{ order.phone }}</a></span>
     <span>{% if order.delivery_option %}{{ order.delivery_option.name }}{% endif %}
       {% if order.location_snapshot %}· {{ order.location_snapshot|truncatechars:60 }}{% endif %}</span>
   </div>

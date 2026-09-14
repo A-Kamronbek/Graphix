@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 18:50+0500\n"
+"POT-Creation-Date: 2026-09-14 20:34+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,30 +51,64 @@ msgstr "Пожалуйста, введите сообщение."
 msgid "Xabar qabul qilindi."
 msgstr "Сообщение отправлено."
 
-#: .\panel\catalogue.py:44
+#: .\panel\catalogue.py:52
 #, python-format
 msgid "“%(field)s” uchun notoʻgʻri narx."
 msgstr "Неверная цена для «%(field)s»."
 
-#: .\panel\catalogue.py:46 .\panel\reference.py:55
+#: .\panel\catalogue.py:54 .\panel\reference.py:61
 msgid "Narx manfiy boʻlishi mumkin emas."
 msgstr "Цена не может быть отрицательной."
 
-#: .\panel\catalogue.py:52 .\templates\boshqaruv\_product_row.html:55
+#: .\panel\catalogue.py:60 .\templates\boshqaruv\_product_row.html:62
 #: .\templates\boshqaruv\product_form.html:182
 #: .\templates\boshqaruv\settings.html:36
 msgid "Narx"
 msgstr "Цена"
 
-#: .\panel\catalogue.py:71 .\panel\views.py:598
+#: .\panel\catalogue.py:82
+#, python-format
+msgid "“%(field)s” juda uzun — koʻpi bilan %(n)d ta belgi."
+msgstr "«%(field)s» — слишком длинно, не более %(n)d символов."
+
+#: .\panel\catalogue.py:94 .\panel\catalogue.py:100 .\panel\catalogue.py:101
+#: .\templates\boshqaruv\product_form.html:72
+#: .\templates\boshqaruv\product_form.html:77
+#: .\templates\boshqaruv\product_form.html:82
+#: .\templates\boshqaruv\regions.html:52 .\templates\boshqaruv\regions.html:57
+#: .\templates\boshqaruv\regions.html:62 .\templates\boshqaruv\regions.html:85
+#: .\templates\boshqaruv\regions.html:90 .\templates\boshqaruv\regions.html:95
+#: .\templates\boshqaruv\settings.html:47
+#: .\templates\boshqaruv\settings.html:51
+#: .\templates\boshqaruv\settings.html:55
+#: .\templates\boshqaruv\settings.html:76
+#: .\templates\boshqaruv\settings.html:80
+#: .\templates\boshqaruv\settings.html:84
+#: .\templates\boshqaruv\settings.html:99
+#: .\templates\boshqaruv\settings.html:103
+#: .\templates\boshqaruv\settings.html:107
+#: .\templates\boshqaruv\settings.html:132
+#: .\templates\boshqaruv\settings.html:154
+msgid "Nomi"
+msgstr "Название"
+
+#: .\panel\catalogue.py:96 .\panel\views.py:669
 msgid "Nomi kerak."
 msgstr "Нужно название."
 
-#: .\panel\catalogue.py:143
+#: .\panel\catalogue.py:118 .\panel\catalogue.py:119 .\panel\catalogue.py:120
+#: .\templates\boshqaruv\product_form.html:117
+#: .\templates\boshqaruv\product_form.html:122
+#: .\templates\boshqaruv\product_form.html:127
+#: .\templates\product\item.html:210
+msgid "Mato"
+msgstr "Ткань"
+
+#: .\panel\catalogue.py:168
 msgid "Kamida bitta oʻlcham uchun narx kiriting."
 msgstr "Укажите цену хотя бы для одного размера."
 
-#: .\panel\catalogue.py:166
+#: .\panel\catalogue.py:194
 #, python-format
 msgid "Koʻpi bilan %(n)d ta rasm."
 msgstr "Не более %(n)d изображений."
@@ -87,64 +121,112 @@ msgstr "Смена статуса"
 msgid "Holat oʻzgarishlari"
 msgstr "Смены статуса"
 
-#: .\panel\reference.py:53
+#: .\panel\reference.py:59
 msgid "Notoʻgʻri narx."
 msgstr "Неверная цена."
 
-#: .\panel\reference.py:68
+#: .\panel\reference.py:74
 msgid "Indeks prefiksi 2 yoki 3 ta raqam boʻlishi kerak."
 msgstr "Префикс индекса — 2 или 3 цифры."
 
-#: .\panel\reference.py:82
+#: .\panel\reference.py:93
 msgid "Notoʻgʻri son."
 msgstr "Неверное число."
 
-#: .\panel\reference.py:104
+#: .\panel\reference.py:115
 msgid "Notoʻgʻri jadval."
 msgstr "Неверная таблица."
 
-#: .\panel\reference.py:107 .\panel\views.py:403
+#: .\panel\reference.py:118 .\panel\views.py:461
 msgid "Notoʻgʻri maydon."
 msgstr "Неверное поле."
 
-#: .\panel\reference.py:111
+#: .\panel\reference.py:122
 msgid "Topilmadi."
 msgstr "Не найдено."
 
-#: .\panel\views.py:242 .\panel\views.py:244
+#: .\panel\reference.py:134
+#, python-format
+msgid "Juda uzun — koʻpi bilan %(n)d ta belgi."
+msgstr "Слишком длинно — не более %(n)d символов."
+
+#: .\panel\templatetags\panel_i18n.py:23
+msgid "Saqlanmadi"
+msgstr "Не сохранено"
+
+#: .\panel\templatetags\panel_i18n.py:24
+msgid "Yuklanmadi"
+msgstr "Не загружено"
+
+#: .\panel\templatetags\panel_i18n.py:25
+#: .\templates\boshqaruv\product_form.html:50
+msgid "Oʻchirish"
+msgstr "Удалить"
+
+#: .\panel\templatetags\panel_i18n.py:26
+#, python-brace-format
+msgid "Koʻpi bilan {n} ta rasm."
+msgstr "Не более {n} изображений."
+
+#: .\panel\templatetags\panel_i18n.py:27
+#, python-brace-format
+msgid "“{name}” juda katta."
+msgstr "«{name}» — файл слишком большой."
+
+#: .\panel\templatetags\panel_i18n.py:28
+#, python-brace-format
+msgid "“{name}” — qoʻllab-quvvatlanmaydigan tur."
+msgstr "«{name}» — неподдерживаемый тип файла."
+
+#: .\panel\templatetags\panel_i18n.py:29
+#, python-brace-format
+msgid "“{name}” — rasm oʻlchami juda katta."
+msgstr "«{name}» — слишком большое разрешение."
+
+#: .\panel\templatetags\panel_i18n.py:30
+#, python-brace-format
+msgid "“{name}” — rasm sifatida oʻqib boʻlmadi."
+msgstr "«{name}» — не удалось прочитать как изображение."
+
+#: .\panel\views.py:291 .\panel\views.py:293
 msgid "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
 msgstr "Этот статус нельзя установить вручную."
 
-#: .\panel\views.py:251 .\panel\views.py:252
+#: .\panel\views.py:300 .\panel\views.py:301
 msgid "Notoʻgʻri holat."
 msgstr "Неверный статус."
 
-#: .\panel\views.py:265
+#: .\panel\views.py:314
 #, python-format
 msgid "%(no)s — holat yangilandi."
 msgstr "%(no)s — статус обновлён."
 
-#: .\panel\views.py:339 .\product\views.py:218
+#: .\panel\views.py:397 .\product\views.py:218
 msgid "Saqlandi."
 msgstr "Сохранено."
 
-#: .\panel\views.py:432
+#: .\panel\views.py:490
 msgid "Notoʻgʻri amal."
 msgstr "Неверное действие."
 
-#: .\panel\views.py:485
+#: .\panel\views.py:543
 msgid "Notoʻgʻri qaror."
 msgstr "Неверное решение."
 
-#: .\panel\views.py:614
+#: .\panel\views.py:561 .\templates\boshqaruv\reviews.html:57
+#, python-format
+msgid "%(avg)s — %(n)s ta"
+msgstr "%(avg)s — %(n)s"
+
+#: .\panel\views.py:685
 msgid "Teg qoʻshildi."
 msgstr "Тег добавлен."
 
-#: .\panel\views.py:625
+#: .\panel\views.py:696
 msgid "Nomi va rasm kerak."
 msgstr "Нужны название и изображение."
 
-#: .\panel\views.py:638
+#: .\panel\views.py:709
 msgid "Jadval qoʻshildi."
 msgstr "Таблица добавлена."
 
@@ -172,7 +254,7 @@ msgstr "Оплачен"
 msgid "Jarayonda"
 msgstr "В обработке"
 
-#: .\payment\models.py:210 .\templates\boshqaruv\dashboard.html:48
+#: .\payment\models.py:210 .\templates\boshqaruv\dashboard.html:55
 #: .\templates\payment\status.html:34
 msgid "Yoʻlda"
 msgstr "В пути"
@@ -314,15 +396,15 @@ msgstr "Обычный"
 msgid "Oversize"
 msgstr "Оверсайз"
 
-#: .\product\models.py:330
+#: .\product\models.py:344
 msgid "Kutilmoqda"
 msgstr "На модерации"
 
-#: .\product\models.py:331
+#: .\product\models.py:345
 msgid "Tasdiqlangan"
 msgstr "Одобрен"
 
-#: .\product\models.py:332
+#: .\product\models.py:346
 msgid "Rad etilgan"
 msgstr "Отклонён"
 
@@ -422,12 +504,13 @@ msgid "Asosiy qismga oʻtish"
 msgstr "Перейти к содержимому"
 
 #: .\templates\boshqaruv\_order_row.html:19
-#: .\templates\boshqaruv\_product_row.html:59
-#: .\templates\boshqaruv\order.html:36 .\templates\boshqaruv\order.html:39
-#: .\templates\boshqaruv\order.html:41 .\templates\cart\cart.html:29
-#: .\templates\cart\cart.html:49 .\templates\cart\cart.html:68
-#: .\templates\cart\cart.html:76 .\templates\core\delivery.html:22
-#: .\templates\partials\_footer.html:40
+#: .\templates\boshqaruv\_product_row.html:66
+#: .\templates\boshqaruv\dashboard.html:26
+#: .\templates\boshqaruv\dashboard.html:34 .\templates\boshqaruv\order.html:42
+#: .\templates\boshqaruv\order.html:45 .\templates\boshqaruv\order.html:47
+#: .\templates\cart\cart.html:29 .\templates\cart\cart.html:49
+#: .\templates\cart\cart.html:68 .\templates\cart\cart.html:76
+#: .\templates\core\delivery.html:22 .\templates\partials\_footer.html:40
 #: .\templates\partials\_orders_table.html:22
 #: .\templates\payment\checkout.html:69 .\templates\payment\checkout.html:241
 #: .\templates\payment\checkout.html:249 .\templates\payment\checkout.html:254
@@ -441,13 +524,14 @@ msgstr "Перейти к содержимому"
 msgid "soʻm"
 msgstr "сум"
 
-#: .\templates\boshqaruv\_order_row.html:35 .\templates\boshqaruv\order.html:98
-#: .\templates\boshqaruv\orders.html:23 .\templates\boshqaruv\reviews.html:18
+#: .\templates\boshqaruv\_order_row.html:35
+#: .\templates\boshqaruv\order.html:106 .\templates\boshqaruv\orders.html:23
+#: .\templates\boshqaruv\reviews.html:18
 msgid "Holat"
 msgstr "Статус"
 
 #: .\templates\boshqaruv\_order_row.html:49
-#: .\templates\boshqaruv\order.html:109
+#: .\templates\boshqaruv\order.html:117
 #: .\templates\boshqaruv\product_form.html:213
 #: .\templates\product\_card.html:47 .\templates\product\_card.html:49
 #: .\templates\product\item.html:141 .\templates\product\item.html:143
@@ -455,17 +539,17 @@ msgstr "Статус"
 msgid "Saqlash"
 msgstr "Сохранить"
 
-#: .\templates\boshqaruv\_product_row.html:42
+#: .\templates\boshqaruv\_product_row.html:49
 #: .\templates\boshqaruv\product_form.html:198
 #, python-format
 msgid "%(size)s zaxirasi"
 msgstr "Остаток размера %(size)s"
 
-#: .\templates\boshqaruv\_product_row.html:46
+#: .\templates\boshqaruv\_product_row.html:53
 msgid "Oʻlchamlar kiritilmagan"
 msgstr "Размеры не заданы"
 
-#: .\templates\boshqaruv\_product_row.html:64
+#: .\templates\boshqaruv\_product_row.html:71
 #: .\templates\boshqaruv\product_form.html:184
 #: .\templates\boshqaruv\product_form.html:211
 #: .\templates\boshqaruv\products.html:36
@@ -531,74 +615,74 @@ msgstr "Дизайн-система"
 msgid "Bugungi buyurtmalar"
 msgstr "Заказы за сегодня"
 
-#: .\templates\boshqaruv\dashboard.html:24
+#: .\templates\boshqaruv\dashboard.html:27
 msgid "Bugungi tushum"
 msgstr "Выручка за сегодня"
 
-#: .\templates\boshqaruv\dashboard.html:28
+#: .\templates\boshqaruv\dashboard.html:31
 msgid "Shu hafta"
 msgstr "На этой неделе"
 
-#: .\templates\boshqaruv\dashboard.html:32
+#: .\templates\boshqaruv\dashboard.html:35
 msgid "Haftalik tushum"
 msgstr "Выручка за неделю"
 
-#: .\templates\boshqaruv\dashboard.html:37
+#: .\templates\boshqaruv\dashboard.html:40
 msgid "Ish"
 msgstr "Работа"
 
-#: .\templates\boshqaruv\dashboard.html:44
+#: .\templates\boshqaruv\dashboard.html:51
 msgid "Yigʻiladi"
 msgstr "Собрать"
 
-#: .\templates\boshqaruv\dashboard.html:52
+#: .\templates\boshqaruv\dashboard.html:59
 msgid "Toʻlov kutilmoqda"
 msgstr "Ожидают оплаты"
 
-#: .\templates\boshqaruv\dashboard.html:57
+#: .\templates\boshqaruv\dashboard.html:64
 msgid "Sharhlar navbatda"
 msgstr "Отзывы на проверке"
 
-#: .\templates\boshqaruv\dashboard.html:62
+#: .\templates\boshqaruv\dashboard.html:69
 msgid "Oʻqilmagan xabarlar"
 msgstr "Непрочитанные сообщения"
 
-#: .\templates\boshqaruv\dashboard.html:67
 #: .\templates\boshqaruv\dashboard.html:74
+#: .\templates\boshqaruv\dashboard.html:81
 msgid "Zaxira tugayapti"
 msgstr "Заканчивается на складе"
 
-#: .\templates\boshqaruv\dashboard.html:88 .\templates\user\account.html:21
+#: .\templates\boshqaruv\dashboard.html:95 .\templates\user\account.html:21
 msgid "Soʻnggi buyurtmalar"
 msgstr "Последние заказы"
 
-#: .\templates\boshqaruv\dashboard.html:89 .\templates\core\home.html:49
+#: .\templates\boshqaruv\dashboard.html:96 .\templates\core\home.html:49
 #: .\templates\user\account.html:22
 msgid "Barchasi"
 msgstr "Все"
 
-#: .\templates\boshqaruv\dashboard.html:94
+#: .\templates\boshqaruv\dashboard.html:101
 msgid "Bu hafta buyurtma boʻlmadi."
 msgstr "На этой неделе заказов не было."
 
-#: .\templates\boshqaruv\messages.html:19
+#: .\templates\boshqaruv\messages.html:21
 msgid "Filtr"
 msgstr "Фильтр"
 
-#: .\templates\boshqaruv\messages.html:20
+#: .\templates\boshqaruv\messages.html:22
 #: .\templates\boshqaruv\products.html:35
 msgid "Hammasi"
 msgstr "Все"
 
-#: .\templates\boshqaruv\messages.html:21
+#: .\templates\boshqaruv\messages.html:23
 msgid "Oʻqilmagan"
 msgstr "Непрочитанные"
 
-#: .\templates\boshqaruv\messages.html:41
+#: .\templates\boshqaruv\messages.html:46
 msgid "Oʻqildi"
 msgstr "Прочитано"
 
-#: .\templates\boshqaruv\messages.html:46
+#: .\templates\boshqaruv\messages.html:51
 msgid "Xabar yoʻq."
 msgstr "Сообщений нет."
 
@@ -610,8 +694,8 @@ msgstr "Сообщений нет."
 msgid "Yoʻnalish"
 msgstr "Навигация"
 
-#: .\templates\boshqaruv\order.html:38 .\templates\boshqaruv\order.html:46
-#: .\templates\boshqaruv\orders.html:39 .\templates\boshqaruv\settings.html:22
+#: .\templates\boshqaruv\order.html:44 .\templates\boshqaruv\order.html:52
+#: .\templates\boshqaruv\orders.html:43 .\templates\boshqaruv\settings.html:22
 #: .\templates\cart\cart.html:71 .\templates\core\delivery.html:3
 #: .\templates\core\delivery.html:8 .\templates\partials\_footer.html:29
 #: .\templates\payment\checkout.html:59 .\templates\payment\checkout.html:248
@@ -619,47 +703,47 @@ msgstr "Навигация"
 msgid "Yetkazib berish"
 msgstr "Доставка"
 
-#: .\templates\boshqaruv\order.html:40 .\templates\cart\cart.html:75
+#: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:75
 #: .\templates\payment\checkout.html:252
 #: .\templates\payment\order_detail.html:63
 msgid "Jami"
 msgstr "Итого"
 
-#: .\templates\boshqaruv\order.html:49
+#: .\templates\boshqaruv\order.html:55
 msgid "Usul"
 msgstr "Способ"
 
-#: .\templates\boshqaruv\order.html:52 .\templates\boshqaruv\order.html:54
+#: .\templates\boshqaruv\order.html:58 .\templates\boshqaruv\order.html:60
 #: .\templates\payment\order_detail.html:73
 msgid "Manzil"
 msgstr "Адрес"
 
-#: .\templates\boshqaruv\order.html:57
+#: .\templates\boshqaruv\order.html:63
 msgid "Indeks"
 msgstr "Индекс"
 
-#: .\templates\boshqaruv\order.html:60 .\templates\payment\checkout.html:190
+#: .\templates\boshqaruv\order.html:66 .\templates\payment\checkout.html:190
 #: .\templates\payment\order_detail.html:83
 msgid "Izoh"
 msgstr "Комментарий"
 
-#: .\templates\boshqaruv\order.html:63
+#: .\templates\boshqaruv\order.html:69
 msgid "Xaritada"
 msgstr "На карте"
 
-#: .\templates\boshqaruv\order.html:71
+#: .\templates\boshqaruv\order.html:77
 msgid "Mijoz izohi"
 msgstr "Комментарий покупателя"
 
-#: .\templates\boshqaruv\order.html:79
+#: .\templates\boshqaruv\order.html:85
 msgid "Mijoz"
 msgstr "Покупатель"
 
-#: .\templates\boshqaruv\order.html:81 .\user\forms.py:62
+#: .\templates\boshqaruv\order.html:87 .\user\forms.py:62
 msgid "Ism"
 msgstr "Имя"
 
-#: .\templates\boshqaruv\order.html:83 .\templates\core\contact.html:51
+#: .\templates\boshqaruv\order.html:89 .\templates\core\contact.html:51
 #: .\templates\payment\checkout.html:51
 #: .\templates\payment\order_detail.html:50
 #: .\templates\user\password_reset_request.html:22
@@ -667,33 +751,33 @@ msgstr "Имя"
 msgid "Telefon"
 msgstr "Телефон"
 
-#: .\templates\boshqaruv\order.html:85
+#: .\templates\boshqaruv\order.html:93
 #: .\templates\partials\_orders_table.html:8
 #: .\templates\partials\_orders_table.html:18
 #: .\templates\payment\order_detail.html:49
 msgid "Sana"
 msgstr "Дата"
 
-#: .\templates\boshqaruv\order.html:87 .\templates\boshqaruv\orders.html:31
+#: .\templates\boshqaruv\order.html:95 .\templates\boshqaruv\orders.html:35
 #: .\templates\payment\checkout.html:202
 #: .\templates\payment\order_detail.html:51 .\templates\payment\payment.html:3
 #: .\templates\payment\status.html:22
 msgid "Toʻlov"
 msgstr "Оплата"
 
-#: .\templates\boshqaruv\order.html:93
+#: .\templates\boshqaruv\order.html:101
 msgid "Holatni oʻzgartirish"
 msgstr "Изменить статус"
 
-#: .\templates\boshqaruv\order.html:114
+#: .\templates\boshqaruv\order.html:122
 msgid "Tarix"
 msgstr "История"
 
-#: .\templates\boshqaruv\order.html:121
+#: .\templates\boshqaruv\order.html:129
 msgid "oʻchirilgan hisob"
 msgstr "удалённый аккаунт"
 
-#: .\templates\boshqaruv\order.html:125
+#: .\templates\boshqaruv\order.html:133
 msgid "Holat hali oʻzgartirilmagan."
 msgstr "Статус ещё не менялся."
 
@@ -711,31 +795,31 @@ msgstr "Номер, телефон или покупатель"
 msgid "Barcha holatlar"
 msgstr "Все статусы"
 
-#: .\templates\boshqaruv\orders.html:33
+#: .\templates\boshqaruv\orders.html:37
 msgid "Barcha toʻlovlar"
 msgstr "Все способы оплаты"
 
-#: .\templates\boshqaruv\orders.html:41
+#: .\templates\boshqaruv\orders.html:45
 msgid "Barcha usullar"
 msgstr "Все способы доставки"
 
-#: .\templates\boshqaruv\orders.html:49
+#: .\templates\boshqaruv\orders.html:53
 msgid "Sanadan"
 msgstr "С даты"
 
-#: .\templates\boshqaruv\orders.html:51
+#: .\templates\boshqaruv\orders.html:55
 msgid "Sanagacha"
 msgstr "По дату"
 
-#: .\templates\boshqaruv\orders.html:53 .\templates\boshqaruv\products.html:39
+#: .\templates\boshqaruv\orders.html:57 .\templates\boshqaruv\products.html:39
 msgid "Filtrlash"
 msgstr "Фильтровать"
 
-#: .\templates\boshqaruv\orders.html:54 .\templates\boshqaruv\products.html:40
+#: .\templates\boshqaruv\orders.html:58 .\templates\boshqaruv\products.html:40
 msgid "Tozalash"
 msgstr "Сбросить"
 
-#: .\templates\boshqaruv\orders.html:58
+#: .\templates\boshqaruv\orders.html:62
 #, python-format
 msgid "%(n)s ta buyurtma"
 msgid_plural "%(n)s ta buyurtma"
@@ -744,7 +828,7 @@ msgstr[1] "%(n)s заказа"
 msgstr[2] "%(n)s заказов"
 msgstr[3] "%(n)s заказа"
 
-#: .\templates\boshqaruv\orders.html:64
+#: .\templates\boshqaruv\orders.html:68
 msgid "Bu shartlarga mos buyurtma yoʻq."
 msgstr "Заказов по этим условиям нет."
 
@@ -772,10 +856,6 @@ msgstr "Фотографии"
 msgid "Koʻpi bilan %(n)s ta. Birinchisi asosiy rasm — tartibni surib oʻzgartiring."
 msgstr "Не более %(n)s. Первое изображение — главное; порядок меняется перетаскиванием."
 
-#: .\templates\boshqaruv\product_form.html:50
-msgid "Oʻchirish"
-msgstr "Удалить"
-
 #: .\templates\boshqaruv\product_form.html:56
 msgid "Rasm qoʻshish"
 msgstr "Добавить изображение"
@@ -783,23 +863,6 @@ msgstr "Добавить изображение"
 #: .\templates\boshqaruv\product_form.html:67
 msgid "Nomi va tavsifi"
 msgstr "Название и описание"
-
-#: .\templates\boshqaruv\product_form.html:72
-#: .\templates\boshqaruv\product_form.html:77
-#: .\templates\boshqaruv\product_form.html:82
-#: .\templates\boshqaruv\regions.html:42 .\templates\boshqaruv\regions.html:51
-#: .\templates\boshqaruv\regions.html:53 .\templates\boshqaruv\regions.html:69
-#: .\templates\boshqaruv\regions.html:71 .\templates\boshqaruv\regions.html:73
-#: .\templates\boshqaruv\settings.html:47
-#: .\templates\boshqaruv\settings.html:51
-#: .\templates\boshqaruv\settings.html:55
-#: .\templates\boshqaruv\settings.html:71
-#: .\templates\boshqaruv\settings.html:73
-#: .\templates\boshqaruv\settings.html:75
-#: .\templates\boshqaruv\settings.html:106
-#: .\templates\boshqaruv\settings.html:127
-msgid "Nomi"
-msgstr "Название"
 
 #: .\templates\boshqaruv\product_form.html:87
 #: .\templates\boshqaruv\product_form.html:91
@@ -820,20 +883,13 @@ msgstr "Категория"
 msgid "Zichligi (g/m²)"
 msgstr "Плотность (г/м²)"
 
-#: .\templates\boshqaruv\product_form.html:117
-#: .\templates\boshqaruv\product_form.html:122
-#: .\templates\boshqaruv\product_form.html:127
-#: .\templates\product\item.html:210
-msgid "Mato"
-msgstr "Ткань"
-
 #: .\templates\boshqaruv\product_form.html:132
 msgid "Bosma usuli"
 msgstr "Способ печати"
 
 #: .\templates\boshqaruv\product_form.html:141
-#: .\templates\boshqaruv\settings.html:110
-#: .\templates\boshqaruv\settings.html:128
+#: .\templates\boshqaruv\settings.html:136
+#: .\templates\boshqaruv\settings.html:158
 msgid "Qolipi"
 msgstr "Посадка"
 
@@ -922,15 +978,15 @@ msgstr "Регионы"
 msgid "Tuman yoki kod"
 msgstr "Район или код"
 
-#: .\templates\boshqaruv\regions.html:46 .\templates\boshqaruv\regions.html:76
+#: .\templates\boshqaruv\regions.html:47 .\templates\boshqaruv\regions.html:101
 msgid "Faol"
 msgstr "Активен"
 
-#: .\templates\boshqaruv\regions.html:55
+#: .\templates\boshqaruv\regions.html:67
 msgid "Indeks prefiksi"
 msgstr "Префикс индекса"
 
-#: .\templates\boshqaruv\regions.html:63
+#: .\templates\boshqaruv\regions.html:75
 #, python-format
 msgid "%(n)s ta tuman"
 msgid_plural "%(n)s ta tuman"
@@ -939,22 +995,17 @@ msgstr[1] "%(n)s района"
 msgstr[2] "%(n)s районов"
 msgstr[3] "%(n)s района"
 
-#: .\templates\boshqaruv\reviews.html:57
-#, python-format
-msgid "%(avg)s — %(n)s ta"
-msgstr "%(avg)s — %(n)s"
-
-#: .\templates\boshqaruv\reviews.html:59
+#: .\templates\boshqaruv\reviews.html:60
 msgid "Rad etish"
 msgstr "Отклонить"
 
-#: .\templates\boshqaruv\reviews.html:60
+#: .\templates\boshqaruv\reviews.html:61
 #: .\templates\user\password_reset_verify.html:34
 #: .\templates\user\verify_phone.html:34
 msgid "Tasdiqlash"
 msgstr "Подтвердить"
 
-#: .\templates\boshqaruv\reviews.html:64
+#: .\templates\boshqaruv\reviews.html:66
 msgid "Bu yerda hech narsa yoʻq."
 msgstr "Здесь ничего нет."
 
@@ -970,42 +1021,34 @@ msgstr "Бесплатно от (шт.)"
 msgid "Teglar tavsiyalar uchun asosiy signal — turkum emas."
 msgstr "Теги — основной сигнал для рекомендаций, а не категория."
 
-#: .\templates\boshqaruv\settings.html:82
+#: .\templates\boshqaruv\settings.html:93
 msgid "Yangi teg"
 msgstr "Новый тег"
 
-#: .\templates\boshqaruv\settings.html:84
-msgid "Nomi (uz)"
-msgstr "Название (uz)"
-
-#: .\templates\boshqaruv\settings.html:85
-msgid "Nomi (ru)"
-msgstr "Название (ru)"
-
-#: .\templates\boshqaruv\settings.html:86
-msgid "Nomi (en)"
-msgstr "Название (en)"
-
-#: .\templates\boshqaruv\settings.html:87
+#: .\templates\boshqaruv\settings.html:111
 msgid "Turi"
 msgstr "Тип"
 
-#: .\templates\boshqaruv\settings.html:90
-#: .\templates\boshqaruv\settings.html:134
+#: .\templates\boshqaruv\settings.html:116
+#: .\templates\boshqaruv\settings.html:171
 msgid "Qoʻshish"
 msgstr "Добавить"
 
-#: .\templates\boshqaruv\settings.html:96
+#: .\templates\boshqaruv\settings.html:122
 msgid "Oʻlcham jadvallari"
 msgstr "Таблицы размеров"
 
-#: .\templates\boshqaruv\settings.html:97
+#: .\templates\boshqaruv\settings.html:123
 msgid "Rasm — asosiy mazmun. Qolip tanlansa, jadval shu qolipdagi mahsulotlarga oʻzi biriktiriladi."
 msgstr "Изображение — основное содержимое. Если выбрана посадка, таблица привязывается к товарам с этой посадкой сама."
 
-#: .\templates\boshqaruv\settings.html:125
+#: .\templates\boshqaruv\settings.html:151
 msgid "Yangi jadval"
 msgstr "Новая таблица"
+
+#: .\templates\boshqaruv\settings.html:167
+msgid "Rasm"
+msgstr "Изображение"
 
 #: .\templates\cart\cart.html:4 .\templates\cart\cart.html:8
 #: .\templates\partials\_drawer.html:16 .\templates\partials\_nav.html:40
@@ -2117,3 +2160,12 @@ msgstr "Слишком много попыток. Пожалуйста, начн
 #: .\user\views.py:409
 msgid "Parol yangilandi. Endi kirishingiz mumkin."
 msgstr "Пароль обновлён. Теперь вы можете войти."
+
+#~ msgid "Nomi (uz)"
+#~ msgstr "Название (uz)"
+
+#~ msgid "Nomi (ru)"
+#~ msgstr "Название (ru)"
+
+#~ msgid "Nomi (en)"
+#~ msgstr "Название (en)"

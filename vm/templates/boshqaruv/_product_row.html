@@ -14,8 +14,15 @@
 {# panel in Russian. #}
 <article class="prod" data-product="{{ product.slug }}"
          data-inline-url="{% url 'panel_product_inline' slug=product.slug %}">
-  <a class="prod__pic" href="{% url 'panel_product' slug=product.slug %}">
-    {% with first=product.images.first %}
+  {# Hidden from assistive technology and out of the tab order on purpose: it #}
+  {# is the same destination as the name beside it, with an empty-alt picture #}
+  {# inside it, so to a screen reader it was a second link with no name at all. #}
+  {# `.all|first` rather than `.first`: `.first()` goes back to the database #}
+  {# and ignores the view's prefetch, which made this list two extra queries #}
+  {# per row. #}
+  <a class="prod__pic" href="{% url 'panel_product' slug=product.slug %}"
+     aria-hidden="true" tabindex="-1">
+    {% with first=product.images.all|first %}
       {% if first %}
         {# Same fallback as the storefront: a row can point at a file that is #}
         {# no longer on disk, and a broken image tells the owner nothing. #}
@@ -30,7 +37,7 @@
   </a>
 
   <div class="prod__main">
-    <a class="prod__name" href="{% url 'panel_product' slug=product.slug %}">{{ product.name }}</a>
+    <a class="prod__name tap" href="{% url 'panel_product' slug=product.slug %}">{{ product.name }}</a>
     <span class="small muted">{{ product.slug }}</span>
 
     <div class="prod__stocks">
@@ -54,7 +61,7 @@
     <label class="prod__price">
       <span class="sr-only">{% trans "Narx" %}</span>
       <input class="input num" type="text" inputmode="numeric"
-             value="{{ product.variants.first.price|default_if_none:''|floatformat:"0" }}"
+             value="{% with one=product.variants.all|first %}{{ one.price|default_if_none:''|floatformat:"0" }}{% endwith %}"
              data-inline="price">
       <span class="small muted">{% trans "soʻm" %}</span>
     </label>

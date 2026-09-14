@@ -100,9 +100,14 @@ class InboxTests(TestCase):
         self.assertEqual(response.context['unread'], 1)
 
     def test_the_number_is_tappable(self):
-        """The first thing somebody does with a message is ring back."""
-        self.assertContains(self.client.get(reverse('panel_messages')),
-                            'tel:+998 90 124 00 04')
+        """The first thing somebody does with a message is ring back.
+
+        Unspaced in the href, grouped on screen: a ``tel:`` URI with spaces in
+        it is one some Android dialers refuse to open.
+        """
+        response = self.client.get(reverse('panel_messages'))
+        self.assertContains(response, 'tel:+998901240004')
+        self.assertContains(response, '+998 90 124 00 04')
 
     def test_marking_read_and_unread_both_work(self):
         url = reverse('panel_message_read', kwargs={'pk': self.msg.pk})

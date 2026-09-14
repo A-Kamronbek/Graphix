@@ -185,7 +185,15 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .stars--input { display: inline-flex; flex-direction: row-reverse;
   align-self: start; }
 .stars--input input { position: absolute; opacity: 0; width: 0; }
-.stars--input label { padding: 2px; color: var(--c-fg-subtle); cursor: pointer; }
+/* 26 px of star inside a 44 px target. The star stays the size it was drawn;
+   the box around it is the project's floor (§8), because these five labels ARE
+   the control — the radios are 0x0 — and five 30 px targets in a row is a
+   rating somebody gives by accident. The panel's own sweep found this only
+   after the tap-target check was taught to measure the label rather than the
+   invisible radio inside it; §17 #127 is the same defect on the link that
+   scrolls to this section. */
+.stars--input label { display: inline-grid; place-items: center;
+  min-width: 44px; min-height: 44px; color: var(--c-fg-subtle); cursor: pointer; }
 .stars--input label .i { fill: currentColor; stroke: none; width: 26px; height: 26px; }
 .stars--input input:checked ~ label,
 .stars--input label:hover, .stars--input label:hover ~ label { color: var(--c-brand); }

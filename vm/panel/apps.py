@@ -1,9 +1,11 @@
 """App config for the staff panel.
 
-The panel has no models of its own — it is views over the models the rest of
-the site already owns. It is a separate app anyway, because a screen that
-edits products, orders, reviews and regions belongs to none of those apps and
-putting it in any one of them would make that app import the other three.
+Almost all of the panel is views over models the rest of the site already
+owns; the one table of its own is ``OrderStatusChange``, which exists for the
+panel's sake and which payment does not read. It is a separate app because a
+screen that edits products, orders, reviews and regions belongs to none of
+those apps, and putting it in any one of them would make that app import the
+other three.
 """
 from django.apps import AppConfig
 

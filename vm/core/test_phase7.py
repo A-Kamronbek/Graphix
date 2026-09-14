@@ -307,8 +307,16 @@ class OrderDetailTests(TestCase):
                                          % self.order.pk).status_code, 404)
 
     def test_the_phone_number_is_tappable(self):
-        """The first job of this page is to let somebody ring the customer."""
-        self.assertContains(self.page(), 'tel:%s' % self.order.phone)
+        """The first job of this page is to let somebody ring the customer.
+
+        The href carries the number with no spaces in it — numbers are stored
+        grouped, "+998 90 122 00 07", and a ``tel:`` URI with spaces is one
+        some Android dialers will not open — while the text on screen stays
+        grouped, because that is the form a person reads out loud.
+        """
+        response = self.page()
+        self.assertContains(response, 'tel:%s' % self.order.phone.replace(' ', ''))
+        self.assertContains(response, self.order.phone)
 
     def test_it_lists_what_was_actually_bought(self):
         self.assertContains(self.page(), 'Tafsilot')

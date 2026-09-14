@@ -14,21 +14,22 @@ status control degrades anyway: it is a real form with a real submit button
 that `panel.js` upgrades, because that cost nothing.
 """
 import re
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Count, Q, Sum, Value
+from django.db.models import Count, F, IntegerField, Q, Sum, Value
 from django.db.models.functions import Replace
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from django.db.models import Prefetch
+from django.db.models import ExpressionWrapper, Prefetch
 
 from core.models import Msg
 from payment.models import DeliveryOption, District, Order, Region
@@ -61,6 +62,37 @@ def _int(raw, default=0):
         return int(str(raw).strip())
     except (TypeError, ValueError):
         return default
+
+
+def _date(raw):
+    """Parse a plain ``YYYY-MM-DD`` out of the query string, or return ''.
+
+    The same rule as ``_int`` and for the same reason, which this filter was
+    breaking: an unparseable string handed to ``created_at__date__gte`` raises
+    inside the query compiler, so a bookmark somebody had edited — or a stale
+    link with a half-typed date in it — took the orders screen down with a 500
+    rather than showing an unfiltered list.
+    """
+    try:
+        return date.fromisoformat(str(raw).strip()).isoformat()
+    except (TypeError, ValueError):
+        return ''
+
+
+def _safe_next(request, fallback):
+    """Where to send a plain form post back to. Never off this site.
+
+    ``next`` arrives in the POST body, and ``redirect()`` will happily send a
+    browser to any absolute URL it is handed. Nothing here is reachable without
+    a staff session and a CSRF token, but an unchecked redirect is an unchecked
+    redirect, and the rule the rest of the project follows is Django's own.
+    """
+    target = request.POST.get('next') or ''
+    if target and url_has_allowed_host_and_scheme(
+            target, allowed_hosts={request.get_host()},
+            require_https=request.is_secure()):
+        return target
+    return fallback
 
 
 @staff_only
@@ -136,9 +168,14 @@ def orders(request):
     """
     qs = _order_list()
 
+    # One status, or several separated by commas. The comma is there because
+    # the dashboard's "to pack" tile counts `paid` and `processing` together —
+    # a parcel is a parcel either way — and a tile whose number does not match
+    # the list it lands on is a tile nobody trusts twice.
     status = request.GET.get('status', '')
-    if status in Order.Status.values:
-        qs = qs.filter(status=status)
+    wanted = [s for s in status.split(',') if s in Order.Status.values]
+    if wanted:
+        qs = qs.filter(status__in=wanted)
 
     method = request.GET.get('method', '')
     if method in Order.PaymentMethod.values:
@@ -149,8 +186,10 @@ def orders(request):
         qs = qs.filter(delivery_option_id=int(tier))
 
     # A date range, either end optional. Given as plain dates, because that is
-    # what a date input sends and what somebody types.
-    since, until = request.GET.get('since', ''), request.GET.get('until', '')
+    # what a date input sends and what somebody types — and parsed before it
+    # reaches the query, because anything else is a 500 (see `_date`).
+    since = _date(request.GET.get('since', ''))
+    until = _date(request.GET.get('until', ''))
     if since:
         qs = qs.filter(created_at__date__gte=since)
     if until:
@@ -192,6 +231,9 @@ def orders(request):
         'settable_values': PANEL_SETTABLE,
         'filters': {'status': status, 'method': method, 'tier': tier,
                     'since': since, 'until': until, 'q': query},
+        # The select marks every status the list is actually showing, so a
+        # two-status filter does not leave the control reading "all statuses".
+        'chosen_statuses': wanted,
         'total': qs.count(),
     })
 
@@ -205,14 +247,21 @@ def order_detail(request, order_no):
     deliberately never shown to anyone (see ``Order.order_no``).
     """
     order = get_object_or_404(
-        _order_list().prefetch_related('cart__cart_items__variant__product',
-                                       'cart__cart_items__variant__size',
-                                       'status_changes__changed_by'),
+        _order_list().prefetch_related('status_changes__changed_by'),
         order_no=order_no)
     return render(request, 'boshqaruv/order.html', {
         'screen': 'orders',
         'order': order,
-        'items': order.cart.cart_items.all(),
+        # `price_stat` is the price of ONE, frozen at the moment it went into
+        # the cart, and the order's total is the sum of price x quantity. The
+        # page was printing the unit price beside "x 2" and the total below,
+        # so the three numbers on screen did not add up and no arithmetic a
+        # staff member could do would make them.
+        'items': (order.cart.cart_items
+                  .select_related('variant__product', 'variant__size')
+                  .annotate(line_total=ExpressionWrapper(
+                      F('price_stat') * F('quantity'),
+                      output_field=IntegerField()))),
         'settable': PANEL_CHOICES,
         'settable_values': PANEL_SETTABLE,
         'trail': order.status_changes.all(),
@@ -242,7 +291,7 @@ def order_status(request, order_no):
                                  'error': _('Bu holatni qoʻlda oʻrnatib boʻlmaydi.')},
                                 status=400)
         messages.error(request, _('Bu holatni qoʻlda oʻrnatib boʻlmaydi.'))
-        return redirect(request.POST.get('next') or 'panel_orders')
+        return redirect(_safe_next(request, 'panel_orders'))
 
     try:
         change = set_status(order, wanted, by=request.user)
@@ -250,7 +299,7 @@ def order_status(request, order_no):
         if wants_json:
             return JsonResponse({'ok': False, 'error': _('Notoʻgʻri holat.')}, status=400)
         messages.error(request, _('Notoʻgʻri holat.'))
-        return redirect(request.POST.get('next') or 'panel_orders')
+        return redirect(_safe_next(request, 'panel_orders'))
 
     if wants_json:
         order.refresh_from_db(fields=['status'])
@@ -263,7 +312,7 @@ def order_status(request, order_no):
 
     if change is not None:
         messages.success(request, _('%(no)s — holat yangilandi.') % {'no': order.order_no})
-    return redirect(request.POST.get('next') or 'panel_orders')
+    return redirect(_safe_next(request, 'panel_orders'))
 
 
 # ---------------------------------------------------------------- products
@@ -296,6 +345,14 @@ def products(request):
     if active in ('1', '0'):
         qs = qs.filter(is_active=(active == '1'))
 
+    # The dashboard's "running low" tile counts variants; this is where it
+    # lands. Without it the tile said "6" and opened the whole catalogue, which
+    # is the same as saying nothing.
+    low = request.GET.get('low', '') == '1'
+    if low:
+        qs = qs.filter(is_active=True, variants__available=True,
+                       variants__stock__lte=LOW_STOCK).distinct()
+
     page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
     kept = request.GET.copy()
     kept.pop('page', None)
@@ -304,7 +361,8 @@ def products(request):
         'products': page,
         'base_query': kept.urlencode(),
         'categories': Category.objects.all(),
-        'filters': {'q': query, 'category': category, 'active': active},
+        'filters': {'q': query, 'category': category, 'active': active,
+                    'low': '1' if low else ''},
         'total': qs.count(),
     })
 
@@ -487,9 +545,22 @@ def review_moderate(request, pk):
     product_services.moderate(Review.objects.filter(pk=review.pk), decision,
                               by=request.user)
     review.product.refresh_from_db(fields=['rating_avg', 'review_count'])
-    return JsonResponse({'ok': True, 'status': decision,
-                         'rating': str(review.product.rating_avg),
-                         'count': review.product.review_count})
+    review.status = decision
+    # The label and the rating line are rendered here rather than assembled in
+    # the script: a badge says what the review now IS, and the script had been
+    # copying the button's own text into it, so approving a review left a badge
+    # reading "Tasdiqlash" — approve — where "Tasdiqlangan" belongs. The rating
+    # line uses the template's own sentence, so it reads the same either side
+    # of the decision, in whichever language the panel is being read in.
+    return JsonResponse({
+        'ok': True,
+        'status': decision,
+        'label': review.get_status_display(),
+        'rating': str(review.product.rating_avg),
+        'count': review.product.review_count,
+        'rating_line': _('%(avg)s — %(n)s ta') % {
+            'avg': review.product.rating_avg, 'n': review.product.review_count},
+    })
 
 
 # ---------------------------------------------------------------- messages

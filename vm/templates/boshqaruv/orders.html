@@ -23,8 +23,12 @@
     <label class="sr-only" for="f-status">{% trans "Holat" %}</label>
     <select class="select" name="status" id="f-status">
       <option value="">{% trans "Barcha holatlar" %}</option>
+      {# Against the list the view actually filtered on, not the raw string: #}
+      {# the dashboard's "to pack" tile sends two statuses at once, and a #}
+      {# string comparison left the control reading "all statuses" over a #}
+      {# list that was plainly filtered. #}
       {% for value, label in statuses %}
-        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+        <option value="{{ value }}" {% if value in chosen_statuses %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
 

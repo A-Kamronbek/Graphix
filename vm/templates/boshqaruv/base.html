@@ -1,4 +1,4 @@
-{% load static i18n %}<!doctype html>
+{% load static i18n panel_i18n %}<!doctype html>
 {# The staff panel's shell. #}
 {# #}
 {# Standalone rather than extending the storefront's base.html, and the reason #}
@@ -44,7 +44,7 @@
     </a>
     <div class="pnl__who">
       <span class="small muted">{{ request.user.first_name|default:request.user.username }}</span>
-      <a class="link small" href="{% url 'home' %}">{% trans "Saytga" %}</a>
+      <a class="link small tap" href="{% url 'home' %}">{% trans "Saytga" %}</a>
     </div>
   </header>
 
@@ -79,6 +79,11 @@
     {% block content %}{% endblock %}
   </main>
 
+  {# What `panel.js` is allowed to say out loud, in the reader's language. A #}
+  {# string typed into a .js file never reaches gettext (§4), so the eight the #}
+  {# script needs are written in `panel/templatetags/panel_i18n.py` and handed #}
+  {# over here, escaped by `json_script`. #}
+  {% panel_strings as pnl_strings %}{{ pnl_strings|json_script:"pnl-i18n" }}
   <script src="{% static 'js/panel.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>
