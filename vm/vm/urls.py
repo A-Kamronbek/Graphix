@@ -9,9 +9,15 @@ Split deliberately in two:
   POSTs to ``/payment/click/update/`` and a 404 there means payments silently
   fail (§12 risk #2). ``core/tests.py`` asserts it stays unprefixed.
 
-* **Prefixed** — every human-facing page, wrapped in ``i18n_patterns`` with
-  ``prefix_default_language=False``: Uzbek at ``/``, Russian at ``/ru/``,
-  English at ``/en/``.
+* **Prefixed** — every human-facing page, wrapped in ``i18n_patterns``. **All
+  three languages carry a prefix**: Uzbek at ``/uz/``, Russian at ``/ru/``,
+  English at ``/en/``. Uzbek was unprefixed until 2026-09-14; Kamronbek's
+  decision to prefix it too is §17 #121, and the reason is that an unprefixed
+  default is a special case Django keeps having to work around — it forces the
+  default language on every unprefixed path, which is what broke the language
+  switcher (§17 #115). An old unprefixed URL still works: it 404s inside
+  ``i18n_patterns``, and ``LocaleMiddleware`` then redirects it to the prefixed
+  path in the visitor's own language.
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -51,7 +57,10 @@ urlpatterns += i18n_patterns(
     path('', include('product.urls')),
     path('cart/', include('cart.urls')),
     path('', include('payment.urls')),
-    prefix_default_language=False,
+    # Uzbek is prefixed too (§17 #121). Stated explicitly rather than left to
+    # the default, because this line is the whole URL shape of the site and the
+    # next person should not have to know what Django's default is.
+    prefix_default_language=True,
 )
 
 # Serve uploaded media and static files via Django only in development;

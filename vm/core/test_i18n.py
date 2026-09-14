@@ -44,35 +44,90 @@ class WebhookStaysUnprefixedTests(TestCase):
         self.assertEqual(reverse('set_language'), '/i18n/setlang/')
 
 
+class CrawlerFacingFilesTests(TestCase):
+    """robots.txt and the manifest describe the URL tree, so they move with it.
+
+    A `Disallow: /cart/` rule stopped covering anything real the moment every
+    page took a language prefix (§17 #121): the cart is at `/uz/cart/` now, and
+    a rule written for the old shape silently protects nothing.
+    """
+
+    PRIVATE = ('cart', 'account', 'checkout', 'verify-phone', 'order')
+
+    def test_robots_disallows_the_private_areas_in_every_language(self):
+        body = self.client.get('/robots.txt').content.decode()
+        for code in ('uz', 'ru', 'en'):
+            for area in self.PRIVATE:
+                with self.subTest(code=code, area=area):
+                    self.assertIn(f'Disallow: /{code}/{area}/', body)
+
+    def test_robots_allows_each_language_root(self):
+        body = self.client.get('/robots.txt').content.decode()
+        for code in ('uz', 'ru', 'en'):
+            self.assertIn(f'Allow: /{code}/', body)
+
+    def test_the_manifest_starts_on_a_real_page(self):
+        """`start_url: "/"` would open the installed app on a redirect."""
+        import json
+        manifest = json.loads(self.client.get('/site.webmanifest').content)
+        self.assertEqual(self.client.get(manifest['start_url']).status_code, 200)
+
+
 class LanguagePrefixTests(TestCase):
-    """Uzbek is served unprefixed; Russian and English are prefixed."""
+    """Every language carries a prefix, Uzbek included (§17 #121).
 
-    def test_uzbek_has_no_prefix(self):
-        self.assertEqual(reverse('shop'), '/shop/')
+    Uzbek was served at `/` until 2026-09-14. An unprefixed default is a
+    special case Django works around rather than supports — it forces the
+    default language on every unprefixed path, which is what left the language
+    switcher one-way for four phases (§17 #115).
+    """
 
-    def test_russian_and_english_are_prefixed(self):
-        with translation.override('ru'):
-            self.assertEqual(reverse('shop'), '/ru/shop/')
-        with translation.override('en'):
-            self.assertEqual(reverse('shop'), '/en/shop/')
+    def test_every_language_is_prefixed(self):
+        for code in ('uz', 'ru', 'en'):
+            with self.subTest(code=code), translation.override(code):
+                self.assertEqual(reverse('shop'), f'/{code}/shop/')
 
     def test_all_three_render(self):
-        for path in ('/', '/ru/', '/en/'):
+        for path in ('/uz/', '/ru/', '/en/'):
             self.assertEqual(self.client.get(path).status_code, 200, msg=path)
 
     def test_html_lang_follows_the_prefix(self):
-        self.assertContains(self.client.get('/ru/'), '<html lang="ru">')
-        self.assertContains(self.client.get('/en/'), '<html lang="en">')
+        for code in ('uz', 'ru', 'en'):
+            with self.subTest(code=code):
+                self.assertContains(self.client.get(f'/{code}/'),
+                                    f'<html lang="{code}">')
 
     def test_page_declares_an_alternate_for_every_language(self):
-        html = self.client.get('/').content.decode()
+        html = self.client.get('/uz/').content.decode()
         for code in ('uz', 'ru', 'en', 'x-default'):
             self.assertIn(f'hreflang="{code}"', html)
+
+    def test_the_bare_root_sends_a_visitor_to_a_language(self):
+        """Nobody types /uz/. `/` has to lead somewhere."""
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(response['Location'], ('/uz/', '/ru/', '/en/'))
+
+    def test_an_old_unprefixed_url_still_works(self):
+        """Every Uzbek URL changed shape, and links to the old ones exist."""
+        for old, new in (('/shop/', '/uz/shop/'), ('/about/', '/uz/about/')):
+            with self.subTest(old=old):
+                response = self.client.get(old)
+                self.assertEqual(response.status_code, 302, msg=old)
+                self.assertEqual(response['Location'], new)
+                self.assertEqual(self.client.get(new).status_code, 200)
+
+    def test_an_old_url_lands_in_the_visitors_own_language(self):
+        """The redirect negotiates rather than always sending people to Uzbek —
+        which is also why it is a 302 and not a 301: the destination depends on
+        who is asking, so it must never be cached as permanent."""
+        self.client.cookies[settings.LANGUAGE_COOKIE_NAME] = 'ru'
+        self.assertEqual(self.client.get('/shop/')['Location'], '/ru/shop/')
 
     def test_switching_language_keeps_you_on_the_same_page(self):
         """set_language must return the visitor to the page they were reading."""
         response = self.client.post(
-            reverse('set_language'), {'language': 'ru', 'next': '/shop/'})
+            reverse('set_language'), {'language': 'ru', 'next': '/uz/shop/'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], '/ru/shop/')
 

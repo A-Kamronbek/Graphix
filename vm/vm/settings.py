@@ -102,10 +102,10 @@ AUTH_PASSWORD_VALIDATORS = [
 TIME_ZONE = 'Asia/Tashkent'
 
 # ---- languages ----
-# Uzbek is the source of truth and is served unprefixed (/), Russian at /ru/ and
-# English at /en/ - see vm/urls.py, where i18n_patterns is applied with
-# prefix_default_language=False. Uzbek Latin is written with U+02BB (oʻ, gʻ),
-# never an ASCII apostrophe.
+# Uzbek is the source of truth. All three languages carry a URL prefix - /uz/,
+# /ru/, /en/ - see vm/urls.py, where i18n_patterns is applied with
+# prefix_default_language=True (§17 #121). Uzbek Latin is written with U+02BB
+# (oʻ, gʻ), never an ASCII apostrophe.
 LANGUAGE_CODE = 'uz'
 LANGUAGES = [
     ('uz', "Oʻzbekcha"),
