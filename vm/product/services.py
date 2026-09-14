@@ -126,10 +126,12 @@ def reviewable(user, order):
     """
     if order.user_id != user.pk:
         return []
+    # Once. It walks the order's cart lines, and calling it twice was two
+    # identical queries for a list that cannot change between them.
+    products = products_in_order(order)
     existing = {r.product_id: r for r in
-                Review.objects.filter(user=user,
-                                      product__in=products_in_order(order))}
-    return [(p, existing.get(p.pk)) for p in products_in_order(order)]
+                Review.objects.filter(user=user, product__in=products)}
+    return [(p, existing.get(p.pk)) for p in products]
 
 
 def check_may_review(user, order, product):

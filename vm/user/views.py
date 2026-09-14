@@ -240,7 +240,7 @@ def account_settings(request):
             profile_form = ProfileForm(request.POST, instance=request.user)
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, _("Maʻlumotlar yangilandi."))
+                messages.success(request, _("Maʼlumotlar yangilandi."))
                 return redirect('account_settings')
         elif action == 'password':
             password_form = ChangePasswordForm(request.user, request.POST)

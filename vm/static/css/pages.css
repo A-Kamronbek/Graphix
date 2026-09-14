@@ -286,7 +286,12 @@
 .pdp__qty > .pdp__actions { margin-left: auto; }
 
 /* The rating links down to the reviews section; keep it clear of the sticky nav. */
-.pdp__reviews { scroll-margin-top: var(--s-8); }
+/* Clear of the sticky header, plus air. This was `var(--s-8)` — 64 px against
+   a 69 px header — so tapping the rating at the top of the page scrolled the
+   reviews heading five pixels *underneath* the nav, on every width and in
+   every language. A spacing token is a guess about the header; `--nav-h` is
+   the header. */
+.pdp__reviews { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
 
 .spec dt .i { vertical-align: -3px; margin-right: var(--s-1); }
 

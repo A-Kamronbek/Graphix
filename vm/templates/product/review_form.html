@@ -62,16 +62,23 @@
           {# nothing had used yet. It needs no JavaScript: the row is reversed, #}
           {# so `input:checked ~ label` reaches the stars to the *left* of the #}
           {# chosen one and lights them. Five real radios, in five real labels. #}
+          {# `submitted` is what the customer sent last time, put back if the #}
+          {# server refused it — a rejected photograph must not also cost them #}
+          {# the paragraph they wrote (§17 #118). It is empty on a fresh page #}
+          {# and set for at most one product, so the comparison is per row. #}
           <fieldset class="field">
             <legend class="label">{% trans "Bahoyingiz" %}</legend>
             <div class="stars stars--input">
               {# 5 first: reversed by CSS, so this is what puts 1 on the left. #}
-              {% for value in "54321" %}
+              {# Real integers from the view, not the characters of a string: #}
+              {# the label below is a plural, and a plural needs a number. #}
+              {% for value in rating_choices %}
                 <input type="radio" name="rating" value="{{ value }}"
-                       id="rate-{{ product.pk }}-{{ value }}" required>
+                       id="rate-{{ product.pk }}-{{ value }}" required
+                       {% if submitted.product == product.pk and submitted.rating == value %}checked{% endif %}>
                 <label for="rate-{{ product.pk }}-{{ value }}">
                   <svg class="i" aria-hidden="true"><use href="#i-star"></use></svg>
-                  <span class="sr-only">{% blocktrans with n=value %}{{ n }} yulduz{% endblocktrans %}</span>
+                  <span class="sr-only">{% blocktrans count n=value %}{{ n }} yulduz{% plural %}{{ n }} yulduz{% endblocktrans %}</span>
                 </label>
               {% endfor %}
             </div>
@@ -82,17 +89,19 @@
               {% trans "Fikringiz" %}
               <span class="muted">{% trans "(majburiy emas)" %}</span>
             </label>
+            {# maxlength comes from the view's MAX_TEXT, which is also what the #}
+            {# POST is checked against, so the two cannot drift (§17 #111). #}
             <textarea class="textarea" name="text" id="text-{{ product.pk }}"
-                      rows="4" maxlength="2000"
-                      placeholder="{% trans 'Oʻlchami toʻgʻri keldimi? Mato qanday?' %}"></textarea>
+                      rows="4" maxlength="{{ max_text }}"
+                      placeholder="{% trans 'Oʻlchami toʻgʻri keldimi? Mato qanday?' %}">{% if submitted.product == product.pk %}{{ submitted.text }}{% endif %}</textarea>
           </div>
 
           <div class="field">
             <label class="label" for="photos-{{ product.pk }}">{% trans "Rasmlar" %}</label>
             <input class="input" type="file" name="photos" id="photos-{{ product.pk }}"
-                   accept="image/jpeg,image/png,image/webp" multiple>
+                   accept="image/jpeg,image/png,image/webp,image/avif" multiple>
             <small class="field__hint">
-              {% blocktrans with n=max_photos %}Koʻpi bilan {{ n }} ta rasm. Rasmdagi joylashuv maʻlumotlari oʻchiriladi.{% endblocktrans %}
+              {% blocktrans with n=max_photos %}Koʻpi bilan {{ n }} ta rasm. Rasmdagi joylashuv maʼlumotlari oʻchiriladi.{% endblocktrans %}
             </small>
           </div>
 

@@ -37,7 +37,9 @@
       <tbody>
         {% for row in review_distribution %}
           <tr>
-            <th scope="row">{% blocktrans with n=row.stars %}{{ n }} yulduz{% endblocktrans %}</th>
+            {# A count, so it must be a plural: the rows run 1 to 5, and #}
+            {# "1 звёзд" or "1 stars" is what a non-plural string renders. #}
+            <th scope="row">{% blocktrans count n=row.stars %}{{ n }} yulduz{% plural %}{{ n }} yulduz{% endblocktrans %}</th>
             <td>
               <span class="reviews__bar" aria-hidden="true">
                 <span class="reviews__bar-fill" style="width: {{ row.percent }}%"></span>
@@ -67,7 +69,12 @@
             <svg class="i i--sm" aria-hidden="true"><use href="#i-check"></use></svg>
             {% trans "Tasdiqlangan xarid" %}
           </span>
-          <time class="review__date" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j F Y" }}</time>
+          {# `E`, not `F`: Django's alternative month, which is the genitive #}
+          {# form Russian needs after a day number. `F` printed "14 Сентябрь #}
+          {# 2026" — the nominative, which reads like a heading rather than a #}
+          {# date. Uzbek and English have no alternative form and are #}
+          {# unchanged, checked in all three before this was changed. #}
+          <time class="review__date" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j E Y" }}</time>
         </div>
 
         {% if review.text %}<p class="review__text">{{ review.text|linebreaksbr }}</p>{% endif %}

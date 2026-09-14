@@ -37,9 +37,24 @@ MAX_EDGE = 1600
 #: and either way the answer is the same.
 MAX_BYTES = 12 * 1024 * 1024
 
-#: What a phone or a laptop actually produces. Anything else is refused rather
-#: than converted: SVG is scriptable, and a PDF is not a photograph.
-ALLOWED = {'JPEG', 'PNG', 'WEBP', 'HEIF', 'HEIC', 'MPO'}
+#: Refused before decoding, and the more important of the two limits.
+#: ``MAX_BYTES`` bounds the *file*; this bounds the *picture*, and the two are
+#: not related. A 12 000 x 12 000 PNG of one flat colour is 140 KB on the wire
+#: and 432 MB of pixels once decoded — a decompression bomb that walks straight
+#: past a size check. Pillow's own `MAX_IMAGE_PIXELS` does not stop it either:
+#: it only *warns* at 89 Mpx and raises at twice that, so 144 Mpx of RAM per
+#: upload was reachable by anyone with a delivered order. 50 Mpx is eight times
+#: the largest phone sensor sold.
+MAX_PIXELS = 50_000_000
+
+#: What a phone or a laptop actually produces, restricted to what this Pillow
+#: can actually decode — checked, not assumed. HEIC is what an iPhone stores
+#: natively and it is *not* in this list, because Pillow has no HEIF codec
+#: without `pillow-heif` and §4 forbids adding one; iOS transcodes to JPEG on
+#: upload through a file input, which is the path a customer takes. Anything
+#: not listed is refused rather than converted: SVG is scriptable, and a PDF is
+#: not a photograph.
+ALLOWED = {'JPEG', 'PNG', 'WEBP', 'AVIF', 'MPO'}
 
 JPEG_QUALITY = 82
 
@@ -63,9 +78,17 @@ def sanitise(upload, name_hint='review'):
     # behaviour, so the real work reopens it from the same bytes.
     try:
         probe = Image.open(io.BytesIO(data))
+        # Read the dimensions from the header *before* verify(), which leaves
+        # the object unusable, and before anything decodes a pixel.
+        pixels = probe.size[0] * probe.size[1]
         probe.verify()
         fmt = probe.format
-    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+    except Image.DecompressionBombError:
+        # Pillow's own ceiling, hit before ours. Same answer, said properly:
+        # the file is a real image, it is just an absurd one.
+        raise ValidationError(
+            _('Rasm juda katta. Kichikroq rasm yuboring.'), code='too_many_pixels')
+    except (UnidentifiedImageError, OSError, ValueError):
         raise ValidationError(
             _('Faylni rasm sifatida oʻqib boʻlmadi.'), code='not_an_image')
 
@@ -73,6 +96,12 @@ def sanitise(upload, name_hint='review'):
         raise ValidationError(
             _('Bu rasm turi qoʻllab-quvvatlanmaydi. JPEG yoki PNG yuboring.'),
             code='bad_format')
+
+    # The header is a claim, but it is a claim that has to be true for the file
+    # to decode — so refusing on it costs nothing and spends no memory.
+    if pixels > MAX_PIXELS:
+        raise ValidationError(
+            _('Rasm juda katta. Kichikroq rasm yuboring.'), code='too_many_pixels')
 
     try:
         image = Image.open(io.BytesIO(data))

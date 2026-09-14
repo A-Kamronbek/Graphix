@@ -55,6 +55,13 @@ img, svg, video, canvas { display: block; max-width: 100%; }
 img { height: auto; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
+/* Phase 12 put the first <fieldset> on the site and the browser drew its own
+   box around it — a 2 px groove border and 12 px of padding, in the middle of a
+   design where no other field has an outline. `min-inline-size: min-content` is
+   the other half of the UA default and is a known overflow trap inside a flex
+   or grid parent, so it goes at the same time rather than waiting to be found. */
+fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+legend { padding: 0; }
 a { color: inherit; text-decoration: none; }
 /* A long unbreakable string — an email address, a URL — must never be what makes
    the page scroll sideways. Found at 360 px on the contact page, where
