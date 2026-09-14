@@ -2,8 +2,9 @@
 and the heart."""
 import json
 
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Exists, Min, OuterRef, Q
+from django.db.models import Count, Exists, Min, OuterRef, Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles import finders
@@ -12,13 +13,16 @@ from django.templatetags.static import static
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from core.context_processors import SIZE_GUIDE_IMAGE
+from core.i18n import tfield
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
-from . import services
-from .models import Category, Colour, Product, ProductLike, Size, Tag, Variant
+from . import images, services
+from .models import (Category, Colour, Product, ProductLike, Review, Size, Tag,
+                     Variant)
 
 
 def annotate_cards(qs, user=None):
@@ -276,6 +280,8 @@ def item(request, slug):
     return render(request, 'product/item.html', {
         'product': product,
         'is_liked': is_liked,
+        **_reviews(request, product),
+        'review_jsonld': _review_jsonld(request, product),
         'colours': colours,
         'sizes': sizes,
         'unavailable_sizes': unavailable_sizes,
@@ -298,3 +304,165 @@ def _delivery_options():
     """The active delivery tiers, for the product page's delivery line."""
     from payment.models import DeliveryOption
     return list(DeliveryOption.objects.filter(is_active=True))
+
+
+# ------------------------------------------------------------------ reviews
+
+#: Reviews per page on the product detail page.
+REVIEWS_PER_PAGE = 5
+
+
+def _reviews(request, product):
+    """The approved reviews for the product page, and the numbers beside them.
+
+    Approved only — a pending review is invisible to everyone including the
+    person who wrote it, on the page. Paginated on its own query parameter so
+    a link to page three of the reviews is still a link to the product.
+    """
+    approved = (Review.objects
+                .filter(product=product, status=Review.Status.APPROVED)
+                .select_related('user')
+                .prefetch_related('images'))
+
+    total = product.review_count
+    # The distribution bars. One grouped query rather than five counts, and
+    # read from the same rows the list is drawn from.
+    counts = dict(approved.values_list('rating').annotate(n=Count('id')))
+    distribution = [
+        {
+            'stars': stars,
+            'count': counts.get(stars, 0),
+            # Width as a percentage, computed here because a template cannot
+            # divide. Zero reviews means zero bars, not a division by zero.
+            'percent': round(counts.get(stars, 0) * 100 / total) if total else 0,
+        }
+        for stars in (5, 4, 3, 2, 1)
+    ]
+
+    page = Paginator(approved, REVIEWS_PER_PAGE).get_page(request.GET.get('sharh'))
+    return {'reviews': page, 'review_distribution': distribution}
+
+
+def _review_jsonld(request, product):
+    """`aggregateRating` and `Review` structured data, or None.
+
+    This is what puts star ratings in a Google result, which is the reason the
+    plan calls it an acquisition win rather than a nicety (§9 Phase 12 item 7).
+    Emitted only when there is something true to say: schema.org requires
+    `aggregateRating` to describe at least one real review, and a product with
+    none must not claim one.
+    """
+    if not product.review_count:
+        return None
+
+    approved = (Review.objects
+                .filter(product=product, status=Review.Status.APPROVED)
+                .select_related('user')[:20])
+
+    data = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        'name': tfield(product, 'name'),
+        'url': request.build_absolute_uri(product.get_absolute_url()),
+        'aggregateRating': {
+            '@type': 'AggregateRating',
+            'ratingValue': str(product.rating_avg),
+            'reviewCount': product.review_count,
+            'bestRating': '5',
+            'worstRating': '1',
+        },
+        'review': [
+            {
+                '@type': 'Review',
+                'reviewRating': {'@type': 'Rating', 'ratingValue': str(r.rating),
+                                 'bestRating': '5', 'worstRating': '1'},
+                'author': {'@type': 'Person', 'name': r.user.get_short_name()
+                           or r.user.username},
+                'datePublished': r.created_at.date().isoformat(),
+                **({'reviewBody': r.text} if r.text else {}),
+            }
+            for r in approved
+        ],
+    }
+    # `</script>` inside a JSON string would end the script element early and
+    # turn review text into markup. Escaping the angle bracket is the standard
+    # defence and costs nothing: JSON readers unescape < transparently.
+    return mark_safe(json.dumps(data, ensure_ascii=False).replace('<', '\\u003c'))
+
+
+@login_required
+def review_create(request, order_id):
+    """Write a review for something in a delivered order.
+
+    One page per order rather than per product, because that is how a customer
+    thinks about it: the parcel arrived, and it had things in it. An order with
+    three products shows three forms; the common case shows one.
+
+    Eligibility is decided by ``services.check_may_review`` and nothing here
+    duplicates it — this view only chooses what to render and what to say.
+    """
+    from payment.models import Order
+    order = get_object_or_404(Order, pk=order_id, user=request.user)
+    rows = services.reviewable(request.user, order)
+
+    if request.method == 'POST':
+        product = get_object_or_404(Product, pk=_int(request.POST.get('product')),
+                                    is_active=True)
+        try:
+            services.check_may_review(request.user, order, product)
+        except services.NotEligible:
+            messages.error(request, _("Bu mahsulotga sharh qoldirib boʻlmaydi."))
+            return redirect('review_create', order_id=order.pk)
+
+        rating = _int(request.POST.get('rating'))
+        if rating not in (1, 2, 3, 4, 5):
+            messages.error(request, _("Bahoni tanlang."))
+            return redirect('review_create', order_id=order.pk)
+
+        try:
+            photos = _clean_photos(request.FILES.getlist('photos'))
+        except ValidationError as exc:
+            messages.error(request, exc.messages[0])
+            return redirect('review_create', order_id=order.pk)
+
+        services.create_review(request.user, order, product, rating,
+                               text=request.POST.get('text', ''), photos=photos)
+        messages.success(
+            request,
+            _("Sharhingiz uchun rahmat. U koʻrib chiqilgandan keyin "
+              "sahifada paydo boʻladi."))
+        return redirect('order_detail', pk=order.pk)
+
+    return render(request, 'product/review_form.html', {
+        'order': order,
+        'rows': rows,
+        'can_review': order.status == order.Status.DONE,
+        'max_photos': MAX_PHOTOS,
+    })
+
+
+#: Four is the plan's number (§9 Phase 12 item 1). Enforced server-side; the
+#: file input's `multiple` attribute is a convenience, not a limit.
+MAX_PHOTOS = 4
+
+
+def _clean_photos(uploads):
+    """Sanitise every uploaded photo, or refuse the lot.
+
+    Refusing the lot rather than silently dropping the bad one: a customer who
+    attached four photographs and got three published would have no way of
+    knowing which one went missing or why.
+    """
+    if len(uploads) > MAX_PHOTOS:
+        raise ValidationError(
+            _("Koʻpi bilan %(n)d ta rasm yuborish mumkin.") % {'n': MAX_PHOTOS})
+    return [images.sanitise(upload, name_hint=f'review-{i + 1}')
+            for i, upload in enumerate(uploads)]
+
+
+def _int(raw):
+    """Parse an id or a rating from a form field, or None."""
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None

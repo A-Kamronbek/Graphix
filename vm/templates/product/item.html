@@ -285,8 +285,13 @@
     </div>
   {% endif %}
 
-  {# Reviews land in Phase 12; the anchor exists now so the rating can link to it. #}
-  <div id="reviews" class="pdp__reviews"></div>
+  {# The anchor the rating at the top of the page links to. It stays on the #}
+  {# wrapper rather than inside the partial, so the link still lands somewhere #}
+  {# sensible on a product with no approved reviews, where the partial renders #}
+  {# nothing at all. #}
+  <div id="reviews" class="pdp__reviews">
+    {% include "product/_reviews.html" %}
+  </div>
 </div>
 
 {% if related %}
@@ -320,4 +325,11 @@
 <script src="{% static 'js/gallery.js' %}" defer></script>
 <script src="{% static 'js/variant.js' %}" defer></script>
 <script src="{% static 'js/viewer.js' %}" defer></script>
+{% if review_jsonld %}
+  {# What puts star ratings in a Google result. Emitted only when there are #}
+  {# approved reviews to describe: schema.org requires aggregateRating to #}
+  {# correspond to real ones, and a product with none must not claim any. #}
+  {# The view escapes `<` so review text cannot close this element early. #}
+  <script type="application/ld+json">{{ review_jsonld }}</script>
+{% endif %}
 {% endblock %}

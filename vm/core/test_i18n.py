@@ -215,22 +215,39 @@ class CatalogueCompletenessTests(TestCase):
         wraps anything long across several quoted strings, and a regex that only
         saw single-line entries would silently skip exactly the long strings most
         likely to be left untranslated.
+
+        A plural entry carries ``msgstr[0]``, ``msgstr[1]`` … instead of a single
+        ``msgstr``, and is collapsed here into one pair whose translation counts
+        as empty unless *every* form is filled — so a half-written plural still
+        fails the check below. Before this, the parser recognised only a bare
+        ``msgstr`` and so reported a fully translated plural as untranslated.
         """
-        entries, key, parts = [], None, {'msgid': [], 'msgstr': []}
+        entries, key, msgid, forms = [], None, [], []
+
+        def flush():
+            """Record the entry just parsed, if it had a msgid at all."""
+            if msgid:
+                texts = [''.join(f) for f in forms]
+                joined = '' if not texts or not all(texts) else ''.join(texts)
+                entries.append((''.join(msgid), joined))
+
         for raw in self._catalogue_path(lang).read_text(encoding='utf-8').splitlines():
             line = raw.strip()
             if line.startswith('msgid "'):
-                if key:                                 # flush the previous entry
-                    entries.append((''.join(parts['msgid']), ''.join(parts['msgstr'])))
-                parts = {'msgid': [line[7:-1]], 'msgstr': []}
-                key = 'msgid'
+                flush()
+                key, msgid, forms = 'msgid', [line[7:-1]], []
+            elif line.startswith('msgid_plural "'):
+                key = None                              # same entry, nothing to collect
             elif line.startswith('msgstr "'):
-                parts['msgstr'] = [line[8:-1]]
+                key, forms = 'msgstr', [[line[8:-1]]]
+            elif line.startswith('msgstr['):            # msgstr[0] "…"
                 key = 'msgstr'
-            elif line.startswith('"') and key:          # a wrapped continuation
-                parts[key].append(line[1:-1])
-        if key:
-            entries.append((''.join(parts['msgid']), ''.join(parts['msgstr'])))
+                forms.append([line[line.index(']') + 2:][1:-1]])
+            elif line.startswith('"') and key == 'msgid':
+                msgid.append(line[1:-1])
+            elif line.startswith('"') and key == 'msgstr':
+                forms[-1].append(line[1:-1])
+        flush()
         return [(mid, mstr) for mid, mstr in entries if mid]
 
     @staticmethod

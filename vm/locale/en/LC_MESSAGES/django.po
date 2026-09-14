@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 23:29+0500\n"
+"POT-Creation-Date: 2026-09-14 13:41+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -104,6 +104,18 @@ msgstr "Order #%(no)s has been cancelled."
 msgid "Buyurtmani bekor qilib boʻlmadi."
 msgstr "The order could not be cancelled."
 
+msgid "Rasm hajmi 12 MB dan oshmasligi kerak."
+msgstr "An image must be 12 MB or smaller."
+
+msgid "Faylni rasm sifatida oʻqib boʻlmadi."
+msgstr "That file could not be read as an image."
+
+msgid "Bu rasm turi qoʻllab-quvvatlanmaydi. JPEG yoki PNG yuboring."
+msgstr "That image type is not supported. Send a JPEG or a PNG."
+
+msgid "Rasmni qayta ishlab boʻlmadi. Boshqa rasm yuboring."
+msgstr "The image could not be processed. Try another one."
+
 msgid "Uslub"
 msgstr "Style"
 
@@ -139,6 +151,19 @@ msgstr "Saved."
 
 msgid "Saqlanganlardan olib tashlandi."
 msgstr "Removed from your saved designs."
+
+msgid "Bu mahsulotga sharh qoldirib boʻlmaydi."
+msgstr "You cannot review this product."
+
+msgid "Bahoni tanlang."
+msgstr "Choose a rating."
+
+msgid "Sharhingiz uchun rahmat. U koʻrib chiqilgandan keyin sahifada paydo boʻladi."
+msgstr "Thank you for your review. It appears on the page once it has been checked."
+
+#, python-format
+msgid "Koʻpi bilan %(n)d ta rasm yuborish mumkin."
+msgstr "You can send at most %(n)d photos."
 
 msgid "Ruxsat yoʻq"
 msgstr "No access"
@@ -442,6 +467,9 @@ msgstr "Actions"
 msgid "Koʻrish"
 msgstr "View"
 
+msgid "Sharh"
+msgstr "Review"
+
 msgid "Tasdiqlash kodi"
 msgstr "Confirmation code"
 
@@ -569,6 +597,9 @@ msgstr "Track it"
 msgid "Toʻlovni yakunlash"
 msgstr "Finish paying"
 
+msgid "Sharh qoldirish"
+msgstr "Write a review"
+
 msgid "Click orqali toʻlov"
 msgstr "Pay with Click"
 
@@ -620,6 +651,46 @@ msgstr "Previous page"
 msgid "Keyingi sahifa"
 msgstr "Next page"
 
+msgid "Sharhlar"
+msgstr "Reviews"
+
+#, python-format
+msgid "%(n)s ta sharh"
+msgid_plural "%(n)s ta sharh"
+msgstr[0] "%(n)s review"
+msgstr[1] "%(n)s reviews"
+
+msgid "Baholar taqsimoti"
+msgstr "Rating distribution"
+
+#, python-format
+msgid "%(n)s yulduz"
+msgstr "%(n)s stars"
+
+#, python-format
+msgid "Baho: %(n)s"
+msgstr "Rating: %(n)s"
+
+msgid "Tasdiqlangan xarid"
+msgstr "Verified purchase"
+
+#, python-format
+msgid "%(name)s — mijoz rasmi"
+msgstr "%(name)s — customer photo"
+
+msgid "Sharhlar sahifalari"
+msgstr "Review pages"
+
+msgid "Oldingi"
+msgstr "Previous"
+
+#, python-format
+msgid "%(current)s / %(total)s"
+msgstr "%(current)s / %(total)s"
+
+msgid "Keyingi"
+msgstr "Next"
+
 msgid "Rasmlar"
 msgstr "Photos"
 
@@ -668,6 +739,40 @@ msgstr "Nothing saved yet"
 
 msgid "Yoqqan dizaynni yurakcha bilan belgilang — u shu yerda toʻplanadi."
 msgstr "Tap the heart on designs you like and they'll collect here."
+
+msgid "Sharhni buyurtma yetkazib berilgandan keyin qoldirish mumkin."
+msgstr "You can write a review once the order has been delivered."
+
+msgid "Mahsulot"
+msgstr "Product"
+
+msgid "Sharhingiz koʻrib chiqilmoqda."
+msgstr "Your review is being checked."
+
+msgid "Sharhingiz chop etilgan."
+msgstr "Your review is published."
+
+msgid "Sharhingiz chop etilmadi."
+msgstr "Your review was not published."
+
+msgid "Bahoyingiz"
+msgstr "Your rating"
+
+msgid "Fikringiz"
+msgstr "Your thoughts"
+
+msgid "(majburiy emas)"
+msgstr "(optional)"
+
+msgid "Oʻlchami toʻgʻri keldimi? Mato qanday?"
+msgstr "Did the size fit? How is the fabric?"
+
+#, python-format
+msgid "Koʻpi bilan %(n)s ta rasm. Rasmdagi joylashuv maʻlumotlari oʻchiriladi."
+msgstr "At most %(n)s photos. Location data in them is removed."
+
+msgid "Bu buyurtmada sharh qoldiriladigan mahsulot yoʻq."
+msgstr "There is nothing in this order to review."
 
 #, python-format
 msgid "“%(q)s” uchun natijalar"
@@ -727,14 +832,12 @@ msgstr "By using the site and placing an order you accept these terms. We may up
 msgid "2. Buyurtma va toʻlov"
 msgstr "2. Orders and payment"
 
-#| msgid "Buyurtmani Click orqali onlayn yoki mahsulotni olganingizda naqd pulda toʻlashingiz mumkin. Toʻlovni amalga oshirishdan avval yetkazib berish maʻlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil uchun javobgarlikni oʻz zimmamizga olmaymiz."
 msgid "Buyurtma rasmiylashtirish sahifasida koʻrsatilgan toʻlov usullari orqali toʻlanadi. Toʻlovni amalga oshirishdan avval yetkazib berish maʻlumotlaringizni diqqat bilan tekshiring: mijoz kiritgan notoʻgʻri manzil uchun javobgarlikni oʻz zimmamizga olmaymiz."
 msgstr "An order is paid for using the methods shown on the checkout page. Check your delivery details carefully before paying: we cannot take responsibility for an address a customer entered incorrectly."
 
 msgid "3. Yetkazib berish"
 msgstr "3. Delivery"
 
-#| msgid "Barcha buyurtmalar Oʻzbekiston pochtasi orqali yuboriladi — Toshkentda ham, viloyatlarda ham. Pochta boʻlimiga yetkazish 15 000 soʻm, eshikkacha yetkazish 30 000 soʻm. Bepul yetkazish chegarasi hozircha yoʻq."
 msgid "Barcha buyurtmalar Oʻzbekiston pochtasi orqali yuboriladi — Toshkentda ham, viloyatlarda ham. Bepul yetkazish chegarasi hozircha yoʻq."
 msgstr "Every order ships with Uzbekiston pochtasi, in Tashkent and in the regions alike. There is no free-delivery threshold at the moment."
 

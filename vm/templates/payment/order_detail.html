@@ -89,6 +89,12 @@
       {% if order.status == 'paying' %}
         <a class="btn btn--primary btn--block" href="{% url 'payment' order.id %}">{% trans "Toʻlovni yakunlash" %}</a>
       {% endif %}
+      {# Only on a delivered order, because that is the only state in which the #}
+      {# form would accept anything (§9 Phase 12 item 2). Offering it earlier #}
+      {# would be a button that exists to refuse. #}
+      {% if order.status == 'done' %}
+        <a class="btn btn--primary btn--block" href="{% url 'review_create' order_id=order.id %}">{% trans "Sharh qoldirish" %}</a>
+      {% endif %}
     </aside>
   </div>
 </div>

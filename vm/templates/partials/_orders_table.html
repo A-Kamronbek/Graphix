@@ -20,7 +20,15 @@
             <span class="badge {% if o.status == 'done' %}badge--success{% elif o.status == 'cancelled' %}badge--danger{% elif o.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ o.get_status_display }}</span>
           </td>
           <td data-label="{% trans 'Summa' %}" class="num">{{ o.total_price|price }} {% trans "soʻm" %}</td>
-          <td data-label=""><a class="link" href="{% url 'order_detail' o.id %}">{% trans "Koʻrish" %}</a></td>
+          <td data-label="">
+            <a class="link" href="{% url 'order_detail' o.id %}">{% trans "Koʻrish" %}</a>
+            {# The second entry point to the review form. A customer who has #}
+            {# just received a parcel is looking at this list, not at one #}
+            {# order's page (§9 Phase 12 item 1). #}
+            {% if o.status == 'done' %}
+              <a class="link" href="{% url 'review_create' order_id=o.id %}">{% trans "Sharh" %}</a>
+            {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>

@@ -239,10 +239,15 @@ class ReviewAdmin(admin.ModelAdmin):
     actions = ['approve_selected', 'reject_selected']
 
     def _moderate(self, request, queryset, status):
-        """Stamp who moderated and when, so a decision can be traced later."""
-        from django.utils import timezone
-        return queryset.update(status=status, moderated_by=request.user,
-                               moderated_at=timezone.now())
+        """Stamp who moderated and when, and move the product's rating with it.
+
+        Through the service rather than a bare ``update()`` here: the update is
+        a bulk statement, so it fires no signals, and approving a review used
+        to leave ``rating_avg`` and ``review_count`` exactly as they were —
+        the moderation queue worked and the product page never heard about it.
+        """
+        from .services import moderate
+        return moderate(queryset, status, by=request.user)
 
     @admin.action(description='Tasdiqlash')
     def approve_selected(self, request, queryset):
