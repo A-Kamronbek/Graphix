@@ -331,7 +331,7 @@ class AdminDefaultColourTests(TestCase):
             'name': 'Admin mahsulot', 'description': '', 'material': '',
             'name_ru': '', 'description_ru': '', 'material_ru': '',
             'name_en': '', 'description_en': '', 'material_en': '',
-            'gsm': '', 'print_method': '', 'fit': '', 'size_chart': '',
+            'gsm': '', 'print_method': '', 'size_chart': '',
             'images-TOTAL_FORMS': '0', 'images-INITIAL_FORMS': '0',
             'images-MIN_NUM_FORMS': '0', 'images-MAX_NUM_FORMS': '1000',
             'variants-TOTAL_FORMS': '1', 'variants-INITIAL_FORMS': '0',

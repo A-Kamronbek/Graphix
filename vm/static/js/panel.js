@@ -233,6 +233,32 @@ var SAY = (function () {
     });
   }
 
+  /* ------------------------------------------------------ filtering rows */
+  /* The same idea one level up: a list of editable rows, narrowed by typing.
+     The tag list on the settings screen is the one that needed it — the owner
+     writes the tags, so it only grows, and forty rows of four boxes each is a
+     screen nobody scrolls to the bottom of.
+     Every language is in the haystack, because the tag somebody remembers may
+     be the Russian one. Client side, because the whole list is already here:
+     a round trip per keystroke to filter rows already on the page is latency
+     bought with nothing. */
+  document.querySelectorAll('[data-rowsearch]').forEach(function (box) {
+    var input = box.querySelector('[data-rowsearch-input]');
+    var empty = box.querySelector('[data-rowsearch-empty]');
+    var rows = box.querySelectorAll('[data-rowsearch-row]');
+    if (!input || !rows.length) return;
+    input.addEventListener('input', function () {
+      var needle = input.value.trim().toLowerCase();
+      var shown = 0;
+      rows.forEach(function (row) {
+        var hit = !needle || (row.dataset.search || '').toLowerCase().indexOf(needle) >= 0;
+        row.classList.toggle('is-hidden', !hit);
+        if (hit) shown += 1;
+      });
+      if (empty) empty.hidden = shown > 0;
+    });
+  });
+
   /* --------------------------------------------------------- the gallery */
   var editor = document.querySelector('[data-gallery-editor]');
   if (!editor) return;

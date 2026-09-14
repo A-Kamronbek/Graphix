@@ -324,20 +324,23 @@ class CatalogueCompletenessTests(TestCase):
     def test_the_phase_4_choice_labels_translate(self):
         """Spot-check the labels that were missed, so the fix can't be undone."""
         from core.i18n import tfield
-        from product.models import Product, Review, TagKind
+        from product.models import PrintMethod, Review, TagKind
         expected = {
-            'ru': ['Обычный', 'Стиль', 'На модерации'],
-            'en': ['Regular', 'Style', 'Pending'],
+            'ru': ['Стиль', 'Шелкография', 'На модерации'],
+            'en': ['Style', 'Silkscreen', 'Pending'],
         }
-        # The tag kind is a row rather than a choice since the Phase 7 recheck,
-        # so its three languages live in three columns and are read the way
-        # every other translated name on the site is read. The assertion is the
-        # same one: a Russian reader sees Russian.
+        # Two of the three are rows rather than choices now — the tag kind and
+        # the print method, since the Phase 7 recheck — so their three languages
+        # live in three columns and are read the way every other translated name
+        # on the site is read. `Product.Fit` was the third and is gone with the
+        # cut it named (§17 #172). The assertion is the same one it always was:
+        # a Russian reader sees Russian.
         style = TagKind.objects.get(slug='style')
+        silkscreen = PrintMethod.objects.get(slug='silkscreen')
         for lang, wanted in expected.items():
             with self.subTest(lang=lang), translation.override(lang):
-                rendered = [str(dict(Product.Fit.choices)[Product.Fit.REGULAR]),
-                            tfield(style, 'name'),
+                rendered = [tfield(style, 'name'),
+                            tfield(silkscreen, 'name'),
                             str(dict(Review.Status.choices)[Review.Status.PENDING])]
                 self.assertEqual(rendered, wanted)
 

@@ -15,6 +15,11 @@
   SOATO code and is not in it. Deleting has a second, shorter allowlist:
   regions, districts and delivery tiers are missing from it because an order
   points at all three.
+
+  Tag kinds and tags are two sections rather than one heading followed by a
+  second heading: "Teglar" was sitting tight against the table above it with
+  nothing to say it had started (§17 #171), and the tab that claimed to go to
+  the tags went to the kinds.
 {% endcomment %}
 
 {% block content %}
@@ -24,6 +29,7 @@
 <nav class="pnl__tabs" aria-label="{% trans 'Boʻlimlar' %}">
   <a href="#yetkazish">{% trans "Yetkazib berish" %}</a>
   <a href="#turkumlar">{% trans "Turkumlar" %}</a>
+  <a href="#teg-turlari">{% trans "Teg turlari" %}</a>
   <a href="#teglar">{% trans "Teglar" %}</a>
   <a href="#bosma">{% trans "Bosma usullari" %}</a>
   <a href="#jadvallar">{% trans "Oʻlcham jadvallari" %}</a>
@@ -89,26 +95,41 @@
   {% include "boshqaruv/_lookup_new.html" with kind='category' legend=_("Yangi turkum") %}
 </section>
 
-<section class="pnl__section" id="teglar">
+<section class="pnl__section" id="teg-turlari">
   <h2>{% trans "Teg turlari" %}</h2>
   <p class="field__hint">{% trans "Teglar shu turlarga boʻlinadi — doʻkondagi filtrlar ham shunday guruhlanadi." %}</p>
   <div class="panel-card stack stack--sm">
     {% for row in kinds %}
-      {% include "boshqaruv/_lookup_row.html" with row=row kind='tagkind' ordered=1 %}
+      {% include "boshqaruv/_lookup_row.html" with row=row kind='tagkind' %}
     {% empty %}
       <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
     {% endfor %}
   </div>
-  {% include "boshqaruv/_lookup_new.html" with kind='tagkind' legend=_("Yangi teg turi") ordered=1 %}
+  {% include "boshqaruv/_lookup_new.html" with kind='tagkind' legend=_("Yangi teg turi") %}
+</section>
 
+<section class="pnl__section" id="teglar">
   <h2>{% trans "Teglar" %}</h2>
   <p class="field__hint">{% trans "Teglar tavsiyalar uchun asosiy signal — turkum emas." %}</p>
 
-  <div class="panel-card stack stack--sm">
+  {# A search, for the same reason the product form's chips have one: this list #}
+  {# is readable at eight tags and a wall at forty, and the owner writes them. #}
+  {# It matches all three languages, because the tag he remembers may be the #}
+  {# Russian one. Client side: the whole list is already on the page. #}
+  <div class="panel-card stack stack--sm" data-rowsearch>
+    <label class="search search--sm">
+      <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+      <span class="sr-only">{% trans "Teg qidirish" %}</span>
+      <input type="search" autocomplete="off" data-rowsearch-input
+             placeholder="{% trans 'Teg qidirish' %}">
+    </label>
+
     {% for tag in tags %}
       {# Every box says which language it is: three identical unlabelled boxes #}
       {# in a column at 390 px is a guessing game. #}
-      <div class="row--fields row--tag" data-ref="tag" data-id="{{ tag.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='tag' pk=tag.pk %}">
+      <div class="row--fields row--tag" data-ref="tag" data-id="{{ tag.pk }}"
+           data-rowsearch-row data-search="{{ tag.name }} {{ tag.name_ru }} {{ tag.name_en }} {{ tag.kind.name|default:'' }}"
+           data-ref-url="{% url 'panel_reference_inline' kind='tag' pk=tag.pk %}">
         <label class="field field--narrow">
           <span class="label">{% trans "Turi" %}</span>
           <select class="select" data-ref-field="kind">
@@ -140,6 +161,7 @@
     {% empty %}
       <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
     {% endfor %}
+    <p class="muted small" data-rowsearch-empty hidden>{% trans "Mos teg topilmadi." %}</p>
   </div>
 
   <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_tag_new' %}">
@@ -177,17 +199,17 @@
   <p class="field__hint">{% trans "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi." %}</p>
   <div class="panel-card stack stack--sm">
     {% for row in methods %}
-      {% include "boshqaruv/_lookup_row.html" with row=row kind='method' ordered=1 %}
+      {% include "boshqaruv/_lookup_row.html" with row=row kind='method' %}
     {% empty %}
       <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
     {% endfor %}
   </div>
-  {% include "boshqaruv/_lookup_new.html" with kind='method' legend=_("Yangi bosma usuli") ordered=1 %}
+  {% include "boshqaruv/_lookup_new.html" with kind='method' legend=_("Yangi bosma usuli") %}
 </section>
 
 <section class="pnl__section" id="jadvallar">
   <h2>{% trans "Oʻlcham jadvallari" %}</h2>
-  <p class="field__hint">{% trans "Rasm — asosiy mazmun. Qolip tanlansa, jadval shu qolipdagi mahsulotlarga oʻzi biriktiriladi." %}</p>
+  <p class="field__hint">{% trans "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi." %}</p>
 
   {% for chart in charts %}
     <div class="panel-card chart" data-ref="chart" data-id="{{ chart.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='chart' pk=chart.pk %}">
@@ -208,15 +230,6 @@
         <label class="field">
           <span class="label">{% trans "Nomi" %}</span>
           <input class="input" type="text" value="{{ chart.name }}" maxlength="120" data-ref-field="name">
-        </label>
-        <label class="field field--narrow">
-          <span class="label">{% trans "Qolipi" %}</span>
-          <select class="select" data-ref-field="fit">
-            <option value="">—</option>
-            {% for value, label in fits %}
-              <option value="{{ value }}" {% if chart.fit == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
         </label>
       </div>
       <button type="button" class="btn btn--ghost btn--sm ref__x"
@@ -239,21 +252,20 @@
         <span class="label">{% trans "Nomi" %}</span>
         <input class="input" type="text" name="name" required maxlength="120">
       </label>
-      <label class="field">
-        <span class="label">{% trans "Qolipi" %}</span>
-        <select class="select" name="fit">
-          <option value="">—</option>
-          {% for value, label in fits %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select>
-      </label>
       {# A styled label driving a hidden input, so the control does not wear #}
       {# the browser's own English "Choose File" on an Uzbek screen. #}
+      {# The button and the file name sit on one line, so this field is two #}
+      {# lines like the box beside it and the two captions line up. Three #}
+      {# lines against two put "Rasm" a row above "Nomi" and left the chosen #}
+      {# file name floating beside the name box. #}
       <div class="field field--wide">
         <span class="label">{% trans "Rasm" %}</span>
-        <label class="btn btn--secondary" for="chart-image">{% trans "Rasm tanlash" %}</label>
-        <input class="sr-only" type="file" id="chart-image" name="image" required
-               accept="image/jpeg,image/png,image/webp,image/avif" data-file-name>
-        <span class="small muted" data-file-label>{% trans "Tanlanmagan" %}</span>
+        <span class="field__file">
+          <label class="btn btn--secondary" for="chart-image">{% trans "Rasm tanlash" %}</label>
+          <input class="sr-only" type="file" id="chart-image" name="image" required
+                 accept="image/jpeg,image/png,image/webp,image/avif" data-file-name>
+          <span class="small muted" data-file-label>{% trans "Tanlanmagan" %}</span>
+        </span>
       </div>
       <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
     </div>

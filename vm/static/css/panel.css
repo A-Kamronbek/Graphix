@@ -178,6 +178,18 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
   border-color: var(--c-brand); }
 .switch input:checked::after { transform: translateX(18px); background: var(--c-brand); }
 .switch input:focus-visible { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+/* The track is 26 px tall and the label around it is 44, so a finger aimed at
+   the top or bottom of the 44 px band was landing on the label with exactly one
+   pixel to spare — and a pixel of margin is not a margin. The panel's own sweep
+   caught it intermittently: it passed in Uzbek and failed in English at the
+   same width, because the label is only as tall as its own text and that text
+   is a different word in each language.
+   The answer is the one §17 #160 settled: remove the mechanism rather than
+   tune the number. An overlaid band on the control itself makes the control the
+   thing under the finger, whatever the label around it happens to measure, and
+   it changes no layout at all. `::before` because `::after` is the knob. */
+.switch input::before { content: ""; position: absolute; left: 0; right: 0;
+  top: 50%; height: 44px; transform: translateY(-50%); }
 
 /* --------------------------------------------------------------- gallery */
 /* Drag to reorder. The first photograph is the one the shop leads with, so the
@@ -315,6 +327,12 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
 /* ------------------------------------------------------------- reference */
 .field--num { flex: 1 1 12ch; }
 .field--wide { flex: 1 1 20ch; }
+/* A file field is a button and the name of the file chosen. On one line it is
+   two rows tall like every text field beside it, so the captions above them
+   line up; stacked, it was three rows and pushed its own caption a line clear
+   of the others. */
+.field__file { display: flex; align-items: center; gap: var(--s-3);
+  flex-wrap: wrap; min-height: 44px; }
 .field--narrow { flex: 0 1 16ch; }
 .chart__thumb { width: 64px; height: 64px; object-fit: cover;
   border-radius: var(--r-sm); background: var(--c-surface-2); }
@@ -372,13 +390,14 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
    own width by `auto-fit`: it is a marker, not a field. */
 .row--tag { align-items: end; }
 .row--fields > .badge { align-self: center; justify-self: start; }
-/* A sort order is two digits and a delete button is an icon; neither earns the
-   15ch minimum the name fields share. */
-.field--tiny { flex: 0 0 6ch; }
+/* A delete button is an icon; it does not earn the 15ch minimum the name
+   fields share, so it takes its own width at the end of the row. */
 @media (min-width: 640px) {
-  .row--fields:has(.field--tiny) { grid-template-columns: 6ch repeat(auto-fit, minmax(14ch, 1fr)) auto; }
   .row--fields > .ref__x { align-self: end; }
 }
+/* A row the search has filtered out. Same class the chips use, so there is one
+   answer on the panel to "this is not a match". */
+.row--fields.is-hidden { display: none; }
 
 
 /* ------------------------------------------------------------- deleting */

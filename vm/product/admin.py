@@ -59,7 +59,7 @@ class ProductAdmin(admin.ModelAdmin):
                     'stock_total', 'min_price', 'image_count', 'created_at')
     list_display_links = ('thumb', 'name')
     list_editable = ('is_active',)
-    list_filter = ('is_active', 'category', 'tags', 'print_method', 'fit', 'created_at')
+    list_filter = ('is_active', 'category', 'tags', 'print_method', 'created_at')
     search_fields = ('name', 'name_ru', 'name_en', 'slug', 'description')
     inlines = [ImagePInline, VariantInline]
     list_select_related = ('category',)
@@ -79,7 +79,7 @@ class ProductAdmin(admin.ModelAdmin):
                       'description': "Boʻsh qoldirilsa, oʻzbekcha matn koʻrsatiladi."}),
         ('English', {'fields': ('name_en', 'description_en', 'material_en'),
                      'description': "Boʻsh qoldirilsa, oʻzbekcha matn koʻrsatiladi."}),
-        ('Xususiyatlari', {'fields': ('gsm', 'print_method', 'fit', 'size_chart'),
+        ('Xususiyatlari', {'fields': ('gsm', 'print_method', 'size_chart'),
                            'description': "Mahsulot sahifasidagi xususiyatlar qatori."}),
         ('Hisoblangan', {'fields': ('likes_count', 'rating_avg', 'review_count', 'created_at'),
                          'classes': ('collapse',)}),
@@ -152,13 +152,13 @@ class VariantAdmin(admin.ModelAdmin):
 
 
 class LookupAdmin(admin.ModelAdmin):
-    """The shape both small lookup tables want: name, order, and a slug.
+    """The shape both small lookup tables want: a name in three languages and a slug.
 
     ``TagKind`` and ``PrintMethod`` are edited from the panel; this is the
     fallback, and it exists mainly so a superuser can see what is in them.
+    Both order by id — oldest first — since the sort column went (§17 #171).
     """
-    list_display = ('name', 'slug', 'order', 'name_ru', 'name_en')
-    list_editable = ('order',)
+    list_display = ('name', 'slug', 'name_ru', 'name_en')
     search_fields = ('name', 'name_ru', 'name_en', 'slug')
     prepopulated_fields = {'slug': ('name',)}
 

@@ -145,8 +145,6 @@ def save_product(data, product=None):
     method_id = (data.get('print_method') or '').strip()
     product.print_method = (PrintMethod.objects.filter(pk=method_id).first()
                             if method_id.isdigit() else None)
-    fit = (data.get('fit') or '').strip()
-    product.fit = fit if fit in Product.Fit.values else ''
 
     product.is_active = bool(data.get('is_active'))
     product.save()
