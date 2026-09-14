@@ -1,0 +1,67 @@
+{% load i18n static price_format %}
+{% comment %}
+  One product on the list: a thumbnail, its name, one price, a switch, and a
+  stock box per size.
+
+  The stock boxes are the reason this row exists. "How many are left" is the
+  question somebody asks with a parcel in their hand, and answering it should
+  not mean opening a product and finding a grid. Every box saves on its own,
+  in place.
+{% endcomment %}
+{# The endpoint comes from `{% url %}` rather than being assembled in the #}
+{# script: the panel is language-prefixed like every other page (§17 #121), #}
+{# so a path built from a hardcoded /uz/ would 404 for anybody reading the #}
+{# panel in Russian. #}
+<article class="prod" data-product="{{ product.slug }}"
+         data-inline-url="{% url 'panel_product_inline' slug=product.slug %}">
+  <a class="prod__pic" href="{% url 'panel_product' slug=product.slug %}">
+    {% with first=product.images.first %}
+      {% if first %}
+        {# Same fallback as the storefront: a row can point at a file that is #}
+        {# no longer on disk, and a broken image tells the owner nothing. #}
+        <img src="{{ first.picture.url }}" alt="" loading="lazy" decoding="async"
+             onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
+      {% else %}
+        <span class="prod__nopic" aria-hidden="true">
+          <svg class="i" ><use href="#i-image"></use></svg>
+        </span>
+      {% endif %}
+    {% endwith %}
+  </a>
+
+  <div class="prod__main">
+    <a class="prod__name" href="{% url 'panel_product' slug=product.slug %}">{{ product.name }}</a>
+    <span class="small muted">{{ product.slug }}</span>
+
+    <div class="prod__stocks">
+      {% for variant in product.variants.all %}
+        <label class="stockbox {% if not variant.is_purchasable %}is-out{% endif %}">
+          <span class="stockbox__size">{{ variant.size.size }}</span>
+          <input class="stockbox__n num" type="text" inputmode="numeric" pattern="[0-9]*"
+                 value="{{ variant.stock }}" size="3"
+                 aria-label="{% blocktrans with size=variant.size.size %}{{ size }} zaxirasi{% endblocktrans %}"
+                 data-inline="stock" data-size="{{ variant.size.pk }}">
+        </label>
+      {% empty %}
+        <span class="small muted">{% trans "Oʻlchamlar kiritilmagan" %}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="prod__side">
+    {# One price per design is how this catalogue works, so one box sets every #}
+    {# size. A size that needs its own price is the edit screen's job. #}
+    <label class="prod__price">
+      <span class="sr-only">{% trans "Narx" %}</span>
+      <input class="input num" type="text" inputmode="numeric"
+             value="{{ product.variants.first.price|default_if_none:''|floatformat:"0" }}"
+             data-inline="price">
+      <span class="small muted">{% trans "soʻm" %}</span>
+    </label>
+
+    <label class="switch">
+      <input type="checkbox" data-inline="is_active" {% if product.is_active %}checked{% endif %}>
+      <span>{% trans "Sotuvda" %}</span>
+    </label>
+  </div>
+</article>

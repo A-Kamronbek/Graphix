@@ -62,7 +62,7 @@
       <span class="stat__label">{% trans "Oʻqilmagan xabarlar" %}</span>
     </a>
     <a class="stat {% if low_stock_count %}stat--todo{% endif %}"
-       href="{% url 'admin:product_variant_changelist' %}">
+       href="{% url 'panel_products' %}">
       <span class="stat__n">{{ low_stock_count }}</span>
       <span class="stat__label">{% trans "Zaxira tugayapti" %}</span>
     </a>

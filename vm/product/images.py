@@ -59,12 +59,27 @@ ALLOWED = {'JPEG', 'PNG', 'WEBP', 'AVIF', 'MPO'}
 JPEG_QUALITY = 82
 
 
-def sanitise(upload, name_hint='review'):
+#: The long edge for a product photograph. Larger than a review's, because
+#: this is the biggest thing on the product page — `--pdp-image-max` is
+#: `min(76vh, 760px)`, which is about 1520 px on a 2× screen — and it is the
+#: one image on the site that is meant to be looked at closely (§8).
+PRODUCT_MAX_EDGE = 2000
+
+
+def sanitise(upload, name_hint='review', max_edge=None):
     """Return ``upload`` as a clean JPEG :class:`ContentFile`.
+
+    ``max_edge`` defaults to :data:`MAX_EDGE`, which suits a review photo; the
+    panel passes :data:`PRODUCT_MAX_EDGE` for catalogue photography. Everything
+    else — the size and pixel limits, the format check, and the re-encode that
+    strips the metadata — is the same either way, which is the point: one
+    pipeline, so a photograph uploaded by the owner is cleaned exactly like one
+    uploaded by a customer.
 
     Raises :class:`~django.core.exceptions.ValidationError` with a translated,
     customer-facing message if the file is not an image we accept.
     """
+    edge = max_edge or MAX_EDGE
     size = getattr(upload, 'size', None)
     if size is not None and size > MAX_BYTES:
         raise ValidationError(
@@ -119,7 +134,7 @@ def sanitise(upload, name_hint='review'):
         elif image.mode != 'RGB':
             image = image.convert('RGB')
 
-        image.thumbnail((MAX_EDGE, MAX_EDGE), Image.LANCZOS)
+        image.thumbnail((edge, edge), Image.LANCZOS)
 
         out = io.BytesIO()
         # No `exif=` argument and no `icc_profile`: what is not passed is not

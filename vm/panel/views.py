@@ -25,11 +25,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from core.models import Msg
 from payment.models import DeliveryOption, Order
-from product.models import Review, Variant
+from product import images as image_pipeline
+from product.models import (Category, Product, Review, Size, SizeChart, Tag,
+                            Variant)
 
+from . import catalogue
 from .auth import staff_only
 from .services import PANEL_CHOICES, PANEL_SETTABLE, UnknownStatus, set_status
 
@@ -41,6 +46,18 @@ LOW_STOCK = 5
 #: Orders per page in the list. Twenty fills a laptop screen and is three
 #: thumb-scrolls on a phone.
 PER_PAGE = 20
+
+
+def _int(raw, default=0):
+    """Parse a number out of a POST field, or fall back. Never raises.
+
+    A panel endpoint that 500s on a hand-edited form field is a panel endpoint
+    that 500s, and none of the numbers arriving here are worth that.
+    """
+    try:
+        return int(str(raw).strip())
+    except (TypeError, ValueError):
+        return default
 
 
 @staff_only
@@ -244,3 +261,174 @@ def order_status(request, order_no):
     if change is not None:
         messages.success(request, _('%(no)s — holat yangilandi.') % {'no': order.order_no})
     return redirect(request.POST.get('next') or 'panel_orders')
+
+
+# ---------------------------------------------------------------- products
+# The screen the plan calls the most important one in the phase: the owner adds
+# every product himself, with photographs, from a phone. So it gets the same
+# care as the storefront's own product page — and the logic lives in
+# `panel.catalogue`, because four things have to change together and a
+# half-saved product is one that is live and unbuyable.
+
+@staff_only
+def products(request):
+    """The catalogue, with the two things that change daily editable in place.
+
+    Availability and stock are what somebody actually changes between parcels;
+    everything else is a trip to the edit screen. The list carries both.
+    """
+    qs = (Product.objects.prefetch_related('images', 'variants__size')
+          .order_by('-created_at'))
+
+    query = request.GET.get('q', '').strip()
+    if query:
+        qs = qs.filter(Q(name__icontains=query) | Q(name_ru__icontains=query)
+                       | Q(name_en__icontains=query) | Q(slug__icontains=query))
+
+    category = request.GET.get('category', '')
+    if category.isdigit():
+        qs = qs.filter(category_id=int(category))
+
+    active = request.GET.get('active', '')
+    if active in ('1', '0'):
+        qs = qs.filter(is_active=(active == '1'))
+
+    page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
+    kept = request.GET.copy()
+    kept.pop('page', None)
+    return render(request, 'boshqaruv/products.html', {
+        'screen': 'products',
+        'products': page,
+        'base_query': kept.urlencode(),
+        'categories': Category.objects.all(),
+        'filters': {'q': query, 'category': category, 'active': active},
+        'total': qs.count(),
+    })
+
+
+@staff_only
+def product_form(request, slug=None):
+    """Create a product, or edit one. One screen, because it is one job.
+
+    A new product is saved before its photographs are, because an ``ImageP``
+    needs a product to belong to — so "create" writes the row and then lands on
+    the same screen in edit mode, where the gallery and the grid are waiting.
+    That is also why the DoD's "in one sitting" is achievable on a phone: the
+    text goes in, it saves, and the photographs go on afterwards without
+    losing anything.
+    """
+    product = get_object_or_404(Product, slug=slug) if slug else None
+
+    if request.method == 'POST':
+        try:
+            # One transaction around *both*, not one around each. They are
+            # separately atomic so either can be called on its own, and that is
+            # exactly what made this wrong first time: the product committed,
+            # the grid was refused, and the catalogue was left holding a
+            # product with no sizes — live, and unbuyable.
+            with transaction.atomic():
+                product = catalogue.save_product(request.POST, product)
+                catalogue.save_grid(product, request.POST)
+        except ValidationError as exc:
+            product = Product.objects.filter(slug=slug).first() if slug else None
+            messages.error(request, exc.messages[0])
+        else:
+            messages.success(request, _('Saqlandi.'))
+            return redirect('panel_product', slug=product.slug)
+
+    sizes = Size.objects.all()
+    # The grid, as rows the template can render without looking anything up:
+    # every size the shop sells, carrying this product's numbers where it has
+    # them and blanks where it does not.
+    by_size = {v.size_id: v for v in product.variants.all()} if product else {}
+    grid = [{'size': size, 'variant': by_size.get(size.pk)} for size in sizes]
+
+    return render(request, 'boshqaruv/product_form.html', {
+        'screen': 'products',
+        'product': product,
+        'grid': grid,
+        'categories': Category.objects.all(),
+        'charts': SizeChart.objects.all(),
+        'tags': Tag.objects.all(),
+        'chosen_tags': set(product.tags.values_list('pk', flat=True)) if product else set(),
+        'print_methods': Product.PrintMethod.choices,
+        'fits': Product.Fit.choices,
+        'max_images': catalogue.MAX_IMAGES,
+        'max_bytes': image_pipeline.MAX_BYTES,
+        'max_pixels': image_pipeline.MAX_PIXELS,
+    })
+
+
+@staff_only
+@require_POST
+def product_inline(request, slug):
+    """One inline edit from the list: availability, a price, or one size's stock.
+
+    Deliberately narrow. This endpoint can change three things and nothing
+    else, so a stray POST cannot rewrite a product's copy or its category — the
+    edit screen is where a product is edited, and this is where a number is
+    corrected between parcels.
+    """
+    product = get_object_or_404(Product, slug=slug)
+    field = request.POST.get('field', '')
+    raw = request.POST.get('value', '')
+
+    if field == 'is_active':
+        product.is_active = raw in ('1', 'true', 'on')
+        product.save(update_fields=['is_active'])
+        return JsonResponse({'ok': True, 'value': product.is_active})
+
+    if field == 'price':
+        try:
+            price = catalogue.price_of(raw)
+        except ValidationError as exc:
+            return JsonResponse({'ok': False, 'error': exc.messages[0]}, status=400)
+        # One price per design is how this catalogue works, so the list edits
+        # all of a product's sizes at once. A size that needs its own price is
+        # the edit screen's job.
+        product.variants.update(price=price)
+        return JsonResponse({'ok': True, 'value': str(price)})
+
+    if field == 'stock':
+        variant = get_object_or_404(Variant, product=product,
+                                    size_id=_int(request.POST.get('size')))
+        variant.stock = max(0, _int(raw))
+        variant.save(update_fields=['stock'])
+        return JsonResponse({'ok': True, 'value': variant.stock,
+                             'purchasable': variant.is_purchasable})
+
+    return JsonResponse({'ok': False, 'error': _('Notoʻgʻri maydon.')}, status=400)
+
+
+@staff_only
+@require_POST
+def product_images(request, slug):
+    """Add, reorder or remove this product's photographs.
+
+    Uploading answers with the rendered gallery so the page does not have to
+    guess what happened — the server resized and re-encoded the file, so only
+    it knows the URL the photograph ended up at.
+    """
+    product = get_object_or_404(Product, slug=slug)
+    action = request.POST.get('action', 'add')
+
+    if action == 'add':
+        try:
+            catalogue.add_images(product, request.FILES.getlist('images'))
+        except ValidationError as exc:
+            return JsonResponse({'ok': False, 'error': exc.messages[0]}, status=400)
+
+    elif action == 'order':
+        catalogue.reorder_images(product, request.POST.getlist('ids'))
+
+    elif action == 'delete':
+        product.images.filter(pk=_int(request.POST.get('id'))).delete()
+        catalogue.reorder_images(product, [])
+
+    else:
+        return JsonResponse({'ok': False, 'error': _('Notoʻgʻri amal.')}, status=400)
+
+    return JsonResponse({'ok': True, 'images': [
+        {'id': image.pk, 'url': image.picture.url}
+        for image in product.images.all()
+    ]})

@@ -120,3 +120,125 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
   .ord__hd { display: block; }
   .ord__foot { justify-content: flex-end; }
 }
+
+/* -------------------------------------------------------------- products */
+/* A row is a thumbnail, a name, a stock box per size and a switch. The stock
+   boxes are why the row exists: "how many are left" is asked with a parcel in
+   hand, and answering it should not mean opening a product. */
+.prod { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--s-4);
+  padding: var(--s-4); border-radius: var(--r-md);
+  background: var(--c-surface); border: 1px solid var(--c-line); }
+.prod + .prod { margin-top: var(--s-3); }
+.prod__pic { grid-row: span 2; }
+.prod__pic img { width: 64px; height: 80px; object-fit: cover;
+  border-radius: var(--r-sm); background: var(--c-surface-2); }
+.prod__nopic { display: grid; place-items: center; width: 64px; height: 80px;
+  border-radius: var(--r-sm); background: var(--c-surface-2); color: var(--c-fg-subtle); }
+.prod__main { display: grid; gap: var(--s-2); min-width: 0; }
+.prod__name { font-weight: var(--fw-semibold); }
+.prod__side { grid-column: 2; display: flex; align-items: center;
+  gap: var(--s-4); flex-wrap: wrap; }
+.prod__price { display: flex; align-items: center; gap: var(--s-2); }
+/* A number field has to be able to show its own number. `width` is border-box,
+   so `8ch` on a field with 16 px of padding each side leaves about four
+   characters — and a price in soʻm is six, so every price on the list was
+   rendered cut in half. Panel number fields get their padding cut and their
+   width set from what they actually hold. */
+.pnl .input.num { padding-inline: var(--s-2); }
+.prod__price .input { width: 12ch; }
+
+/* One box per size, wrapping on a phone. The label is the size, so the number
+   never has to be read against a column header that has scrolled away. */
+.prod__stocks { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.stockbox { display: flex; align-items: center; gap: var(--s-2);
+  padding: 2px var(--s-2) 2px var(--s-3); border-radius: var(--r-full);
+  background: var(--c-surface-2); border: 1px solid var(--c-line); }
+.stockbox__size { font-size: var(--fs-sm); color: var(--c-fg-muted); }
+.stockbox__n { width: 4ch; min-height: 40px; padding: 0; text-align: center;
+  background: none; border: 0; color: var(--c-fg); }
+.stockbox__n:focus { outline: 2px solid var(--c-brand); outline-offset: 2px;
+  border-radius: var(--r-sm); }
+/* Out of stock, or switched off. The row still shows the number — the owner is
+   about to change it — but it stops reading as a number that is fine. */
+.stockbox.is-out { border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-line)); }
+.stockbox.is-saving { opacity: .5; }
+.stockbox.is-saved { border-color: var(--c-brand); }
+
+/* ---------------------------------------------------------------- switch */
+.switch { display: inline-flex; align-items: center; gap: var(--s-2);
+  min-height: 44px; cursor: pointer; font-size: var(--fs-sm); }
+.switch input { appearance: none; width: 44px; height: 26px; flex: none;
+  border-radius: var(--r-full); background: var(--c-surface-3);
+  border: 1px solid var(--c-line-strong); position: relative;
+  transition: background var(--t-fast), border-color var(--t-fast); }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px;
+  width: 20px; height: 20px; border-radius: 50%; background: var(--c-fg-muted);
+  transition: transform var(--t-fast), background var(--t-fast); }
+.switch input:checked { background: color-mix(in srgb, var(--c-brand) 35%, transparent);
+  border-color: var(--c-brand); }
+.switch input:checked::after { transform: translateX(18px); background: var(--c-brand); }
+.switch input:focus-visible { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+
+/* --------------------------------------------------------------- gallery */
+/* Drag to reorder. The first photograph is the one the shop leads with, so the
+   order is content, not arrangement. */
+.shots { display: flex; flex-wrap: wrap; gap: var(--s-3); list-style: none;
+  margin: var(--s-4) 0; padding: 0; }
+.shot { position: relative; width: 96px; }
+.shot img { width: 96px; height: 120px; object-fit: cover;
+  border-radius: var(--r-sm); background: var(--c-surface-2); cursor: grab; }
+.shot.is-dragging { opacity: .4; }
+.shot.is-over img { outline: 2px dashed var(--c-brand); outline-offset: 2px; }
+/* The lead photograph says so, because "first" is invisible once the row wraps. */
+.shot:first-child::before { content: "1"; position: absolute; top: 4px; left: 4px;
+  z-index: 1; display: grid; place-items: center; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--c-brand); color: var(--c-brand-fg);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); }
+.shot__x { position: absolute; top: 4px; right: 4px; display: grid;
+  place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--c-scrim); color: var(--c-fg); }
+.shot__x:hover { background: var(--c-danger); color: var(--c-brand-fg); }
+
+/* ------------------------------------------------------------------ chips */
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.chip { display: inline-flex; align-items: center; min-height: 40px;
+  padding: 0 var(--s-4); border-radius: var(--r-full);
+  background: var(--c-surface-2); border: 1px solid var(--c-line);
+  font-size: var(--fs-sm); cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast); }
+.chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+.chip:has(input:checked) { border-color: var(--c-brand); color: var(--c-brand); }
+.chip:has(input:focus-visible) { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------- grid */
+/* Size × price × stock. A table, because that is what it is. */
+.grid { width: 100%; border-collapse: collapse; }
+.grid th, .grid td { padding: var(--s-2) var(--s-2) var(--s-2) 0; text-align: left; }
+.grid thead th { font-size: var(--fs-sm); font-weight: var(--fw-normal);
+  color: var(--c-fg-muted); }
+.grid tbody th { font-weight: var(--fw-semibold); white-space: nowrap;
+  padding-right: var(--s-4); }
+/* The columns are set, not left to the browser: an auto table hands its width
+   out in proportion to content, and the widest thing in the price column is an
+   empty input — so at 390 px the price ended up narrower than its own number
+   while "Sotuvda" took the room (the same shape as §17 #125). */
+.grid { table-layout: fixed; }
+.grid th:first-child { width: 5ch; }
+.grid th:nth-child(2) { width: auto; }
+.grid th:nth-child(3) { width: 22%; }
+.grid th:last-child { width: 7ch; }
+.grid .input { width: 100%; min-width: 0; }
+.grid td:last-child { text-align: center; }
+.grid input[type="checkbox"] { appearance: none; width: 24px; height: 24px;
+  border-radius: var(--r-sm); background: var(--c-surface);
+  border: 1px solid var(--c-line-strong); cursor: pointer; }
+.grid input[type="checkbox"]:checked { background: var(--c-brand);
+  border-color: var(--c-brand); }
+.grid input[type="checkbox"]:focus-visible { outline: 2px solid var(--c-brand);
+  outline-offset: 2px; }
+
+@media (min-width: 900px) {
+  .prod { grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; }
+  .prod__pic { grid-row: auto; }
+  .prod__side { grid-column: auto; justify-content: flex-end; }
+}
