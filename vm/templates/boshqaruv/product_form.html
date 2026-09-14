@@ -1,0 +1,216 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n %}
+{% block title %}{% if product %}{{ product.name }}{% else %}{% trans "Yangi mahsulot" %}{% endif %}{% endblock %}
+
+{% comment %}
+  Create and edit, one screen.
+
+  A new product has no gallery yet, because a photograph needs a product to
+  belong to. So the first save writes the row and lands back here in edit mode
+  with the gallery and the grid waiting — which is also what makes the DoD's
+  "in one sitting on a phone" true: the text goes in, it saves, and the
+  photographs go on afterwards without anything being lost.
+
+  Colour is nowhere on this page. Every design ships in one colourway, the
+  storefront renders no picker (§17 #23), and the owner should never have to
+  answer a question the shop does not ask.
+{% endcomment %}
+
+{% block content %}
+<nav aria-label="{% trans 'Yoʻnalish' %}">
+  <ol class="crumbs">
+    <li><a href="{% url 'panel_products' %}">{% trans "Mahsulotlar" %}</a></li>
+    <li aria-current="page">{% if product %}{{ product.name }}{% else %}{% trans "Yangi" %}{% endif %}</li>
+  </ol>
+</nav>
+
+<div class="row row--between pnl__head">
+  <h1 class="pnl__title">{% if product %}{{ product.name }}{% else %}{% trans "Yangi mahsulot" %}{% endif %}</h1>
+  {% if product %}
+    <a class="link small" href="{{ product.get_absolute_url }}" target="_blank" rel="noopener">{% trans "Saytda koʻrish" %}</a>
+  {% endif %}
+</div>
+
+{% if product %}
+  {# The gallery is its own form: photographs upload, reorder and delete #}
+  {# without touching the text, so a drag never risks the copy. #}
+  <section class="panel-card" data-gallery-editor
+           data-url="{% url 'panel_product_images' slug=product.slug %}"
+           data-max="{{ max_images }}" data-max-bytes="{{ max_bytes }}"
+           data-max-pixels="{{ max_pixels }}">
+    <h2>{% trans "Rasmlar" %}</h2>
+    <p class="field__hint">
+      {% blocktrans with n=max_images %}Koʻpi bilan {{ n }} ta. Birinchisi asosiy rasm — tartibni surib oʻzgartiring.{% endblocktrans %}
+    </p>
+    <ol class="shots" data-shots>
+      {% for image in product.images.all %}
+        <li class="shot" draggable="true" data-id="{{ image.pk }}">
+          <img src="{{ image.picture.url }}" alt="" loading="lazy" decoding="async">
+          <button type="button" class="shot__x" data-shot-delete="{{ image.pk }}"
+                  aria-label="{% trans 'Oʻchirish' %}">
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-close"></use></svg>
+          </button>
+        </li>
+      {% endfor %}
+    </ol>
+    <label class="btn btn--secondary" for="shots-input">{% trans "Rasm qoʻshish" %}</label>
+    <input class="sr-only" type="file" id="shots-input" accept="image/jpeg,image/png,image/webp,image/avif"
+           multiple data-shots-input>
+    <p class="field__error" data-shots-error hidden></p>
+  </section>
+{% endif %}
+
+<form method="post" class="stack stack--lg" data-product-form>
+  {% csrf_token %}
+
+  <section class="panel-card stack">
+    <h2>{% trans "Nomi va tavsifi" %}</h2>
+    {# Three languages, stacked rather than tabbed: a tab hides the two you #}
+    {# have not filled in, and the ones you have not filled in are the whole #}
+    {# problem (§3 — Uzbek is the source, the other two are written). #}
+    <div class="field">
+      <label class="label" for="p-name">{% trans "Nomi" %} (uz)</label>
+      <input class="input" type="text" name="name" id="p-name" required maxlength="255"
+             value="{{ product.name|default:'' }}">
+    </div>
+    <div class="field">
+      <label class="label" for="p-name-ru">{% trans "Nomi" %} (ru)</label>
+      <input class="input" type="text" name="name_ru" id="p-name-ru" maxlength="255"
+             value="{{ product.name_ru|default:'' }}">
+    </div>
+    <div class="field">
+      <label class="label" for="p-name-en">{% trans "Nomi" %} (en)</label>
+      <input class="input" type="text" name="name_en" id="p-name-en" maxlength="255"
+             value="{{ product.name_en|default:'' }}">
+    </div>
+    <div class="field">
+      <label class="label" for="p-desc">{% trans "Tavsifi" %} (uz)</label>
+      <textarea class="textarea" name="description" id="p-desc" rows="4">{{ product.description|default:'' }}</textarea>
+    </div>
+    <div class="field">
+      <label class="label" for="p-desc-ru">{% trans "Tavsifi" %} (ru)</label>
+      <textarea class="textarea" name="description_ru" id="p-desc-ru" rows="4">{{ product.description_ru|default:'' }}</textarea>
+    </div>
+    <div class="field">
+      <label class="label" for="p-desc-en">{% trans "Tavsifi" %} (en)</label>
+      <textarea class="textarea" name="description_en" id="p-desc-en" rows="4">{{ product.description_en|default:'' }}</textarea>
+    </div>
+  </section>
+
+  <section class="panel-card stack">
+    <h2>{% trans "Xususiyatlari" %}</h2>
+    <div class="field">
+      <label class="label" for="p-cat">{% trans "Turkum" %}</label>
+      <select class="select" name="category" id="p-cat">
+        <option value="">—</option>
+        {% for category in categories %}
+          <option value="{{ category.pk }}" {% if product.category_id == category.pk %}selected{% endif %}>{{ category.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="label" for="p-gsm">{% trans "Zichligi (g/m²)" %}</label>
+      <input class="input num" type="text" inputmode="numeric" name="gsm" id="p-gsm"
+             value="{{ product.gsm|default_if_none:'' }}">
+    </div>
+    <div class="field">
+      <label class="label" for="p-mat">{% trans "Mato" %} (uz)</label>
+      <input class="input" type="text" name="material" id="p-mat" maxlength="60"
+             placeholder="100% paxta" value="{{ product.material|default:'' }}">
+    </div>
+    <div class="field">
+      <label class="label" for="p-mat-ru">{% trans "Mato" %} (ru)</label>
+      <input class="input" type="text" name="material_ru" id="p-mat-ru" maxlength="60"
+             value="{{ product.material_ru|default:'' }}">
+    </div>
+    <div class="field">
+      <label class="label" for="p-mat-en">{% trans "Mato" %} (en)</label>
+      <input class="input" type="text" name="material_en" id="p-mat-en" maxlength="60"
+             value="{{ product.material_en|default:'' }}">
+    </div>
+    <div class="field">
+      <label class="label" for="p-print">{% trans "Bosma usuli" %}</label>
+      <select class="select" name="print_method" id="p-print">
+        <option value="">—</option>
+        {% for value, label in print_methods %}
+          <option value="{{ value }}" {% if product.print_method == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="label" for="p-fit">{% trans "Qolipi" %}</label>
+      <select class="select" name="fit" id="p-fit">
+        <option value="">—</option>
+        {% for value, label in fits %}
+          <option value="{{ value }}" {% if product.fit == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="label" for="p-chart">{% trans "Oʻlcham jadvali" %}</label>
+      <select class="select" name="size_chart" id="p-chart">
+        <option value="">{% trans "Qolipga qarab avtomatik" %}</option>
+        {% for chart in charts %}
+          <option value="{{ chart.pk }}" {% if product.size_chart_id == chart.pk %}selected{% endif %}>{{ chart.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </section>
+
+  <section class="panel-card stack">
+    <h2>{% trans "Teglar" %}</h2>
+    {# Tags, not categories, are what the Phase 13 recommender reads (§17 #26), #}
+    {# which is why they are a visible block rather than a field at the bottom. #}
+    <div class="chips">
+      {% for tag in tags %}
+        <label class="chip">
+          <input type="checkbox" name="tags" value="{{ tag.pk }}"
+                 {% if tag.pk in chosen_tags %}checked{% endif %}>
+          <span>{{ tag.name }}</span>
+        </label>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel-card stack">
+    <h2>{% trans "Oʻlchamlar va zaxira" %}</h2>
+    <p class="field__hint">{% trans "Narxi boʻsh qolgan oʻlcham mahsulotda koʻrinmaydi." %}</p>
+    <table class="grid">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Oʻlcham" %}</th>
+          <th scope="col">{% trans "Narx" %}</th>
+          <th scope="col">{% trans "Zaxira" %}</th>
+          <th scope="col">{% trans "Sotuvda" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in grid %}
+          <tr>
+            <th scope="row">{{ row.size.size }}</th>
+            <td><input class="input num" type="text" inputmode="numeric"
+                       name="price_{{ row.size.pk }}"
+                       value="{{ row.variant.price|default_if_none:''|floatformat:"0" }}"
+                       aria-label="{% blocktrans with size=row.size.size %}{{ size }} narxi{% endblocktrans %}"></td>
+            <td><input class="input num" type="text" inputmode="numeric"
+                       name="stock_{{ row.size.pk }}"
+                       value="{{ row.variant.stock|default_if_none:'' }}"
+                       aria-label="{% blocktrans with size=row.size.size %}{{ size }} zaxirasi{% endblocktrans %}"></td>
+            <td><input type="checkbox" name="available_{{ row.size.pk }}"
+                       {% if row.variant.available %}checked{% endif %}
+                       aria-label="{% blocktrans with size=row.size.size %}{{ size }} sotuvda{% endblocktrans %}"></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <div class="row row--between">
+    <label class="switch">
+      <input type="checkbox" name="is_active" {% if product.is_active or not product %}checked{% endif %}>
+      <span>{% trans "Sotuvda" %}</span>
+    </label>
+    <button class="btn btn--primary" type="submit">{% trans "Saqlash" %}</button>
+  </div>
+</form>
+{% endblock %}

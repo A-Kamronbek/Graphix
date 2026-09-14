@@ -21,4 +21,15 @@ urlpatterns = [
     path('boshqaruv/buyurtmalar/<str:order_no>/', views.order_detail, name='panel_order'),
     path('boshqaruv/buyurtmalar/<str:order_no>/holat/', views.order_status,
          name='panel_order_status'),
+
+    # Products. By slug, like the storefront's own product URLs, so a page open
+    # in the panel and the same product open on the site are recognisably the
+    # same thing.
+    path('boshqaruv/mahsulotlar/', views.products, name='panel_products'),
+    path('boshqaruv/mahsulotlar/yangi/', views.product_form, name='panel_product_new'),
+    path('boshqaruv/mahsulotlar/<slug:slug>/', views.product_form, name='panel_product'),
+    path('boshqaruv/mahsulotlar/<slug:slug>/tahrir/', views.product_inline,
+         name='panel_product_inline'),
+    path('boshqaruv/mahsulotlar/<slug:slug>/rasmlar/', views.product_images,
+         name='panel_product_images'),
 ]

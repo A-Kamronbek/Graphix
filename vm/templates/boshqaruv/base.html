@@ -55,6 +55,8 @@
        {% if screen == 'dashboard' %}aria-current="page"{% endif %}>{% trans "Bugun" %}</a>
     <a href="{% url 'panel_orders' %}"
        {% if screen == 'orders' %}aria-current="page"{% endif %}>{% trans "Buyurtmalar" %}</a>
+    <a href="{% url 'panel_products' %}"
+       {% if screen == 'products' %}aria-current="page"{% endif %}>{% trans "Mahsulotlar" %}</a>
     <a href="{% url 'admin:index' %}">{% trans "Django admin" %}</a>
     <a href="{% url 'style_guide' %}">{% trans "Dizayn tizimi" %}</a>
   </nav>

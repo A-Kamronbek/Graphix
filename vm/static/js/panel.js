@@ -89,3 +89,223 @@
     save(form);
   });
 })();
+
+
+/* ------------------------------------------------------------- products */
+/* Two jobs: saving one number from the catalogue list, and running the
+   gallery. Both are in the panel, which is the one part of the project
+   allowed to assume JavaScript (§17 #141). */
+(function () {
+  'use strict';
+
+  function csrf() {
+    var field = document.querySelector('[name=csrfmiddlewaretoken]');
+    return field ? field.value : '';
+  }
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      body: body,
+      headers: {'X-Requested-With': 'fetch', 'X-CSRFToken': csrf()},
+      credentials: 'same-origin'
+    }).then(function (r) { return r.json().catch(function () { return {ok: false}; }); });
+  }
+
+  /* ------------------------------------------------- one number at a time */
+  /* The list's stock boxes, price and switch. Each saves on its own, because
+     the alternative is a Save button per row and nobody presses those. */
+  function inlineSave(input) {
+    var row = input.closest('[data-product]');
+    if (!row) return;
+    var field = input.dataset.inline;
+    var body = new FormData();
+    body.append('field', field);
+    body.append('value', input.type === 'checkbox' ? (input.checked ? '1' : '0') : input.value);
+    if (input.dataset.size) body.append('size', input.dataset.size);
+
+    var box = input.closest('.stockbox');
+    if (box) { box.classList.add('is-saving'); box.classList.remove('is-saved'); }
+
+    post(row.dataset.inlineUrl, body)
+      .then(function (data) {
+        if (box) box.classList.remove('is-saving');
+        if (!data.ok) {
+          window.alert(data.error || 'Saqlanmadi');
+          return;
+        }
+        if (box) {
+          box.classList.add('is-saved');
+          /* The box says out-of-stock the moment it is, rather than at the
+             next page load — the owner is looking at it when they type. */
+          box.classList.toggle('is-out', !data.purchasable);
+          setTimeout(function () { box.classList.remove('is-saved'); }, 1200);
+        }
+      })
+      .catch(function () { if (box) box.classList.remove('is-saving'); });
+  }
+
+  document.addEventListener('change', function (e) {
+    var input = e.target.closest('[data-inline]');
+    if (input) inlineSave(input);
+  });
+  /* Enter in a number box means "done", not "submit the page". */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    var input = e.target.closest('[data-inline]');
+    if (!input) return;
+    e.preventDefault();
+    input.blur();
+  });
+
+  /* --------------------------------------------------------- the gallery */
+  var editor = document.querySelector('[data-gallery-editor]');
+  if (!editor) return;
+
+  var list = editor.querySelector('[data-shots]');
+  var input = editor.querySelector('[data-shots-input]');
+  var error = editor.querySelector('[data-shots-error]');
+  var url = editor.dataset.url;
+  var maxShots = parseInt(editor.dataset.max, 10) || 8;
+  var maxBytes = parseInt(editor.dataset.maxBytes, 10) || 0;
+  var maxPixels = parseInt(editor.dataset.maxPixels, 10) || 0;
+
+  function say(message) {
+    error.textContent = message || '';
+    error.hidden = !message;
+  }
+
+  /* Checked here as well as on the server, and the reason is the plan's: the
+     owner should never wait thirty seconds for an upload that will be
+     rejected. The server checks again, because a browser is not a guard. */
+  function check(file) {
+    return new Promise(function (resolve) {
+      if (maxBytes && file.size > maxBytes) {
+        resolve('“' + file.name + '” juda katta.');
+        return;
+      }
+      if (!/^image\/(jpeg|png|webp|avif)$/.test(file.type)) {
+        resolve('“' + file.name + '” — qoʻllab-quvvatlanmaydigan tur.');
+        return;
+      }
+      if (!maxPixels) { resolve(''); return; }
+      /* Dimensions need the file decoded, so this is the one check that
+         cannot be a property read. createImageBitmap does it off the main
+         thread where it exists. */
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        resolve(img.naturalWidth * img.naturalHeight > maxPixels
+          ? '“' + file.name + '” — rasm oʻlchami juda katta.' : '');
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        resolve('“' + file.name + '” — rasm sifatida oʻqib boʻlmadi.');
+      };
+      img.src = url;
+    });
+  }
+
+  function render(images) {
+    list.innerHTML = '';
+    images.forEach(function (image) {
+      var li = document.createElement('li');
+      li.className = 'shot';
+      li.draggable = true;
+      li.dataset.id = image.id;
+      var img = document.createElement('img');
+      img.src = image.url;
+      img.alt = '';
+      img.loading = 'lazy';
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'shot__x';
+      x.dataset.shotDelete = image.id;
+      x.setAttribute('aria-label', 'Oʻchirish');
+      x.innerHTML = '<svg class="i i--sm" aria-hidden="true"><use href="#i-close"></use></svg>';
+      li.appendChild(img);
+      li.appendChild(x);
+      list.appendChild(li);
+    });
+  }
+
+  input.addEventListener('change', function () {
+    var files = Array.prototype.slice.call(input.files);
+    if (!files.length) return;
+    say('');
+
+    if (list.children.length + files.length > maxShots) {
+      say('Koʻpi bilan ' + maxShots + ' ta rasm.');
+      input.value = '';
+      return;
+    }
+
+    Promise.all(files.map(check)).then(function (problems) {
+      var first = problems.filter(Boolean)[0];
+      if (first) { say(first); input.value = ''; return; }
+
+      var body = new FormData();
+      body.append('action', 'add');
+      files.forEach(function (file) { body.append('images', file); });
+      post(url, body).then(function (data) {
+        input.value = '';
+        if (!data.ok) { say(data.error || 'Yuklanmadi'); return; }
+        render(data.images);
+      });
+    });
+  });
+
+  list.addEventListener('click', function (e) {
+    var button = e.target.closest('[data-shot-delete]');
+    if (!button) return;
+    var body = new FormData();
+    body.append('action', 'delete');
+    body.append('id', button.dataset.shotDelete);
+    post(url, body).then(function (data) {
+      if (data.ok) render(data.images);
+    });
+  });
+
+  /* Drag to reorder. HTML's own drag events rather than a library: §3 says no
+     build step, and this is forty lines. */
+  var dragging = null;
+
+  list.addEventListener('dragstart', function (e) {
+    dragging = e.target.closest('.shot');
+    if (!dragging) return;
+    dragging.classList.add('is-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    /* Firefox will not start a drag without data on the transfer. */
+    e.dataTransfer.setData('text/plain', dragging.dataset.id);
+  });
+
+  list.addEventListener('dragover', function (e) {
+    if (!dragging) return;
+    e.preventDefault();
+    var over = e.target.closest('.shot');
+    if (!over || over === dragging) return;
+    list.querySelectorAll('.is-over').forEach(function (el) {
+      el.classList.remove('is-over');
+    });
+    over.classList.add('is-over');
+    var after = over.getBoundingClientRect().left + over.offsetWidth / 2 < e.clientX;
+    list.insertBefore(dragging, after ? over.nextSibling : over);
+  });
+
+  list.addEventListener('dragend', function () {
+    if (!dragging) return;
+    dragging.classList.remove('is-dragging');
+    list.querySelectorAll('.is-over').forEach(function (el) {
+      el.classList.remove('is-over');
+    });
+    dragging = null;
+
+    var body = new FormData();
+    body.append('action', 'order');
+    list.querySelectorAll('.shot').forEach(function (shot) {
+      body.append('ids', shot.dataset.id);
+    });
+    post(url, body);
+  });
+})();

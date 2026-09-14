@@ -1,0 +1,59 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n price_format %}
+{% block title %}{% trans "Mahsulotlar" %}{% endblock %}
+
+{% comment %}
+  The catalogue. Two things change between parcels — is it on sale, and how
+  many are left — and both are editable here without opening the product.
+  Everything else is a trip to the edit screen, which is where a product is
+  actually edited.
+{% endcomment %}
+
+{% block content %}
+<div class="row row--between pnl__head">
+  <h1 class="pnl__title">{% trans "Mahsulotlar" %}</h1>
+  <a class="btn btn--primary" href="{% url 'panel_product_new' %}">{% trans "Yangi mahsulot" %}</a>
+</div>
+
+<form class="pnl__filter" method="get" action="{% url 'panel_products' %}">
+  <label class="search">
+    <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+    <span class="sr-only">{% trans "Qidirish" %}</span>
+    <input type="search" name="q" value="{{ filters.q }}"
+           placeholder="{% trans 'Nomi yoki slug' %}" autocomplete="off">
+  </label>
+  <div class="row">
+    <label class="sr-only" for="f-cat">{% trans "Turkum" %}</label>
+    <select class="select" name="category" id="f-cat">
+      <option value="">{% trans "Barcha turkumlar" %}</option>
+      {% for category in categories %}
+        <option value="{{ category.pk }}" {% if filters.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+      {% endfor %}
+    </select>
+    <label class="sr-only" for="f-active">{% trans "Holati" %}</label>
+    <select class="select" name="active" id="f-active">
+      <option value="">{% trans "Hammasi" %}</option>
+      <option value="1" {% if filters.active == '1' %}selected{% endif %}>{% trans "Sotuvda" %}</option>
+      <option value="0" {% if filters.active == '0' %}selected{% endif %}>{% trans "Yashirilgan" %}</option>
+    </select>
+    <button class="btn btn--primary" type="submit">{% trans "Filtrlash" %}</button>
+    <a class="btn btn--ghost" href="{% url 'panel_products' %}">{% trans "Tozalash" %}</a>
+  </div>
+</form>
+
+<p class="small muted">{% blocktrans count n=total %}{{ n }} ta mahsulot{% plural %}{{ n }} ta mahsulot{% endblocktrans %}</p>
+
+{# The list has no form of its own, but every row saves over fetch and Django #}
+{# checks the token on all of them. One hidden field, for the script to read. #}
+<form hidden>{% csrf_token %}</form>
+
+<div class="pnl__section">
+  {% for product in products %}
+    {% include "boshqaruv/_product_row.html" %}
+  {% empty %}
+    <p class="muted">{% trans "Mahsulot topilmadi." %}</p>
+  {% endfor %}
+</div>
+
+{% include "product/_pager.html" with page_obj=products base_query=base_query %}
+{% endblock %}
