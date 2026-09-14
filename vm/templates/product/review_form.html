@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static i18n i18n_fields %}
+{% block title %}{% trans "Sharh qoldirish" %}{% endblock %}
+
+{% comment %}
+  One page per order, not per product: the parcel arrived and it had things in
+  it, which is how a customer thinks about this. An order with three products
+  shows three forms; the usual order shows one.
+
+  The star rating is radio buttons. With JavaScript off they are five labelled
+  radios in a row and the form submits exactly the same; the script only makes
+  them look like stars and fill in as the pointer crosses them. Nothing here is
+  required to leave a review.
+{% endcomment %}
+
+{% block content %}
+<div class="wrap section stack stack--lg">
+  <nav aria-label="{% trans 'Yoʻnalish' %}">
+    <ol class="crumbs">
+      <li><a href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a></li>
+      <li><a href="{% url 'order_detail' pk=order.pk %}">{{ order.order_no }}</a></li>
+      <li aria-current="page">{% trans "Sharh" %}</li>
+    </ol>
+  </nav>
+
+  <h1 class="h1">{% trans "Sharh qoldirish" %}</h1>
+
+  {% if not can_review %}
+    {# The rule the server enforces, said in words rather than met as a refusal. #}
+    <p class="msg msg--warn">
+      {% trans "Sharhni buyurtma yetkazib berilgandan keyin qoldirish mumkin." %}
+    </p>
+  {% endif %}
+
+  {% for product, existing in rows %}
+    <section class="panel stack">
+      <div class="row row--between">
+        <h2 class="h3">{{ product|t:"name" }}</h2>
+        <a class="link small" href="{{ product.get_absolute_url }}">{% trans "Mahsulot" %}</a>
+      </div>
+
+      {% if existing %}
+        {# Already written. Say where it is rather than showing a form that #}
+        {# would be refused — the customer cannot tell a moderation queue from #}
+        {# a lost form unless the page says so. #}
+        <p class="small muted">
+          {% if existing.status == 'pending' %}
+            {% trans "Sharhingiz koʻrib chiqilmoqda." %}
+          {% elif existing.status == 'approved' %}
+            {% trans "Sharhingiz chop etilgan." %}
+          {% else %}
+            {% trans "Sharhingiz chop etilmadi." %}
+          {% endif %}
+        </p>
+
+      {% elif can_review %}
+        <form method="post" enctype="multipart/form-data" class="stack">
+          {% csrf_token %}
+          <input type="hidden" name="product" value="{{ product.pk }}">
+
+          {# `.stars--input` is the component Phase 2 built for exactly this and #}
+          {# nothing had used yet. It needs no JavaScript: the row is reversed, #}
+          {# so `input:checked ~ label` reaches the stars to the *left* of the #}
+          {# chosen one and lights them. Five real radios, in five real labels. #}
+          <fieldset class="field">
+            <legend class="label">{% trans "Bahoyingiz" %}</legend>
+            <div class="stars stars--input">
+              {# 5 first: reversed by CSS, so this is what puts 1 on the left. #}
+              {% for value in "54321" %}
+                <input type="radio" name="rating" value="{{ value }}"
+                       id="rate-{{ product.pk }}-{{ value }}" required>
+                <label for="rate-{{ product.pk }}-{{ value }}">
+                  <svg class="i" aria-hidden="true"><use href="#i-star"></use></svg>
+                  <span class="sr-only">{% blocktrans with n=value %}{{ n }} yulduz{% endblocktrans %}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label class="label" for="text-{{ product.pk }}">
+              {% trans "Fikringiz" %}
+              <span class="muted">{% trans "(majburiy emas)" %}</span>
+            </label>
+            <textarea class="textarea" name="text" id="text-{{ product.pk }}"
+                      rows="4" maxlength="2000"
+                      placeholder="{% trans 'Oʻlchami toʻgʻri keldimi? Mato qanday?' %}"></textarea>
+          </div>
+
+          <div class="field">
+            <label class="label" for="photos-{{ product.pk }}">{% trans "Rasmlar" %}</label>
+            <input class="input" type="file" name="photos" id="photos-{{ product.pk }}"
+                   accept="image/jpeg,image/png,image/webp" multiple>
+            <small class="field__hint">
+              {% blocktrans with n=max_photos %}Koʻpi bilan {{ n }} ta rasm. Rasmdagi joylashuv maʻlumotlari oʻchiriladi.{% endblocktrans %}
+            </small>
+          </div>
+
+          <button class="btn btn--primary" type="submit">{% trans "Yuborish" %}</button>
+        </form>
+      {% endif %}
+    </section>
+  {% empty %}
+    <p class="muted">{% trans "Bu buyurtmada sharh qoldiriladigan mahsulot yoʻq." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

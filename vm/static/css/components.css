@@ -169,6 +169,11 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .stars--input label .i { fill: currentColor; stroke: none; width: 26px; height: 26px; }
 .stars--input input:checked ~ label,
 .stars--input label:hover, .stars--input label:hover ~ label { color: var(--c-brand); }
+/* The input is 0x0 and transparent, so a keyboard user tabbing into the row
+   would otherwise have nothing to look at. The ring goes on the label, which
+   is the thing they can actually see. */
+.stars--input input:focus-visible + label { outline: 2px solid var(--c-brand);
+  outline-offset: 2px; border-radius: var(--r-sm); }
 
 /* ============================================================ 8. review card */
 .review { padding: var(--s-5) 0; border-top: 1px solid var(--c-line); }
@@ -565,6 +570,14 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
     top: 50%; height: 44px; transform: translateY(-50%); }
   a.card__name::after { content: ""; position: absolute; inset: -9px -4px; }
   p a.link::after, li a.link::after, td a.link::after, .prose a.link::after { content: none; }
+
+  /* The rating under the product title is a link to the reviews section, and
+     it is 22 px tall — stars and a number, sized to sit quietly under the
+     title. Same fixed-height target as a.link and for the same reason (§17
+     #110): nothing above or below it is interactive, so it may grow over them. */
+  a.rating { position: relative; }
+  a.rating::after { content: ""; position: absolute; left: -4px; right: -4px;
+    top: 50%; height: 44px; transform: translateY(-50%); }
 
   /* Breadcrumbs are 18 px of text doing navigation work. Vertical-only growth:
      the crumbs sit in a row, so widening them would let neighbours overlap. */

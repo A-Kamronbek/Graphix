@@ -169,6 +169,15 @@ class Product(models.Model):
             self.slug = unique_slug(self, self.name)
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        """This product's canonical page.
+
+        Through ``reverse`` so it follows the URL conf, including the language
+        prefix every page now carries (§17 #121).
+        """
+        from django.urls import reverse
+        return reverse('item', kwargs={'slug': self.slug})
+
     def resolve_size_chart(self):
         """Return the chart to show, most specific first.
 

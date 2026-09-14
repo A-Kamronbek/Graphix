@@ -153,6 +153,48 @@
   .pdp__frame { margin-inline: 0; }
 }
 
+/* The reviews section. The cards themselves are `.review` in components.css —
+   only the summary above them is page-specific. */
+.pdp__reviews:empty { display: none; }
+.reviews { margin-top: var(--s-7); }
+.reviews__summary { display: grid; gap: var(--s-5); align-items: center;
+  padding: var(--s-5); background: var(--c-surface); border-radius: var(--r-md);
+  border: 1px solid var(--c-line); }
+.reviews__score { text-align: center; }
+.reviews__avg { font-family: var(--f-display); font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold); line-height: 1; color: var(--c-brand);
+  font-variant-numeric: tabular-nums; }
+/* The distribution reads as a chart, so the numbers are the narrow columns and
+   the bars take whatever is left — rather than five bars of arbitrary width. */
+.reviews__dist { width: 100%; border-collapse: collapse;
+  font-size: var(--fs-sm); color: var(--c-fg-muted); }
+.reviews__dist th { font-weight: var(--fw-normal); text-align: left;
+  white-space: nowrap; padding-right: var(--s-3); }
+.reviews__dist td { padding: 2px 0; }
+.reviews__dist td:last-child { width: 3ch; text-align: right;
+  padding-left: var(--s-3); font-variant-numeric: tabular-nums; }
+/* The bar cell holds one empty span, so its intrinsic width is zero — and an
+   auto table hands its leftover width out in proportion to content, which left
+   the bars in a column 0 px wide: five rows of nothing, on every breakpoint.
+   Claiming 100% makes this the column that absorbs whatever the label and the
+   count do not need. */
+.reviews__dist td:first-of-type { width: 100%; }
+.reviews__bar { display: block; height: 6px; border-radius: var(--r-full);
+  background: var(--c-surface-3); overflow: hidden; }
+.reviews__bar-fill { display: block; height: 100%; background: var(--c-brand); }
+.reviews__list { list-style: none; }
+/* The first card sits under the summary, so its top rule would double as the
+   summary's bottom edge. */
+.reviews__list .review:first-child { border-top: 0; }
+.stars--sm .i { width: 14px; height: 14px; }
+.pager { display: flex; gap: var(--s-3); align-items: center; justify-content: center;
+  margin-top: var(--s-4); }
+
+@media (min-width: 640px) {
+  .reviews__summary { grid-template-columns: auto minmax(0, 1fr); gap: var(--s-7); }
+  .reviews__score { padding-right: var(--s-5); border-right: 1px solid var(--c-line); }
+}
+
 /* ------------------------------------------------------------------ shop */
 /* Filters are a sidebar on desktop and a sheet on mobile — the same markup
    either way, so there is only one set of controls to keep in step. */
