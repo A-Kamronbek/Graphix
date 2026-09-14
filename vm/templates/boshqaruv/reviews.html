@@ -1,0 +1,71 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sharhlar" %}{% endblock %}
+
+{% comment %}
+  The moderation queue. Nothing a customer writes reaches the product page
+  until somebody here says so (§17 #25), and the photographs are the reason —
+  they are a stranger's files on a public page.
+
+  So they are shown large. A moderation screen with thumbnails is a screen
+  where everything gets approved, because nobody squints at a 72 px image
+  before tapping a green button.
+{% endcomment %}
+
+{% block content %}
+<h1 class="pnl__title">{% trans "Sharhlar" %}</h1>
+
+<nav class="pnl__tabs" aria-label="{% trans 'Holat' %}">
+  {% for value, label in statuses %}
+    <a href="?status={{ value }}" {% if status == value %}aria-current="page"{% endif %}>
+      {{ label }}{% if value == 'pending' and pending %} ({{ pending }}){% endif %}
+    </a>
+  {% endfor %}
+</nav>
+
+<form hidden>{% csrf_token %}</form>
+
+<div class="pnl__section stack stack--lg">
+  {% for review in reviews %}
+    <article class="mod" data-review="{{ review.pk }}"
+             data-url="{% url 'panel_review_moderate' pk=review.pk %}">
+      <div class="mod__hd">
+        <span class="stars stars--sm" aria-hidden="true">
+          {% for i in "12345" %}
+            <svg class="i{% if forloop.counter > review.rating %} stars__empty{% endif %}"><use href="#i-star"></use></svg>
+          {% endfor %}
+        </span>
+        <a class="link" href="{% url 'panel_product' slug=review.product.slug %}">{{ review.product.name }}</a>
+        <span class="small muted">{{ review.user.first_name|default:review.user.username }}</span>
+        <time class="small muted" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j E, H:i" }}</time>
+      </div>
+
+      {% if review.text %}<p class="mod__text">{{ review.text|linebreaksbr }}</p>{% endif %}
+
+      {% if review.images.all %}
+        <div class="mod__pics">
+          {% for image in review.images.all %}
+            <img src="{{ image.picture.url }}" alt="" loading="lazy" decoding="async">
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="mod__foot">
+        <span class="badge {% if review.status == 'approved' %}badge--success{% elif review.status == 'rejected' %}badge--danger{% else %}badge--info{% endif %}"
+              data-mod-badge>{{ review.get_status_display }}</span>
+        <span class="small muted" data-mod-rating>
+          {% blocktrans with avg=review.product.rating_avg n=review.product.review_count %}{{ avg }} — {{ n }} ta{% endblocktrans %}
+        </span>
+        <div class="mod__actions">
+          <button class="btn btn--secondary btn--sm" type="button" data-mod="rejected">{% trans "Rad etish" %}</button>
+          <button class="btn btn--primary btn--sm" type="button" data-mod="approved">{% trans "Tasdiqlash" %}</button>
+        </div>
+      </div>
+    </article>
+  {% empty %}
+    <p class="muted">{% trans "Bu yerda hech narsa yoʻq." %}</p>
+  {% endfor %}
+</div>
+
+{% include "product/_pager.html" with page_obj=reviews base_query=base_query %}
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sozlamalar" %}{% endblock %}
+
+{% comment %}
+  Delivery tiers, tags and size charts: rows somebody changes two or three
+  times a year. One screen rather than three, because three nav items for
+  things touched twice a year is three things to scroll past every day.
+
+  Every field here saves on its own through one endpoint, and that endpoint is
+  safe because of an allowlist — `panel/reference.py` names what may be
+  written, and nothing else on these models is reachable. `Region.code` is the
+  SOATO code and is not in it.
+{% endcomment %}
+
+{% block content %}
+<h1 class="pnl__title">{% trans "Sozlamalar" %}</h1>
+<form hidden>{% csrf_token %}</form>
+
+<section class="pnl__section">
+  <div class="row row--between">
+    <h2>{% trans "Yetkazib berish" %}</h2>
+    <a class="link small" href="{% url 'panel_regions' %}">{% trans "Hududlar" %}</a>
+  </div>
+  {% for tier in tiers %}
+    <div class="panel-card stack stack--sm" data-ref="delivery" data-id="{{ tier.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='delivery' pk=tier.pk %}">
+      <div class="row row--between">
+        <strong>{{ tier.code }}</strong>
+        <label class="switch">
+          <input type="checkbox" data-ref-field="is_active" {% if tier.is_active %}checked{% endif %}>
+          <span>{% trans "Yoqilgan" %}</span>
+        </label>
+      </div>
+      <div class="row">
+        <label class="field field--num">
+          <span class="label">{% trans "Narx" %}</span>
+          <input class="input num" type="text" inputmode="numeric"
+                 value="{{ tier.price|floatformat:"0" }}" data-ref-field="price">
+        </label>
+        <label class="field field--num">
+          <span class="label">{% trans "Bepul (dona)" %}</span>
+          <input class="input num" type="text" inputmode="numeric"
+                 value="{{ tier.free_from_items }}" data-ref-field="free_from_items">
+        </label>
+      </div>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (uz)</span>
+        <input class="input" type="text" value="{{ tier.name }}" data-ref-field="name">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (ru)</span>
+        <input class="input" type="text" value="{{ tier.name_ru }}" data-ref-field="name_ru">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (en)</span>
+        <input class="input" type="text" value="{{ tier.name_en }}" data-ref-field="name_en">
+      </label>
+    </div>
+  {% endfor %}
+</section>
+
+<section class="pnl__section">
+  <h2>{% trans "Teglar" %}</h2>
+  <p class="field__hint">{% trans "Teglar tavsiyalar uchun asosiy signal — turkum emas." %}</p>
+
+  <div class="panel-card stack stack--sm">
+    {% for tag in tags %}
+      <div class="row--fields" data-ref="tag" data-id="{{ tag.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='tag' pk=tag.pk %}">
+        <span class="badge badge--info">{{ tag.get_kind_display }}</span>
+        <input class="input" type="text" value="{{ tag.name }}" data-ref-field="name"
+               aria-label="{% trans 'Nomi' %} (uz)">
+        <input class="input" type="text" value="{{ tag.name_ru }}" data-ref-field="name_ru"
+               aria-label="{% trans 'Nomi' %} (ru)">
+        <input class="input" type="text" value="{{ tag.name_en }}" data-ref-field="name_en"
+               aria-label="{% trans 'Nomi' %} (en)">
+      </div>
+    {% endfor %}
+  </div>
+
+  <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_tag_new' %}">
+    {% csrf_token %}
+    <h3 class="label">{% trans "Yangi teg" %}</h3>
+    <div class="row--fields">
+      <input class="input" type="text" name="name" required placeholder="{% trans 'Nomi (uz)' %}">
+      <input class="input" type="text" name="name_ru" placeholder="{% trans 'Nomi (ru)' %}">
+      <input class="input" type="text" name="name_en" placeholder="{% trans 'Nomi (en)' %}">
+      <select class="select" name="kind" aria-label="{% trans 'Turi' %}">
+        {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
+    </div>
+  </form>
+</section>
+
+<section class="pnl__section">
+  <h2>{% trans "Oʻlcham jadvallari" %}</h2>
+  <p class="field__hint">{% trans "Rasm — asosiy mazmun. Qolip tanlansa, jadval shu qolipdagi mahsulotlarga oʻzi biriktiriladi." %}</p>
+
+  {% for chart in charts %}
+    <div class="panel-card stack stack--sm" data-ref="chart" data-id="{{ chart.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='chart' pk=chart.pk %}">
+      <div class="row--fields">
+        {% if chart.image %}
+          <img class="chart__thumb" src="{{ chart.image.url }}" alt="" loading="lazy">
+        {% endif %}
+        <label class="field field--wide">
+          <span class="label">{% trans "Nomi" %}</span>
+          <input class="input" type="text" value="{{ chart.name }}" data-ref-field="name">
+        </label>
+        <label class="field field--narrow">
+          <span class="label">{% trans "Qolipi" %}</span>
+          <select class="select" data-ref-field="fit">
+            <option value="">—</option>
+            {% for value, label in fits %}
+              <option value="{{ value }}" {% if chart.fit == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+    </div>
+  {% endfor %}
+
+  <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_chart_new' %}"
+        enctype="multipart/form-data">
+    {% csrf_token %}
+    <h3 class="label">{% trans "Yangi jadval" %}</h3>
+    <div class="row--fields">
+      <input class="input" type="text" name="name" required placeholder="{% trans 'Nomi' %}">
+      <select class="select" name="fit" aria-label="{% trans 'Qolipi' %}">
+        <option value="">—</option>
+        {% for value, label in fits %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <input class="input" type="file" name="image" required
+             accept="image/jpeg,image/png,image/webp,image/avif">
+      <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

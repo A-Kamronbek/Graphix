@@ -28,13 +28,16 @@ from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from django.db.models import Prefetch
+
 from core.models import Msg
-from payment.models import DeliveryOption, Order
+from payment.models import DeliveryOption, District, Order, Region
 from product import images as image_pipeline
+from product import services as product_services
 from product.models import (Category, Product, Review, Size, SizeChart, Tag,
                             Variant)
 
-from . import catalogue
+from . import catalogue, reference
 from .auth import staff_only
 from .services import PANEL_CHOICES, PANEL_SETTABLE, UnknownStatus, set_status
 
@@ -432,3 +435,205 @@ def product_images(request, slug):
         {'id': image.pk, 'url': image.picture.url}
         for image in product.images.all()
     ]})
+
+
+# ----------------------------------------------------------------- reviews
+# The queue is the whole reason customer photographs are safe on a public page
+# (§17 #25). What it needs above everything else is to show those photographs
+# at a size somebody can actually judge — a moderation screen with 72 px
+# thumbnails is a screen where everything gets approved.
+
+@staff_only
+def reviews(request):
+    """Reviews waiting for a decision, oldest first."""
+    status = request.GET.get('status', Review.Status.PENDING)
+    if status not in Review.Status.values:
+        status = Review.Status.PENDING
+
+    qs = (Review.objects.filter(status=status)
+          .select_related('user', 'product', 'order')
+          .prefetch_related('images')
+          .order_by('created_at'))
+
+    page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
+    kept = request.GET.copy()
+    kept.pop('page', None)
+    return render(request, 'boshqaruv/reviews.html', {
+        'screen': 'reviews',
+        'reviews': page,
+        'base_query': kept.urlencode(),
+        'status': status,
+        'statuses': Review.Status.choices,
+        'pending': Review.objects.filter(status=Review.Status.PENDING).count(),
+        'total': qs.count(),
+    })
+
+
+@staff_only
+@require_POST
+def review_moderate(request, pk):
+    """Approve or reject one review, through the service that moves the rating.
+
+    Not a bare ``update()``: a bulk update fires no signals, and approving a
+    review used to leave the product's rating exactly as it was (§17, Phase 12).
+    ``product.services.moderate`` recomputes it explicitly, so this endpoint
+    calls that and nothing else.
+    """
+    review = get_object_or_404(Review, pk=pk)
+    decision = request.POST.get('status', '')
+    if decision not in (Review.Status.APPROVED, Review.Status.REJECTED):
+        return JsonResponse({'ok': False, 'error': _('Notoʻgʻri qaror.')}, status=400)
+
+    product_services.moderate(Review.objects.filter(pk=review.pk), decision,
+                              by=request.user)
+    review.product.refresh_from_db(fields=['rating_avg', 'review_count'])
+    return JsonResponse({'ok': True, 'status': decision,
+                         'rating': str(review.product.rating_avg),
+                         'count': review.product.review_count})
+
+
+# ---------------------------------------------------------------- messages
+
+@staff_only
+def messages_inbox(request):
+    """The contact form's inbox. Unread first is wrong; newest first is right.
+
+    An inbox sorted by unread reshuffles itself as you read it, which is
+    disorienting on a phone. Newest first stays still, and the unread ones are
+    marked.
+    """
+    show = request.GET.get('show', '')
+    qs = Msg.objects.select_related('user').order_by('-created_at')
+    if show == 'unread':
+        qs = qs.filter(is_read=False)
+
+    page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
+    kept = request.GET.copy()
+    kept.pop('page', None)
+    return render(request, 'boshqaruv/messages.html', {
+        'screen': 'messages',
+        'msgs': page,
+        'base_query': kept.urlencode(),
+        'show': show,
+        'unread': Msg.objects.filter(is_read=False).count(),
+        'total': qs.count(),
+    })
+
+
+@staff_only
+@require_POST
+def message_read(request, pk):
+    """Mark one message read or unread. Both ways, because people misclick."""
+    msg = get_object_or_404(Msg, pk=pk)
+    msg.is_read = request.POST.get('value', '1') in ('1', 'true', 'on')
+    msg.save(update_fields=['is_read'])
+    return JsonResponse({'ok': True, 'value': msg.is_read,
+                         'unread': Msg.objects.filter(is_read=False).count()})
+
+
+# --------------------------------------------------------------- reference
+
+@staff_only
+def settings_screen(request):
+    """Delivery tiers, tags and size charts: the rows that are edited rarely.
+
+    One screen rather than three, because three nav items for things touched
+    twice a year is three things to scroll past every day. Regions get their
+    own screen — there are two hundred districts and they need a search.
+    """
+    return render(request, 'boshqaruv/settings.html', {
+        'screen': 'settings',
+        'tiers': DeliveryOption.objects.all(),
+        'tags': Tag.objects.all(),
+        'charts': SizeChart.objects.all(),
+        'kinds': Tag.Kind.choices,
+        'fits': Product.Fit.choices,
+    })
+
+
+@staff_only
+def regions(request):
+    """Regions and their districts, searchable.
+
+    The postal prefix is editable because it is the thing that decides whether
+    a customer's typed index is accepted, and it is the field most likely to
+    need correcting — the classifier is right today and administrative
+    divisions are not permanent (§17 #86).
+    """
+    query = request.GET.get('q', '').strip()
+    districts = District.objects.select_related('region')
+    if query:
+        districts = districts.filter(Q(name__icontains=query)
+                                     | Q(name_ru__icontains=query)
+                                     | Q(name_en__icontains=query)
+                                     | Q(code__icontains=query))
+    return render(request, 'boshqaruv/regions.html', {
+        'screen': 'settings',
+        'regions': Region.objects.prefetch_related(
+            Prefetch('districts', queryset=districts)),
+        'query': query,
+        'kinds': District.Kind.choices,
+    })
+
+
+@staff_only
+@require_POST
+def reference_inline(request, kind, pk):
+    """One field on one reference row, through the allowlist in `reference.py`."""
+    try:
+        value = reference.set_field(kind, pk, request.POST.get('field', ''),
+                                    request.POST.get('value', ''))
+    except ValidationError as exc:
+        return JsonResponse({'ok': False, 'error': exc.messages[0]}, status=400)
+    return JsonResponse({'ok': True, 'value': value})
+
+
+@staff_only
+@require_POST
+def tag_new(request):
+    """Create a tag. Its slug comes from the Uzbek name, like everything else."""
+    from django.utils.text import slugify
+    name = (request.POST.get('name') or '').strip()
+    if not name:
+        messages.error(request, _('Nomi kerak.'))
+        return redirect('panel_settings')
+
+    kind = request.POST.get('kind', '')
+    base = slugify(name, allow_unicode=False) or 'teg'
+    slug, n = base, 1
+    while Tag.objects.filter(slug=slug).exists():
+        n += 1
+        slug = '%s-%d' % (base, n)
+
+    Tag.objects.create(
+        slug=slug, name=name,
+        name_ru=(request.POST.get('name_ru') or '').strip(),
+        name_en=(request.POST.get('name_en') or '').strip(),
+        kind=kind if kind in Tag.Kind.values else Tag.Kind.THEME,
+    )
+    messages.success(request, _('Teg qoʻshildi.'))
+    return redirect('panel_settings')
+
+
+@staff_only
+@require_POST
+def chart_new(request):
+    """Upload a size chart. The image is the chart; the rows are optional (§17 #15)."""
+    name = (request.POST.get('name') or '').strip()
+    upload = request.FILES.get('image')
+    if not name or not upload:
+        messages.error(request, _('Nomi va rasm kerak.'))
+        return redirect('panel_settings')
+
+    try:
+        clean = image_pipeline.sanitise(upload, name_hint='chart',
+                                        max_edge=image_pipeline.PRODUCT_MAX_EDGE)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_settings')
+
+    fit = request.POST.get('fit', '')
+    SizeChart.objects.create(name=name, image=clean,
+                             fit=fit if fit in Product.Fit.values else '')
+    messages.success(request, _('Jadval qoʻshildi.'))
+    return redirect('panel_settings')

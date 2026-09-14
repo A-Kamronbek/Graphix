@@ -32,4 +32,22 @@ urlpatterns = [
          name='panel_product_inline'),
     path('boshqaruv/mahsulotlar/<slug:slug>/rasmlar/', views.product_images,
          name='panel_product_images'),
+
+    # Moderation and the inbox — the other two things that arrive on their own
+    # and wait for somebody.
+    path('boshqaruv/sharhlar/', views.reviews, name='panel_reviews'),
+    path('boshqaruv/sharhlar/<int:pk>/qaror/', views.review_moderate,
+         name='panel_review_moderate'),
+    path('boshqaruv/xabarlar/', views.messages_inbox, name='panel_messages'),
+    path('boshqaruv/xabarlar/<int:pk>/oqildi/', views.message_read,
+         name='panel_message_read'),
+
+    # Reference data: rows somebody changes two or three times a year, so that
+    # none of it needs a deploy.
+    path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),
+    path('boshqaruv/sozlamalar/teg/', views.tag_new, name='panel_tag_new'),
+    path('boshqaruv/sozlamalar/jadval/', views.chart_new, name='panel_chart_new'),
+    path('boshqaruv/hududlar/', views.regions, name='panel_regions'),
+    path('boshqaruv/malumot/<str:kind>/<int:pk>/', views.reference_inline,
+         name='panel_reference_inline'),
 ]

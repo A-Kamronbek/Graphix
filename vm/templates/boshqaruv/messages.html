@@ -1,0 +1,54 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Xabarlar" %}{% endblock %}
+
+{% comment %}
+  The contact form's inbox.
+
+  Newest first, not unread first: a list that sorts by unread reshuffles itself
+  as you read it, which is disorienting on a phone and loses your place. The
+  unread ones are marked instead, and the filter is there for the morning pass.
+{% endcomment %}
+
+{% block content %}
+<div class="row row--between pnl__head">
+  <h1 class="pnl__title">{% trans "Xabarlar" %}</h1>
+  {% if unread %}<span class="badge badge--brand">{{ unread }}</span>{% endif %}
+</div>
+
+<nav class="pnl__tabs" aria-label="{% trans 'Filtr' %}">
+  <a href="{% url 'panel_messages' %}" {% if not show %}aria-current="page"{% endif %}>{% trans "Hammasi" %}</a>
+  <a href="?show=unread" {% if show == 'unread' %}aria-current="page"{% endif %}>{% trans "Oʻqilmagan" %}</a>
+</nav>
+
+<form hidden>{% csrf_token %}</form>
+
+<div class="pnl__section stack">
+  {% for msg in msgs %}
+    <article class="note {% if not msg.is_read %}is-unread{% endif %}" data-msg="{{ msg.pk }}"
+             data-url="{% url 'panel_message_read' pk=msg.pk %}">
+      <div class="note__hd">
+        <strong>{{ msg.topic }}</strong>
+        <time class="small muted" datetime="{{ msg.created_at|date:'c' }}">{{ msg.created_at|date:"j E, H:i" }}</time>
+      </div>
+      <p class="note__text">{{ msg.msg_text|linebreaksbr }}</p>
+      <div class="note__foot">
+        <span class="small muted">{{ msg.user.first_name|default:msg.user.username }}</span>
+        {# The first thing somebody does with a message is ring back — when #}
+        {# there is a number. An empty `tel:` is a link that does nothing. #}
+        {% if msg.phone_num %}
+          <a class="link" href="tel:{{ msg.phone_num }}">{{ msg.phone_num }}</a>
+        {% endif %}
+        <label class="switch">
+          <input type="checkbox" data-msg-read {% if msg.is_read %}checked{% endif %}>
+          <span>{% trans "Oʻqildi" %}</span>
+        </label>
+      </div>
+    </article>
+  {% empty %}
+    <p class="muted">{% trans "Xabar yoʻq." %}</p>
+  {% endfor %}
+</div>
+
+{% include "product/_pager.html" with page_obj=msgs base_query=base_query %}
+{% endblock %}
