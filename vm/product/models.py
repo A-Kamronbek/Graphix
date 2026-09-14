@@ -43,19 +43,22 @@ class TagKind(models.Model):
     writes the tags (§17 #71) and a taxonomy whose axes need a deploy is a
     taxonomy that stops growing at three. ``Tag.kind`` protects these rows: an
     axis that tags are using cannot be deleted out from under them.
+
+    Ordered by id — oldest first, newest last. There was a sort-order column
+    and it earned nothing: four rows do not need arranging, and a number the
+    owner has to invent before he can add a print method is a box he has to
+    think about for no result (§17 #171).
     """
     slug = models.SlugField(max_length=30, unique=True)
     name = models.CharField(max_length=60, help_text="Oʻzbekcha — asosiy matn")
     name_ru = models.CharField(max_length=60, blank=True, default='')
     name_en = models.CharField(max_length=60, blank=True, default='')
-    #: The order the shop's filter groups appear in. Ties break on slug.
-    order = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        ordering = ['order', 'slug']
+        ordering = ['id']
         verbose_name = _('Teg turi')
         verbose_name_plural = _('Teg turlari')
 
@@ -65,19 +68,18 @@ class PrintMethod(models.Model):
 
     A table for the same reason as :class:`TagKind`: it is a line in the spec
     strip on the product page, and a shop that adds a technique should not need
-    a migration to say so.
+    a migration to say so. Ordered by id, for the same reason (§17 #171).
     """
     slug = models.SlugField(max_length=30, unique=True)
     name = models.CharField(max_length=60, help_text="Oʻzbekcha — asosiy matn")
     name_ru = models.CharField(max_length=60, blank=True, default='')
     name_en = models.CharField(max_length=60, blank=True, default='')
-    order = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        ordering = ['order', 'slug']
+        ordering = ['id']
         verbose_name = _('Bosma usuli')
         verbose_name_plural = _('Bosma usullari')
 
@@ -113,19 +115,16 @@ class SizeChart(models.Model):
     present, renders as a table *in addition to* the image — better for screen
     readers and for search engines (§17 #15).
 
-    ``fit`` is what lets a chart find its own products. A garment's
-    measurements are a property of its cut, and the catalogue has exactly two
-    cuts (§17 #70), so tagging the chart with one means the owner never has to
-    remember to attach it: ``Product.resolve_size_chart`` falls back to it.
-    Leave it blank for a one-off chart that belongs to a specific product.
+    A name and a picture is the whole of it. There was a ``fit`` here that let
+    a chart find its own products, and the cut it keyed on is gone (§17 #172):
+    a chart now reaches a product because somebody chose it on the product, or
+    because it is the category's, and nothing else.
     """
     name = models.CharField(max_length=120)
     image = models.ImageField(upload_to='size-charts/', null=True, blank=True)
     note = models.TextField(blank=True, default='', help_text="Oʻzbekcha — asosiy matn")
     note_ru = models.TextField(blank=True, default='')
     note_en = models.TextField(blank=True, default='')
-    fit = models.CharField(max_length=20, blank=True, default='', db_index=True,
-                           help_text="Shu qolipdagi mahsulotlar uchun standart jadval.")
 
     def __str__(self):
         return self.name
@@ -155,15 +154,14 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    """A catalog product; its sizes, colours, and prices live on related Variants."""
+    """A catalog product; its sizes, colours, and prices live on related Variants.
 
-    class Fit(models.TextChoices):
-        # Two fits only, confirmed by the owner. `boxy` shipped in Phase 4 from
-        # the tag examples in plan §7 and was never used; migration 0014 folds
-        # any row carrying it into `oversize`, the nearer of the two. Adding a
-        # third later is a migration, so it stays a decision, not a default.
-        REGULAR = 'regular', _('Oddiy')
-        OVERSIZE = 'oversize', _('Oversize')
+    There was a ``fit`` here — two cuts, regular and oversize, as a fixed list.
+    It is gone (§17 #172). A cut is a thing the owner wants to *say* about a
+    garment, and he already has a way to say it that costs no schema and takes
+    any value he likes: a tag. Two fixed choices bought a field on every form,
+    a column on every chart, and a third cut that would have been a migration.
+    """
 
     name = models.CharField(max_length=255, help_text="Oʻzbekcha — asosiy matn")
     name_ru = models.CharField(max_length=255, blank=True, default='')
@@ -198,10 +196,6 @@ class Product(models.Model):
     # somebody else printed.
     print_method = models.ForeignKey(PrintMethod, on_delete=models.PROTECT,
                                      null=True, blank=True, related_name='products')
-    # Still choices, and deliberately: the catalogue has exactly two cuts, a
-    # chart finds its products through this field, and adding a third is a
-    # decision rather than a default (§17 #70).
-    fit = models.CharField(max_length=20, choices=Fit.choices, blank=True, default='')
 
     def __str__(self):
         return self.name
@@ -228,19 +222,17 @@ class Product(models.Model):
     def resolve_size_chart(self):
         """Return the chart to show, most specific first.
 
-        Product's own → its category's → the standard chart for its fit → none.
-        The fit fallback is what makes the seeded charts work without the owner
-        linking anything: measurements follow the cut, and the catalogue has two
-        cuts. A product with no fit set and no explicit chart still gets nothing,
-        which is correct — a chart that might not match the garment is worse than
-        no chart (§17 #95).
+        Product's own → its category's → none. There used to be a third step,
+        the standard chart for the product's cut, and it went with the cut
+        (§17 #172); the migration that dropped the column wrote each product's
+        resolved chart onto the product first, so nothing on the shelf lost its
+        size guide. Nothing at all is still a correct answer: a chart that might
+        not match the garment is worse than no chart (§17 #95).
         """
         if self.size_chart_id:
             return self.size_chart
         if self.category_id and self.category.size_chart_id:
             return self.category.size_chart
-        if self.fit:
-            return SizeChart.objects.filter(fit=self.fit).first()
         return None
 
 

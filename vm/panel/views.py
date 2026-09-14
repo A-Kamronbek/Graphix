@@ -382,7 +382,6 @@ def _saved_values(product):
     values['category'] = product.category_id or ''
     values['size_chart'] = product.size_chart_id or ''
     values['print_method'] = product.print_method_id or ''
-    values['fit'] = product.fit
     values['is_active'] = '1' if product.is_active else ''
     return values
 
@@ -466,7 +465,6 @@ def product_form(request, slug=None):
                         else set(product.tags.values_list('pk', flat=True)) if product
                         else set()),
         'print_methods': PrintMethod.objects.all(),
-        'fits': Product.Fit.choices,
         'max_images': catalogue.MAX_IMAGES,
         'max_bytes': image_pipeline.MAX_BYTES,
         'max_pixels': image_pipeline.MAX_PIXELS,
@@ -678,7 +676,6 @@ def settings_screen(request):
         'kinds': TagKind.objects.all(),
         'methods': PrintMethod.objects.all(),
         'categories': Category.objects.all(),
-        'fits': Product.Fit.choices,
     })
 
 
@@ -781,9 +778,6 @@ def lookup_new(request, kind):
                 name_ru=(request.POST.get('name_ru') or '').strip()[:limit],
                 name_en=(request.POST.get('name_en') or '').strip()[:limit])
     row.slug = _free_slug(model, name, stem)
-    # Both lookup tables carry an order; a category does not.
-    if hasattr(row, 'order'):
-        row.order = _int(request.POST.get('order'), 0)
     row.save()
     messages.success(request, done)
     return redirect('panel_settings')
@@ -817,8 +811,6 @@ def chart_new(request):
         messages.error(request, exc.messages[0])
         return redirect('panel_settings')
 
-    fit = request.POST.get('fit', '')
-    SizeChart.objects.create(name=name, image=clean,
-                             fit=fit if fit in Product.Fit.values else '')
+    SizeChart.objects.create(name=name, image=clean)
     messages.success(request, _('Jadval qoʻshildi.'))
     return redirect('panel_settings')

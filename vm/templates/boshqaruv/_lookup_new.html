@@ -7,19 +7,16 @@
   Labelled rather than placeholdered: a placeholder disappears the moment
   somebody types, so a row of them is a row nobody can check before pressing
   the button.
+
+  A name is all it asks for. The sort-order box that used to open this row is
+  gone (§17 #171) — the first thing on the form was a number with no obvious
+  right answer, for a table with four rows in it.
 {% endcomment %}
 <form class="panel-card stack stack--sm" method="post"
       action="{% url 'panel_lookup_new' kind=kind %}">
   {% csrf_token %}
   <h3 class="label">{{ legend }}</h3>
   <div class="row--fields">
-    {% if ordered %}
-      <label class="field field--tiny">
-        <span class="label">{% trans "Tartib" %}</span>
-        <input class="input num" type="number" inputmode="numeric" min="0" step="1"
-               name="order" value="0">
-      </label>
-    {% endif %}
     <label class="field">
       <span class="label">{% trans "Nomi" %} (uz)</span>
       <input class="input" type="text" name="name" required maxlength="60">

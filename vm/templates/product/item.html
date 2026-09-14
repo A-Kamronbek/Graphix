@@ -204,7 +204,7 @@
       {% endif %}
 
       {# Spec strip — structured, so it reads the same on every product. #}
-      {% if product.gsm or product|t:"material" or product.print_method or product.fit %}
+      {% if product.gsm or product|t:"material" or product.print_method %}
         <dl class="spec">
           {% if product|t:"material" %}
             <div class="spec__row"><dt>{% trans "Mato" %}</dt><dd>{{ product|t:"material" }}</dd></div>
@@ -214,9 +214,6 @@
           {% endif %}
           {% if product.print_method %}
             <div class="spec__row"><dt>{% trans "Bosma" %}</dt><dd>{{ product.print_method|t:"name" }}</dd></div>
-          {% endif %}
-          {% if product.fit %}
-            <div class="spec__row"><dt>{% trans "Qolip" %}</dt><dd>{{ product.get_fit_display }}</dd></div>
           {% endif %}
         </dl>
       {% endif %}

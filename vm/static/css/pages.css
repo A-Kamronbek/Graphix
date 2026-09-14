@@ -12,7 +12,10 @@
    magnifier in the actions row reveals it as a second row, so the brand, the
    cart and the burger never get squeezed. */
 .nav { flex-wrap: wrap; }
-.nav__search { display: none; flex: 1; min-width: 0; max-width: 440px; margin-left: var(--s-5); }
+/* 360, not 440. Search is the main job on this site and the field should look
+   it, but at 440 it was taking the room the language control needs and the
+   header read as one long box with three icons crowded after it. */
+.nav__search { display: none; flex: 1; min-width: 0; max-width: 360px; margin-left: var(--s-5); }
 .nav__search.is-open { display: block; order: 10; flex-basis: 100%; max-width: none; margin: var(--s-3) 0 0; }
 .nav__search-toggle { display: grid; }
 .nav__account { display: none; }

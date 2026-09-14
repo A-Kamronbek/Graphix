@@ -144,18 +144,9 @@
       <p class="field__hint">{% trans "Yangi usul — Sozlamalar sahifasida." %}</p>
     </div>
     <div class="field">
-      <label class="label" for="p-fit">{% trans "Qolipi" %}</label>
-      <select class="select" name="fit" id="p-fit">
-        <option value="">—</option>
-        {% for value, label in fits %}
-          <option value="{{ value }}" {% if form.fit == value %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="field">
       <label class="label" for="p-chart">{% trans "Oʻlcham jadvali" %}</label>
       <select class="select" name="size_chart" id="p-chart">
-        <option value="">{% trans "Qolipga qarab avtomatik" %}</option>
+        <option value="">{% trans "Yoʻq" %}</option>
         {% for chart in charts %}
           <option value="{{ chart.pk }}" {% if form.size_chart|stringformat:"s" == chart.pk|stringformat:"s" %}selected{% endif %}>{{ chart.name }}</option>
         {% endfor %}

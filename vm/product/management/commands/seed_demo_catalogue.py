@@ -78,7 +78,8 @@ class Command(BaseCommand):
         from product import size_charts
         from product.models import (Category, ImageP, PrintMethod, Product,
                                     ProductLike, Review, ReviewImage, Size,
-                                    SizeChartRow, Tag, Variant, default_colour)
+                                    SizeChart, SizeChartRow, Tag, Variant,
+                                    default_colour)
 
         db = settings.DATABASES['default']
         host = (db.get('HOST') or '').strip()
@@ -142,6 +143,14 @@ class Command(BaseCommand):
             # Rebuilt against the sizes that now exist, from the one table the
             # measurements live in.
             size_charts.rebuild_rows({s.size: s for s in sizes})
+            # A product used to find a chart through its cut; the cut is gone
+            # (§17 #172) and a chart now reaches a product only because
+            # somebody attached it. The seeded catalogue attaches them itself,
+            # alternating, so both charts render somewhere and the size guide
+            # is on every demo product exactly as it was before.
+            chart_names = list(size_charts.BY_NAME)
+            demo_charts = [SizeChart.objects.filter(name=n).first() for n in chart_names]
+            demo_charts = [c for c in demo_charts if c is not None]
 
             for i, (slug, uz, ru, en, price, tag_slugs) in enumerate(CATALOGUE):
                 product = Product.objects.create(
@@ -155,8 +164,8 @@ class Command(BaseCommand):
                     # A row now rather than a choice (§17, Phase 7 recheck);
                     # migration 0019 seeds the four the code used to hold.
                     print_method=PrintMethod.objects.filter(slug='dtf').first(),
-                    # Two fits only (§17 #70); alternated so both render somewhere.
-                    fit=Product.Fit.OVERSIZE if i % 3 else Product.Fit.REGULAR,
+                    # Alternated so both seeded charts are on something.
+                    size_chart=(demo_charts[i % len(demo_charts)] if demo_charts else None),
                     # Phase 6b maintains this; seeded so the hearts are not all zero.
                     likes_count=(i * 7) % 23,
                 )

@@ -349,34 +349,52 @@ class PruneGuestCartsTests(TestCase):
 # ------------------------------------------------------- 6a: the size guide
 
 class SizeChartTests(TestCase):
-    """The seeded charts have to reach a product without the owner linking them."""
+    """A chart reaches a product because somebody attached it, and no other way.
 
-    def test_both_fits_are_seeded_with_four_measured_rows(self):
+    It used to reach one through the product's cut, and the cut is gone
+    (§17 #172). What is left is two steps — the product's own chart, then its
+    category's — and the important half of the contract is unchanged: when
+    neither answers, the product gets nothing rather than a guess.
+    """
+
+    def test_both_seeded_charts_have_four_measured_rows(self):
+        from product import size_charts
         from product.models import SizeChart
-        for fit in ('regular', 'oversize'):
-            chart = SizeChart.objects.filter(fit=fit).first()
-            self.assertIsNotNone(chart, f'no chart seeded for {fit}')
+        for name in size_charts.BY_NAME:
+            chart = SizeChart.objects.filter(name=name).first()
+            self.assertIsNotNone(chart, f'no chart seeded as {name!r}')
             self.assertEqual(chart.rows.count(), 4)
 
-    def test_a_products_fit_finds_its_chart(self):
-        product, _ = make_product('Oversize dizayn', fit='oversize')
-        chart = product.resolve_size_chart()
-        self.assertIsNotNone(chart)
-        self.assertEqual(chart.fit, 'oversize')
-
-    def test_an_explicit_chart_beats_the_fit_fallback(self):
+    def test_the_products_own_chart_is_the_one_that_resolves(self):
         from product.models import SizeChart
         own = SizeChart.objects.create(name='Faqat shu mahsulot uchun')
-        product, _ = make_product('Maxsus', fit='oversize', size_chart=own)
+        product, _ = make_product('Maxsus', size_chart=own)
         self.assertEqual(product.resolve_size_chart(), own)
 
-    def test_a_product_with_no_fit_and_no_chart_gets_none(self):
+    def test_the_categorys_chart_reaches_a_product_with_none_of_its_own(self):
+        from product.models import Category, SizeChart
+        shared = SizeChart.objects.create(name='Turkum uchun')
+        category = Category.objects.create(name='Futbolkalar', size_chart=shared)
+        product, _ = make_product('Turkumli', category=category)
+        self.assertEqual(product.resolve_size_chart(), shared)
+
+    def test_the_products_own_chart_beats_its_categorys(self):
+        from product.models import Category, SizeChart
+        shared = SizeChart.objects.create(name='Turkum uchun')
+        own = SizeChart.objects.create(name='Mahsulot uchun')
+        category = Category.objects.create(name='Koʻylaklar', size_chart=shared)
+        product, _ = make_product('Ikkalasi ham', category=category, size_chart=own)
+        self.assertEqual(product.resolve_size_chart(), own)
+
+    def test_a_product_with_no_chart_anywhere_gets_none(self):
         """Better no chart than a chart that might not match the garment."""
-        product, _ = make_product('Qolipsiz')
+        product, _ = make_product('Jadvalsiz')
         self.assertIsNone(product.resolve_size_chart())
 
     def test_the_chart_rows_are_on_the_product_page_for_a_screen_reader(self):
-        product, _ = make_product('Jadvalli', fit='regular')
+        from product.models import SizeChart
+        seeded = SizeChart.objects.filter(rows__isnull=False).distinct().first()
+        product, _ = make_product('Jadvalli', size_chart=seeded)
         response = self.client.get(reverse('item', kwargs={'slug': product.slug}))
         self.assertContains(response, 'data-sizeguide-content')
         self.assertContains(response, 'data-row-size')

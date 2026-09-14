@@ -67,11 +67,13 @@ class LookupEditingTests(TestCase):
     def test_a_new_tag_kind_can_be_added_and_used(self):
         response = self.client.post(
             reverse('panel_lookup_new', kwargs={'kind': 'tagkind'}),
-            {'name': 'Mavsum', 'name_ru': 'Сезон', 'name_en': 'Season', 'order': '40'})
+            {'name': 'Mavsum', 'name_ru': 'Сезон', 'name_en': 'Season'})
         self.assertEqual(response.status_code, 302)
         kind = TagKind.objects.get(slug='mavsum')
         self.assertEqual(kind.name_en, 'Season')
-        self.assertEqual(kind.order, 40)
+        # Newest last: the table reads in the order the owner added to it, which
+        # is what replaced the sort-order box (§17 #171).
+        self.assertEqual(TagKind.objects.last(), kind)
 
         # And a tag can be filed under it straight away.
         self.client.post(reverse('panel_tag_new'),

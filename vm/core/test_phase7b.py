@@ -231,7 +231,6 @@ class DefinitionOfDoneTests(TestCase):
             'material_en': '100% cotton',
             # A row now rather than a choice, so the form posts its id.
             'print_method': PrintMethod.objects.get(slug='dtf').pk,
-            'fit': 'oversize',
             'tags': [tag.pk for tag in self.tags],
             'is_active': 'on',
         }
@@ -250,7 +249,6 @@ class DefinitionOfDoneTests(TestCase):
         self.assertEqual(product.gsm, 190)
         self.assertEqual(product.material_ru, '100% хлопок')
         self.assertEqual(product.print_method.slug, 'dtf')
-        self.assertEqual(product.fit, 'oversize')
         self.assertEqual(product.tags.count(), 2)
         self.assertEqual(product.variants.count(), len(self.sizes))
         self.assertTrue(product.slug, 'the slug is derived, never typed')

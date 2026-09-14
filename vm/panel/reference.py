@@ -46,17 +46,19 @@ EDITABLE = {
         'kind': 'tagkind',
     }),
     'tagkind': (TagKind, {
-        'name': 'text', 'name_ru': 'text', 'name_en': 'text', 'order': 'count',
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text',
     }),
     'method': (PrintMethod, {
-        'name': 'text', 'name_ru': 'text', 'name_en': 'text', 'order': 'count',
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text',
     }),
     'category': (Category, {
         'name': 'text', 'name_ru': 'text', 'name_en': 'text',
     }),
+    # A name and a picture is the whole of a chart (§17 #172). The picture is
+    # not here because it is a file: it is set when the chart is created and
+    # replaced by creating another, which is one upload path rather than two.
     'chart': (SizeChart, {
         'name': 'text', 'note': 'text', 'note_ru': 'text', 'note_en': 'text',
-        'fit': 'fit',
     }),
 }
 
@@ -96,20 +98,6 @@ def _prefix(raw):
     return value
 
 
-def _fit(raw):
-    """A fit, or nothing.
-
-    Still a fixed list: the catalogue has exactly two cuts, a size chart finds
-    its products through this field, and adding a third is a decision rather
-    than a default (§17 #70). Anything unrecognised becomes nothing rather than
-    an error, because the control is a ``<select>`` of exactly these values and
-    a value outside them did not come from a person using the screen.
-    """
-    from product.models import Product
-    value = str(raw).strip()
-    return value if value in Product.Fit.values else ''
-
-
 def _tagkind(raw):
     """The axis a tag sits on, by id, or nothing.
 
@@ -140,7 +128,6 @@ READERS = {
     'money': _money,
     'prefix': _prefix,
     'count': _count,
-    'fit': _fit,
     'tagkind': _tagkind,
 }
 

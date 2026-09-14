@@ -558,11 +558,20 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
    "Oʻzbekcha", and a language control somebody has to scroll to the bottom of
    the page for is a language control they do not find.
    Hidden below the desktop breakpoint, where the drawer carries it instead:
-   the header row already holds five controls at 390 px. */
-.lang--compact { display: none; border-radius: var(--r-full); border-color: var(--c-line); }
+   the header row already holds five controls at 390 px.
+
+   The active code is a circle, and it has to be one by construction rather
+   than by arithmetic: a minimum width plus horizontal padding gave "uz" a box
+   wider than it was tall, so the fill read as an oval sitting in a pill. A
+   fixed square with no padding and the minimums cleared is round at every font
+   size, and the container gains its own padding so the circle sits inside the
+   pill instead of touching its border. */
+.lang--compact { display: none; border-radius: var(--r-full); border-color: var(--c-line);
+  padding: var(--s-1); gap: var(--s-1); }
 @media (min-width: 860px) { .lang--compact { display: inline-flex; } }
-.lang--compact button { border-right: 0; border-radius: var(--r-full);
-  min-width: 38px; min-height: 38px; padding: 0 var(--s-2);
+.lang--compact button { display: inline-flex; align-items: center; justify-content: center;
+  flex: none; width: 34px; height: 34px; min-width: 0; min-height: 0; padding: 0;
+  border-right: 0; border-radius: var(--r-full);
   font-size: var(--fs-sm); letter-spacing: .04em; }
 .lang--compact button:hover { color: var(--c-fg); }
 .lang--compact button[aria-pressed="true"] { background: var(--c-fg);

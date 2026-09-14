@@ -1,8 +1,11 @@
 """The measurements behind the two size charts, in one place.
 
-One chart per fit, which is the whole range (§17 #70). The numbers live here so
-anything that needs to rebuild the rows — the demo-catalogue reset, a future
-admin action — uses the same table rather than its own copy.
+Two charts, a regular cut and an oversize one, seeded by migration 0016 back
+when a product carried its cut as a field. The field is gone (§17 #172) and the
+charts are not: they are two ordinary charts the owner attaches to whichever
+products they describe. The numbers live here so anything that needs to rebuild
+the rows — the demo-catalogue reset, a future admin action — uses the same table
+rather than its own copy.
 
 Migration ``0016_seed_size_charts`` deliberately keeps its own copy instead of
 importing this module. A migration is a frozen snapshot and has to keep working
@@ -29,11 +32,21 @@ OVERSIZE = {
     'XL': ('63.0', '76.0', '61.0', '24.0'),
 }
 
-BY_FIT = {'regular': REGULAR, 'oversize': OVERSIZE}
+#: Which measurements belong to which chart, by the name migration 0016 seeded
+#: it under. The charts used to be found by their ``fit``; that column is gone
+#: with the cut it named (§17 #172), and a chart has nothing else stable on it —
+#: a name and a picture is the whole of it. Matching on the seeded name is
+#: therefore the key, and it is only ever used by the demo-catalogue reset,
+#: which is a developer command. A chart the owner has renamed or added simply
+#: is not in here and keeps whatever rows it has.
+BY_NAME = {
+    'Oddiy qolip (regular)': REGULAR,
+    'Oversize qolip': OVERSIZE,
+}
 
 
 def rebuild_rows(sizes):
-    """Re-create every chart's rows against the ``sizes`` mapping given.
+    """Re-create the seeded charts' rows against the ``sizes`` mapping given.
 
     ``sizes`` maps a label ('S', 'M', …) to a :class:`~product.models.Size`.
     Used after something has replaced the Size rows — the demo-catalogue reset
@@ -42,10 +55,8 @@ def rebuild_rows(sizes):
     """
     from .models import SizeChart, SizeChartRow
 
-    for chart in SizeChart.objects.exclude(fit=''):
-        table = BY_FIT.get(chart.fit)
-        if not table:
-            continue
+    for chart in SizeChart.objects.filter(name__in=BY_NAME):
+        table = BY_NAME[chart.name]
         SizeChartRow.objects.filter(chart=chart).delete()
         for order, (label, values) in enumerate(table.items()):
             size = sizes.get(label)
