@@ -84,8 +84,12 @@
     <section class="panel-card">
       <h2>{% trans "Mijoz" %}</h2>
       <dl class="facts">
-        <dt>{% trans "Ism" %}</dt>
-        <dd>{{ order.user.first_name|default:order.user.username }}</dd>
+        {# The name on the parcel first; the account only for orders placed #}
+        {# before the checkout kept one. #}
+        <dt>{% trans "Qabul qiluvchi" %}</dt>
+        <dd>{{ order.recipient_name|default:order.user.first_name|default:order.user.username }}</dd>
+        <dt>{% trans "Hisob" %}</dt>
+        <dd>{{ order.user.username }}</dd>
         <dt>{% trans "Telefon" %}</dt>
         {# The spaces come out of the href: numbers are stored grouped, and a #}
         {# `tel:` URI with spaces in it is one some Android dialers refuse. #}

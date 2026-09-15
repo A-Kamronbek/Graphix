@@ -124,19 +124,20 @@ class OrderAdmin(admin.ModelAdmin):
     list_display_links = ('order_no',)
     list_editable = ('status',)            # change status straight from the list
     list_filter = ('status', 'payment_method', 'delivery_option', 'created_at')
-    search_fields = ('order_no', 'id', 'phone', 'user__username', 'address')
+    search_fields = ('order_no', 'id', 'phone', 'recipient_name', 'user__username',
+                     'address')
     list_select_related = ('user', 'cart', 'delivery_option')
     ordering = ('-created_at',)
 
     readonly_fields = (
-        'order_no', 'user', 'cart', 'total_price', 'payment_method',
+        'order_no', 'user', 'recipient_name', 'cart', 'total_price', 'payment_method',
         'phone', 'address', 'notes', 'items_summary', 'created_at', 'updated_at',
         'delivery_option', 'delivery_price', 'region', 'district', 'postal_index',
         'location_note', 'location_snapshot', 'latitude', 'longitude',
         'address_source', 'map_link', 'map_preview',
     )
     fields = (
-        'order_no', 'user', 'status', 'payment_method', 'total_price',
+        'order_no', 'user', 'recipient_name', 'status', 'payment_method', 'total_price',
         'phone', 'address', 'notes', 'items_summary',
         'delivery_option', 'delivery_price', 'region', 'district', 'postal_index',
         'location_note', 'location_snapshot', 'latitude', 'longitude',

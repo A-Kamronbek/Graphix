@@ -42,10 +42,15 @@
 
       <section class="panel stack">
         <h2 class="h3">{% trans "Aloqa" %}</h2>
+        {# Who the parcel is addressed to, which is often not the account #}
+        {# holder. It is kept on the order; for a long time it was asked for #}
+        {# and dropped. #}
         <div class="field">
-          <label class="label" for="id_name">{% trans "Ismingiz" %}</label>
+          <label class="label" for="id_name">{% trans "Qabul qiluvchining ism-familiyasi" %}</label>
           <input class="input" type="text" name="name" id="id_name" required
+                 maxlength="{{ recipient_name_max }}"
                  autocomplete="name" value="{{ form_data.name|default:'' }}">
+          <small class="field__hint">{% trans "Joʻnatma shu ismga yuboriladi." %}</small>
         </div>
         <div class="field">
           <label class="label" for="id_phone">{% trans "Telefon" %}</label>
