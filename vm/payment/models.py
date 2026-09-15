@@ -12,6 +12,11 @@ from django.utils.translation import gettext_lazy as _
 from cart.models import Cart
 from user.models import phone_regex, normalize_uz_phone  # reuse same validator + normalizer as User.phone
 
+#: The longest recipient name an order keeps: room for an Uzbek full name with
+#: a patronymic. The checkout refuses anything longer with a sentence rather
+#: than cutting the name that goes on the parcel (§17 #131, #154).
+RECIPIENT_NAME_MAX = 120
+
 
 class DeliveryOption(models.Model):
     """A shipping tier the customer picks at checkout.
@@ -224,6 +229,11 @@ class Order(models.Model):
         validators=[phone_regex],
         max_length=17,
     )
+    # Who the parcel is addressed to, as typed at checkout. Often not the
+    # account holder - a gift, a parent ordering for a child - and a post
+    # office hands a parcel to the name written on it. The checkout asked for
+    # this from the start and dropped it; blank only on orders from before.
+    recipient_name = models.CharField(max_length=RECIPIENT_NAME_MAX, blank=True, default='')
     status = models.CharField(max_length=50, choices=Status.choices, default=Status.PAYING, db_index=True)
     address = models.TextField()
     notes = models.TextField(blank=True, default='')

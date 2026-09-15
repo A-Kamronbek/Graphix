@@ -196,6 +196,7 @@ def orders(request):
     query = request.GET.get('q', '').strip()
     if query:
         found = (Q(order_no__icontains=query)
+                 | Q(recipient_name__icontains=query)
                  | Q(user__username__icontains=query)
                  | Q(user__first_name__icontains=query))
         # Phone numbers are stored canonically as "+998 90 122 00 07" — with

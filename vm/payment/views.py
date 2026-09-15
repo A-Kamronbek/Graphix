@@ -13,7 +13,8 @@ from django.utils.translation import gettext as _
 from click_up.views import ClickWebhook
 
 from core.i18n import tfield
-from .models import DeliveryOption, District, Order, PaymentOption, Region
+from .models import (DeliveryOption, District, Order, PaymentOption, Region,
+                     RECIPIENT_NAME_MAX)
 from user.models import phone_regex
 from . import services
 
@@ -161,7 +162,8 @@ def checkout(request):
     subtotal = sum((it.line_total for it in items), Decimal('0'))
     item_count = sum(it.quantity for it in items)
 
-    context = {'items': items, 'subtotal': subtotal, 'item_count': item_count}
+    context = {'items': items, 'subtotal': subtotal, 'item_count': item_count,
+               'recipient_name_max': RECIPIENT_NAME_MAX}
     context.update(_delivery_context())
 
     def again(form_data, delivery=Decimal('0')):
@@ -218,6 +220,13 @@ def checkout(request):
         messages.error(request, _("Ism va telefon raqamni toʻldiring."))
         return again(form_data, delivery)
 
+    # The column's own limit, said as a sentence - not a 500, and not a name
+    # quietly shortened on the way to the parcel (§17 #131, #154).
+    if len(name) > RECIPIENT_NAME_MAX:
+        messages.error(request, _("Ism %(n)d belgidan oshmasligi kerak.")
+                       % {'n': RECIPIENT_NAME_MAX})
+        return again(form_data, delivery)
+
     try:
         phone_regex(phone)
     except ValidationError as e:
@@ -238,7 +247,7 @@ def checkout(request):
     try:
         order = services.create_order_from_cart(
             request.user, cart,
-            phone=phone, notes=notes,
+            phone=phone, notes=notes, recipient_name=name,
             payment_method=payment_method, delivery=delivery,
             **delivery_kwargs,
         )

@@ -47,6 +47,9 @@
       <h2 class="h3">{% trans "Tafsilotlar" %}</h2>
       <dl class="spec">
         <div class="spec__row"><dt>{% trans "Sana" %}</dt><dd>{{ order.created_at|uz_date }}</dd></div>
+        {% if order.recipient_name %}
+          <div class="spec__row"><dt>{% trans "Qabul qiluvchi" %}</dt><dd>{{ order.recipient_name }}</dd></div>
+        {% endif %}
         <div class="spec__row"><dt>{% trans "Telefon" %}</dt><dd class="num">{{ order.phone }}</dd></div>
         <div class="spec__row"><dt>{% trans "Toʻlov" %}</dt><dd>{{ order.get_payment_method_display }}</dd></div>
         {% if order.delivery_option %}

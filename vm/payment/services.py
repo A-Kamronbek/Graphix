@@ -58,7 +58,7 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
                            delivery=Decimal('0'), delivery_option=None,
                            region=None, district=None, postal_index='',
                            location_note='', address_source='',
-                           latitude=None, longitude=None):
+                           latitude=None, longitude=None, recipient_name=''):
     """Create an Order from the cart atomically, then close the cart.
 
     The cart row is locked with ``select_for_update`` and the total is computed
@@ -73,6 +73,10 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
     methods, then either the postal index or the street address — so a district
     renamed a year later cannot rewrite where the parcel was sent. Callers that
     pass a bare ``delivery`` amount keep working exactly as before.
+
+    ``recipient_name`` is who the parcel is addressed to. It is only stored:
+    it takes no part in the lock or the total, and a caller that does not
+    pass it gets a blank, as every order did before it existed.
     """
     with transaction.atomic():
         # Lock the cart row for the duration of the transaction.
@@ -105,6 +109,7 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
             user=user,
             cart=locked_cart,
             phone=phone,
+            recipient_name=recipient_name,
             address=address,
             notes=notes,
             payment_method=payment_method,

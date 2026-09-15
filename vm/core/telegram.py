@@ -132,7 +132,9 @@ def notify_new_order(order):
         lines.append(f'<a href="{maps}">Xaritada koʻrish</a>')
     lines.append(f"<b>Toʻlov:</b> {esc(order.get_payment_method_display())}")
 
-    lines.append(f"\n{esc(order.user.get_full_name() or order.user.username)}"
+    # The name on the parcel, which is not always the account's.
+    who = order.recipient_name or order.user.get_full_name() or order.user.username
+    lines.append(f"\n{esc(who)}"
                  + _phone_line('Telefon', order.phone))
     if order.notes:
         lines.append(f"<b>Izoh:</b> {esc(order.notes)}")
