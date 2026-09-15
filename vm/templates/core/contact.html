@@ -1,14 +1,23 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n legal_tags %}
 {% block title %}{% trans "Bogʻlanish" %}{% endblock %}
 
+{% comment %}
+  Rewritten in Phase 8 (§9 Phase 8 item 6). The direct contacts and the
+  seller's registered name and address come from core/legal.py - the footer,
+  the terms and the privacy policy print the same values from the same place
+  (§17 #193). The consumer law wants a seller's name and address where a
+  customer can find them, and this is where a customer looks.
+{% endcomment %}
+
 {% block content %}
+{% get_legal as legal %}
 <div class="wrap section">
   <div class="checkout">
     <div class="stack stack--lg">
       <div class="stack stack--sm">
         <h1 class="h1">{% trans "Bogʻlanish" %}</h1>
-        <p class="lede">{% trans "Savolingiz bormi yoki oʻz dizayningizni bosdirmoqchimisiz? Yozing." %}</p>
+        <p class="lede">{% trans "Buyurtma, oʻlcham yoki oʻz dizayningiz haqida savol boʻlsa — yozing. Yozganingiz toʻgʻridan-toʻgʻri doʻkon egasiga boradi." %}</p>
       </div>
 
       {% if user.is_authenticated %}
@@ -16,12 +25,13 @@
           {% csrf_token %}
           <div class="field {% if form_errors %}field--error{% endif %}">
             <label class="label" for="id_subject">{% trans "Mavzu" %}</label>
-            <input class="input" type="text" name="subject" id="id_subject" required
+            <input class="input" type="text" name="subject" id="id_subject" required maxlength="{{ subject_max }}"
                    value="{{ form_data.subject|default:'' }}">
           </div>
           <div class="field {% if form_errors %}field--error{% endif %}">
             <label class="label" for="id_message">{% trans "Xabar" %}</label>
             <textarea class="textarea" name="message" id="id_message" required>{{ form_data.message|default:'' }}</textarea>
+            <small class="field__hint">{% trans "Buyurtma haqida yozsangiz, uning raqamini koʻrsating — masalan, GX-260915-0001." %}</small>
           </div>
           <button class="btn btn--primary btn--lg" type="submit"
                   {% if rate_limited %}disabled{% endif %}>{% trans "Yuborish" %}</button>
@@ -45,15 +55,21 @@
       <ul class="stack">
         <li class="stack stack--sm">
           <span class="label">{% trans "Telegram" %}</span>
-          <a class="link" href="https://t.me/greatestamal" target="_blank" rel="noopener">@greatestamal</a>
+          <a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a>
         </li>
         <li class="stack stack--sm">
           <span class="label">{% trans "Telefon" %}</span>
-          <a class="link num" href="tel:+998507888436">+998 50 788 84 36</a>
+          <a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a>
         </li>
         <li class="stack stack--sm">
           <span class="label">{% trans "Elektron pochta" %}</span>
-          <a class="link" href="mailto:abdurahmonboboyev.magic@gmail.com">abdurahmonboboyev.magic@gmail.com</a>
+          <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>
+        </li>
+        <li class="stack stack--sm">
+          <span class="label">{% trans "Sotuvchi" %}</span>
+          <span>{{ legal.seller.registered_name }}</span>
+          <span class="small muted">{{ legal.seller.address }}</span>
+          <a class="link small" href="{% url 'terms' %}#seller">{% trans "Sotuvchi haqida maʼlumot" %}</a>
         </li>
       </ul>
     </aside>

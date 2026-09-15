@@ -20,13 +20,15 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from cart.models import Cart
+from cart.services import GUEST_CART_DAYS
 
 
 class Command(BaseCommand):
     help = 'Delete anonymous carts that have not been touched for a while.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--days', type=int, default=30,
+        # The default is the figure the privacy policy promises (§17 #183).
+        parser.add_argument('--days', type=int, default=GUEST_CART_DAYS,
                             help='Age in days above which a guest cart is deleted.')
         parser.add_argument('--dry-run', action='store_true',
                             help='Report what would go, but delete nothing.')

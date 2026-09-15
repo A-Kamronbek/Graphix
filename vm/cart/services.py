@@ -12,6 +12,10 @@ from django.utils.translation import gettext as _
 
 from .models import Cart, CartItem
 
+#: How long an unclaimed guest cart is kept before ``prune_guest_carts``
+#: deletes it. The privacy policy states this figure, so it lives here once.
+GUEST_CART_DAYS = 30
+
 
 class CartError(Exception):
     """Raised when a cart operation can't proceed (bad selection or unavailable item)."""

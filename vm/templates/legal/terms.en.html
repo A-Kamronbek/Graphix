@@ -1,0 +1,179 @@
+{% load i18n_fields price_format legal_tags %}{% get_legal as legal %}
+{# Terms of use and public offer - English version. The Uzbek text is the original (§17 #182). #}
+{# Figures come from core/legal.py and from the table rows, never typed into the copy (§17 #111, #183). #}
+
+<p class="legal__lang" data-precedence>This document is published in Uzbek, Russian and English. If the versions differ, the Uzbek text prevails.</p>
+
+<section class="legal__sec" id="general">
+  <h2>1. General</h2>
+  <p>This document sets out the terms of use of the {{ legal.seller.brand }} online store ({{ legal.seller.site }}, the “Site”). It is also a public offer within the meaning of Article 369 of the Civil Code of the Republic of Uzbekistan: the terms on which goods are sold on the Site are the same for everyone.</p>
+  <p>The seller on the Site is {{ legal.seller.brand }} (the “Seller”, “we”). The Seller’s official details are in <a class="link" href="#seller">section 17</a>.</p>
+  <p>By using the Site you accept these terms. Paying for an order is full and unconditional acceptance of the offer (Article 370 of the Civil Code).</p>
+  <p>The document is published in Uzbek, Russian and English; if the versions differ, the Uzbek text applies.</p>
+</section>
+
+<section class="legal__sec" id="definitions">
+  <h2>2. Definitions</h2>
+  <ul>
+    <li><strong>Buyer</strong> — a person who has registered on the Site and places an order.</li>
+    <li><strong>Product</strong> — clothing and other goods sold on the Site.</li>
+    <li><strong>Order</strong> — the Buyer’s request to buy the products in their cart with the chosen delivery method. Every order gets a number starting with “GX-”.</li>
+    <li><strong>Recipient</strong> — the person whose full name is on the order and who collects the parcel. This need not be the Buyer.</li>
+    <li><strong>Uzpost</strong> — Oʻzbekiston pochtasi JSC, the national postal operator, and its branches.</li>
+  </ul>
+</section>
+
+<section class="legal__sec" id="account">
+  <h2>3. Registration and your account</h2>
+  <p>You need an account to place an order: a username, a phone number and a password; your name is optional. You can fill a cart without an account — it is kept when you sign in.</p>
+  <p>Your phone number is confirmed with a code sent by SMS. The code is valid for {{ legal.otp_minutes }} minute{{ legal.otp_minutes|pluralize }}. If it is entered wrongly {{ legal.otp_attempts }} time{{ legal.otp_attempts|pluralize }} or expires, the registration is cancelled, and an unconfirmed account with no cart or order attached to it is deleted.</p>
+  <p>One phone number can have one account. Keep your password to yourself: anything done through your account is treated as done by you. If you notice someone else using your account, change your password at once and let us know.</p>
+  <p>The Site is intended for people aged {{ legal.minimum_age }} and over. Anyone younger may register and order only with the consent of a parent or other legal guardian.</p>
+</section>
+
+<section class="legal__sec" id="order">
+  <h2>4. Orders and when the contract is made</h2>
+  <p>On a product page you choose a size and add the product to your cart. The cart keeps the price from the moment the product was first added: if the catalogue price changes later, the price in your cart stays the same.</p>
+  <p>At checkout you give the recipient’s full name and phone number, the delivery method and the address, and choose how to pay. When you press “Place the order”, the order is created and you go on to payment.</p>
+  <p>The contract of sale is made when the order has been paid in full. An unpaid order does not reserve anything — the product may sell out before you pay.</p>
+  <p>If it turns out after payment that the product is no longer in stock, we will contact you and either refund the payment in full or, if you agree, offer another size or product.</p>
+  <p>You can follow your order on the “My orders” page.</p>
+</section>
+
+<section class="legal__sec" id="prices">
+  <h2>5. Prices and payment</h2>
+  <p>Prices are in Uzbek soʻm and are final: they include all applicable taxes. Delivery is shown separately and added to the order total.</p>
+  <p>Orders are paid in full at checkout. Payment methods currently accepted: {% for option in payment_options %}<strong>{{ option|t:"name" }}</strong>{% if not forloop.last %}, {% endif %}{% empty %}none at the moment{% endfor %}. The methods in force are always shown at checkout.</p>
+  <p>When you pay with Click, you enter your card details on Click’s own page. We never see or store your card number.</p>
+  <p>Until the payment is confirmed, the order stays “Awaiting payment”. You can cancel an unpaid order yourself on its “Order status” page.</p>
+</section>
+
+<section class="legal__sec" id="delivery">
+  <h2>6. Delivery</h2>
+  <p>Orders are sent by Uzpost anywhere in Uzbekistan — in Tashkent and in the regions alike. Delivery methods and prices:</p>
+  <ul>
+    {% for tier in delivery_tiers %}
+      <li>{{ tier|t:"name" }} — <span class="num">{{ tier.price|price }}&nbsp;soʻm</span>{% if tier.free_from_items %}; free on orders of {{ tier.free_from_items }} item{{ tier.free_from_items|pluralize }} or more{% endif %}</li>
+    {% endfor %}
+  </ul>
+  <p><strong>To a post office.</strong> You choose the region and district and enter the six-digit postcode of the branch where you will collect the order. We check that the first digits of the postcode match the region you chose, but choosing the right branch is the Buyer’s responsibility. The parcel is handed to the recipient on production of an identity document.</p>
+  <p><strong>To your door.</strong> You give the region, district, street and house number. Dropping a pin on the map is optional and only makes the address more precise. The courier will call the phone number given.</p>
+  <p>Uzpost usually delivers anywhere in the country within {{ legal.transit_min|legal_range:legal.transit_max }} day{{ legal.transit_max|pluralize }}; door delivery can take one more day for the courier. These are Uzpost’s published times, not a guarantee. In any case the order must be delivered no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
+  <p>The Seller is not responsible for a parcel that is delayed or goes to the wrong place because the Buyer gave a wrong address, postcode, name or phone number. Check these details on the order page, and if you find a mistake, write to us straight away — before the parcel is sent.</p>
+  <p>The risk of accidental loss of or damage to the goods passes to the Buyer when the parcel is handed to the recipient.</p>
+</section>
+
+<section class="legal__sec" id="uncollected">
+  <h2>7. Uncollected or refused parcels</h2>
+  <p>When the parcel arrives, Uzpost sends the recipient a notice. The branch holds the parcel for {{ legal.hold_min }} to {{ legal.hold_max }} day{{ legal.hold_max|pluralize }}, depending on the service used. If it is still not collected after the second notice, Uzpost may charge a storage fee at its own rates.</p>
+  <p>A parcel that is not collected in time, or that the recipient refuses, is returned to the Seller. Under the postal rules, the sender — the Seller — pays for the return.</p>
+  <p>Once the parcel is back with us, <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> is kept from the amount paid and the rest is refunded within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }} (<a class="link" href="#refunds">section 10</a>). The amount kept covers part of the cost of sending the parcel and getting it back.</p>
+</section>
+
+<section class="legal__sec" id="cancel">
+  <h2>8. Cancelling an order</h2>
+  <ul>
+    <li><strong>An unpaid order</strong> you can cancel yourself on its “Order status” page.</li>
+    <li><strong>A paid order that has not been sent yet</strong> — write to us or call: we will cancel it and refund the payment in full.</li>
+    <li><strong>An order that has been sent</strong> cannot be cancelled. Not collecting or refusing the parcel leads to the procedure in <a class="link" href="#uncollected">section 7</a>; once you have received the goods, <a class="link" href="#returns">section 9</a> applies.</li>
+  </ul>
+  <p>The Seller may cancel an order if the product has sold out, the payment is not confirmed, or the order contains an obvious technical error (for example, a wrongly displayed price). The amount paid is then refunded in full.</p>
+</section>
+
+<section class="legal__sec" id="returns">
+  <h2>9. Exchanges and returns</h2>
+  <h3>Products with nothing wrong with them</h3>
+  <p>If a product does not fit, you can exchange it for another size within {{ legal.exchange_days }} day{{ legal.exchange_days|pluralize }} of receiving it (Article 18 of the Law on the Protection of Consumer Rights). To do so, the product must:</p>
+  <ul>
+    <li>be unworn and unwashed;</li>
+    <li>keep its original condition, labels and packaging;</li>
+    <li>come back with the order number.</li>
+  </ul>
+  <p>Write to us first and we will tell you where to send it. The Buyer pays for sending the product to us and for sending the new size back; the new parcel goes at the current price of the chosen delivery method. If the size you need has sold out, we refund the price of the product; the original delivery charge is not refunded.</p>
+  <h3>Faulty or damaged products</h3>
+  <p>If a product has a manufacturing defect or arrives damaged, write to us as soon as you can — ideally on the day you receive it — with a photo or video. By law, a defect in a product with no warranty period can be claimed within {{ legal.defect_claim_months }} month{{ legal.defect_claim_months|pluralize }} (Article 13 of the Law).</p>
+  <p>If the defect is confirmed, we will replace the product with an identical one within {{ legal.defect_replace_days }} day{{ legal.defect_replace_days|pluralize }} of accepting your claim (Article 14) or, if you prefer, refund it. You may also make the other claims the law provides for. The Seller pays for returning a faulty product and for sending its replacement.</p>
+  <p>If you can, inspect the parcel at the branch itself. If the packaging is damaged, have a report drawn up in the presence of a postal employee — it makes settling the matter with Uzpost much easier.</p>
+  <h3>Sizes and appearance</h3>
+  <p>The measurements in the size chart are taken by hand from the garment itself and may differ by ±{{ legal.size_tolerance_cm }} cm. Colours in photographs may look slightly different depending on your screen; this is not a defect.</p>
+  <h3>Custom orders</h3>
+  <p>An order made to your own design is agreed separately: its price, timing and return terms are confirmed in writing (for example, on Telegram) before you order.</p>
+</section>
+
+<section class="legal__sec" id="refunds">
+  <h2>10. Refunds</h2>
+  <p>As a rule, money is refunded the same way it was paid — for a Click payment, to the card you paid with. If that is not possible, we will agree another way with you.</p>
+  <p>Refunds are made within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }} of the day the reason for them arises — for example, the day a parcel comes back to us or an order is cancelled. The store’s administrator makes the refund; your bank or payment system may need a little more time to credit your card.</p>
+  <p>The amount refunded:</p>
+  <ul>
+    <li>for a cancelled order — the full amount;</li>
+    <li>for an uncollected or refused parcel — the amount paid less <span class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</span>;</li>
+    <li>for a faulty product — its price and the delivery costs;</li>
+    <li>when the size needed for an exchange has sold out — the price of the product.</li>
+  </ul>
+</section>
+
+<section class="legal__sec" id="reviews">
+  <h2>11. Reviews and moderation</h2>
+  <p>Only a customer who actually received a product can review it: their order must have reached “Delivered” and must have contained that product. One review per product.</p>
+  <p>A review is a rating (one to five stars), optional text (up to {{ legal.review_text }} character{{ legal.review_text|pluralize }}) and up to {{ legal.review_photos }} photo{{ legal.review_photos|pluralize }} ({{ legal.review_photo_mb }} MB each at most). Photos are processed and hidden location and device data is removed from them.</p>
+  <p>Every review is read by a member of staff before it is published. A review is rejected if it contains:</p>
+  <ul>
+    <li>insulting, demeaning or obscene words or images;</li>
+    <li>text or photos unrelated to the product, advertising or links;</li>
+    <li>other people’s personal details (phone numbers, addresses and the like);</li>
+    <li>someone else’s copyrighted photos or text;</li>
+    <li>anything unlawful.</li>
+  </ul>
+  <p>We do not edit reviews: a review is either published in full or rejected. A product’s average rating is calculated from published reviews only.</p>
+  <p>A published review shows everyone your first name (or your username if you have not given a name), the rating, the text, the photos and the date. By submitting a review you give the Seller a simple (non-exclusive) right to show it, with its photos, on the Site free of charge. If you want a review removed, write to us.</p>
+</section>
+
+<section class="legal__sec" id="ip">
+  <h2>12. Intellectual property</h2>
+  <p>The designs, photographs, texts, logo and the name “{{ legal.seller.brand }}” on the Site belong to the Seller or are used lawfully. Buying a product does not give you any rights in the design printed on it: you may wear it, but copying, reproducing or using the design commercially without the Seller’s written consent is prohibited.</p>
+</section>
+
+<section class="legal__sec" id="use">
+  <h2>13. Using the Site</h2>
+  <p>You may not:</p>
+  <ul>
+    <li>register in someone else’s name or with someone else’s phone number;</li>
+    <li>place fake orders or try to deceive the payment system;</li>
+    <li>interfere with the Site, get round its security or send large numbers of automated requests;</li>
+    <li>use the contact form or reviews to spread advertising, spam or unlawful content.</li>
+  </ul>
+  <p>If these rules are broken, the Seller may restrict the account or cancel the order; any amount paid is then refunded.</p>
+</section>
+
+<section class="legal__sec" id="liability">
+  <h2>14. Liability</h2>
+  <p>Each party is liable under the law of the Republic of Uzbekistan for failing to perform these terms or performing them improperly.</p>
+  <p>The Seller is not liable for delays caused by force majeure — natural disasters, decisions of public authorities, widespread outages of Uzpost or of payment systems, and the like. Deadlines are then extended for as long as those circumstances last.</p>
+  <p>Nothing in these terms limits the rights the law gives you as a consumer. If any provision is found to be unlawful, the rest remain in force.</p>
+</section>
+
+<section class="legal__sec" id="disputes">
+  <h2>15. Disputes</h2>
+  <p>These terms are governed by the law of the Republic of Uzbekistan.</p>
+  <p>If you have a complaint, write to us first — through the contact page, Telegram or email. We will reply within {{ legal.claim_days }} day{{ legal.claim_days|pluralize }}.</p>
+  <p>If we cannot reach agreement, the dispute is heard by a court in the manner set by law. As a consumer, you may also turn to the public authority responsible for consumer protection.</p>
+</section>
+
+<section class="legal__sec" id="changes">
+  <h2>16. Changes to these terms</h2>
+  <p>The Seller may change these terms. A new version is published on this page with its number and the date it takes effect, and the list of earlier versions is kept at the bottom of the page.</p>
+  <p>Changes apply to orders placed after they are published. A paid order is governed by the version in force when it was paid.</p>
+</section>
+
+<section class="legal__sec" id="seller">
+  <h2>17. About the Seller</h2>
+  <dl class="legal__facts">
+    <div><dt>Store</dt><dd>{{ legal.seller.brand }} — {{ legal.seller.site }}</dd></div>
+    <div><dt>Registered name</dt><dd>{{ legal.seller.registered_name }}</dd></div>
+    <div><dt>Address</dt><dd>{{ legal.seller.address }}</dd></div>
+    <div><dt>Phone</dt><dd><a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a></dd></div>
+    <div><dt>Email</dt><dd><a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a></dd></div>
+    <div><dt>Telegram</dt><dd><a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a></dd></div>
+  </dl>
+</section>

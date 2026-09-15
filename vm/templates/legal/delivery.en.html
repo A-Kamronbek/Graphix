@@ -1,0 +1,55 @@
+{% load i18n_fields price_format legal_tags %}{% get_legal as legal %}
+{# Delivery and returns - the plain-language page customers read. The Uzbek text is the original (§17 #182). #}
+{# Prices come from the DeliveryOption rows, periods from core/legal.py (§17 #111, #183). #}
+
+<p class="legal__lang" data-precedence>This page is published in Uzbek, Russian and English. If the versions differ, the Uzbek text prevails.</p>
+
+<section class="legal__sec" id="prices">
+  <h2>1. Prices</h2>
+  <p>Anywhere in Uzbekistan, by Uzpost — in Tashkent and in the regions alike.</p>
+  {% if delivery_options %}
+    <dl class="legal__facts">
+      {% for opt in delivery_options %}
+        <div>
+          <dt>{{ opt|t:"name" }}</dt>
+          <dd><span class="num">{{ opt.price|price }}&nbsp;soʻm</span>{% if opt.free_from_items %} · free on orders of {{ opt.free_from_items }} item{{ opt.free_from_items|pluralize }} or more{% endif %}</dd>
+        </div>
+      {% endfor %}
+    </dl>
+  {% endif %}
+  <p>Delivery is added to the order total and shown at checkout before you pay.</p>
+</section>
+
+<section class="legal__sec" id="branch">
+  <h2>2. To a post office</h2>
+  <p>At checkout you choose your region and district and enter the six-digit postcode of the branch where you want to collect the order. If you don’t know it, look it up on Uzpost’s <a class="link" href="https://uz.post/uz/map" target="_blank" rel="noopener">branch map</a>.</p>
+  <p>Uzpost lets you know when the parcel arrives. Take your passport or ID card with you: the parcel is handed to the recipient named on the order.</p>
+</section>
+
+<section class="legal__sec" id="home">
+  <h2>3. To your door</h2>
+  <p>A courier brings the order to the address you gave and calls ahead. You can type the address or mark it on the map — the pin makes it more precise, but the street and house number are still needed.</p>
+</section>
+
+<section class="legal__sec" id="timing">
+  <h2>4. How long it takes</h2>
+  <p>Once your payment is confirmed, we pack the order and hand it to Uzpost — you can follow it on the “My orders” page. Uzpost usually delivers anywhere in the country within {{ legal.transit_min|legal_range:legal.transit_max }} day{{ legal.transit_max|pluralize }}; door delivery can take one more day for the courier. In any case your order must arrive no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
+</section>
+
+<section class="legal__sec" id="uncollected">
+  <h2>5. If you don’t collect it</h2>
+  <p>The branch holds the parcel for {{ legal.hold_min }} to {{ legal.hold_max }} day{{ legal.hold_max|pluralize }}, depending on the service. Collect it soon after the notice arrives: after the second notice Uzpost may charge a storage fee.</p>
+  <p>A parcel that is not collected in time, or is refused, comes back to us. We then keep <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> of your payment and refund the rest within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. So check the postcode and the address carefully — you can see them again on the order page.</p>
+</section>
+
+<section class="legal__sec" id="exchange">
+  <h2>6. If the size is wrong</h2>
+  <p>An unworn, unwashed item with its labels on can be exchanged for another size within {{ legal.exchange_days }} day{{ legal.exchange_days|pluralize }} of receiving it. Write to us first and we will tell you where to send it. The buyer pays for sending it back and for sending the new size. If the size you need has sold out, we refund the price of the item.</p>
+</section>
+
+<section class="legal__sec" id="defects">
+  <h2>7. If it is faulty or damaged</h2>
+  <p>If the item arrives faulty or damaged, write to us as soon as you can with a photo or video: we will replace it or refund it, and we pay all the delivery costs. You can report a defect within {{ legal.defect_claim_months }} month{{ legal.defect_claim_months|pluralize }} of receiving the item.</p>
+  <p>If the packaging is damaged, inspect the parcel at the branch and have a report drawn up in the presence of a postal employee.</p>
+  <p>The full rules are in the <a class="link" href="{% url 'terms' %}">Terms of use</a>.</p>
+</section>

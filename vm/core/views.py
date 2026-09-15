@@ -1,25 +1,98 @@
-"""Static pages (home, about, terms), the contact form, the staff style guide,
-and error handlers."""
+"""Static pages (home, about), the legal documents, the contact form, the
+staff style guide, and error handlers."""
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.staticfiles import finders
 from django.http import Http404
-from django.utils.translation import gettext as _
+from django.template.loader import select_template
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import get_language, gettext as _
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 from product.models import Product, Category
 from django.templatetags.static import static
 from core.context_processors import SIZE_GUIDE_IMAGE
-from . import telegram
+from . import legal, telegram
 from .models import Msg
 from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
 
-def terms(request):
-    """Render the terms page, linking 'back' to the referring page when safe."""
+# ---------- legal documents ----------
+
+def _back_url(request, own_url):
+    """Where "Orqaga" leads: the page the visitor came from, if it is ours.
+
+    The signup form links here and keeps its draft in the tab, so going back
+    to it is the point. A referrer on another site, or the document itself,
+    is not somewhere to send anybody back to.
+    """
     ref = request.META.get('HTTP_REFERER') or ''
-    back_url = ref if ref and reverse('terms') not in ref else reverse('home')
-    return render(request, 'terms.html', {'back_url': back_url})
+    if ref and own_url not in ref and url_has_allowed_host_and_scheme(
+            ref, allowed_hosts={request.get_host()},
+            require_https=request.is_secure()):
+        return ref
+    return reverse('home')
+
+
+def _legal_page(request, key, **extra):
+    """Render one of the three legal documents in the reader's language.
+
+    Each document is written out whole, once per language, in
+    ``templates/legal/<key>.<lang>.html`` (§17 #182). A legal text is read -
+    and reviewed - as one piece, while a .po file cuts it into fragments
+    that fall back to Uzbek one at a time whenever the source wording
+    changes. The Uzbek text is the authoritative one, because the
+    E-commerce Law wants contract terms in the state language, and it
+    stands in if a translation is ever missing.
+
+    The body is rendered first so the contents list can be read out of it
+    rather than written a second time beside it.
+    """
+    lang = get_language() or settings.LANGUAGE_CODE
+    body = select_template([f'legal/{key}.{lang}.html', f'legal/{key}.uz.html'])
+    context = {
+        'doc_key': key,
+        'doc_title': legal.TITLES[key],
+        'back_url': _back_url(request, reverse(key)),
+        **legal.document(key),
+        **extra,
+    }
+    html = body.render(context, request)
+    context.update(body_html=html, toc=legal.contents(html))
+    return render(request, 'legal/document.html', context)
+
+
+def terms(request):
+    """Terms of use and the public offer (plan §9 Phase 8 item 2).
+
+    The payment methods are the rows the checkout offers, for the reason the
+    delivery prices are (§17 #111): a terms page promising a method the
+    checkout does not take is worse than a wrong number.
+    """
+    from payment.models import PaymentOption
+    return _legal_page(request, 'terms', payment_options=list(
+        PaymentOption.objects.filter(is_active=True)))
+
+
+def privacy(request):
+    """The privacy policy (plan §9 Phase 8 item 1)."""
+    return _legal_page(request, 'privacy')
+
+
+def delivery(request):
+    """Delivery and returns, in plain language (plan §9 Phase 8 item 3).
+
+    §7 requires the two tiers to be stated everywhere a customer might look.
+    The figures come from the DeliveryOption rows rather than being written
+    as copy: they are rows precisely so a price change is not a deploy
+    (§17 #13), and a page that states the old number is how that promise
+    breaks (§18 #18). Before the rows are seeded the table does not render
+    and the prose still reads.
+    """
+    from payment.models import DeliveryOption
+    return _legal_page(request, 'delivery', delivery_options=list(
+        DeliveryOption.objects.filter(is_active=True)))
 
 
 def home(request):
@@ -45,23 +118,6 @@ def home(request):
         # recommender — the plan's own stand-in, not a placeholder.
         'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:4]),
         'categories': Category.objects.all()[:6],
-    })
-
-
-def delivery(request):
-    """Delivery terms as their own page.
-
-    §7 requires the two tiers to be stated everywhere a customer might look —
-    checkout, the confirmation, this page and the terms — so nobody is surprised
-    at checkout about who delivers or what it costs. The figures come from the
-    DeliveryOption rows rather than being written here as copy: they are rows
-    precisely so a price change is not a deploy (§17 #13), and a page that
-    states the old number is how that promise breaks (§18 #18). Before the rows
-    are seeded the table simply does not render, and the prose still reads.
-    """
-    from payment.models import DeliveryOption
-    return render(request, 'core/delivery.html', {
-        'delivery_options': list(DeliveryOption.objects.filter(is_active=True)),
     })
 
 
@@ -92,6 +148,10 @@ def about(request):
     """Render the about page."""
     return render(request, 'core/about.html')
 
+#: The contact subject's column length, so the form and the check use one number.
+SUBJECT_MAX = Msg._meta.get_field('topic').max_length
+
+
 def contact(request):
     """Show and handle the contact form, storing submissions as :class:`Msg`.
 
@@ -115,6 +175,12 @@ def contact(request):
             if not form_data['message'] or not form_data['subject']:
                 form_errors = True
                 messages.error(request, _("Iltimos, xabar kiriting."))
+            elif len(form_data['subject']) > SUBJECT_MAX:
+                # The column's limit, said as a sentence rather than met as a
+                # 500 from the database (§17 #154).
+                form_errors = True
+                messages.error(request, _("Mavzu %(n)d belgidan oshmasligi kerak.")
+                               % {'n': SUBJECT_MAX})
             else:
                 msg = Msg.objects.create(user=request.user,
                                          phone_num=request.user.phone,
@@ -126,6 +192,7 @@ def contact(request):
                 messages.success(request, _("Xabar qabul qilindi."))
                 form_data = {}
     return render(request, 'core/contact.html', {
+        'subject_max': SUBJECT_MAX,
         'form_data': form_data,
         'form_errors': form_errors,
         'rate_limited': (request.user.is_authenticated and

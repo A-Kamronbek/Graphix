@@ -59,8 +59,13 @@
         <label class="check">
           <input type="checkbox" required>
           <span class="small">
-            {% url 'terms' as terms_url %}
-            {% blocktrans %}Barcha <a class="link" href="{{ terms_url }}">shartlar</a>ga rozilik beraman.{% endblocktrans %}
+            {# Both documents, and consent to processing in so many words: the #}
+            {# personal data law asks for consent, and this box is where it is #}
+            {# given (plan §9 Phase 8 item 5). #}
+            {% url 'terms' as terms_url %}{% url 'privacy' as privacy_url %}
+            {% blocktrans trimmed %}
+              <a class="link" href="{{ terms_url }}">Foydalanish shartlari</a> bilan tanishdim va <a class="link" href="{{ privacy_url }}">maxfiylik siyosati</a>ga muvofiq shaxsga doir maʼlumotlarimga ishlov berilishiga rozilik beraman.
+            {% endblocktrans %}
           </span>
         </label>
 

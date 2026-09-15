@@ -33,4 +33,12 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# --- screenshots ---
+# Pictures of the site, taken by `.git/shoot_site.py` and by the drive scripts.
+# They are output, not source: regenerating them is one command, and a dozen
+# megabytes of PNG in the history is a dozen megabytes forever.
 docs/design/phase5/
+docs/design/phase7-*/
+/pictures/
+/graphix-screenshots.zip

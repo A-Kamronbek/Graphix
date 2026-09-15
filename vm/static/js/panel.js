@@ -565,4 +565,24 @@ var SAY = (function () {
     if (label) label.textContent = input.files.length ? input.files[0].name
                                                      : SAY('noFile');
   });
+
+  /* ------------------------------------------- the description template */
+  /* Puts the shape every description follows into an empty box, in that
+     box's own language (plan §9 Phase 8 item 7). It never overwrites: the
+     button is only there while the box is empty, and it checks again on
+     the click, because a box can be filled between the two. */
+  document.querySelectorAll('[data-copy-template]').forEach(function (button) {
+    var box = document.getElementById(button.dataset.copyTemplate);
+    if (!box) return;
+    var sync = function () { button.hidden = box.value.trim() !== ''; };
+    button.addEventListener('click', function () {
+      if (box.value.trim()) { sync(); return; }
+      box.value = button.dataset.template;
+      sync();
+      box.focus();
+      box.setSelectionRange(0, 0);
+    });
+    box.addEventListener('input', sync);
+    sync();
+  });
 })();

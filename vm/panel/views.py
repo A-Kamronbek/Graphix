@@ -464,6 +464,7 @@ def product_form(request, slug=None):
                         else set()),
         'print_methods': PrintMethod.objects.all(),
         'max_images': catalogue.MAX_IMAGES,
+        'copy_templates': catalogue.description_templates(),
         'max_bytes': image_pipeline.MAX_BYTES,
         'max_pixels': image_pipeline.MAX_PIXELS,
     })

@@ -11,6 +11,11 @@ from django.utils.translation import gettext_lazy as _
 
 RATE_LIMIT_MESSAGE = _("Juda koʻp urinish. Iltimos, birozdan soʻng qayta urinib koʻring.")
 
+#: The longest window any limit on the site may use. The privacy policy tells
+#: a visitor how long the hashed counter behind their IP address can live, and
+#: a test holds every call in the project to this ceiling.
+MAX_WINDOW = 60 * 60
+
 
 def client_ip(request):
     """Best-effort client IP, preferring the first X-Forwarded-For hop (set by nginx)."""

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format uzb_dates %}
+{% load static i18n i18n_fields price_format legal_tags %}
 {% block title %}{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}{% endblock %}
 
 {% block content %}
@@ -46,7 +46,7 @@
     <aside class="checkout__summary panel stack">
       <h2 class="h3">{% trans "Tafsilotlar" %}</h2>
       <dl class="spec">
-        <div class="spec__row"><dt>{% trans "Sana" %}</dt><dd>{{ order.created_at|uz_date }}</dd></div>
+        <div class="spec__row"><dt>{% trans "Sana" %}</dt><dd>{{ order.created_at|date:"j E Y" }}</dd></div>
         {% if order.recipient_name %}
           <div class="spec__row"><dt>{% trans "Qabul qiluvchi" %}</dt><dd>{{ order.recipient_name }}</dd></div>
         {% endif %}
@@ -71,15 +71,27 @@
       {# The snapshot, not the live rows: it is what was actually agreed, and #}
       {# it is shown back so the customer can check their own index before the #}
       {# parcel goes (§12 risk #10). #}
+      {# Branch or door is the delivery option's to say. `region_id` said it #}
+      {# until §17 #106 gave home orders a region too, and from then on every #}
+      {# order called its address a post office (§17 #191). #}
+      {% with branch=order.delivery_option.requires_branch %}
       <div class="stack stack--sm">
-        <span class="label">
-          {% if order.region_id %}{% trans "Pochta boʻlimi" %}{% else %}{% trans "Manzil" %}{% endif %}
-        </span>
+        <span class="label">{% if branch %}{% trans "Pochta boʻlimi" %}{% else %}{% trans "Manzil" %}{% endif %}</span>
         <address class="small">{{ order.location_snapshot|default:order.address|linebreaksbr }}</address>
-        {% if order.region_id %}
-          <p class="small muted">{% trans "Joʻnatma boʻlimda bir oy saqlanadi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing." %}</p>
+        {% if branch %}
+          {# The plain-language version of terms §7, where the customer checks #}
+          {# their index: how long the branch holds it, and what an uncollected #}
+          {# parcel costs (§19 Q11). The figures come from core/legal.py. #}
+          {% get_legal as legal %}
+          <p class="small muted">
+            {% blocktrans trimmed with span=legal.hold_min|legal_range:legal.hold_max fee=legal.uncollected_fee|price days=legal.refund_days %}
+              Joʻnatma boʻlimda {{ span }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing.
+            {% endblocktrans %}
+            <a class="link" href="{% url 'delivery' %}#uncollected">{% trans "Batafsil" %}</a>
+          </p>
         {% endif %}
       </div>
+      {% endwith %}
 
       {% if order.notes %}
         <div class="stack stack--sm">

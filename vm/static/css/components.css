@@ -645,7 +645,11 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
   a.link::after { content: ""; position: absolute; left: -4px; right: -4px;
     top: 50%; height: 44px; transform: translateY(-50%); }
   a.card__name::after { content: ""; position: absolute; inset: -9px -4px; }
-  p a.link::after, li a.link::after, td a.link::after, .prose a.link::after { content: none; }
+  /* A checkbox's label is running text too. The signup consent names two
+     documents on neighbouring lines, and the second link's target lay over
+     the first: a tap on the terms opened the privacy policy (§17 #203). */
+  p a.link::after, li a.link::after, td a.link::after, .prose a.link::after,
+  .check a.link::after { content: none; }
 
   /* The rating under the product title is a link to the reviews section, and
      it is 22 px tall — stars and a number, sized to sit quietly under the
