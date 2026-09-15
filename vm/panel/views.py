@@ -42,11 +42,6 @@ from . import catalogue, reference
 from .auth import staff_only
 from .services import PANEL_CHOICES, PANEL_SETTABLE, UnknownStatus, set_status
 
-#: A variant at or below this is worth telling the owner about. Five is a
-#: weekend: enough to sell through before a reprint arrives, not so many that
-#: the number is permanently lit and therefore ignored.
-LOW_STOCK = 5
-
 #: Orders per page in the list. Twenty fills a laptop screen and is three
 #: thumb-scrolls on a phone.
 PER_PAGE = 20
@@ -131,13 +126,14 @@ def dashboard(request):
         'awaiting': counts['awaiting'],
         'to_pack': counts['to_pack'],
         'on_the_way': counts['on_the_way'],
-        'low_stock': (Variant.objects
-                      .filter(available=True, product__is_active=True,
-                              stock__lte=LOW_STOCK)
+        # One definition of "running low", on the model, used by the tile, by
+        # the list below it and by the list the tile links to. A size the owner
+        # has taken off sale is not stock waiting to be sold, and neither is
+        # anything belonging to a withdrawn product (§17 #179).
+        'low_stock': (Variant.objects.running_low()
                       .select_related('product', 'size')
                       .order_by('stock')[:8]),
-        'low_stock_count': Variant.objects.filter(
-            available=True, product__is_active=True, stock__lte=LOW_STOCK).count(),
+        'low_stock_count': Variant.objects.running_low().count(),
         'unread': Msg.objects.filter(is_read=False).count(),
         'pending_reviews': Review.objects.filter(
             status=Review.Status.PENDING).count(),
@@ -347,11 +343,12 @@ def products(request):
 
     # The dashboard's "running low" tile counts variants; this is where it
     # lands. Without it the tile said "6" and opened the whole catalogue, which
-    # is the same as saying nothing.
+    # is the same as saying nothing. Through the same queryset the tile counts,
+    # so the two cannot drift: a product is here when one of its sizes is a row
+    # in that count (§17 #179).
     low = request.GET.get('low', '') == '1'
     if low:
-        qs = qs.filter(is_active=True, variants__available=True,
-                       variants__stock__lte=LOW_STOCK).distinct()
+        qs = qs.filter(pk__in=Variant.objects.running_low().values('product'))
 
     page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
     kept = request.GET.copy()
@@ -511,8 +508,12 @@ def product_inline(request, slug):
                                 status=400)
         variant.stock = _int(raw)
         variant.save(update_fields=['stock'])
+        # Both facts, so the pill can recolour itself the moment the number is
+        # typed rather than at the next page load. The server decides which it
+        # is; the script only paints it (§17 #180).
         return JsonResponse({'ok': True, 'value': variant.stock,
-                             'purchasable': variant.is_purchasable})
+                             'purchasable': variant.is_purchasable,
+                             'low': variant.is_running_low})
 
     return JsonResponse({'ok': False, 'error': _('Notoʻgʻri maydon.')}, status=400)
 

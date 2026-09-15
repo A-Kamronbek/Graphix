@@ -378,19 +378,14 @@
 }
 
 /* ------------------------------------------------------------------ auth */
-/* One column on mobile; on desktop the form keeps a comfortable measure and the
-   mark sits beside it rather than a stock photograph nobody chose. */
+/* One centred column, at every width, on every screen in the flow: sign in,
+   sign up, the OTP step, the three reset steps and the payment result. Sign-in
+   and sign-up used to be the exception — two columns from 1024 px with the
+   brand mark parked in the right-hand half — which pushed the form off to the
+   side of a wide screen and made a decoration the largest thing on a page with
+   exactly one job (§17 #177). The mark is in the header already. */
 .auth { display: grid; gap: var(--s-7); max-width: 460px; margin-inline: auto; }
 .auth--narrow { max-width: 420px; }
-.auth__art { display: none; }
-.auth__art .i { width: 100%; height: auto; max-width: 220px; color: var(--c-line-strong); }
-
-@media (min-width: 1024px) {
-  .auth { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); max-width: var(--container);
-    align-items: center; gap: var(--s-9); }
-  .auth--narrow { grid-template-columns: minmax(0, 420px); max-width: 420px; }
-  .auth__art { display: grid; place-items: center; }
-}
 
 /* --------------------------------------------------------------- account */
 /* Tabs across the top on mobile, a sidebar from 860 px. */

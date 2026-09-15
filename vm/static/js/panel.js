@@ -184,8 +184,11 @@ var SAY = (function () {
         if (box) {
           box.classList.add('is-saved');
           /* The box says out-of-stock the moment it is, rather than at the
-             next page load — the owner is looking at it when they type. */
+             next page load — the owner is looking at it when they type.
+             Red wins over amber, the same order the template renders them in:
+             a size nobody can buy is not also "nearly gone". */
           box.classList.toggle('is-out', !data.purchasable);
+          box.classList.toggle('is-low', !!data.purchasable && !!data.low);
           setTimeout(function () { box.classList.remove('is-saved'); }, 1200);
         }
       })

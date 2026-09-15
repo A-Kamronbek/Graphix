@@ -3,8 +3,10 @@
 {% block title %}{% trans "Roʻyxatdan oʻtish" %}{% endblock %}
 
 {% block content %}
+{# Centred, one column, like the sign-in screen beside it and the OTP step #}
+{# after it (§17 #177). #}
 <div class="wrap section">
-  <div class="auth">
+  <div class="auth auth--narrow">
     <div class="stack stack--lg">
       <div class="stack stack--sm">
         <h1 class="h1">{% trans "Roʻyxatdan oʻtish" %}</h1>
@@ -73,10 +75,6 @@
         {% trans "Hisob bormi?" %} <a class="link" href="{% url 'login' %}">{% trans "Kirish" %}</a>
       </p>
     </div>
-
-    <aside class="auth__art" aria-hidden="true">
-      <svg class="i" viewBox="0 0 24 24"><use href="#i-mark"></use></svg>
-    </aside>
   </div>
 </div>
 {% endblock %}

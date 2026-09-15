@@ -42,7 +42,10 @@
 
     <div class="prod__stocks">
       {% for variant in product.variants.all %}
-        <label class="stockbox {% if not variant.is_purchasable %}is-out{% endif %}">
+        {# Three states, and red wins. Red is "nobody can buy this" — off sale #}
+        {# or nothing left. Amber is "still selling, nearly gone". A size that #}
+        {# is both is red, because the worse fact is the one to act on. #}
+        <label class="stockbox {% if not variant.is_purchasable %}is-out{% elif variant.is_running_low %}is-low{% endif %}">
           <span class="stockbox__size">{{ variant.size.size }}</span>
           <input class="stockbox__n num" type="text" inputmode="numeric" pattern="[0-9]*"
                  value="{{ variant.stock }}" size="3"

@@ -307,6 +307,36 @@ def default_colour():
     return colour
 
 
+#: At or below this many left, a size is "running low" and the panel says so.
+#: It lives on the model rather than in the panel because it is a fact about the
+#: catalogue, and three screens ask the question — the dashboard's tile, the
+#: list behind that tile, and the coloured size pill on the products list. Three
+#: copies of a threshold is three chances for the tile to say one number and
+#: the list it opens to show another (§17 #179).
+LOW_STOCK = 5
+
+
+class VariantQuerySet(models.QuerySet):
+    """The two questions every screen asks about a variant, asked once here."""
+
+    def on_sale(self):
+        """Variants a customer could actually be offered right now.
+
+        Both switches have to agree: the owner's per-size ``available`` flag and
+        the product's own ``is_active``. A size taken off sale, or a product
+        withdrawn, is not stock anybody is waiting to sell.
+        """
+        return self.filter(available=True, product__is_active=True)
+
+    def running_low(self):
+        """On sale, and down to the last few.
+
+        Zero is included on purpose: a size on sale with nothing behind it is
+        the most urgent row on the list, not an excluded one.
+        """
+        return self.on_sale().filter(stock__lte=LOW_STOCK)
+
+
 class Variant(models.Model):
     """A buyable variant (product + size + colour) with its own price and stock.
 
@@ -321,6 +351,8 @@ class Variant(models.Model):
     available = models.BooleanField(default=False)
     stock = models.PositiveIntegerField(default=0)
 
+    objects = VariantQuerySet.as_manager()
+
     def __str__(self):
         return  f"{self.product.name} | {self.colour.colour} | {self.size.size}"
 
@@ -328,6 +360,16 @@ class Variant(models.Model):
     def is_purchasable(self):
         """Available *and* actually in stock."""
         return self.available and self.stock > 0
+
+    @property
+    def is_running_low(self):
+        """Still sellable, but not for many more parcels.
+
+        Deliberately *not* the same test as the queryset's ``running_low``: this
+        one drives the colour of a size pill, and a size with nothing left is
+        already saying that in red. Amber is the warning before the warning.
+        """
+        return self.is_purchasable and self.stock <= LOW_STOCK
 
     class Meta:
         unique_together = ('product', 'size', 'colour')

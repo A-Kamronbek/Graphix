@@ -161,6 +161,11 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
 /* Out of stock, or switched off. The row still shows the number — the owner is
    about to change it — but it stops reading as a number that is fine. */
 .stockbox.is-out { border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-line)); }
+/* Still selling, nearly gone. Amber rather than red because the two facts are
+   different and the owner acts on them differently: red is a size nobody can
+   buy today, amber is a reprint to order this week. A size that is both wears
+   red — the template picks one class, worse first (§17 #180). */
+.stockbox.is-low { border-color: color-mix(in srgb, var(--c-warning) 55%, var(--c-line)); }
 .stockbox.is-saving { opacity: .5; }
 .stockbox.is-saved { border-color: var(--c-brand); }
 

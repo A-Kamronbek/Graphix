@@ -1,6 +1,6 @@
 {% extends "boshqaruv/base.html" %}
 {% load i18n price_format %}
-{% block title %}{% trans "Bugun" %}{% endblock %}
+{% block title %}{% trans "Hisobot" %}{% endblock %}
 
 {% comment %}
   The dashboard. Every tile answers a question the owner has when they open
@@ -12,7 +12,10 @@
 {% endcomment %}
 
 {% block content %}
-<h1 class="pnl__title">{% trans "Bugun" %}</h1>
+{# "Hisobot", not "Bugun". Half of what is on this screen is not about today — #}
+{# the week's takings, the moderation queue, the parcels still to pack — and a #}
+{# tab named after a day tells nobody what the page is (§17 #178). #}
+<h1 class="pnl__title">{% trans "Hisobot" %}</h1>
 
 <section class="pnl__stats">
   <div class="stat">
@@ -48,11 +51,11 @@
     <a class="stat {% if to_pack %}stat--todo{% endif %}"
        href="{% url 'panel_orders' %}?status=paid,processing">
       <span class="stat__n">{{ to_pack }}</span>
-      <span class="stat__label">{% trans "Yigʻiladi" %}</span>
+      <span class="stat__label">{% trans "Jarayonda" %}</span>
     </a>
     <a class="stat" href="{% url 'panel_orders' %}?status=on_the_way">
       <span class="stat__n">{{ on_the_way }}</span>
-      <span class="stat__label">{% trans "Yoʻlda" %}</span>
+      <span class="stat__label">{% trans "Yetkazilmoqda" %}</span>
     </a>
     <a class="stat" href="{% url 'panel_orders' %}?status=paying">
       <span class="stat__n">{{ awaiting }}</span>
@@ -61,7 +64,7 @@
     <a class="stat {% if pending_reviews %}stat--todo{% endif %}"
        href="{% url 'panel_reviews' %}">
       <span class="stat__n">{{ pending_reviews }}</span>
-      <span class="stat__label">{% trans "Sharhlar navbatda" %}</span>
+      <span class="stat__label">{% trans "Yangi sharhlar" %}</span>
     </a>
     <a class="stat {% if unread %}stat--todo{% endif %}"
        href="{% url 'panel_messages' %}?show=unread">
