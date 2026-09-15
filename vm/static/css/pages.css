@@ -457,3 +457,83 @@
    intrinsic ratio is unknown here, so `height: auto` with the `.prose` width
    cap is the honest constraint. */
 .sizeguide__img { display: block; width: 100%; height: auto; }
+
+/* ------------------------------------------------------- legal documents */
+/* The terms, the privacy policy and the delivery page share one shape: the
+   title with the version in force, a contents list, the text in a readable
+   measure, and the history of versions under it (§17 #182). On a phone the
+   contents fold away above the text; from 1024 px they are a rail that stays
+   beside it. The two copies are never on screen together (§17 #192). */
+.legal { display: grid; gap: var(--s-6); }
+.legal__head { display: grid; gap: var(--s-2); }
+/* A document's title can be one long word: «конфиденциальности» is 422 px at
+   the display size, and a 390 px phone has a 351 px column. The title steps
+   down on a phone instead of pushing the page sideways, and below 320 px it may
+   break rather than overflow (§17 #65, #202). */
+.legal__head .h1 { font-size: clamp(var(--fs-2xl), 7.5vw, var(--fs-5xl));
+  overflow-wrap: anywhere; }
+.legal__meta { color: var(--c-fg-hint); font-size: var(--fs-sm); }
+.legal__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6); }
+.legal__text { display: grid; gap: var(--s-7); }
+
+/* A translation says, once and at the top, which text is the original. */
+.legal__lang { padding: var(--s-3) var(--s-4); border-left: 2px solid var(--c-brand);
+  background: var(--c-surface); color: var(--c-fg-muted); font-size: var(--fs-sm); }
+
+/* The header is sticky, so a section a contents link jumps to has to land
+   below it rather than under it (§17 #140). */
+.legal__sec { display: grid; gap: var(--s-3);
+  scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
+.legal__sec h2 { font-family: var(--f-display); font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold); line-height: var(--lh-snug); color: var(--c-fg); }
+.legal__sec h3 { margin-top: var(--s-2); font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold); color: var(--c-fg); }
+.legal__sec p, .legal__sec li { color: var(--c-fg-muted); line-height: var(--lh-normal); }
+.legal__sec strong { color: var(--c-fg); font-weight: var(--fw-semibold); }
+.legal__sec ul { display: grid; gap: var(--s-2); padding-left: var(--s-5); list-style: disc; }
+.legal__sec li::marker { color: var(--c-fg-subtle); }
+.legal__sec code { font-family: var(--f-mono); font-size: var(--fs-sm); color: var(--c-fg); }
+
+/* The seller's details and the delivery prices: the label over its value on a
+   phone, beside it from 720 px. A long email address breaks where it must
+   rather than pushing the page sideways (§17 #65). */
+.legal__facts { display: grid; }
+.legal__facts > div { display: grid; gap: var(--s-1); padding-block: var(--s-3);
+  border-bottom: 1px solid var(--c-line); }
+.legal__facts dt { color: var(--c-fg-hint); font-size: var(--fs-sm); }
+.legal__facts dd { color: var(--c-fg); overflow-wrap: anywhere; }
+
+.legal__history { display: grid; gap: var(--s-4); padding-top: var(--s-6);
+  border-top: 1px solid var(--c-line); }
+
+/* The contents. Every entry is a full-height row on a phone, where it is a
+   tap target (§9); on the rail, where a pointer does the aiming, it is text. */
+.legal__toc a { display: flex; align-items: center; min-height: 44px;
+  color: var(--c-fg-muted); font-size: var(--fs-sm); line-height: var(--lh-snug);
+  transition: color var(--t-fast); }
+.legal__toc a:hover { color: var(--c-fg); }
+.legal__toc--fold { border: 1px solid var(--c-line); border-radius: var(--r-md);
+  background: var(--c-surface); }
+.legal__toc--fold summary { display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-3); min-height: 44px; padding-inline: var(--s-4); cursor: pointer;
+  font-weight: var(--fw-semibold); list-style: none; }
+.legal__toc--fold summary::-webkit-details-marker { display: none; }
+.legal__toc--fold summary .i { color: var(--c-fg-muted); transition: transform var(--t-base); }
+.legal__toc--fold[open] summary .i { transform: rotate(180deg); }
+.legal__toc--fold ol { padding: 0 var(--s-4) var(--s-3); }
+.legal__toc--rail { display: none; }
+
+@media (min-width: 720px) {
+  .legal__facts > div { grid-template-columns: var(--legal-label) minmax(0, 1fr);
+    gap: var(--s-4); }
+}
+
+@media (min-width: 1024px) {
+  .legal__layout { grid-template-columns: var(--legal-rail) minmax(0, 1fr); gap: var(--s-8); }
+  .legal__toc--fold { display: none; }
+  .legal__toc--rail { display: block; position: sticky; align-self: start;
+    top: calc(var(--nav-h) + var(--s-5));
+    max-height: calc(100vh - var(--nav-h) - var(--s-7)); overflow-y: auto;
+    padding-right: var(--s-4); border-right: 1px solid var(--c-line); }
+  .legal__toc--rail a { min-height: 0; padding-block: var(--s-2); }
+}

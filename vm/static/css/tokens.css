@@ -100,6 +100,10 @@
   /* One photograph must never take more than one screen (§17 #47). */
   --pdp-image-max: min(76vh, 760px);
   --pdp-buy-col: 430px;
+  /* The legal documents: the contents rail beside the text from 1024 px,
+     and the label column of their fact lists from 720 px. */
+  --legal-rail: 240px;
+  --legal-label: 200px;
 
   /* ------------------------------------------------------------- z-index */
   --z-sticky: 50; --z-drawer: 100; --z-modal: 200; --z-toast: 300;

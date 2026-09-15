@@ -212,7 +212,10 @@ class Order(models.Model):
         PAYING = 'paying', _('Toʻlanmoqda')
         PAID = 'paid', _('Toʻlangan')
         PROCESSING = 'processing', _('Jarayonda')
-        ON_THE_WAY = 'on_the_way', _('Yoʻlda')
+        # The word the dashboard tile uses (§17 #178, #189): the tile counts
+        # these orders, so the two must say the same thing. The stored value
+        # does not change.
+        ON_THE_WAY = 'on_the_way', _('Yetkazilmoqda')
         DONE = 'done', _('Bajarildi')
         CANCELLED = 'cancelled', _('Bekor qilindi')
 

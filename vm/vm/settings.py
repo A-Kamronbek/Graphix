@@ -124,6 +124,12 @@ LANGUAGE_COOKIE_NAME = 'graphix_lang'
 LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
 LANGUAGE_COOKIE_SAMESITE = 'Lax'
 
+# ---- tests ----
+# Every test starts in Uzbek whatever the previous one requested, and a failure
+# under --parallel is reported as text instead of ending the run: tblib is not
+# installed, so a traceback cannot be sent back from a worker (§17 #199).
+TEST_RUNNER = 'core.runner.Runner'
+
 # ---- static & media ----
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
@@ -227,14 +233,23 @@ LOGGING = {
     },
 }
 
+# How long the application's own log is kept, in days. The privacy policy
+# states this figure - core/legal.py reads it from here - so the file rotates
+# by day rather than by size: a size-rotated log keeps a phone number from a
+# failed SMS for however long 25 MB takes to fill, which nobody can promise
+# a customer (§17 #196). The web server's own access log is rotated to the
+# same period on the VPS (plan §9 Phase 1b).
+LOG_RETENTION_DAYS = 30
+
 if not DEBUG:
     LOG_DIR = BASE_DIR / 'logs'
     LOG_DIR.mkdir(exist_ok=True)
     LOGGING['handlers']['file'] = {
-        'class': 'logging.handlers.RotatingFileHandler',
+        'class': 'logging.handlers.TimedRotatingFileHandler',
         'filename': str(LOG_DIR / 'app.log'),
-        'maxBytes': 5 * 1024 * 1024,
-        'backupCount': 5,
+        'when': 'midnight',
+        'backupCount': LOG_RETENTION_DAYS,
+        'encoding': 'utf-8',
         'formatter': 'verbose',
     }
     for _name in ('core', 'payment', 'user', 'cart', 'product', 'django'):

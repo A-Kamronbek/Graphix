@@ -306,7 +306,16 @@ class CatalogueCompletenessTests(TestCase):
                     while j < len(lines) and lines[j].startswith('#'):
                         j += 1
                     if j < len(lines) and lines[j].startswith('msgid "'):
-                        msgid = lines[j][7:-1]
+                        # gettext writes a long msgid as `msgid ""` and carries
+                        # it on the lines below, so only the header's msgid is
+                        # still empty once they are joined. Reading the first
+                        # line alone let every wrapped fuzzy entry pass as the
+                        # header - Phase 8's plural transit line did (§17 #198).
+                        parts, k = [lines[j][7:-1]], j + 1
+                        while k < len(lines) and lines[k].startswith('"'):
+                            parts.append(lines[k][1:-1])
+                            k += 1
+                        msgid = ''.join(parts)
                         if msgid:                       # empty msgid == the header
                             fuzzy.append(msgid)
                 self.assertEqual(

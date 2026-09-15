@@ -34,6 +34,36 @@ from product.models import (Category, ImageP, PrintMethod, Product, Size,
 #: size reference does not run out of room.
 MAX_IMAGES = 8
 
+#: The shape every product description follows (plan §9 Phase 8 item 7), so
+#: the catalogue keeps one voice as it grows. Four parts, one per line. The
+#: spec strip already prints the fabric, the weight and the print method from
+#: their own fields, so the template does not ask for them a second time - a
+#: fact written twice is a fact that will disagree with itself (§17 #111).
+#: The brackets are what the owner replaces; docs/content/product-copy.md
+#: explains each part (§17 #197).
+DESCRIPTION_TEMPLATE = (
+    _('Dizayn: [nima tasvirlangan va nimadan ilhomlangan — bir-ikki gap]'),
+    _('Bosma: [qayerda — old, orqa yoki ikkala tomonda; taxminiy oʻlchami, sm]'),
+    _('Bichim: [qanday oʻtiradi — oddiy yoki keng; oʻlcham tanlash boʻyicha maslahat]'),
+    _('Parvarish: 30 °C da, teskari tomonidan yuving. Bosma ustidan dazmollamang. '
+      'Oqartiruvchi ishlatmang, mashinada quritmang.'),
+)
+
+
+def description_templates():
+    """The template in the language of each description box.
+
+    The screen's own language does not decide it: the Russian box wants the
+    Russian template even while the panel around it is in Uzbek.
+    """
+    from django.utils import translation
+    out = {}
+    for field, lang in (('description', 'uz'), ('description_ru', 'ru'),
+                        ('description_en', 'en')):
+        with translation.override(lang):
+            out[field] = '\n\n'.join(str(part) for part in DESCRIPTION_TEMPLATE)
+    return out
+
 
 class Refused(ValidationError):
     """Something the owner sent cannot be saved, with a sentence saying why."""

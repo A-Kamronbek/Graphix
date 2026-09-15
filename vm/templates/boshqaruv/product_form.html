@@ -69,6 +69,9 @@
 
   <section class="panel-card stack">
     <h2>{% trans "Nomi va tavsifi" %}</h2>
+    {# The description template (plan §9 Phase 8 item 7): one sentence on its #}
+    {# shape here, and a button beside each empty box that puts it in. #}
+    <p class="field__hint">{% trans "Tavsif toʻrt qismdan iborat: dizayn, bosma, bichim va parvarish. Mato, zichlik va bosma usuli pastda alohida kiritiladi — ularni tavsifda takrorlamang." %}</p>
     {# Three languages, stacked rather than tabbed: a tab hides the two you #}
     {# have not filled in, and the ones you have not filled in are the whole #}
     {# problem (§3 — Uzbek is the source, the other two are written). #}
@@ -90,14 +93,20 @@
     <div class="field">
       <label class="label" for="p-desc">{% trans "Tavsifi" %} (uz)</label>
       <textarea class="textarea" name="description" id="p-desc" rows="4">{{ form.description|default:'' }}</textarea>
+      <button type="button" class="btn btn--ghost btn--sm" data-copy-template="p-desc"
+              data-template="{{ copy_templates.description }}">{% trans "Namunani qoʻyish" %} (uz)</button>
     </div>
     <div class="field">
       <label class="label" for="p-desc-ru">{% trans "Tavsifi" %} (ru)</label>
       <textarea class="textarea" name="description_ru" id="p-desc-ru" rows="4">{{ form.description_ru|default:'' }}</textarea>
+      <button type="button" class="btn btn--ghost btn--sm" data-copy-template="p-desc-ru"
+              data-template="{{ copy_templates.description_ru }}">{% trans "Namunani qoʻyish" %} (ru)</button>
     </div>
     <div class="field">
       <label class="label" for="p-desc-en">{% trans "Tavsifi" %} (en)</label>
       <textarea class="textarea" name="description_en" id="p-desc-en" rows="4">{{ form.description_en|default:'' }}</textarea>
+      <button type="button" class="btn btn--ghost btn--sm" data-copy-template="p-desc-en"
+              data-template="{{ copy_templates.description_en }}">{% trans "Namunani qoʻyish" %} (en)</button>
     </div>
   </section>
 

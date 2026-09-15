@@ -1,0 +1,122 @@
+{% load legal_tags %}{% get_legal as legal %}
+{# Privacy policy - English version. The Uzbek text is the original (§17 #182). #}
+{# Every period and limit is read from where the code enforces it (§17 #183). #}
+
+<p class="legal__lang" data-precedence>This document is published in Uzbek, Russian and English. If the versions differ, the Uzbek text prevails.</p>
+
+<section class="legal__sec" id="controller">
+  <h2>1. Who processes your data</h2>
+  <p>This policy explains how the {{ legal.seller.brand }} online store ({{ legal.seller.site }}, the “Site”) collects, uses, keeps and protects the personal data of its visitors and customers. It is written in line with the Law of the Republic of Uzbekistan “On Personal Data”.</p>
+  <p>The owner and operator of the data is the Seller: {{ legal.seller.registered_name }} ({{ legal.seller.brand }}), address: {{ legal.seller.address }}.</p>
+  <p>For privacy questions: <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>, <a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a> or Telegram: <a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a>.</p>
+  <p>The document is published in Uzbek, Russian and English; if the versions differ, the Uzbek text applies.</p>
+</section>
+
+<section class="legal__sec" id="data">
+  <h2>2. What we collect</h2>
+  <h3>Your account</h3>
+  <p>Username, first name (optional), phone number and whether it has been confirmed, password, and when the account was created and last signed into. The password is stored only as a one-way hash — nobody, including us, can read it.</p>
+  <h3>Orders</h3>
+  <p>The recipient’s full name and phone number; the region and district or city; the post office postcode or the street and house number; the coordinates of the pin, if you drop one on the map; your note to the order; the products, prices, delivery method and charge, payment method, the order’s status and the history of its changes.</p>
+  <h3>Payment</h3>
+  <p>When you pay with Click, we receive only the order number, the amount and whether the payment went through. Your card number and other card details are entered with Click and never reach us.</p>
+  <h3>Reviews and messages</h3>
+  <p>Your review (rating, text, photos) and the order it belongs to; a message you send through the contact form (subject and text) together with the phone number on your account.</p>
+  <h3>Cart and saved designs</h3>
+  <p>The products in your cart and the designs you have saved with the heart. If you are not signed in, your cart is linked to a session in your browser.</p>
+  <h3>Technical data</h3>
+  <p>The web server’s logs record your IP address, browser and device type, the page opened and the time. Your IP address is also used to limit repeated attempts such as password guessing; for that it is kept as a one-way hash for up to {{ legal.rate_limit_minutes }} minute{{ legal.rate_limit_minutes|pluralize }}.</p>
+  <p>We use no advertising or analytics tracking (no analytics counters, no ad pixels, nothing of the kind).</p>
+</section>
+
+<section class="legal__sec" id="purposes">
+  <h2>3. Why we use it</h2>
+  <ul>
+    <li><strong>Your account</strong> — confirming your phone number, resetting your password by SMS code, keeping the account secure;</li>
+    <li><strong>Fulfilling orders</strong> — checkout, taking payment, preparing the parcel and handing it to Uzpost, contacting you;</li>
+    <li><strong>Customer service</strong> — answering your questions, handling exchange and return requests;</li>
+    <li><strong>Reviews</strong> — checking and publishing them on the Site;</li>
+    <li><strong>Security</strong> — preventing fraud and abuse;</li>
+    <li><strong>Legal duties</strong> — keeping accounting and tax records.</li>
+  </ul>
+  <p>We process data on the basis of your consent (given when you register), of performing a contract you are party to, and of the Seller’s obligations under the law.</p>
+  <p>We never send marketing SMS. The only messages your phone receives from us are service messages — confirmation codes.</p>
+</section>
+
+<section class="legal__sec" id="recipients">
+  <h2>4. Who we share it with</h2>
+  <p>We do not sell your data or pass it to anyone for advertising. It goes only to the services below, and only as much of it as each needs to do its job:</p>
+  <ul>
+    <li><strong>Eskiz</strong> (eskiz.uz) — SMS delivery: your phone number and the text of the confirmation code;</li>
+    <li><strong>Click</strong> (click.uz) — payments: the order number and amount; Click takes your card details itself;</li>
+    <li><strong>Uzpost</strong> (Oʻzbekiston pochtasi JSC) — delivery: the recipient’s full name, phone number and address or post office;</li>
+    <li><strong>Google</strong> — Google Maps: when the map is switched on, opening the checkout page makes your browser load Google’s script, and Google receives your IP address and technical details about your browser. If you drop a pin, its coordinates are sent to Google to look up the address;</li>
+    <li><strong>Telegram</strong> — notices of new orders, payments, messages and reviews are sent to the store’s private Telegram chat. An order notice contains the recipient’s name, phone number, address, the items and the order note;</li>
+    <li><strong>Our hosting provider</strong> — the Site and its database run on a rented server.</li>
+  </ul>
+  <p>Where the law requires it, data may be disclosed at the request of the competent public authorities.</p>
+</section>
+
+<section class="legal__sec" id="abroad">
+  <h2>5. Transfers outside Uzbekistan</h2>
+  <p>Google’s and Telegram’s servers are outside Uzbekistan, so sending data to them is a cross-border transfer. It is carried out in line with the Law, including on the basis of your consent: by registering and accepting this policy, you also consent to these transfers.</p>
+  <p>We do not collect biometric or genetic data.</p>
+</section>
+
+<section class="legal__sec" id="retention">
+  <h2>6. How long we keep it</h2>
+  <ul>
+    <li><strong>Your account</strong> — until you ask us to delete it. An unconfirmed account is deleted when its confirmation code expires ({{ legal.otp_minutes }} minute{{ legal.otp_minutes|pluralize }}), unless a cart or an order is attached to it;</li>
+    <li><strong>Orders</strong> — for the period the law sets for accounting and tax records (under current rules, at least three years). These records are kept until that period ends even if your account is deleted;</li>
+    <li><strong>Carts without an account</strong> — deleted {{ legal.guest_cart_days }} day{{ legal.guest_cart_days|pluralize }} after they were created;</li>
+    <li><strong>Reviews</strong> — for as long as they are published on the Site, or until you ask us to remove them;</li>
+    <li><strong>Messages</strong> — for as long as it takes to resolve what you wrote to us about;</li>
+    <li><strong>Web server logs</strong> — {{ legal.log_days }} day{{ legal.log_days|pluralize }};</li>
+    <li><strong>Attempt counters</strong> (a hash of your IP address) — up to {{ legal.rate_limit_minutes }} minute{{ legal.rate_limit_minutes|pluralize }}.</li>
+  </ul>
+  <p>When a retention period ends, or the purpose of processing has been met, the data is deleted or made anonymous.</p>
+</section>
+
+<section class="legal__sec" id="cookies">
+  <h2>7. Cookies and browser storage</h2>
+  <p>The Site uses only the cookies it cannot work without:</p>
+  <ul>
+    <li><code>sessionid</code> — remembers that you are signed in, and holds your cart if you are not; lasts {{ legal.session_days }} day{{ legal.session_days|pluralize }};</li>
+    <li><code>csrftoken</code> — protects forms against forged requests; up to one year;</li>
+    <li><code>graphix_lang</code> — remembers the language you chose; one year;</li>
+    <li><code>messages</code> — carries a one-off notice such as “Added to cart” to the next page and disappears once it has been shown.</li>
+  </ul>
+  <p>Your browser’s temporary storage (<code>sessionStorage</code>) holds two drafts: the sign-up form without the password, so it is not lost while you read the terms, and the checkout form, while you look at the post office map. This storage is cleared when you close the tab and is never sent to us.</p>
+  <p>No advertising or tracking cookies are used. When the Google map loads, Google may collect technical data under its own rules — see <a class="link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google’s privacy policy</a>.</p>
+  <p>You can turn cookies off in your browser settings, but signing in and the cart will then stop working.</p>
+</section>
+
+<section class="legal__sec" id="rights">
+  <h2>8. Your rights</h2>
+  <p>Under the law you have the right to:</p>
+  <ul>
+    <li>know who processes your data, why and how;</li>
+    <li>see the data we hold about you;</li>
+    <li>have wrong or out-of-date data corrected;</li>
+    <li>have your data destroyed (except what the law requires us to keep);</li>
+    <li>withdraw your consent — your account is then closed;</li>
+    <li>complain to the public authority responsible for personal data, or to a court, if you believe your rights have been breached.</li>
+  </ul>
+  <p>You can change your name and username yourself in your account settings. For anything else, contact us by phone, Telegram or email; we check that a request really comes from you through the phone number on your account. We reply within {{ legal.data_request_days }} day{{ legal.data_request_days|pluralize }} and correct wrong data within {{ legal.data_correction_days }} day{{ legal.data_correction_days|pluralize }}.</p>
+</section>
+
+<section class="legal__sec" id="security">
+  <h2>9. How we protect it</h2>
+  <p>Your connection to the Site is encrypted (HTTPS). Passwords are stored only as one-way hashes. Only authorised staff can reach the database and the order management panel. Sign-in and code attempts are limited. Location data is removed from review photos.</p>
+  <p>If a data breach happens, we will tell you as soon as we can and, where the law requires it, the competent authority.</p>
+</section>
+
+<section class="legal__sec" id="children">
+  <h2>10. Children</h2>
+  <p>The Site is intended for people aged {{ legal.minimum_age }} and over. The data of anyone younger is processed only with the consent of a parent or other legal guardian. If you find out that your child has registered without your consent, write to us and we will close the account.</p>
+</section>
+
+<section class="legal__sec" id="changes">
+  <h2>11. Changes to this policy</h2>
+  <p>If this policy changes, the new version is published on this page with its number and the date it takes effect, and the list of earlier versions stays at the bottom of the page. If the law requires your consent before we use your data for a new purpose, we will ask for it first.</p>
+</section>

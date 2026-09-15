@@ -1,0 +1,120 @@
+{% load legal_tags %}{% get_legal as legal %}
+{# Maxfiylik siyosati. Oʻzbekcha matn asosiy tahrir (§17 #182). #}
+{# Har bir muddat va cheklov koddagi manbasidan olinadi, shuning uchun siyosat kod qilmayotgan narsani vaʼda qila olmaydi (§17 #183). #}
+
+<section class="legal__sec" id="controller">
+  <h2>1. Maʼlumotlarga kim ishlov beradi</h2>
+  <p>Ushbu siyosat {{ legal.seller.brand }} internet-doʻkoni ({{ legal.seller.site }}, bundan keyin — «Sayt») foydalanuvchilar va xaridorlarning shaxsga doir maʼlumotlarini qanday yigʻishi, ishlatishi, saqlashi va himoya qilishini tushuntiradi. Siyosat «Shaxsga doir maʼlumotlar toʻgʻrisida»gi Oʻzbekiston Respublikasi Qonuniga muvofiq tuzilgan.</p>
+  <p>Maʼlumotlar mulkdori va operatori — Sotuvchi: {{ legal.seller.registered_name }} ({{ legal.seller.brand }}), manzil: {{ legal.seller.address }}.</p>
+  <p>Maxfiylik boʻyicha savollar uchun: <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>, <a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a> yoki Telegram: <a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a>.</p>
+  <p>Hujjat oʻzbek, rus va ingliz tillarida eʼlon qilinadi. Matnlar orasida farq boʻlsa, oʻzbek tilidagi matn ustun turadi.</p>
+</section>
+
+<section class="legal__sec" id="data">
+  <h2>2. Qanday maʼlumotlarni yigʻamiz</h2>
+  <h3>Hisob</h3>
+  <p>Foydalanuvchi nomi, ism (ixtiyoriy), telefon raqami va u tasdiqlanganmi-yoʻqligi, parol, hisob ochilgan va oxirgi marta kirilgan vaqt. Parol faqat qaytarib boʻlmaydigan xesh koʻrinishida saqlanadi — uni hech kim, jumladan biz ham koʻra olmaymiz.</p>
+  <h3>Buyurtmalar</h3>
+  <p>Qabul qiluvchining ism-familiyasi va telefon raqami; viloyat va tuman yoki shahar; pochta boʻlimi indeksi yoki koʻcha va uy raqami; xaritada belgi qoʻysangiz — uning koordinatalari; buyurtmaga yozgan izohingiz; mahsulotlar, narxlar, yetkazib berish usuli va narxi, toʻlov usuli, buyurtma holati va uning oʻzgarish tarixi.</p>
+  <h3>Toʻlov</h3>
+  <p>Click orqali toʻlaganingizda biz faqat buyurtma raqami, summa va toʻlov holatini olamiz. Karta raqami va boshqa karta maʼlumotlari Click tizimida kiritiladi va bizga kelmaydi.</p>
+  <h3>Sharhlar va xabarlar</h3>
+  <p>Sharhingiz (baho, matn, rasmlar) va u qaysi buyurtmaga tegishli ekanligi; aloqa shakli orqali yuborgan xabaringiz (mavzu va matn) hamda hisobingizdagi telefon raqami.</p>
+  <h3>Savat va saqlanganlar</h3>
+  <p>Savatdagi mahsulotlar va yurakcha bilan saqlagan dizaynlaringiz. Hisobga kirmagan boʻlsangiz, savat brauzeringizdagi sessiya bilan bogʻlanadi.</p>
+  <h3>Texnik maʼlumotlar</h3>
+  <p>Veb-server jurnallarida IP-manzil, brauzer va qurilma turi, ochilgan sahifa va vaqt qayd etiladi. IP-manzil, shuningdek, parolni taxmin qilish kabi takroriy urinishlarni cheklash uchun ishlatiladi: bunda u qaytarib boʻlmaydigan xesh koʻrinishida {{ legal.rate_limit_minutes }} daqiqagacha saqlanadi.</p>
+  <p>Biz reklama yoki tahliliy kuzatuv vositalaridan (analitika, reklama piksellari va hokazo) foydalanmaymiz.</p>
+</section>
+
+<section class="legal__sec" id="purposes">
+  <h2>3. Maʼlumotlar nima uchun ishlatiladi</h2>
+  <ul>
+    <li><strong>Hisob</strong> — telefon raqamini tasdiqlash, parolni SMS-kod orqali tiklash, hisobingizni himoya qilish;</li>
+    <li><strong>Buyurtmani bajarish</strong> — rasmiylashtirish, toʻlovni qabul qilish, joʻnatmani tayyorlash va Pochtaga topshirish, siz bilan bogʻlanish;</li>
+    <li><strong>Mijozlarga xizmat</strong> — savollaringizga javob berish, almashtirish va qaytarish talablarini koʻrib chiqish;</li>
+    <li><strong>Sharhlar</strong> — ularni tekshirish va Saytda chop etish;</li>
+    <li><strong>Xavfsizlik</strong> — firibgarlik va suiisteʼmolning oldini olish;</li>
+    <li><strong>Qonun talablari</strong> — buxgalteriya va soliq hisobini yuritish.</li>
+  </ul>
+  <p>Ishlov berish asoslari — sizning roziligingiz (u roʻyxatdan oʻtishda beriladi), siz tomon boʻlgan shartnomani bajarish va Sotuvchining qonunda belgilangan majburiyatlari.</p>
+  <p>Biz reklama SMS-xabarlarini yubormaymiz. Telefon raqamingizga faqat xizmat xabarlari — tasdiqlash kodlari keladi.</p>
+</section>
+
+<section class="legal__sec" id="recipients">
+  <h2>4. Maʼlumotlar kimga beriladi</h2>
+  <p>Maʼlumotlaringizni sotmaymiz va reklama uchun hech kimga bermaymiz. Ular faqat quyidagilarga, faqat ular oʻz vazifasini bajarishi uchun zarur hajmda beriladi:</p>
+  <ul>
+    <li><strong>Eskiz</strong> (eskiz.uz) — SMS yuborish xizmati: telefon raqami va tasdiqlash kodi matni;</li>
+    <li><strong>Click</strong> (click.uz) — toʻlov tizimi: buyurtma raqami va summasi; karta maʼlumotlarini Click oʻzi qabul qiladi;</li>
+    <li><strong>«Oʻzbekiston pochtasi» AJ</strong> — yetkazib berish: qabul qiluvchining ism-familiyasi, telefon raqami va manzili yoki pochta boʻlimi;</li>
+    <li><strong>Google</strong> — Google Maps xaritasi: xarita yoqilgan boʻlsa, rasmiylashtirish sahifasi ochilganda brauzeringiz Google skriptini yuklaydi va Google IP-manzilingiz hamda brauzeringiz haqidagi texnik maʼlumotlarni oladi. Xaritada belgi qoʻysangiz, manzilni aniqlash uchun uning koordinatalari Googlega yuboriladi;</li>
+    <li><strong>Telegram</strong> — yangi buyurtma, toʻlov, xabar va sharh haqidagi bildirishnomalar doʻkonning yopiq Telegram chatiga yuboriladi. Buyurtma haqidagi bildirishnomada qabul qiluvchining ismi, telefon raqami, manzili, buyurtma tarkibi va izohi boʻladi;</li>
+    <li><strong>Server provayderi</strong> — Sayt va uning maʼlumotlar bazasi ijaraga olingan serverda ishlaydi.</li>
+  </ul>
+  <p>Qonunda nazarda tutilgan hollarda maʼlumotlar vakolatli davlat organlarining soʻroviga binoan berilishi mumkin.</p>
+</section>
+
+<section class="legal__sec" id="abroad">
+  <h2>5. Maʼlumotlarni chet elga uzatish</h2>
+  <p>Google va Telegram serverlari Oʻzbekistondan tashqarida joylashgan, shuning uchun ularga maʼlumot yuborish transchegaraviy uzatish hisoblanadi. U Qonun talablariga muvofiq, jumladan sizning roziligingiz asosida amalga oshiriladi: roʻyxatdan oʻtib, ushbu siyosatga rozilik bildirganingizda siz bunday uzatishga ham rozilik berasiz.</p>
+  <p>Biz biometrik va genetik maʼlumotlarni yigʻmaymiz.</p>
+</section>
+
+<section class="legal__sec" id="retention">
+  <h2>6. Maʼlumotlar qancha saqlanadi</h2>
+  <ul>
+    <li><strong>Hisob</strong> — uni oʻchirishni soʻramaguningizcha. Tasdiqlanmagan hisob tasdiqlash kodi muddati ({{ legal.otp_minutes }} daqiqa) tugagach oʻchiriladi, agar unga savat yoki buyurtma bogʻlanmagan boʻlsa;</li>
+    <li><strong>Buyurtmalar</strong> — buxgalteriya va soliq hujjatlari uchun qonunda belgilangan muddat davomida (hozirgi qoidalarga koʻra kamida uch yil). Hisobingiz oʻchirilsa ham, bu yozuvlar shu muddat tugaguncha saqlanadi;</li>
+    <li><strong>Hisobsiz savat</strong> — yaratilganiga {{ legal.guest_cart_days }} kundan oshgach oʻchiriladi;</li>
+    <li><strong>Sharhlar</strong> — Saytda chop etilgan davr mobaynida yoki ularni oʻchirishni soʻraguningizcha;</li>
+    <li><strong>Aloqa xabarlari</strong> — murojaatingizni hal qilish uchun zarur muddat davomida;</li>
+    <li><strong>Veb-server jurnallari</strong> — {{ legal.log_days }} kun;</li>
+    <li><strong>Urinishlar hisoblagichi</strong> (IP-manzil xeshi) — {{ legal.rate_limit_minutes }} daqiqagacha.</li>
+  </ul>
+  <p>Saqlash muddati tugagach yoki ishlov berish maqsadiga erishilgach, maʼlumotlar oʻchiriladi yoki shaxsni aniqlab boʻlmaydigan holga keltiriladi.</p>
+</section>
+
+<section class="legal__sec" id="cookies">
+  <h2>7. Cookie-fayllar va brauzer xotirasi</h2>
+  <p>Sayt faqat ishlashi uchun zarur boʻlgan cookie-fayllardan foydalanadi:</p>
+  <ul>
+    <li><code>sessionid</code> — hisobga kirganingizni va hisobsiz savatingizni eslab qoladi; {{ legal.session_days }} kun amal qiladi;</li>
+    <li><code>csrftoken</code> — shakllarni soxta soʻrovlardan himoya qiladi; bir yilgacha;</li>
+    <li><code>graphix_lang</code> — tanlagan tilingizni eslab qoladi; bir yil;</li>
+    <li><code>messages</code> — «Savatga qoʻshildi» kabi bir martalik xabarni keyingi sahifaga yetkazadi va u koʻrsatilishi bilan oʻchadi.</li>
+  </ul>
+  <p>Brauzerning vaqtinchalik xotirasida (<code>sessionStorage</code>) ikki qoralama saqlanadi: roʻyxatdan oʻtish shaklining parol boʻlmagan maydonlari — shartlarni oʻqib qaytganingizda yoʻqolmasligi uchun, va rasmiylashtirish shakli — pochta boʻlimlari xaritasiga oʻtib qaytganingizda. Bu xotira brauzer varagʻi yopilishi bilan tozalanadi va bizga yuborilmaydi.</p>
+  <p>Reklama va kuzatuv cookie-fayllari ishlatilmaydi. Google xaritasi yuklanganda Google oʻz qoidalariga koʻra texnik maʼlumotlarni olishi mumkin — <a class="link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google maxfiylik siyosati</a>.</p>
+  <p>Cookie-fayllarni brauzer sozlamalarida oʻchirib qoʻyishingiz mumkin, ammo unda hisobga kirish va savat ishlamaydi.</p>
+</section>
+
+<section class="legal__sec" id="rights">
+  <h2>8. Huquqlaringiz</h2>
+  <p>Qonunga muvofiq siz quyidagi huquqlarga egasiz:</p>
+  <ul>
+    <li>maʼlumotlaringizga kim, qanday maqsadda va qanday usulda ishlov berayotganini bilish;</li>
+    <li>maʼlumotlaringiz bilan tanishish;</li>
+    <li>notoʻgʻri yoki eskirgan maʼlumotlarni tuzattirish;</li>
+    <li>maʼlumotlaringizni yoʻq qilishni talab qilish (qonun saqlashni talab qiladigan maʼlumotlar bundan mustasno);</li>
+    <li>roziligingizni qaytarib olish — bunda hisobingiz yopiladi;</li>
+    <li>huquqlaringiz buzilgan deb hisoblasangiz, shaxsga doir maʼlumotlar sohasidagi vakolatli davlat organiga yoki sudga murojaat qilish.</li>
+  </ul>
+  <p>Ism va foydalanuvchi nomini hisobingiz sozlamalarida oʻzingiz oʻzgartirishingiz mumkin. Boshqa soʻrovlar bilan bizga telefon, Telegram yoki elektron pochta orqali murojaat qiling; soʻrov haqiqatan sizdan ekanini hisobingizdagi telefon raqami orqali tekshiramiz. Soʻrovingizga {{ legal.data_request_days }} kun ichida javob beramiz, notoʻgʻri maʼlumotni esa {{ legal.data_correction_days }} kun ichida tuzatamiz.</p>
+</section>
+
+<section class="legal__sec" id="security">
+  <h2>9. Maʼlumotlar himoyasi</h2>
+  <p>Sayt bilan aloqa shifrlangan (HTTPS). Parollar faqat qaytarib boʻlmaydigan xesh koʻrinishida saqlanadi. Maʼlumotlar bazasi va buyurtmalarni boshqarish paneliga faqat vakolatli xodimlar kira oladi. Kirish va kodni tekshirish kabi amallarda urinishlar soni cheklangan. Sharh rasmlaridan joylashuv maʼlumotlari oʻchiriladi.</p>
+  <p>Maʼlumotlar sizib chiqqani aniqlansa, bu haqda imkon qadar tez sizga, qonunda belgilangan hollarda esa vakolatli organga xabar beramiz.</p>
+</section>
+
+<section class="legal__sec" id="children">
+  <h2>10. Voyaga yetmaganlar</h2>
+  <p>Sayt {{ legal.minimum_age }} yoshga toʻlgan shaxslar uchun moʻljallangan. {{ legal.minimum_age }} yoshga toʻlmagan shaxsning maʼlumotlariga faqat ota-onasi yoki boshqa qonuniy vakilining roziligi bilan ishlov beriladi. Farzandingiz roziligingizsiz roʻyxatdan oʻtganini bilsangiz, bizga yozing — hisobni yopamiz.</p>
+</section>
+
+<section class="legal__sec" id="changes">
+  <h2>11. Siyosatning oʻzgarishi</h2>
+  <p>Siyosat oʻzgarsa, yangi tahrir shu sahifada tahrir raqami va kuchga kirgan sanasi bilan eʼlon qilinadi, oldingi tahrirlar roʻyxati sahifa oxirida saqlanadi. Maʼlumotlardan yangi maqsadda foydalanish uchun qonun roziligingizni talab qilsa, avval uni soʻraymiz.</p>
+</section>

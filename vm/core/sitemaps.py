@@ -23,11 +23,11 @@ class StaticViewSitemap(Sitemap):
     def items(self):
         # /saqlanganlar/ is deliberately absent: it needs a login, so it has
         # nothing to show a crawler.
-        names = ['home', 'shop', 'about', 'contact', 'delivery', 'terms']
+        names = ['home', 'shop', 'about', 'contact', 'delivery', 'terms', 'privacy']
         # The size guide 404s until the owner uploads the image, and a sitemap
         # that advertises a 404 is worse than one that omits the page.
         if finders.find(SIZE_GUIDE_IMAGE):
-            names.insert(-1, 'size_guide')
+            names.append('size_guide')
         return names
 
     def location(self, name):
