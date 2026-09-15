@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 23:26+0500\n"
+"POT-Creation-Date: 2026-09-15 15:33+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,7 +60,7 @@ msgstr "Invalid price for “%(field)s”."
 msgid "Narx manfiy boʻlishi mumkin emas."
 msgstr "A price cannot be negative."
 
-#: .\panel\catalogue.py:60 .\templates\boshqaruv\_product_row.html:62
+#: .\panel\catalogue.py:60 .\templates\boshqaruv\_product_row.html:65
 #: .\templates\boshqaruv\product_form.html:197
 #: .\templates\boshqaruv\settings.html:52
 msgid "Narx"
@@ -103,7 +103,7 @@ msgstr "“%(field)s” is too long — %(n)d characters at most."
 msgid "Nomi"
 msgstr "Name"
 
-#: .\panel\catalogue.py:119 .\panel\views.py:740 .\panel\views.py:773
+#: .\panel\catalogue.py:119 .\panel\views.py:741 .\panel\views.py:774
 msgid "Nomi kerak."
 msgstr "A name is required."
 
@@ -148,11 +148,11 @@ msgstr "There is no such tag kind."
 msgid "Notoʻgʻri son."
 msgstr "Invalid number."
 
-#: .\panel\reference.py:144 .\panel\views.py:767
+#: .\panel\reference.py:144 .\panel\views.py:768
 msgid "Notoʻgʻri jadval."
 msgstr "Unknown table."
 
-#: .\panel\reference.py:147 .\panel\views.py:517
+#: .\panel\reference.py:147 .\panel\views.py:518
 msgid "Notoʻgʻri maydon."
 msgstr "Unknown field."
 
@@ -224,65 +224,65 @@ msgid "“{name}” oʻchirilsinmi?"
 msgstr "Delete “{name}”?"
 
 #: .\panel\templatetags\panel_i18n.py:32
-#: .\templates\boshqaruv\settings.html:262
+#: .\templates\boshqaruv\settings.html:267
 msgid "Tanlanmagan"
 msgstr "Not chosen"
 
-#: .\panel\views.py:291 .\panel\views.py:293
+#: .\panel\views.py:287 .\panel\views.py:289
 msgid "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
 msgstr "That status cannot be set by hand."
 
-#: .\panel\views.py:300 .\panel\views.py:301
+#: .\panel\views.py:296 .\panel\views.py:297
 msgid "Notoʻgʻri holat."
 msgstr "Unknown status."
 
-#: .\panel\views.py:314
+#: .\panel\views.py:310
 #, python-format
 msgid "%(no)s — holat yangilandi."
 msgstr "%(no)s — status updated."
 
-#: .\panel\views.py:422 .\product\views.py:223
+#: .\panel\views.py:419 .\product\views.py:223
 msgid "Saqlandi."
 msgstr "Saved."
 
-#: .\panel\views.py:510
+#: .\panel\views.py:507
 msgid "Faqat raqam kiriting."
 msgstr "Numbers only."
 
-#: .\panel\views.py:546
+#: .\panel\views.py:547
 msgid "Notoʻgʻri amal."
 msgstr "Unknown action."
 
-#: .\panel\views.py:599
+#: .\panel\views.py:600
 msgid "Notoʻgʻri qaror."
 msgstr "Unknown decision."
 
-#: .\panel\views.py:617 .\templates\boshqaruv\reviews.html:57
+#: .\panel\views.py:618 .\templates\boshqaruv\reviews.html:57
 #, python-format
 msgid "%(avg)s — %(n)s ta"
 msgstr "%(avg)s — %(n)s"
 
-#: .\panel\views.py:750
+#: .\panel\views.py:751
 msgid "Teg qoʻshildi."
 msgstr "Tag added."
 
-#: .\panel\views.py:763
+#: .\panel\views.py:764
 msgid "Teg turi qoʻshildi."
 msgstr "Tag kind added."
 
-#: .\panel\views.py:764
+#: .\panel\views.py:765
 msgid "Bosma usuli qoʻshildi."
 msgstr "Print method added."
 
-#: .\panel\views.py:765
+#: .\panel\views.py:766
 msgid "Turkum qoʻshildi."
 msgstr "Category added."
 
-#: .\panel\views.py:804
+#: .\panel\views.py:805
 msgid "Nomi va rasm kerak."
 msgstr "A name and an image are required."
 
-#: .\panel\views.py:815
+#: .\panel\views.py:816
 msgid "Jadval qoʻshildi."
 msgstr "Chart added."
 
@@ -306,12 +306,11 @@ msgstr "Awaiting payment"
 msgid "Toʻlangan"
 msgstr "Paid"
 
-#: .\payment\models.py:209
+#: .\payment\models.py:209 .\templates\boshqaruv\dashboard.html:54
 msgid "Jarayonda"
 msgstr "Processing"
 
-#: .\payment\models.py:210 .\templates\boshqaruv\dashboard.html:55
-#: .\templates\payment\status.html:34
+#: .\payment\models.py:210 .\templates\payment\status.html:34
 msgid "Yoʻlda"
 msgstr "On the way"
 
@@ -442,15 +441,15 @@ msgstr "Print method"
 msgid "Bosma usullari"
 msgstr "Print methods"
 
-#: .\product\models.py:383
+#: .\product\models.py:425
 msgid "Kutilmoqda"
 msgstr "Pending"
 
-#: .\product\models.py:384
+#: .\product\models.py:426
 msgid "Tasdiqlangan"
 msgstr "Approved"
 
-#: .\product\models.py:385
+#: .\product\models.py:427
 msgid "Rad etilgan"
 msgstr "Rejected"
 
@@ -494,8 +493,8 @@ msgstr "Even signed in, this page isn't open to you."
 
 #: .\templates\403.html:12 .\templates\partials\_drawer.html:21
 #: .\templates\partials\_nav.html:53 .\templates\user\login.html:3
-#: .\templates\user\login.html:10 .\templates\user\login.html:38
-#: .\templates\user\signup.html:73
+#: .\templates\user\login.html:15 .\templates\user\login.html:43
+#: .\templates\user\signup.html:75
 msgid "Kirish"
 msgstr "Sign in"
 
@@ -551,14 +550,14 @@ msgstr "Skip to content"
 
 #: .\templates\boshqaruv\_lookup_new.html:32
 #: .\templates\boshqaruv\settings.html:192
-#: .\templates\boshqaruv\settings.html:264
+#: .\templates\boshqaruv\settings.html:270
 msgid "Qoʻshish"
 msgstr "Add"
 
 #: .\templates\boshqaruv\_order_row.html:19
-#: .\templates\boshqaruv\_product_row.html:66
-#: .\templates\boshqaruv\dashboard.html:26
-#: .\templates\boshqaruv\dashboard.html:34 .\templates\boshqaruv\order.html:42
+#: .\templates\boshqaruv\_product_row.html:69
+#: .\templates\boshqaruv\dashboard.html:29
+#: .\templates\boshqaruv\dashboard.html:37 .\templates\boshqaruv\order.html:42
 #: .\templates\boshqaruv\order.html:45 .\templates\boshqaruv\order.html:47
 #: .\templates\cart\cart.html:29 .\templates\cart\cart.html:49
 #: .\templates\cart\cart.html:68 .\templates\cart\cart.html:76
@@ -591,17 +590,17 @@ msgstr "Status"
 msgid "Saqlash"
 msgstr "Save"
 
-#: .\templates\boshqaruv\_product_row.html:49
+#: .\templates\boshqaruv\_product_row.html:52
 #: .\templates\boshqaruv\product_form.html:216
 #, python-format
 msgid "%(size)s zaxirasi"
 msgstr "%(size)s stock"
 
-#: .\templates\boshqaruv\_product_row.html:53
+#: .\templates\boshqaruv\_product_row.html:56
 msgid "Oʻlchamlar kiritilmagan"
 msgstr "No sizes set"
 
-#: .\templates\boshqaruv\_product_row.html:71
+#: .\templates\boshqaruv\_product_row.html:74
 #: .\templates\boshqaruv\product_form.html:199
 #: .\templates\boshqaruv\product_form.html:229
 #: .\templates\boshqaruv\products.html:36
@@ -621,9 +620,9 @@ msgid "Boshqaruv menyusi"
 msgstr "Panel menu"
 
 #: .\templates\boshqaruv\base.html:56 .\templates\boshqaruv\dashboard.html:3
-#: .\templates\boshqaruv\dashboard.html:15
-msgid "Bugun"
-msgstr "Today"
+#: .\templates\boshqaruv\dashboard.html:18
+msgid "Hisobot"
+msgstr "Overview"
 
 #: .\templates\boshqaruv\base.html:58 .\templates\boshqaruv\order.html:18
 #: .\templates\boshqaruv\orders.html:3 .\templates\boshqaruv\orders.html:12
@@ -659,57 +658,57 @@ msgstr "Settings"
 msgid "Django admin"
 msgstr "Django admin"
 
-#: .\templates\boshqaruv\dashboard.html:20
+#: .\templates\boshqaruv\dashboard.html:23
 msgid "Bugungi buyurtmalar"
 msgstr "Orders today"
 
-#: .\templates\boshqaruv\dashboard.html:27
+#: .\templates\boshqaruv\dashboard.html:30
 msgid "Bugungi tushum"
 msgstr "Revenue today"
 
-#: .\templates\boshqaruv\dashboard.html:31
+#: .\templates\boshqaruv\dashboard.html:34
 msgid "Shu hafta"
 msgstr "This week"
 
-#: .\templates\boshqaruv\dashboard.html:35
+#: .\templates\boshqaruv\dashboard.html:38
 msgid "Haftalik tushum"
 msgstr "Revenue this week"
 
-#: .\templates\boshqaruv\dashboard.html:40
+#: .\templates\boshqaruv\dashboard.html:43
 msgid "Ish"
 msgstr "Work"
 
-#: .\templates\boshqaruv\dashboard.html:51
-msgid "Yigʻiladi"
-msgstr "To pack"
+#: .\templates\boshqaruv\dashboard.html:58
+msgid "Yetkazilmoqda"
+msgstr "Out for delivery"
 
-#: .\templates\boshqaruv\dashboard.html:59
+#: .\templates\boshqaruv\dashboard.html:62
 msgid "Toʻlov kutilmoqda"
 msgstr "Awaiting payment"
 
-#: .\templates\boshqaruv\dashboard.html:64
-msgid "Sharhlar navbatda"
-msgstr "Reviews in the queue"
+#: .\templates\boshqaruv\dashboard.html:67
+msgid "Yangi sharhlar"
+msgstr "New reviews"
 
-#: .\templates\boshqaruv\dashboard.html:69
+#: .\templates\boshqaruv\dashboard.html:72
 msgid "Oʻqilmagan xabarlar"
 msgstr "Unread messages"
 
-#: .\templates\boshqaruv\dashboard.html:74
-#: .\templates\boshqaruv\dashboard.html:81
+#: .\templates\boshqaruv\dashboard.html:77
+#: .\templates\boshqaruv\dashboard.html:84
 msgid "Zaxira tugayapti"
 msgstr "Running low"
 
-#: .\templates\boshqaruv\dashboard.html:95 .\templates\user\account.html:21
+#: .\templates\boshqaruv\dashboard.html:98 .\templates\user\account.html:21
 msgid "Soʻnggi buyurtmalar"
 msgstr "Recent orders"
 
-#: .\templates\boshqaruv\dashboard.html:96 .\templates\core\home.html:49
+#: .\templates\boshqaruv\dashboard.html:99 .\templates\core\home.html:49
 #: .\templates\user\account.html:22
 msgid "Barchasi"
 msgstr "See all"
 
-#: .\templates\boshqaruv\dashboard.html:101
+#: .\templates\boshqaruv\dashboard.html:104
 msgid "Bu hafta buyurtma boʻlmadi."
 msgstr "No orders this week."
 
@@ -796,7 +795,7 @@ msgstr "Name"
 #: .\templates\payment\checkout.html:51
 #: .\templates\payment\order_detail.html:50
 #: .\templates\user\password_reset_request.html:22
-#: .\templates\user\signup.html:37
+#: .\templates\user\signup.html:39
 msgid "Telefon"
 msgstr "Phone"
 
@@ -1150,11 +1149,11 @@ msgstr "No image"
 msgid "Yangi jadval"
 msgstr "New chart"
 
-#: .\templates\boshqaruv\settings.html:258
+#: .\templates\boshqaruv\settings.html:262
 msgid "Rasm"
 msgstr "Image"
 
-#: .\templates\boshqaruv\settings.html:259
+#: .\templates\boshqaruv\settings.html:264
 msgid "Rasm tanlash"
 msgstr "Choose an image"
 
@@ -1267,10 +1266,10 @@ msgstr "Message"
 msgid "Yuborish"
 msgstr "Send"
 
-#: .\templates\core\contact.html:29 .\templates\user\login.html:40
+#: .\templates\core\contact.html:29 .\templates\user\login.html:45
 #: .\templates\user\password_reset_request.html:31
 #: .\templates\user\password_reset_verify.html:36
-#: .\templates\user\signup.html:68 .\templates\user\verify_phone.html:36
+#: .\templates\user\signup.html:70 .\templates\user\verify_phone.html:36
 msgid "Juda koʻp urinish. Biroz kuting va qayta urining."
 msgstr "Too many attempts. Wait a moment and try again."
 
@@ -1438,8 +1437,8 @@ msgstr "Close"
 msgid "Doʻkon"
 msgstr "Shop"
 
-#: .\templates\partials\_drawer.html:22 .\templates\user\login.html:45
-#: .\templates\user\signup.html:3 .\templates\user\signup.html:10
+#: .\templates\partials\_drawer.html:22 .\templates\user\login.html:50
+#: .\templates\user\signup.html:3 .\templates\user\signup.html:12
 msgid "Roʻyxatdan oʻtish"
 msgstr "Create account"
 
@@ -1512,7 +1511,7 @@ msgid "Kattalashtirilgan koʻrinish"
 msgstr "Enlarged view"
 
 #: .\templates\payment\checkout.html:46
-#: .\templates\user\account_settings.html:23 .\templates\user\signup.html:30
+#: .\templates\user\account_settings.html:23 .\templates\user\signup.html:32
 msgid "Ismingiz"
 msgstr "Your name"
 
@@ -2019,8 +2018,8 @@ msgstr "Your first order will show up here."
 msgid "Profil"
 msgstr "Profile"
 
-#: .\templates\user\account_settings.html:30 .\templates\user\login.html:21
-#: .\templates\user\signup.html:22 .\user\forms.py:63
+#: .\templates\user\account_settings.html:30 .\templates\user\login.html:26
+#: .\templates\user\signup.html:24 .\user\forms.py:63
 msgid "Foydalanuvchi nomi"
 msgstr "Username"
 
@@ -2041,7 +2040,7 @@ msgid "Yangi parol"
 msgstr "New password"
 
 #: .\templates\user\account_settings.html:64
-#: .\templates\user\password_reset_set.html:25 .\templates\user\signup.html:51
+#: .\templates\user\password_reset_set.html:25 .\templates\user\signup.html:53
 msgid "Parolni takrorlang"
 msgstr "Repeat password"
 
@@ -2050,23 +2049,27 @@ msgstr "Repeat password"
 msgid "Parolni saqlash"
 msgstr "Save password"
 
-#: .\templates\user\account_settings.html:77
+#: .\templates\user\account_settings.html:83
 msgid "Joriy parolni eslay olmayapman"
 msgstr "I don't remember my current password"
 
-#: .\templates\user\login.html:11
+#: .\templates\user\account_settings.html:86
+msgid "Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga keladigan kod orqali oʻrnatasiz."
+msgstr "This signs you out: you set the new password with a code sent to your phone."
+
+#: .\templates\user\login.html:16
 msgid "Buyurtmalaringiz va saqlanganlaringiz shu yerda."
 msgstr "Your orders and saved designs live here."
 
-#: .\templates\user\login.html:29 .\templates\user\signup.html:44
+#: .\templates\user\login.html:34 .\templates\user\signup.html:46
 msgid "Parol"
 msgstr "Password"
 
-#: .\templates\user\login.html:30
+#: .\templates\user\login.html:35
 msgid "Unutdingizmi?"
 msgstr "Forgot it?"
 
-#: .\templates\user\login.html:45
+#: .\templates\user\login.html:50
 msgid "Hisob yoʻqmi?"
 msgstr "No account yet?"
 
@@ -2124,20 +2127,20 @@ msgstr "Send again (%(n)ss)"
 msgid "Raqamni qaytadan kiritish"
 msgstr "Enter the number again"
 
-#: .\templates\user\signup.html:11
+#: .\templates\user\signup.html:13
 msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
 msgstr "We'll confirm your phone number — it's needed to deliver your order."
 
-#: .\templates\user\signup.html:61
+#: .\templates\user\signup.html:63
 #, python-format
 msgid "Barcha <a class=\"link\" href=\"%(terms_url)s\">shartlar</a>ga rozilik beraman."
 msgstr "I agree to all the <a class=\"link\" href=\"%(terms_url)s\">terms</a>."
 
-#: .\templates\user\signup.html:66
+#: .\templates\user\signup.html:68
 msgid "Hisob yaratish"
 msgstr "Create account"
 
-#: .\templates\user\signup.html:73
+#: .\templates\user\signup.html:75
 msgid "Hisob bormi?"
 msgstr "Already have an account?"
 
@@ -2264,6 +2267,15 @@ msgstr "Too many attempts. Please start again."
 #: .\user\views.py:409
 msgid "Parol yangilandi. Endi kirishingiz mumkin."
 msgstr "Your password has been updated. You can sign in now."
+
+#~ msgid "Bugun"
+#~ msgstr "Today"
+
+#~ msgid "Yigʻiladi"
+#~ msgstr "To pack"
+
+#~ msgid "Sharhlar navbatda"
+#~ msgstr "Reviews in the queue"
 
 #~ msgid "Oddiy"
 #~ msgstr "Regular"

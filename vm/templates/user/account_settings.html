@@ -72,10 +72,20 @@
           </div>
         </form>
 
-        <form method="post" action="{% url 'account_forgot_password' %}">
-          {% csrf_token %}
-          <button class="btn btn--ghost btn--sm" type="submit">{% trans "Joriy parolni eslay olmayapman" %}</button>
-        </form>
+        {# This button signs you out — the reset flow runs on the phone number #}
+        {# and requires being anonymous — so the screen says so before it is #}
+        {# pressed rather than after (§17 #176). A logged-in person tapping a #}
+        {# button labelled "I can't remember it" is not expecting to lose the #}
+        {# page they were on. #}
+        <div class="stack stack--sm">
+          <form method="post" action="{% url 'account_forgot_password' %}">
+            {% csrf_token %}
+            <button class="btn btn--ghost btn--sm" type="submit">{% trans "Joriy parolni eslay olmayapman" %}</button>
+          </form>
+          <p class="small muted">
+            {% trans "Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga keladigan kod orqali oʻrnatasiz." %}
+          </p>
+        </div>
       </section>
     </div>
   </div>

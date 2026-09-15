@@ -3,8 +3,13 @@
 {% block title %}{% trans "Kirish" %}{% endblock %}
 
 {% block content %}
+{# Centred, one column, like every other page in this flow — the OTP screen, #}
+{# the reset steps, the payment screens. Sign-in used to be a two-column #}
+{# layout with the brand mark parked in the right-hand half: it made the form #}
+{# sit off to the side of a wide screen and put the largest thing on the page #}
+{# next to the one control that matters (§17 #177). #}
 <div class="wrap section">
-  <div class="auth">
+  <div class="auth auth--narrow">
     <div class="stack stack--lg">
       <div class="stack stack--sm">
         <h1 class="h1">{% trans "Kirish" %}</h1>
@@ -45,10 +50,6 @@
         {% trans "Hisob yoʻqmi?" %} <a class="link" href="{% url 'signup' %}">{% trans "Roʻyxatdan oʻtish" %}</a>
       </p>
     </div>
-
-    <aside class="auth__art" aria-hidden="true">
-      <svg class="i" viewBox="0 0 24 24"><use href="#i-mark"></use></svg>
-    </aside>
   </div>
 </div>
 {% endblock %}
