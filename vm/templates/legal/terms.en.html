@@ -7,7 +7,7 @@
 <section class="legal__sec" id="general">
   <h2>1. General</h2>
   <p>This document sets out the terms of use of the {{ legal.seller.brand }} online store ({{ legal.seller.site }}, the “Site”). It is also a public offer within the meaning of Article 369 of the Civil Code of the Republic of Uzbekistan: the terms on which goods are sold on the Site are the same for everyone.</p>
-  <p>The seller on the Site is {{ legal.seller.brand }} (the “Seller”, “we”). The Seller’s official details are in <a class="link" href="#seller">section 17</a>.</p>
+  <p>The products on the Site are sold by {{ legal.seller.legal_form }} {{ legal.seller.registered_name }} (the “Seller”, “we”), trading as {{ legal.seller.brand }}. The Seller’s official details are in <a class="link" href="#seller">section 17</a>.</p>
   <p>By using the Site you accept these terms. Paying for an order is full and unconditional acceptance of the offer (Article 370 of the Civil Code).</p>
   <p>The document is published in Uzbek, Russian and English; if the versions differ, the Uzbek text applies.</p>
 </section>
@@ -65,7 +65,7 @@
 
 <section class="legal__sec" id="uncollected">
   <h2>7. Uncollected or refused parcels</h2>
-  <p>When the parcel arrives, Uzpost sends the recipient a notice. The branch holds the parcel for {{ legal.hold_min }} to {{ legal.hold_max }} day{{ legal.hold_max|pluralize }}, depending on the service used. If it is still not collected after the second notice, Uzpost may charge a storage fee at its own rates.</p>
+  <p>When the parcel arrives, Uzpost sends the recipient a notice. Under the postal rules, the branch holds the parcel for {{ legal.hold_months }} month{{ legal.hold_months|pluralize }}. If it is still not collected after the second notice, Uzpost may charge a storage fee at its own rates.</p>
   <p>A parcel that is not collected in time, or that the recipient refuses, is returned to the Seller. Under the postal rules, the sender — the Seller — pays for the return.</p>
   <p>Once the parcel is back with us, <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> is kept from the amount paid and the rest is refunded within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }} (<a class="link" href="#refunds">section 10</a>). The amount kept covers part of the cost of sending the parcel and getting it back.</p>
 </section>
@@ -171,9 +171,10 @@
   <dl class="legal__facts">
     <div><dt>Store</dt><dd>{{ legal.seller.brand }} — {{ legal.seller.site }}</dd></div>
     <div><dt>Registered name</dt><dd>{{ legal.seller.registered_name }}</dd></div>
+    <div><dt>Legal status</dt><dd>{{ legal.seller.legal_form|capfirst }}</dd></div>
     <div><dt>Address</dt><dd>{{ legal.seller.address }}</dd></div>
     <div><dt>Phone</dt><dd><a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a></dd></div>
-    <div><dt>Email</dt><dd><a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a></dd></div>
+    <div><dt>Email</dt><dd><a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email|email_break }}</a></dd></div>
     <div><dt>Telegram</dt><dd><a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a></dd></div>
   </dl>
 </section>

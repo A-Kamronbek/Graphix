@@ -30,14 +30,24 @@ from django.utils.translation import gettext_lazy as _
 #: registered name is what makes the public offer say who it is from, which the
 #: E-commerce Law requires of an offer. Kamronbek's call (§17 #184): name,
 #: address and contacts only - no tax number and no bank details on a public
-#: page. The registration record's postal index (700000) is left out: that was
-#: Tashkent's index in Soviet times and cannot be Qoʻqon's (§19 Q28). The legal
-#: form is not stated until it is confirmed (§19 Q27).
+#: page.
+#:
+#: ``legal_form`` is a sole proprietor - *yakka tartibdagi tadbirkor*, YaTT -
+#: stated as the form and nothing more: no certificate number (§17 #208,
+#: §19 Q27). It is translated like any copy and written in lower case, because
+#: the documents use it mid-sentence ("... sold by sole proprietor X"); a label
+#: capitalises it with ``capfirst``.
+#:
+#: The postal index is 150700, Qoʻqon's main post office, in place of the
+#: registration record's 700000 - Tashkent's index in Soviet times (§17 #209,
+#: §19 Q28). No public source says which of the city's branches serves Sharq
+#: dahasi itself; if the owner's papers name another 1507xx index, it goes here.
 SELLER = {
     'brand': 'GRAPHIX',
     'site': 'graphix.uz',
     'registered_name': 'Boboyev Abdurahmon Furqat oʻgʻli',
-    'address': 'Fargʻona viloyati, Qoʻqon shahri, Sharq dahasi, 5-uy, 27-xonadon',
+    'legal_form': _('yakka tartibdagi tadbirkor'),
+    'address': '150700, Fargʻona viloyati, Qoʻqon shahri, Sharq dahasi, 5-uy, 27-xonadon',
     'phone': '+998 50 788 84 36',
     'email': 'abdurahmonboboyev.magic@gmail.com',
     'telegram': 'greatestamal',
@@ -67,10 +77,12 @@ DEFECT_REPLACE_DAYS = 7
 #: Uzpost's own figures (§19 Q10): 1-6 days anywhere in Uzbekistan.
 TRANSIT_DAYS = (1, 6)
 
-#: How long a branch holds a parcel for collection: 14 days on Bir Qadam, a
-#: month for an ordinary parcel under the Postal Service Rules (§17 #103,
-#: #186). The pages give the range rather than promising the longer one.
-BRANCH_HOLD_DAYS = (14, 30)
+#: How long a branch holds a parcel for collection, in months. Parcels go as
+#: ordinary parcels (Kamronbek, §19 Q29), which the Postal Service Rules hold
+#: for one month (¶190; Bir Qadam's is 14 days, §17 #186). Kept in months, the
+#: Rules' own unit: "30 days" would promise two days that February does not
+#: have (§17 #210).
+BRANCH_HOLD_MONTHS = 1
 
 #: The E-commerce Law's delivery term when none was agreed.
 DELIVERY_DEADLINE_DAYS = 30
@@ -101,7 +113,9 @@ class Version:
 
 #: Newest first. Amending a document means adding a row here in the same commit
 #: as the new wording, never editing an old row: the history is the record of
-#: what a customer was shown on a given day.
+#: what a customer was shown on a given day. The one exception is 1.0 before
+#: launch - nobody has been shown it yet, so its wording is settled in place and
+#: its dates become the launch day (plan §9 Phase 11 item 8).
 VERSIONS = {
     'terms': (
         Version('1.0', date(2026, 9, 15),
@@ -176,8 +190,7 @@ def facts():
         defect_replace_days=DEFECT_REPLACE_DAYS,
         transit_min=TRANSIT_DAYS[0],
         transit_max=TRANSIT_DAYS[1],
-        hold_min=BRANCH_HOLD_DAYS[0],
-        hold_max=BRANCH_HOLD_DAYS[1],
+        hold_months=BRANCH_HOLD_MONTHS,
         delivery_deadline_days=DELIVERY_DEADLINE_DAYS,
         size_tolerance_cm=SIZE_TOLERANCE_CM,
         data_request_days=DATA_REQUEST_DAYS,

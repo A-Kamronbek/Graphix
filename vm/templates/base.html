@@ -10,6 +10,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#100E0C">
+  {# The site is dark by design, so it says so. `color-scheme` gives the browser's #}
+  {# own scrollbars and form controls the dark palette, and `darkreader-lock` #}
+  {# tells Dark Reader - the extension, and the engine inside some browsers' #}
+  {# night modes - to leave the page alone: in its dynamic mode it repainted #}
+  {# every colour here, the gold included, into its own greys (§17 #205). #}
+  <meta name="color-scheme" content="dark">
+  <meta name="darkreader-lock">
   <title>{% block title %}{% trans "Bosh sahifa" %}{% endblock %} — GRAPHIX</title>
   <meta name="description" content="{% block meta_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
 

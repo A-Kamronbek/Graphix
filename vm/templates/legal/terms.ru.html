@@ -7,7 +7,7 @@
 <section class="legal__sec" id="general">
   <h2>1. Общие положения</h2>
   <p>Настоящий документ — условия использования интернет-магазина {{ legal.seller.brand }} ({{ legal.seller.site }}, далее — «Сайт») и публичная оферта в смысле статьи 369 Гражданского кодекса Республики Узбекистан: условия продажи товаров на Сайте одинаковы для всех покупателей.</p>
-  <p>Продавец на Сайте — {{ legal.seller.brand }} (далее — «Продавец» или «мы»). Официальные сведения о Продавце приведены в <a class="link" href="#seller">разделе 17</a>.</p>
+  <p>Продавец товаров на Сайте — {{ legal.seller.legal_form }} {{ legal.seller.registered_name }} (далее — «Продавец» или «мы»). {{ legal.seller.brand }} — название интернет-магазина Продавца. Официальные сведения о Продавце приведены в <a class="link" href="#seller">разделе 17</a>.</p>
   <p>Пользуясь Сайтом, вы соглашаетесь с этими условиями. Оплата заказа означает полное и безоговорочное принятие оферты — акцепт (статья 370 Гражданского кодекса).</p>
   <p>Документ публикуется на узбекском, русском и английском языках; при расхождении текстов действует узбекский.</p>
 </section>
@@ -65,7 +65,7 @@
 
 <section class="legal__sec" id="uncollected">
   <h2>7. Невостребованная или отказная посылка</h2>
-  <p>Когда посылка прибывает, Почта направляет получателю извещение. Отделение хранит посылку от {{ legal.hold_min }} до {{ legal.hold_max }} {{ legal.hold_max|ru_plural:"дня,дней,дней" }} в зависимости от вида услуги. Если посылку не забрали и после вторичного извещения, Почта может взимать плату за хранение по своим тарифам.</p>
+  <p>Когда посылка прибывает, Почта направляет получателю извещение. По правилам почтовой связи отделение хранит посылку {{ legal.hold_months }} {{ legal.hold_months|ru_plural:"месяц,месяца,месяцев" }}. Если посылку не забрали и после вторичного извещения, Почта может взимать плату за хранение по своим тарифам.</p>
   <p>Посылка, не полученная в срок хранения или от которой получатель отказался, возвращается Продавцу. По правилам почтовой связи расходы на возврат несёт отправитель, то есть Продавец.</p>
   <p>Когда посылка вернётся к нам, из оплаченной суммы удерживается <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;сум</strong>, а остаток возвращается в течение {{ legal.refund_days }} {{ legal.refund_days|ru_plural:"дня,дней,дней" }} (<a class="link" href="#refunds">раздел 10</a>). Удержанная сумма покрывает часть расходов на отправку и возврат.</p>
 </section>
@@ -171,9 +171,10 @@
   <dl class="legal__facts">
     <div><dt>Магазин</dt><dd>{{ legal.seller.brand }} — {{ legal.seller.site }}</dd></div>
     <div><dt>Зарегистрированное имя</dt><dd>{{ legal.seller.registered_name }}</dd></div>
+    <div><dt>Статус</dt><dd>{{ legal.seller.legal_form|capfirst }}</dd></div>
     <div><dt>Адрес</dt><dd>{{ legal.seller.address }}</dd></div>
     <div><dt>Телефон</dt><dd><a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a></dd></div>
-    <div><dt>Электронная почта</dt><dd><a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a></dd></div>
+    <div><dt>Электронная почта</dt><dd><a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email|email_break }}</a></dd></div>
     <div><dt>Telegram</dt><dd><a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a></dd></div>
   </dl>
 </section>

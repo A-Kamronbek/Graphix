@@ -7,8 +7,8 @@
 <section class="legal__sec" id="controller">
   <h2>1. Who processes your data</h2>
   <p>This policy explains how the {{ legal.seller.brand }} online store ({{ legal.seller.site }}, the “Site”) collects, uses, keeps and protects the personal data of its visitors and customers. It is written in line with the Law of the Republic of Uzbekistan “On Personal Data”.</p>
-  <p>The owner and operator of the data is the Seller: {{ legal.seller.registered_name }} ({{ legal.seller.brand }}), address: {{ legal.seller.address }}.</p>
-  <p>For privacy questions: <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>, <a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a> or Telegram: <a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a>.</p>
+  <p>The owner and operator of the data is the Seller: {{ legal.seller.legal_form }} {{ legal.seller.registered_name }} ({{ legal.seller.brand }}), address: {{ legal.seller.address }}.</p>
+  <p>For privacy questions: <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email|email_break }}</a>, <a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a> or Telegram: <a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a>.</p>
   <p>The document is published in Uzbek, Russian and English; if the versions differ, the Uzbek text applies.</p>
 </section>
 
@@ -51,16 +51,17 @@
     <li><strong>Click</strong> (click.uz) — payments: the order number and amount; Click takes your card details itself;</li>
     <li><strong>Uzpost</strong> (Oʻzbekiston pochtasi JSC) — delivery: the recipient’s full name, phone number and address or post office;</li>
     <li><strong>Google</strong> — Google Maps: when the map is switched on, opening the checkout page makes your browser load Google’s script, and Google receives your IP address and technical details about your browser. If you drop a pin, its coordinates are sent to Google to look up the address;</li>
-    <li><strong>Telegram</strong> — notices of new orders, payments, messages and reviews are sent to the store’s private Telegram chat. An order notice contains the recipient’s name, phone number, address, the items and the order note;</li>
-    <li><strong>Our hosting provider</strong> — the Site and its database run on a rented server.</li>
+    <li><strong>Telegram</strong> — notices of new orders, payments, messages and reviews reach the store’s staff through the store’s Telegram bot. An order notice contains the recipient’s name, phone number and address (with the pin’s coordinates, if one was dropped on the map), the items and the order note; a message notice contains the sender’s name, phone number and message;</li>
+    <li><strong>Our hosting provider</strong> — the Site and its database run on a rented server in Warsaw, Poland: everything we keep is stored there (<a class="link" href="#abroad">section 5</a>).</li>
   </ul>
   <p>Where the law requires it, data may be disclosed at the request of the competent public authorities.</p>
 </section>
 
 <section class="legal__sec" id="abroad">
   <h2>5. Transfers outside Uzbekistan</h2>
-  <p>Google’s and Telegram’s servers are outside Uzbekistan, so sending data to them is a cross-border transfer. It is carried out in line with the Law, including on the basis of your consent: by registering and accepting this policy, you also consent to these transfers.</p>
-  <p>We do not collect biometric or genetic data.</p>
+  <p>The Site’s server and database are in Warsaw, Poland, so your data is stored and processed outside Uzbekistan. Poland is a member of the European Union, where personal data is protected by the EU General Data Protection Regulation (GDPR).</p>
+  <p>Google’s and Telegram’s servers are outside Uzbekistan too. Data is transferred abroad in line with the Law, including on the basis of your consent: by registering and accepting this policy, you also consent to these transfers.</p>
+  <p>We do not collect biometric or genetic data — the kinds the Law requires to be kept in Uzbekistan.</p>
 </section>
 
 <section class="legal__sec" id="retention">

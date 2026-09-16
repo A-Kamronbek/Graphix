@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 01:23+0500\n"
+"POT-Creation-Date: 2026-09-16 23:25+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,31 +41,35 @@ msgstr "«%(name)s» добавлен в корзину."
 msgid "Olib tashlandi."
 msgstr "Удалено."
 
-#: .\core\legal.py:108
+#: .\core\legal.py:49
+msgid "yakka tartibdagi tadbirkor"
+msgstr "индивидуальный предприниматель"
+
+#: .\core\legal.py:122
 msgid ""
 "Birinchi toʻliq tahrir: ommaviy oferta, toʻlov, yetkazib berish, olib "
 "ketilmagan joʻnatmalar, qaytarish, sharhlar va sotuvchi maʼlumotlari."
 msgstr "Первая полная редакция: публичная оферта, оплата, доставка, невостребованные посылки, возврат, отзывы и сведения о продавце."
 
-#: .\core\legal.py:114
+#: .\core\legal.py:128
 msgid "Birinchi tahrir."
 msgstr "Первая редакция."
 
-#: .\core\legal.py:118
+#: .\core\legal.py:132
 msgid ""
 "Birinchi sanali tahrir: muddatlar, pochta boʻlimida saqlash, olib ketilmagan "
 "joʻnatma va almashtirish tartibi."
 msgstr "Первая датированная редакция: сроки, хранение в почтовом отделении, невостребованная посылка и порядок обмена."
 
-#: .\core\legal.py:125 .\templates\partials\_footer.html:27
+#: .\core\legal.py:139 .\templates\partials\_footer.html:27
 msgid "Foydalanish shartlari"
 msgstr "Условия использования"
 
-#: .\core\legal.py:126 .\templates\partials\_footer.html:28
+#: .\core\legal.py:140 .\templates\partials\_footer.html:28
 msgid "Maxfiylik siyosati"
 msgstr "Политика конфиденциальности"
 
-#: .\core\legal.py:127
+#: .\core\legal.py:141
 msgid "Yetkazib berish va qaytarish"
 msgstr "Доставка и возврат"
 
@@ -73,16 +77,16 @@ msgstr "Доставка и возврат"
 msgid "Juda koʻp urinish. Iltimos, birozdan soʻng qayta urinib koʻring."
 msgstr "Слишком много попыток. Пожалуйста, повторите чуть позже."
 
-#: .\core\views.py:177
+#: .\core\views.py:196
 msgid "Iltimos, xabar kiriting."
 msgstr "Пожалуйста, введите сообщение."
 
-#: .\core\views.py:182
+#: .\core\views.py:201
 #, python-format
 msgid "Mavzu %(n)d belgidan oshmasligi kerak."
 msgstr "Тема должна быть не длиннее %(n)d символов."
 
-#: .\core\views.py:192
+#: .\core\views.py:211
 msgid "Xabar qabul qilindi."
 msgstr "Сообщение отправлено."
 
@@ -564,7 +568,7 @@ msgid "Kirish"
 msgstr "Войти"
 
 #: .\templates\403.html:13 .\templates\404.html:13 .\templates\500.html:11
-#: .\templates\base.html:13 .\templates\product\item.html:15
+#: .\templates\base.html:20 .\templates\product\item.html:15
 #: .\templates\product\liked.html:10 .\templates\product\shop.html:14
 msgid "Bosh sahifa"
 msgstr "Главная"
@@ -601,7 +605,7 @@ msgstr "Что-то пошло не так"
 msgid "Xatolik bizning tomonda. Biroz kutib, qayta urinib koʻring."
 msgstr "Ошибка на нашей стороне. Подождите немного и попробуйте снова."
 
-#: .\templates\base.html:14 .\templates\base.html:29
+#: .\templates\base.html:21 .\templates\base.html:36
 msgid ""
 "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab "
 "yetkazib berish."
@@ -609,11 +613,11 @@ msgstr ""
 "Магазин футболок с принтами. Премиальное качество, 100+ дизайнов, доставка "
 "по Узбекистану."
 
-#: .\templates\base.html:28
+#: .\templates\base.html:35
 msgid "grafik futbolkalar"
 msgstr "футболки с принтами"
 
-#: .\templates\base.html:59 .\templates\boshqaruv\base.html:34
+#: .\templates\base.html:66 .\templates\boshqaruv\base.html:37
 msgid "Asosiy qismga oʻtish"
 msgstr "Перейти к содержимому"
 
@@ -676,46 +680,46 @@ msgstr "Размеры не заданы"
 msgid "Sotuvda"
 msgstr "В продаже"
 
-#: .\templates\boshqaruv\base.html:20 .\templates\boshqaruv\base.html:43
+#: .\templates\boshqaruv\base.html:23 .\templates\boshqaruv\base.html:46
 msgid "Boshqaruv"
 msgstr "Панель"
 
-#: .\templates\boshqaruv\base.html:47
+#: .\templates\boshqaruv\base.html:50
 msgid "Saytga"
 msgstr "На сайт"
 
-#: .\templates\boshqaruv\base.html:54
+#: .\templates\boshqaruv\base.html:57
 msgid "Boshqaruv menyusi"
 msgstr "Меню панели"
 
-#: .\templates\boshqaruv\base.html:56 .\templates\boshqaruv\dashboard.html:3
+#: .\templates\boshqaruv\base.html:59 .\templates\boshqaruv\dashboard.html:3
 #: .\templates\boshqaruv\dashboard.html:18
 msgid "Hisobot"
 msgstr "Сводка"
 
-#: .\templates\boshqaruv\base.html:58 .\templates\boshqaruv\order.html:18
+#: .\templates\boshqaruv\base.html:61 .\templates\boshqaruv\order.html:18
 #: .\templates\boshqaruv\orders.html:3 .\templates\boshqaruv\orders.html:12
 msgid "Buyurtmalar"
 msgstr "Заказы"
 
-#: .\templates\boshqaruv\base.html:60 .\templates\boshqaruv\order.html:32
+#: .\templates\boshqaruv\base.html:63 .\templates\boshqaruv\order.html:32
 #: .\templates\boshqaruv\product_form.html:26
 #: .\templates\boshqaruv\products.html:3 .\templates\boshqaruv\products.html:14
 #: .\templates\cart\cart.html:67 .\templates\payment\checkout.html:260
 msgid "Mahsulotlar"
 msgstr "Товары"
 
-#: .\templates\boshqaruv\base.html:62 .\templates\boshqaruv\reviews.html:3
+#: .\templates\boshqaruv\base.html:65 .\templates\boshqaruv\reviews.html:3
 #: .\templates\boshqaruv\reviews.html:16 .\templates\product\_reviews.html:18
 msgid "Sharhlar"
 msgstr "Отзывы"
 
-#: .\templates\boshqaruv\base.html:64 .\templates\boshqaruv\messages.html:3
+#: .\templates\boshqaruv\base.html:67 .\templates\boshqaruv\messages.html:3
 #: .\templates\boshqaruv\messages.html:15
 msgid "Xabarlar"
 msgstr "Сообщения"
 
-#: .\templates\boshqaruv\base.html:66 .\templates\boshqaruv\regions.html:20
+#: .\templates\boshqaruv\base.html:69 .\templates\boshqaruv\regions.html:20
 #: .\templates\boshqaruv\settings.html:3 .\templates\boshqaruv\settings.html:26
 #: .\templates\partials\_account_nav.html:7
 #: .\templates\user\account_settings.html:3
@@ -723,7 +727,7 @@ msgstr "Сообщения"
 msgid "Sozlamalar"
 msgstr "Настройки"
 
-#: .\templates\boshqaruv\base.html:70
+#: .\templates\boshqaruv\base.html:73
 msgid "Django admin"
 msgstr "Django admin"
 
@@ -835,7 +839,7 @@ msgid "Indeks"
 msgstr "Индекс"
 
 #: .\templates\boshqaruv\order.html:66 .\templates\payment\checkout.html:195
-#: .\templates\payment\order_detail.html:98
+#: .\templates\payment\order_detail.html:103
 msgid "Izoh"
 msgstr "Комментарий"
 
@@ -1427,7 +1431,7 @@ msgstr "Эл. почта"
 msgid "Sotuvchi"
 msgstr "Продавец"
 
-#: .\templates\core\contact.html:72
+#: .\templates\core\contact.html:73
 msgid "Sotuvchi haqida maʼlumot"
 msgstr "Сведения о продавце"
 
@@ -1589,7 +1593,7 @@ msgid "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi"
 msgstr "По всему Узбекистану, «Узбекистон почтаси»"
 
 #: .\templates\partials\_footer.html:47
-#: .\templates\payment\order_detail.html:90
+#: .\templates\payment\order_detail.html:95
 msgid "Batafsil"
 msgstr "Подробнее"
 
@@ -1798,23 +1802,30 @@ msgstr "Стоимость доставки"
 msgid "Pochta boʻlimi"
 msgstr "Почтовое отделение"
 
-#: .\templates\payment\order_detail.html:87
+#: .\templates\payment\order_detail.html:90
 #, python-format
 msgid ""
-"Joʻnatma boʻlimda %(span)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+"Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
 "toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
 "qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
-msgstr "Отделение хранит посылку %(span)s дн. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если индекс указан неверно, сразу напишите нам."
+msgid_plural ""
+"Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+"qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
+msgstr[0] "Отделение хранит посылку %(months)s месяц. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если индекс указан неверно, сразу напишите нам."
+msgstr[1] "Отделение хранит посылку %(months)s месяца. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если индекс указан неверно, сразу напишите нам."
+msgstr[2] "Отделение хранит посылку %(months)s месяцев. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если индекс указан неверно, сразу напишите нам."
+msgstr[3] "Отделение хранит посылку %(months)s месяца. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если индекс указан неверно, сразу напишите нам."
 
-#: .\templates\payment\order_detail.html:103
+#: .\templates\payment\order_detail.html:108
 msgid "Holatini kuzatish"
 msgstr "Отследить статус"
 
-#: .\templates\payment\order_detail.html:105 .\templates\payment\status.html:50
+#: .\templates\payment\order_detail.html:110 .\templates\payment\status.html:50
 msgid "Toʻlovni yakunlash"
 msgstr "Завершить оплату"
 
-#: .\templates\payment\order_detail.html:111
+#: .\templates\payment\order_detail.html:116
 #: .\templates\product\review_form.html:3
 #: .\templates\product\review_form.html:26
 msgid "Sharh qoldirish"

@@ -38,7 +38,7 @@
 
 <section class="legal__sec" id="uncollected">
   <h2>5. If you don’t collect it</h2>
-  <p>The branch holds the parcel for {{ legal.hold_min }} to {{ legal.hold_max }} day{{ legal.hold_max|pluralize }}, depending on the service. Collect it soon after the notice arrives: after the second notice Uzpost may charge a storage fee.</p>
+  <p>The branch holds the parcel for {{ legal.hold_months }} month{{ legal.hold_months|pluralize }}. Collect it soon after the notice arrives: after the second notice Uzpost may charge a storage fee.</p>
   <p>A parcel that is not collected in time, or is refused, comes back to us. We then keep <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> of your payment and refund the rest within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. So check the postcode and the address carefully — you can see them again on the order page.</p>
 </section>
 

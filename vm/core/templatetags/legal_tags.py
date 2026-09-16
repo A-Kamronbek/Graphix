@@ -10,6 +10,8 @@ context processor at all (§17 #66). A tag asks for the facts itself, so the
 phone number in the footer is right on the page where it matters most.
 """
 from django import template
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 
 from core import legal
 
@@ -57,6 +59,22 @@ def legal_range(low, high):
     start of the next (§17 #204).
     """
     return f'{low}{_JOIN}–{_JOIN}{high}'
+
+
+@register.filter(needs_autoescape=True)
+def email_break(address, autoescape=True):
+    """An email address that may wrap before its ``@`` and nowhere else first.
+
+    Links break anywhere rather than overflow (base.css), and in the contact
+    page's narrow card the seller's address did: "…@gmail.co" on one line and
+    "m" on the next (§17 #214). A ``<wbr>`` gives the browser a better place,
+    and copying the text still yields the address - the element has no text.
+    """
+    escape = conditional_escape if autoescape else str
+    local, at, domain = str(address).partition('@')
+    if not at:
+        return escape(address)
+    return mark_safe(f'{escape(local)}<wbr>@{escape(domain)}')
 
 
 @register.filter

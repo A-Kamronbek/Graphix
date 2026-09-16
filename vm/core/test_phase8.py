@@ -350,7 +350,7 @@ class OrderPageTests(TestCase):
         facts = legal.facts()
         self.assertIn(self.BRANCH, html)
         self.assertNotIn(self.ADDRESS, html)
-        self.assertIn(f'{facts.hold_min}\u2060–\u2060{facts.hold_max} kun saqlanadi', html)
+        self.assertIn(f'{facts.hold_months} oy saqlanadi', html)
         self.assertIn('15\xa0000 soʻm ushlab qolinadi', html)
         self.assertIn(f'{facts.refund_days} kun ichida', html)
 

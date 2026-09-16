@@ -1,5 +1,6 @@
-"""The project's test runner: every test starts in Uzbek, and a failure under
-``--parallel`` is reported instead of ending the run.
+"""The project's test runner: every test starts in Uzbek, a failure under
+``--parallel`` is reported instead of ending the run, and no test can notify
+the real shop.
 
 Two things made a failing suite hard to read, and both are fixed here rather
 than in each test.
@@ -22,7 +23,13 @@ assertion used to kill the worker pool, and every test still queued reported
 an ``OperationalError`` about a test database that had already been dropped -
 the real failure was one line in several hundred. A failure now travels as
 text, with its own traceback in it, and the run finishes.
+
+**A developer's .env is not a test's.** Once the bot service's address and
+secret are pasted into ``.env``, a test that creates an order would send it to
+the shop's staff (§17 #207). The run blanks every notification setting first;
+a test that needs one sets it itself.
 """
+import os
 import traceback
 import unittest
 
@@ -30,6 +37,25 @@ from django.conf import settings
 from django.test.runner import (DiscoverRunner, ParallelTestSuite,
                                 RemoteTestResult, RemoteTestRunner)
 from django.utils import translation
+
+
+#: Settings that reach a live outside service - the shop's Telegram.
+OFFLINE = ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID',
+           'TELEGRAM_BOT_WEBHOOK_URL', 'WEBSITE_WEBHOOK_SECRET')
+
+
+def go_offline():
+    """Blank :data:`OFFLINE` in this process and in every worker it starts.
+
+    A worker started by ``spawn`` - the only way on Windows - imports the
+    settings afresh, and python-dotenv never overrides a variable that is
+    already set, an empty one included. So a blank in the environment reaches
+    the workers, and the attribute covers this process, whose settings are
+    already loaded.
+    """
+    for name in OFFLINE:
+        os.environ[name] = ''
+        setattr(settings, name, '')
 
 
 class ReportedFailure(AssertionError):
@@ -90,13 +116,18 @@ class WorkerSuite(ParallelTestSuite):
 
 
 class Runner(DiscoverRunner):
-    """``TEST_RUNNER``: Django's runner with the two fixes above.
+    """``TEST_RUNNER``: Django's runner with the three fixes above.
 
     Both the serial and the parallel path get the language reset; only the
-    parallel one needs its failures made portable.
+    parallel one needs its failures made portable. The notification settings
+    are blanked before the suite is built, so before any worker starts.
     """
 
     parallel_test_suite = WorkerSuite
+
+    def setup_test_environment(self, **kwargs):
+        go_offline()
+        super().setup_test_environment(**kwargs)
 
     def get_resultclass(self):
         # Keep --debug-sql and --pdb working: they choose a result class of
