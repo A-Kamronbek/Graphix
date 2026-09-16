@@ -1,15 +1,19 @@
 """Static pages (home, about), the legal documents, the contact form, the
-staff style guide, and error handlers."""
+staff style guide, the two paths browsers ask for on their own, and error
+handlers."""
+from urllib.parse import urlsplit
+
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.staticfiles import finders
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.template.loader import select_template
+from django.utils import translation
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import get_language, gettext as _
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
 from product.models import Product, Category
 from django.templatetags.static import static
 from core.context_processors import SIZE_GUIDE_IMAGE
@@ -20,18 +24,33 @@ from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
 # ---------- legal documents ----------
 
-def _back_url(request, own_url):
+def _back_url(request, key):
     """Where "Orqaga" leads: the page the visitor came from, if it is ours.
 
     The signup form links here and keeps its draft in the tab, so going back
-    to it is the point. A referrer on another site, or the document itself,
-    is not somewhere to send anybody back to.
+    to it is the point. A referrer on another site, a path that is not a page,
+    or the document itself is not somewhere to send anybody back to.
+
+    "The document itself" means in any language. The switcher is a plain link,
+    so a visitor who reads the terms in Uzbek and switches to Russian arrives
+    with the Uzbek terms as the referrer - and a text match against the
+    Russian path let "Назад" lead to the Uzbek copy of the page they were on
+    (§17 #212). The referrer is resolved instead, in its own language, since
+    a prefixed path only resolves while its language is active.
     """
     ref = request.META.get('HTTP_REFERER') or ''
-    if ref and own_url not in ref and url_has_allowed_host_and_scheme(
+    if ref and url_has_allowed_host_and_scheme(
             ref, allowed_hosts={request.get_host()},
             require_https=request.is_secure()):
-        return ref
+        path = urlsplit(ref).path
+        language = translation.get_language_from_path(path) or get_language()
+        try:
+            with translation.override(language):
+                match = resolve(path)
+        except Resolver404:
+            match = None
+        if match is not None and match.view_name != key:
+            return ref
     return reverse('home')
 
 
@@ -54,7 +73,7 @@ def _legal_page(request, key, **extra):
     context = {
         'doc_key': key,
         'doc_title': legal.TITLES[key],
-        'back_url': _back_url(request, reverse(key)),
+        'back_url': _back_url(request, key),
         **legal.document(key),
         **extra,
     }
@@ -235,6 +254,31 @@ def style_guide(request):
         'swatches': STYLE_SWATCHES,
         'icons': STYLE_ICONS,
     })
+
+
+# ---------- paths browsers ask for on their own ----------
+
+def favicon(request):
+    """``/favicon.ico``: the icon, for the clients that ask for it there.
+
+    Every page names its icons in ``<head>``, but a browser still requests the
+    root path when it opens something that is not a page - a PDF, an image -
+    and some ask regardless. That was a 404 in the log on every visit
+    (§17 #213). Resolved per request, so it follows ``STATIC_URL`` and any
+    hashed file name rather than baking one in at import.
+    """
+    return redirect(static('img/favicon.ico'), permanent=True)
+
+
+def devtools_probe(request):
+    """Chrome's DevTools asking whether this site is a local workspace.
+
+    Development only (see ``vm/urls.py``). DevTools requests
+    ``/.well-known/appspecific/com.chrome.devtools.json`` whenever it is open,
+    and the answer that means "no" is an empty one: 204 says it without a
+    "Not Found" warning in the runserver log on every reload (§17 #213).
+    """
+    return HttpResponse(status=204)
 
 
 # error handlers

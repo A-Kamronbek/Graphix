@@ -24,12 +24,15 @@ from cart.services import GUEST_CART_DAYS
 
 
 class Command(BaseCommand):
-    help = 'Delete anonymous carts that have not been touched for a while.'
+    # Said as the filter below does it: by the day the cart was created, not
+    # the day it was last used - which is also how the privacy policy states it.
+    help = 'Delete open anonymous carts created more than --days days ago.'
 
     def add_arguments(self, parser):
         # The default is the figure the privacy policy promises (§17 #183).
         parser.add_argument('--days', type=int, default=GUEST_CART_DAYS,
-                            help='Age in days above which a guest cart is deleted.')
+                            help='Age in days, counted from creation, above which a '
+                                 'guest cart is deleted.')
         parser.add_argument('--dry-run', action='store_true',
                             help='Report what would go, but delete nothing.')
 

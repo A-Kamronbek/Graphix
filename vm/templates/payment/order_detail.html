@@ -81,11 +81,16 @@
         {% if branch %}
           {# The plain-language version of terms §7, where the customer checks #}
           {# their index: how long the branch holds it, and what an uncollected #}
-          {# parcel costs (§19 Q11). The figures come from core/legal.py. #}
+          {# parcel costs (§19 Q11). The figures come from core/legal.py; the #}
+          {# hold is counted, so Russian and English name the month in the form #}
+          {# its number takes (§17 #210). Uzbek does not inflect, so its two #}
+          {# forms are the same sentence. #}
           {% get_legal as legal %}
           <p class="small muted">
-            {% blocktrans trimmed with span=legal.hold_min|legal_range:legal.hold_max fee=legal.uncollected_fee|price days=legal.refund_days %}
-              Joʻnatma boʻlimda {{ span }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing.
+            {% blocktrans trimmed with fee=legal.uncollected_fee|price days=legal.refund_days count months=legal.hold_months %}
+              Joʻnatma boʻlimda {{ months }} oy saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing.
+            {% plural %}
+              Joʻnatma boʻlimda {{ months }} oy saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing.
             {% endblocktrans %}
             <a class="link" href="{% url 'delivery' %}#uncollected">{% trans "Batafsil" %}</a>
           </p>

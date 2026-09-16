@@ -4,10 +4,11 @@ Split deliberately in two:
 
 * **Unprefixed** — everything a machine calls or that must live at one fixed
   path: the Click webhook, admin, the sitemap, robots.txt, the web manifest,
-  ``set_language``, and (in development) media and static. A language prefix on
-  any of these breaks the caller. The Click webhook is the dangerous one: Click
-  POSTs to ``/payment/click/update/`` and a 404 there means payments silently
-  fail (§12 risk #2). ``core/tests.py`` asserts it stays unprefixed.
+  ``/favicon.ico``, ``set_language``, and (in development) media, static and
+  Chrome DevTools' probe. A language prefix on any of these breaks the
+  caller. The Click webhook is the dangerous one: Click POSTs to
+  ``/payment/click/update/`` and a 404 there means payments silently fail
+  (§12 risk #2). ``core/tests.py`` asserts it stays unprefixed.
 
 * **Prefixed** — every human-facing page, wrapped in ``i18n_patterns``. **All
   three languages carry a prefix**: Uzbek at ``/uz/``, Russian at ``/ru/``,
@@ -27,6 +28,7 @@ from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic import TemplateView
 
+from core import views as core_views
 from core.sitemaps import sitemaps as site_maps
 from payment.urls import webhook_urlpatterns
 
@@ -41,6 +43,9 @@ urlpatterns = [
     # working once static files are hashed.
     path('site.webmanifest', TemplateView.as_view(template_name='site.webmanifest',
                                                   content_type='application/manifest+json')),
+    # Asked for at the root whatever a page's <head> says, so it redirects to
+    # the static icon instead of logging a 404 on every visit (§17 #213).
+    path('favicon.ico', core_views.favicon, name='favicon'),
 
     # Language switching. Django's set_language POSTs here and redirects to the
     # translated version of the page the visitor was on.
@@ -71,6 +76,10 @@ urlpatterns += i18n_patterns(
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
+    # Chrome DevTools asks every site it is open on whether it is a local
+    # workspace; answered "no" quietly rather than with a warning per reload.
+    urlpatterns.append(path('.well-known/appspecific/com.chrome.devtools.json',
+                            core_views.devtools_probe))
 
 handler404 = 'core.views.handler404'
 handler500 = 'core.views.handler500'

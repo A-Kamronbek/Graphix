@@ -4,10 +4,10 @@
 
 {% comment %}
   Rewritten in Phase 8 (§9 Phase 8 item 6). The direct contacts and the
-  seller's registered name and address come from core/legal.py - the footer,
-  the terms and the privacy policy print the same values from the same place
-  (§17 #193). The consumer law wants a seller's name and address where a
-  customer can find them, and this is where a customer looks.
+  seller's registered name, legal form and address come from core/legal.py -
+  the footer, the terms and the privacy policy print the same values from the
+  same place (§17 #193, #208). The consumer law wants a seller's name and
+  address where a customer can find them, and this is where a customer looks.
 {% endcomment %}
 
 {% block content %}
@@ -63,11 +63,12 @@
         </li>
         <li class="stack stack--sm">
           <span class="label">{% trans "Elektron pochta" %}</span>
-          <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>
+          <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email|email_break }}</a>
         </li>
         <li class="stack stack--sm">
           <span class="label">{% trans "Sotuvchi" %}</span>
           <span>{{ legal.seller.registered_name }}</span>
+          <span class="small muted">{{ legal.seller.legal_form|capfirst }}</span>
           <span class="small muted">{{ legal.seller.address }}</span>
           <a class="link small" href="{% url 'terms' %}#seller">{% trans "Sotuvchi haqida maʼlumot" %}</a>
         </li>

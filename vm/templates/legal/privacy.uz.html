@@ -5,8 +5,8 @@
 <section class="legal__sec" id="controller">
   <h2>1. Maʼlumotlarga kim ishlov beradi</h2>
   <p>Ushbu siyosat {{ legal.seller.brand }} internet-doʻkoni ({{ legal.seller.site }}, bundan keyin — «Sayt») foydalanuvchilar va xaridorlarning shaxsga doir maʼlumotlarini qanday yigʻishi, ishlatishi, saqlashi va himoya qilishini tushuntiradi. Siyosat «Shaxsga doir maʼlumotlar toʻgʻrisida»gi Oʻzbekiston Respublikasi Qonuniga muvofiq tuzilgan.</p>
-  <p>Maʼlumotlar mulkdori va operatori — Sotuvchi: {{ legal.seller.registered_name }} ({{ legal.seller.brand }}), manzil: {{ legal.seller.address }}.</p>
-  <p>Maxfiylik boʻyicha savollar uchun: <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>, <a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a> yoki Telegram: <a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a>.</p>
+  <p>Maʼlumotlar mulkdori va operatori — Sotuvchi: {{ legal.seller.legal_form }} {{ legal.seller.registered_name }} ({{ legal.seller.brand }}), manzil: {{ legal.seller.address }}.</p>
+  <p>Maxfiylik boʻyicha savollar uchun: <a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email|email_break }}</a>, <a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a> yoki Telegram: <a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a>.</p>
   <p>Hujjat oʻzbek, rus va ingliz tillarida eʼlon qilinadi. Matnlar orasida farq boʻlsa, oʻzbek tilidagi matn ustun turadi.</p>
 </section>
 
@@ -49,16 +49,17 @@
     <li><strong>Click</strong> (click.uz) — toʻlov tizimi: buyurtma raqami va summasi; karta maʼlumotlarini Click oʻzi qabul qiladi;</li>
     <li><strong>«Oʻzbekiston pochtasi» AJ</strong> — yetkazib berish: qabul qiluvchining ism-familiyasi, telefon raqami va manzili yoki pochta boʻlimi;</li>
     <li><strong>Google</strong> — Google Maps xaritasi: xarita yoqilgan boʻlsa, rasmiylashtirish sahifasi ochilganda brauzeringiz Google skriptini yuklaydi va Google IP-manzilingiz hamda brauzeringiz haqidagi texnik maʼlumotlarni oladi. Xaritada belgi qoʻysangiz, manzilni aniqlash uchun uning koordinatalari Googlega yuboriladi;</li>
-    <li><strong>Telegram</strong> — yangi buyurtma, toʻlov, xabar va sharh haqidagi bildirishnomalar doʻkonning yopiq Telegram chatiga yuboriladi. Buyurtma haqidagi bildirishnomada qabul qiluvchining ismi, telefon raqami, manzili, buyurtma tarkibi va izohi boʻladi;</li>
-    <li><strong>Server provayderi</strong> — Sayt va uning maʼlumotlar bazasi ijaraga olingan serverda ishlaydi.</li>
+    <li><strong>Telegram</strong> — yangi buyurtma, toʻlov, xabar va sharh haqidagi bildirishnomalar doʻkonning Telegram boti orqali doʻkon xodimlariga yuboriladi. Buyurtma haqidagi bildirishnomada qabul qiluvchining ismi, telefon raqami, manzili (xaritada belgi qoʻyilgan boʻlsa — uning koordinatalari), buyurtma tarkibi va izohi, xabar haqidagisida esa yuboruvchining ismi, telefon raqami va xabar matni boʻladi;</li>
+    <li><strong>Server provayderi</strong> — Sayt va uning maʼlumotlar bazasi Polshadagi (Varshava) ijaraga olingan serverda ishlaydi: biz saqlaydigan barcha maʼlumotlar oʻsha serverda joylashgan (<a class="link" href="#abroad">5-boʻlim</a>).</li>
   </ul>
   <p>Qonunda nazarda tutilgan hollarda maʼlumotlar vakolatli davlat organlarining soʻroviga binoan berilishi mumkin.</p>
 </section>
 
 <section class="legal__sec" id="abroad">
   <h2>5. Maʼlumotlarni chet elga uzatish</h2>
-  <p>Google va Telegram serverlari Oʻzbekistondan tashqarida joylashgan, shuning uchun ularga maʼlumot yuborish transchegaraviy uzatish hisoblanadi. U Qonun talablariga muvofiq, jumladan sizning roziligingiz asosida amalga oshiriladi: roʻyxatdan oʻtib, ushbu siyosatga rozilik bildirganingizda siz bunday uzatishga ham rozilik berasiz.</p>
-  <p>Biz biometrik va genetik maʼlumotlarni yigʻmaymiz.</p>
+  <p>Saytning serveri va maʼlumotlar bazasi Polshada, Varshava shahrida joylashgan. Shu sababli maʼlumotlaringiz Oʻzbekistondan tashqarida saqlanadi va ularga oʻsha yerda ishlov beriladi. Polsha — Yevropa Ittifoqi aʼzosi: u yerda shaxsga doir maʼlumotlar Yevropa Ittifoqining Maʼlumotlarni himoya qilish boʻyicha umumiy reglamenti (GDPR) bilan himoya qilinadi.</p>
+  <p>Google va Telegram serverlari ham Oʻzbekistondan tashqarida joylashgan. Maʼlumotlarni chet elga uzatish Qonun talablariga muvofiq, jumladan sizning roziligingiz asosida amalga oshiriladi: roʻyxatdan oʻtib, ushbu siyosatga rozilik bildirganingizda siz bunday uzatishga ham rozilik berasiz.</p>
+  <p>Qonunga koʻra Oʻzbekistonda saqlanishi shart boʻlgan biometrik va genetik maʼlumotlarni biz yigʻmaymiz.</p>
 </section>
 
 <section class="legal__sec" id="retention">

@@ -6,7 +6,7 @@
 <section class="legal__sec" id="general">
   <h2>1. Umumiy qoidalar</h2>
   <p>Ushbu hujjat {{ legal.seller.brand }} internet-doʻkonining ({{ legal.seller.site }}, bundan keyin — «Sayt») foydalanish shartlari va Oʻzbekiston Respublikasi Fuqarolik kodeksining 369-moddasi maʼnosidagi ommaviy ofertadir: Saytdagi mahsulotlarni sotish shartlari hamma uchun bir xil.</p>
-  <p>Saytda sotuvchi — {{ legal.seller.brand }} (bundan keyin — «Sotuvchi» yoki «biz»). Sotuvchi haqidagi rasmiy maʼlumotlar <a class="link" href="#seller">17-boʻlimda</a> keltirilgan.</p>
+  <p>Saytdagi mahsulotlarning sotuvchisi — {{ legal.seller.legal_form }} {{ legal.seller.registered_name }} (bundan keyin — «Sotuvchi» yoki «biz»). {{ legal.seller.brand }} — Sotuvchi internet-doʻkonining nomi. Sotuvchi haqidagi rasmiy maʼlumotlar <a class="link" href="#seller">17-boʻlimda</a> keltirilgan.</p>
   <p>Saytdan foydalanish ushbu shartlarga rozilik bildirishni anglatadi. Buyurtmani toʻlash ofertani toʻliq va soʻzsiz qabul qilish (aksept) hisoblanadi (Fuqarolik kodeksining 370-moddasi).</p>
   <p>Hujjat oʻzbek, rus va ingliz tillarida eʼlon qilinadi. Matnlar orasida farq boʻlsa, oʻzbek tilidagi matn ustun turadi.</p>
 </section>
@@ -64,7 +64,7 @@
 
 <section class="legal__sec" id="uncollected">
   <h2>7. Olib ketilmagan yoki rad etilgan joʻnatma</h2>
-  <p>Joʻnatma yetib kelgach, Pochta qabul qiluvchiga xabarnoma yuboradi. Pochta boʻlimi joʻnatmani xizmat turiga qarab {{ legal.hold_min }} kundan {{ legal.hold_max }} kungacha saqlaydi. Ikkinchi xabarnomadan keyin ham olib ketilmagan joʻnatma uchun Pochta oʻz tariflari boʻyicha saqlash haqi olishi mumkin.</p>
+  <p>Joʻnatma yetib kelgach, Pochta qabul qiluvchiga xabarnoma yuboradi. Pochta qoidalariga koʻra, pochta boʻlimi joʻnatmani {{ legal.hold_months }} oy saqlaydi. Ikkinchi xabarnomadan keyin ham olib ketilmagan joʻnatma uchun Pochta oʻz tariflari boʻyicha saqlash haqi olishi mumkin.</p>
   <p>Saqlash muddatida olib ketilmagan yoki qabul qiluvchi rad etgan joʻnatma Sotuvchiga qaytariladi. Pochta qoidalariga koʻra, qaytarish xarajatini joʻnatuvchi — Sotuvchi toʻlaydi.</p>
   <p>Joʻnatma bizga qaytib kelgach, toʻlangan summadan <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> ushlab qolinadi va qolgan qismi {{ legal.refund_days }} kun ichida qaytariladi (<a class="link" href="#refunds">10-boʻlim</a>). Ushlab qolingan summa joʻnatish va qaytarish xarajatlarining bir qismini qoplaydi.</p>
 </section>
@@ -170,9 +170,10 @@
   <dl class="legal__facts">
     <div><dt>Doʻkon</dt><dd>{{ legal.seller.brand }} — {{ legal.seller.site }}</dd></div>
     <div><dt>Roʻyxatdan oʻtgan nomi</dt><dd>{{ legal.seller.registered_name }}</dd></div>
+    <div><dt>Maqomi</dt><dd>{{ legal.seller.legal_form|capfirst }}</dd></div>
     <div><dt>Manzil</dt><dd>{{ legal.seller.address }}</dd></div>
     <div><dt>Telefon</dt><dd><a class="link num" href="tel:{{ legal.seller.phone_href }}">{{ legal.seller.phone }}</a></dd></div>
-    <div><dt>Elektron pochta</dt><dd><a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a></dd></div>
+    <div><dt>Elektron pochta</dt><dd><a class="link" href="mailto:{{ legal.seller.email }}">{{ legal.seller.email|email_break }}</a></dd></div>
     <div><dt>Telegram</dt><dd><a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener">@{{ legal.seller.telegram }}</a></dd></div>
   </dl>
 </section>

@@ -183,11 +183,18 @@ ESKIZ_FROM = os.environ.get("ESKIZ_FROM", "4546")
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "")
 
 # --- Telegram ---
-# Order, payment, message and review notifications to the owner's phone. Blank
+# Order, payment, message and review notifications to the shop's staff. Blank
 # for the same reason: core/telegram.py logs a warning and sends nothing rather
 # than raising, so local development and a fresh deploy are unaffected.
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+# The shop's own bot service. With the URL set, every notification is POSTed
+# there as signed JSON and the bot delivers it - the token and chat id above
+# are then unused. The secret is the one the bot holds as well; it lives in the
+# two .env files and nowhere else (§17 #206, docs/integrations/telegram-bot.md).
+TELEGRAM_BOT_WEBHOOK_URL = os.environ.get("TELEGRAM_BOT_WEBHOOK_URL", "")
+WEBSITE_WEBHOOK_SECRET = os.environ.get("WEBSITE_WEBHOOK_SECRET", "")
 
 # Used to build absolute links in notifications, which are read outside any
 # request and so cannot ask one for the host.
