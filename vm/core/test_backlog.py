@@ -3,8 +3,10 @@
 Kamronbek's pass before Phase 9 found three things on screens he uses: the
 panel's dates in the browser's American order, a cancelled order named by its
 database id, and Uzbek months written with a capital. Rechecking the backlog
-found five more worth doing now rather than in the phase each was parked in.
-Each class names the decision it holds in place (§17 #216-#223).
+found five more worth doing now rather than in the phase each was parked in,
+and the recheck itself found that an unverified account could not reach the
+code page in Russian or English. Each class names the decision it holds in
+place (§17 #216-#225).
 """
 import io
 import json
@@ -548,3 +550,55 @@ class IconAndShareCardTests(TestCase):
         self.assertIn('Playfair Display', text)
         self.assertIn('--window-size=1200,630', text)
         self.assertIn('og-image.png', text)
+
+
+# --------------------------------------------------- verification, §17 #225
+class VerificationInEveryLanguageTests(TestCase):
+    """An unverified account reaches the code page in every language (§17 #225).
+
+    The middleware's exempt paths were resolved in Uzbek only, so on
+    ``/ru/verify-phone/`` it redirected to ``/ru/verify-phone/`` for ever.
+    """
+
+    def setUp(self):
+        self.user = make_user('kodsiz', '+998901300071', verified=False)
+        self.client.force_login(self.user)
+        sms = mock.patch('user.otp.send_sms', return_value=True)
+        self.sent = sms.start()
+        self.addCleanup(sms.stop)
+
+    def test_the_code_page_opens_in_every_language(self):
+        for lang in LANGS:
+            with self.subTest(lang=lang):
+                response = self.client.get(at(lang, 'verify_phone'))
+                self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.sent.call_count, 1)
+
+    def test_any_other_page_leads_there_in_its_own_language(self):
+        for lang in LANGS:
+            with self.subTest(lang=lang):
+                response = self.client.get(at(lang, 'shop'), follow=True)
+                self.assertEqual(response.redirect_chain,
+                                 [(at(lang, 'verify_phone'), 302)])
+                self.assertEqual(response.status_code, 200)
+
+    def test_signing_out_works_in_every_language(self):
+        for lang in LANGS:
+            with self.subTest(lang=lang):
+                self.client.force_login(self.user)
+                self.client.post(at(lang, 'logout'))
+                self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_the_language_can_be_switched_while_waiting(self):
+        target = at('ru', 'verify_phone')
+        response = self.client.post('/i18n/setlang/', {'language': 'ru', 'next': target})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], target)
+
+    def test_everything_else_still_waits_for_the_code(self):
+        for lang in LANGS:
+            for name in ('account', 'checkout', 'panel_orders'):
+                with self.subTest(lang=lang, page=name):
+                    response = self.client.get(at(lang, name))
+                    self.assertEqual(response.status_code, 302)
+                    self.assertEqual(response['Location'], at(lang, 'verify_phone'))
