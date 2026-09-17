@@ -93,6 +93,10 @@
   {# container is always present and empty; only JavaScript ever fills it. #}
   <div class="toasts" data-toasts role="status" aria-live="polite"></div>
 
+  {# What the browser's own form controls say, in the page's language: the #}
+  {# sentences are rendered here through gettext and `forms.js` uses them #}
+  {# (partials/_form_messages.html has the reasoning). #}
+  {% include "partials/_form_messages.html" %}
   <script src="{% static 'js/main.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>

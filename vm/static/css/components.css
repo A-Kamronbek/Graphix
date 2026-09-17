@@ -80,6 +80,17 @@
 }
 .input[type="file"]:hover::file-selector-button { border-color: var(--c-fg-subtle); }
 
+/* A file field that speaks the page's language: a button-styled label over
+   a visually hidden input, and the name of what was chosen beside it. The
+   browser's own button says "Choose File" in the browser's language, whatever
+   the page's (§18 #29). On one line it is as tall as a text field, so the
+   captions of a row of fields line up. The hidden input still takes the
+   keyboard, so the ring is drawn on the button it hides behind. */
+.field__file { display: flex; align-items: center; gap: var(--s-3);
+  flex-wrap: wrap; min-height: 44px; }
+.field__file:has(input:focus-visible) .btn { outline: 2px solid var(--c-brand);
+  outline-offset: 2px; }
+
 .field--error .input, .field--error .textarea, .field--error .select { border-color: var(--c-danger); }
 .field__error { color: var(--c-danger); font-size: var(--fs-sm); }
 .field__hint  { color: var(--c-fg-muted); font-size: var(--fs-sm); }

@@ -96,10 +96,17 @@
                       placeholder="{% trans 'Oʻlchami toʻgʻri keldimi? Mato qanday?' %}">{% if submitted.product == product.pk %}{{ submitted.text }}{% endif %}</textarea>
           </div>
 
-          <div class="field">
+          {# Without JavaScript this is the browser's own file input, which #}
+          {# works but speaks the browser's language. `forms.js` swaps it for #}
+          {# the button below and a line naming what was picked (§18 #29). #}
+          <div class="field" data-file-field>
             <label class="label" for="photos-{{ product.pk }}">{% trans "Rasmlar" %}</label>
             <input class="input" type="file" name="photos" id="photos-{{ product.pk }}"
                    accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+            <span class="field__file" hidden data-file-ui>
+              <label class="btn btn--secondary" for="photos-{{ product.pk }}">{% trans "Rasmlarni tanlash" %}</label>
+              <span class="small muted" data-file-status></span>
+            </span>
             <small class="field__hint">
               {% blocktrans with n=max_photos %}Koʻpi bilan {{ n }} ta rasm. Rasmdagi joylashuv maʼlumotlari oʻchiriladi.{% endblocktrans %}
             </small>

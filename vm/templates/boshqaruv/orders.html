@@ -49,11 +49,27 @@
     </select>
   </div>
 
+  {# Dates are text fields in dd/mm/yyyy, not native date inputs: those draw #}
+  {# the browser's own format - mm/dd/yyyy in an English browser - whatever #}
+  {# the page's language (§18 #38). The native picker is still one tap away, #}
+  {# behind the calendar button that `panel.js` shows. #}
   <div class="row">
-    <label class="sr-only" for="f-since">{% trans "Sanadan" %}</label>
-    <input class="input" type="date" name="since" id="f-since" value="{{ filters.since }}">
-    <label class="sr-only" for="f-until">{% trans "Sanagacha" %}</label>
-    <input class="input" type="date" name="until" id="f-until" value="{{ filters.until }}">
+    {% for field, value, label in date_fields %}
+      <label class="sr-only" for="f-{{ field }}">{{ label }}</label>
+      <span class="datefield">
+        <input class="input" type="text" name="{{ field }}" id="f-{{ field }}" value="{{ value }}"
+               autocomplete="off" maxlength="10"
+               placeholder="{% trans 'kk/oo/yyyy' %}"
+               pattern="[0-9]{1,2}[.\/][0-9]{1,2}[.\/][0-9]{4}"
+               title="{% trans 'Sanani kk/oo/yyyy koʻrinishida kiriting, masalan 16/09/2026.' %}"
+               data-date-text>
+        <button class="datefield__pick" type="button" hidden data-date-pick
+                aria-label="{% trans 'Kalendardan tanlash' %}">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-calendar"></use></svg>
+        </button>
+        <input class="datefield__native" type="date" tabindex="-1" aria-hidden="true" data-date-native>
+      </span>
+    {% endfor %}
     <button class="btn btn--primary" type="submit">{% trans "Filtrlash" %}</button>
     <a class="btn btn--ghost" href="{% url 'panel_orders' %}">{% trans "Tozalash" %}</a>
   </div>

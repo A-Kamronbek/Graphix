@@ -43,9 +43,10 @@ class PhoneVerificationMiddleware:
         if self._otp_window_expired(request):
             # Same rule as the view's cancel path, and deliberately the same
             # function: an unverified account that already holds a claimed cart
-            # or an order is a customer, and deleting it would CASCADE their
-            # things away (§12 risk #4). They are logged out either way and can
-            # sign in again to finish verifying.
+            # or an order is a customer, whose cart a delete would CASCADE away
+            # and whose order makes the delete fail (§12 risk #4, §17 #219).
+            # They are logged out either way and can sign in again to finish
+            # verifying.
             from .services import delete_if_disposable
             logout(request)
             delete_if_disposable(user)

@@ -18,13 +18,14 @@ def is_disposable(user):
     """Is this an abandoned signup with nothing hanging off it?
 
     An unverified account is throwaway *until* something of the customer's is
-    attached to it. Both checks matter and both are CASCADE relations, so
-    deleting the user would take the rows with it:
+    attached to it. Both checks matter:
 
-    * an order — the shop's own record of a sale, and
-    * a cart — which, for an unverified user, means a guest cart that was
-      claimed at signup. Deleting the account throws away what they were about
-      to buy.
+    * an order — the shop's own record of a sale. Since §17 #219 the database
+      refuses to delete an account that has one (``PROTECT``); checking first
+      means this path never relies on that refusal;
+    * a cart — a CASCADE relation, and for an unverified user a guest cart that
+      was claimed at signup. Deleting the account throws away what they were
+      about to buy.
     """
     if not user or not user.is_authenticated or getattr(user, 'phone_verified', True):
         return False

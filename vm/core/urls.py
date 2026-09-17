@@ -12,7 +12,7 @@ urlpatterns = [
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
 
-    # Staff-only design-system reference. The rest of /boshqaruv/ arrives in
-    # Phase 7; this is the first page under it.
+    # Staff-only design-system reference, under /boshqaruv/ like the rest of
+    # the panel (panel/urls.py), where Phase 2 put it before the panel existed.
     path('boshqaruv/style/', views.style_guide, name='style_guide'),
 ]

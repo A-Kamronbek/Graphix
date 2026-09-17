@@ -14,7 +14,7 @@ status control degrades anyway: it is a real form with a real submit button
 that `panel.js` upgrades, because that cost nothing.
 """
 import re
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -59,19 +59,33 @@ def _int(raw, default=0):
         return default
 
 
-def _date(raw):
-    """Parse a plain ``YYYY-MM-DD`` out of the query string, or return ''.
+#: The ways the panel reads a date typed into a field. Day first, as the owner
+#: writes one (§18 #38); the ISO form is still read, so a link or a bookmark
+#: made before the change keeps working.
+DATE_READ = ('%d/%m/%Y', '%d.%m.%Y', '%Y-%m-%d')
 
-    The same rule as ``_int`` and for the same reason, which this filter was
-    breaking: an unparseable string handed to ``created_at__date__gte`` raises
-    inside the query compiler, so a bookmark somebody had edited — or a stale
-    link with a half-typed date in it — took the orders screen down with a 500
-    rather than showing an unfiltered list.
+
+def _date(raw):
+    """Parse a date out of the query string: a :class:`date`, or None.
+
+    Never raises - the same rule as ``_int``, and for the reason this filter
+    once broke: an unparseable string handed to ``created_at__date__gte``
+    raises inside the query compiler, so a bookmark somebody had edited, or a
+    stale link with a half-typed date in it, took the orders screen down with
+    a 500 rather than showing an unfiltered list.
     """
-    try:
-        return date.fromisoformat(str(raw).strip()).isoformat()
-    except (TypeError, ValueError):
-        return ''
+    text = str(raw or '').strip()
+    for pattern in DATE_READ:
+        try:
+            return datetime.strptime(text, pattern).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _shown(day):
+    """A date as the panel's fields show it - dd/mm/yyyy - or '' for none."""
+    return f'{day.day:02d}/{day.month:02d}/{day.year:04d}' if day else ''
 
 
 def _safe_next(request, fallback):
@@ -181,8 +195,9 @@ def orders(request):
     if tier.isdigit():
         qs = qs.filter(delivery_option_id=int(tier))
 
-    # A date range, either end optional. Given as plain dates, because that is
-    # what a date input sends and what somebody types — and parsed before it
+    # A date range, either end optional. Typed day first - the fields are
+    # text, because a native date input draws the browser's own format, which
+    # is mm/dd/yyyy in an English browser (§18 #38) - and parsed before it
     # reaches the query, because anything else is a 500 (see `_date`).
     since = _date(request.GET.get('since', ''))
     until = _date(request.GET.get('until', ''))
@@ -227,10 +242,12 @@ def orders(request):
         'settable': PANEL_CHOICES,
         'settable_values': PANEL_SETTABLE,
         'filters': {'status': status, 'method': method, 'tier': tier,
-                    'since': since, 'until': until, 'q': query},
+                    'since': _shown(since), 'until': _shown(until), 'q': query},
         # The select marks every status the list is actually showing, so a
         # two-status filter does not leave the control reading "all statuses".
         'chosen_statuses': wanted,
+        'date_fields': [('since', _shown(since), _('Sanadan')),
+                        ('until', _shown(until), _('Sanagacha'))],
         'total': qs.count(),
     })
 

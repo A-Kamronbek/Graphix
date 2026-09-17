@@ -1,4 +1,4 @@
-{% load i18n price_format %}
+{% load i18n price_format date_tags %}
 {# Stacks into cards below 720 px — every cell carries its own label. #}
 <div class="scroll-x">
   <table class="table">
@@ -15,7 +15,7 @@
       {% for o in orders %}
         <tr>
           <td data-label="{% trans 'Buyurtma' %}" class="num">{{ o.order_no|default:o.id }}</td>
-          <td data-label="{% trans 'Sana' %}">{{ o.created_at|date:"j E Y" }}</td>
+          <td data-label="{% trans 'Sana' %}">{{ o.created_at|date:"j E Y"|month_case }}</td>
           <td data-label="{% trans 'Holati' %}">
             <span class="badge {% if o.status == 'done' %}badge--success{% elif o.status == 'cancelled' %}badge--danger{% elif o.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ o.get_status_display }}</span>
           </td>

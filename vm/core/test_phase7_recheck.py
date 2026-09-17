@@ -53,15 +53,19 @@ class QueryStringTests(TestCase):
         A bookmark with a half-typed date in it, or a link somebody edited, was
         answered with a 500 rather than with the list.
         """
-        for bad in ('abc', '2026-13-45', '14/09/2026', '2026-09-'):
+        # '09/14/2026' is the American order: refused, not misread. The day-
+        # first '14/09/2026' that used to be here is now how the fields take a
+        # date (§18 #38, core/test_backlog.py).
+        for bad in ('abc', '2026-13-45', '09/14/2026', '2026-09-'):
             with self.subTest(bad=bad):
                 response = self.client.get(reverse('panel_orders'), {'since': bad})
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.context['filters']['since'], '')
 
     def test_a_real_date_still_filters(self):
+        """An ISO date from an older link still filters; the field shows it day first."""
         response = self.client.get(reverse('panel_orders'), {'since': '2026-01-01'})
-        self.assertEqual(response.context['filters']['since'], '2026-01-01')
+        self.assertEqual(response.context['filters']['since'], '01/01/2026')
 
     def test_two_statuses_at_once(self):
         """The dashboard's "to pack" tile counts `paid` and `processing`.

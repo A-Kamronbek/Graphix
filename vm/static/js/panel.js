@@ -566,6 +566,45 @@ var SAY = (function () {
                                                      : SAY('noFile');
   });
 
+  /* ------------------------------------------------------- date fields */
+  /* The orders filter takes dates as dd/mm/yyyy text (§18 #38), because a
+     native date input draws the browser's own format — mm/dd/yyyy in an
+     English browser. The calendar is still the browser's: the button opens a
+     native input that sits invisibly over the field, and the date picked is
+     written back day first. A browser without showPicker() keeps the button
+     hidden and the field is typed. */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  document.querySelectorAll('.datefield').forEach(function (box) {
+    var text = box.querySelector('[data-date-text]');
+    var pick = box.querySelector('[data-date-pick]');
+    var native = box.querySelector('[data-date-native]');
+    if (!text || !pick || !native || typeof native.showPicker !== 'function') return;
+    pick.hidden = false;
+
+    pick.addEventListener('click', function () {
+      var m = /^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})$/.exec(text.value.trim());
+      /* A day the field cannot hold (31/02) leaves the picker on today, which
+         is what the browser does with any value it rejects. */
+      native.value = m ? m[3] + '-' + pad(+m[2]) + '-' + pad(+m[1]) : '';
+      try {
+        native.showPicker();
+      } catch (err) {
+        /* Refused (no user activation, or not supported after all): the
+           field is still there to type into. */
+        pick.hidden = true;
+        text.focus();
+      }
+    });
+
+    native.addEventListener('change', function () {
+      var parts = native.value.split('-');
+      if (parts.length !== 3) return;
+      text.value = parts[2] + '/' + parts[1] + '/' + parts[0];
+      text.dispatchEvent(new Event('input', {bubbles: true}));
+    });
+  });
+
   /* ------------------------------------------- the description template */
   /* Puts the shape every description follows into an empty box, in that
      box's own language (plan §9 Phase 8 item 7). It never overwrites: the

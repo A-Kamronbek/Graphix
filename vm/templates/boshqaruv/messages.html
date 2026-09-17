@@ -1,5 +1,5 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n %}
+{% load i18n date_tags %}
 {% block title %}{% trans "Xabarlar" %}{% endblock %}
 
 {% comment %}
@@ -31,7 +31,7 @@
              data-url="{% url 'panel_message_read' pk=msg.pk %}">
       <div class="note__hd">
         <strong>{{ msg.topic }}</strong>
-        <time class="small muted" datetime="{{ msg.created_at|date:'c' }}">{{ msg.created_at|date:"j E, H:i" }}</time>
+        <time class="small muted" datetime="{{ msg.created_at|date:'c' }}">{{ msg.created_at|date:"j E, H:i"|month_case }}</time>
       </div>
       <p class="note__text">{{ msg.msg_text|linebreaksbr }}</p>
       <div class="note__foot">

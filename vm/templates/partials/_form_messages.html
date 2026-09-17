@@ -1,0 +1,7 @@
+{% load static form_tags %}
+{# The sentences a browser would otherwise say in its own language when a #}
+{# form is incomplete, and the file field's labels, for `forms.js`. A simple #}
+{# tag rather than a context processor, like `get_legal`: Django renders #}
+{# 500.html with no context at all, and this is on every page (§17 #66). #}
+{% form_messages as gx_forms %}{{ gx_forms|json_script:"gx-forms" }}
+<script src="{% static 'js/forms.js' %}" defer></script>

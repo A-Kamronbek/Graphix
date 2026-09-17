@@ -328,7 +328,10 @@ def order_cancel(request, pk):
     """Cancel an order that is still awaiting payment."""
     order = get_object_or_404(Order, pk=pk, user=request.user)
     if services.cancel_order(order):
-        messages.success(request, _("#%(no)s bekor qilindi.") % {'no': order.id})
+        # By the number the customer knows it by - the one on the order page,
+        # in the terms and on the parcel - not by its database id (§18 #39).
+        messages.success(request, _("%(no)s raqamli buyurtma bekor qilindi.")
+                         % {'no': order.order_no or order.pk})
     else:
         messages.error(request, _("Buyurtmani bekor qilib boʻlmadi."))
     return redirect('order_status', pk=order.id)
