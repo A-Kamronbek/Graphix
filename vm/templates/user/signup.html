@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n %}
 {% block title %}{% trans "Roʻyxatdan oʻtish" %}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% block content %}
 {# Centred, one column, like the sign-in screen beside it and the OTP step #}
@@ -10,7 +11,7 @@
     <div class="stack stack--lg">
       <div class="stack stack--sm">
         <h1 class="h1">{% trans "Roʻyxatdan oʻtish" %}</h1>
-        <p class="lede">{% trans "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak." %}</p>
+        <p class="lede">{% trans "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak." %}</p>
       </div>
 
       {% if notice %}<div class="msg msg--warn" role="status">{{ notice }}</div>{% endif %}

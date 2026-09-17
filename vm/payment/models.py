@@ -250,7 +250,10 @@ class Order(models.Model):
         choices=PaymentMethod.choices,
         default=PaymentMethod.CLICK,
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Indexed: orders are listed newest first everywhere they are listed - the
+    # customer's account, the panel's list, the dashboard's day and month
+    # figures - and the panel filters them by date (§9 Phase 9 item 8).
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     total_price = models.DecimalField(max_digits=15, decimal_places=0)
     updated_at = models.DateTimeField(auto_now=True)
 

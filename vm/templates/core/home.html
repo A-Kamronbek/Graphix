@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format %}
+{% load static i18n i18n_fields price_format image_tags %}
 
 {% block title %}{% trans "Grafik futbolkalar" %}{% endblock %}
 
@@ -24,17 +24,13 @@
     {% if featured %}
       <a class="home__hero-art" href="{% url 'item' featured.slug %}"
          aria-label="{{ featured|t:'name' }}">
-        {% with featured.images.first as img %}
-          {% if img and img.picture and img.picture.name %}
-            {# Lazy on purpose: the hero image is hidden below 860 px, and a lazy #}
-            {# image that is not displayed is never fetched, so a phone does not #}
-            {# pay for a picture it will not see. On desktop it sits in the first #}
-            {# screen, where the browser fetches it immediately anyway. #}
-            <img src="{{ img.picture.url }}" alt="{{ featured|t:'name' }}" decoding="async" loading="lazy"
-                 onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-          {% else %}
-            <img src="{% static 'img/no-image.jpg' %}" alt="{{ featured|t:'name' }}" decoding="async" loading="lazy">
-          {% endif %}
+        {% with featured.images.all|first as img %}
+          {# Lazy on purpose: the hero image is hidden below 860 px, and a lazy #}
+          {# image that is not displayed is never fetched, so a phone does not #}
+          {# pay for a picture it will not see. On desktop it sits in the first #}
+          {# screen, where the browser fetches it immediately anyway. #}
+          <img {% photo_attrs img 'hero' %} alt="{{ featured|t:'name' }}"
+               decoding="async" loading="lazy">
         {% endwith %}
       </a>
     {% endif %}
@@ -49,7 +45,16 @@
         <a class="link" href="{% url 'shop' %}">{% trans "Barchasi" %}</a>
       </div>
       <div class="grid-products">
-        {% for p in newest %}{% include "product/_card.html" with p=p %}{% endfor %}
+        {# The first row is what a phone sees without scrolling — the hero is #}
+        {# type and two buttons below 860 px — so it is fetched rather than #}
+        {# deferred, and its first card is the page's LCP candidate. #}
+        {% for p in newest %}
+          {% if forloop.counter <= 4 %}
+            {% include "product/_card.html" with p=p eager=True lcp=forloop.first %}
+          {% else %}
+            {% include "product/_card.html" with p=p %}
+          {% endif %}
+        {% endfor %}
       </div>
     </div>
   </section>
@@ -85,7 +90,7 @@
 <section class="section">
   <div class="wrap home__statement">
     <p class="h3">
-      {% trans "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada." %}
+      {% trans "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada." %}
     </p>
     <a class="link" href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a>
   </div>

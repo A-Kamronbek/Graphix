@@ -1,13 +1,13 @@
 {% load static %}{
   "name": "GRAPHIX",
   "short_name": "GRAPHIX",
-  "description": "Grafik futbolkalar do'koni. Premium sifat, 100+ dizayn, O'zbekiston bo'ylab yetkazib berish.",
+  "description": "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish.",
   "lang": "uz",
   "start_url": "/uz/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#100E0C",
+  "theme_color": "#100E0C",
   "icons": [
     { "src": "{% static 'img/icon-192.png' %}", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "{% static 'img/icon-512.png' %}", "sizes": "512x512", "type": "image/png", "purpose": "any" },

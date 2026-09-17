@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format %}
+{% load static i18n i18n_fields price_format image_tags %}
 
 {% block title %}{% trans "Savat" %}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% block content %}
 <div class="wrap section stack stack--lg">
@@ -13,13 +14,10 @@
         {% for it in items %}
           <article class="cartline">
             <a class="cartline__thumb" href="{% url 'item' it.variant.product.slug %}">
-              {% with it.variant.product.images.first as img %}
-                {% if img and img.picture and img.picture.name %}
-                  <img src="{{ img.picture.url }}" alt="{{ it.variant.product|t:'name' }}" loading="lazy"
-                       onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-                {% else %}
-                  <img src="{% static 'img/no-image.jpg' %}" alt="{{ it.variant.product|t:'name' }}" loading="lazy">
-                {% endif %}
+              {% with it.variant.product.images.all|first as img %}
+                {# The first line is at the top of the page; the rest are not. #}
+                <img {% photo_attrs img 'thumb' %} alt="{{ it.variant.product|t:'name' }}"
+                     decoding="async"{% if not forloop.first %} loading="lazy"{% endif %}>
               {% endwith %}
             </a>
 
@@ -51,7 +49,7 @@
               <form method="post" action="{% url 'cart_remove' it.id %}">
                 {% csrf_token %}
                 <button class="btn btn--ghost btn--icon" type="submit"
-                        aria-label="{% blocktrans with name=it.variant.product.name %}{{ name }} — olib tashlash{% endblocktrans %}">
+                        aria-label="{% blocktrans with name=it.variant.product.name %}{{ name }} — olib tashlash{% endblocktrans %}">
                   <svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg>
                 </button>
               </form>
@@ -96,7 +94,7 @@
       <svg class="i" aria-hidden="true"><use href="#i-cart"></use></svg>
       {# h2: the empty state is the page's one section under the h1. #}
       <h2 class="h3">{% trans "Savat boʻsh" %}</h2>
-      <p>{% trans "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi." %}</p>
+      <p>{% trans "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi." %}</p>
       <a class="btn btn--primary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
     </div>
   {% endif %}

@@ -255,9 +255,19 @@ class SellerDetailsTests(TestCase):
         for doc in ('terms', 'privacy'):
             for lang in LANGS:
                 html = page(self.client, doc, lang)
-                for value in (seller.registered_name, seller.address, seller.email, seller.phone):
+                for value in (seller.registered_name, seller.email, seller.phone):
                     with self.subTest(doc=doc, lang=lang, value=value):
                         self.assertIn(value, html)
+
+    def test_the_postal_address_is_in_the_offer_and_only_there(self):
+        """Kamronbek's call (§17 #226): the E-commerce Law wants an address in
+        the offer (art. 16); nothing else on the site needs one, and the
+        privacy policy links to the terms instead of repeating it."""
+        seller = legal.facts().seller
+        for lang in LANGS:
+            with self.subTest(lang=lang):
+                self.assertIn(seller.address, page(self.client, 'terms', lang))
+                self.assertNotIn(seller.address, page(self.client, 'privacy', lang))
 
     def test_no_tax_number_or_bank_details_are_published(self):
         """§17 #184: name, address and contacts only."""
@@ -282,7 +292,8 @@ class SellerDetailsTests(TestCase):
         seller = legal.facts().seller
         html = self.client.get('/uz/contact/').content.decode()
         self.assertIn(seller.registered_name, html)
-        self.assertIn(seller.address, html)
+        # The address is not here any more (§17 #226); the link to the terms is.
+        self.assertNotIn(seller.address, html)
 
 
 class LinksToTheDocumentsTests(TestCase):

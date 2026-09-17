@@ -1,5 +1,5 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n i18n_fields %}
+{% load i18n i18n_fields image_tags %}
 {% block title %}{% trans "Sozlamalar" %}{% endblock %}
 
 {% comment %}
@@ -97,7 +97,7 @@
 
 <section class="pnl__section" id="teg-turlari">
   <h2>{% trans "Teg turlari" %}</h2>
-  <p class="field__hint">{% trans "Teglar shu turlarga boʻlinadi — doʻkondagi filtrlar ham shunday guruhlanadi." %}</p>
+  <p class="field__hint">{% trans "Teglar shu turlarga boʻlinadi — doʻkondagi filtrlar ham shunday guruhlanadi." %}</p>
   <div class="panel-card stack stack--sm">
     {% for row in kinds %}
       {% include "boshqaruv/_lookup_row.html" with row=row kind='tagkind' %}
@@ -110,7 +110,7 @@
 
 <section class="pnl__section" id="teglar">
   <h2>{% trans "Teglar" %}</h2>
-  <p class="field__hint">{% trans "Teglar tavsiyalar uchun asosiy signal — turkum emas." %}</p>
+  <p class="field__hint">{% trans "Teglar tavsiyalar uchun asosiy signal — turkum emas." %}</p>
 
   {# A search, for the same reason the product form's chips have one: this list #}
   {# is readable at eight tags and a wall at forty, and the owner writes them. #}
@@ -209,7 +209,7 @@
 
 <section class="pnl__section" id="jadvallar">
   <h2>{% trans "Oʻlcham jadvallari" %}</h2>
-  <p class="field__hint">{% trans "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi." %}</p>
+  <p class="field__hint">{% trans "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi." %}</p>
 
   {% for chart in charts %}
     <div class="panel-card chart" data-ref="chart" data-id="{{ chart.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='chart' pk=chart.pk %}">
@@ -218,7 +218,7 @@
       {# the row says so instead of leaving a gap. #}
       {% if chart.image %}
         <a class="chart__shot" href="{{ chart.image.url }}" target="_blank" rel="noopener">
-          <img src="{{ chart.image.url }}" alt="{{ chart.name }}" loading="lazy" decoding="async">
+          <img {% photo_attrs chart 'panel' %} alt="{{ chart.name }}" loading="lazy" decoding="async">
         </a>
       {% else %}
         <span class="chart__shot chart__shot--empty">

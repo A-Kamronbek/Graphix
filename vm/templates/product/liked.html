@@ -2,6 +2,7 @@
 {% load i18n %}
 
 {% block title %}{% trans "Saqlanganlar" %}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% block content %}
 <div class="wrap section stack stack--lg">
@@ -23,7 +24,7 @@
       <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
       {# h2: the empty state is the page's one section under the h1. #}
       <h2 class="h3">{% trans "Hali hech narsa saqlanmagan" %}</h2>
-      <p>{% trans "Yoqqan dizaynni yurakcha bilan belgilang — u shu yerda toʻplanadi." %}</p>
+      <p>{% trans "Yoqqan dizaynni yurakcha bilan belgilang — u shu yerda toʻplanadi." %}</p>
       <a class="btn btn--secondary" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
     </div>
   {% endif %}

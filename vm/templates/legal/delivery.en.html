@@ -6,7 +6,7 @@
 
 <section class="legal__sec" id="prices">
   <h2>1. Prices</h2>
-  <p>Anywhere in Uzbekistan, by Uzpost — in Tashkent and in the regions alike.</p>
+  <p>Anywhere in Uzbekistan, by Uzpost — in Tashkent and in the regions alike.</p>
   {% if delivery_options %}
     <dl class="legal__facts">
       {% for opt in delivery_options %}
@@ -28,18 +28,18 @@
 
 <section class="legal__sec" id="home">
   <h2>3. To your door</h2>
-  <p>A courier brings the order to the address you gave and calls ahead. You can type the address or mark it on the map — the pin makes it more precise, but the street and house number are still needed.</p>
+  <p>A courier brings the order to the address you gave and calls ahead. You can type the address or mark it on the map — the pin makes it more precise, but the street and house number are still needed.</p>
 </section>
 
 <section class="legal__sec" id="timing">
   <h2>4. How long it takes</h2>
-  <p>Once your payment is confirmed, we pack the order and hand it to Uzpost — you can follow it on the “My orders” page. Uzpost usually delivers anywhere in the country within {{ legal.transit_min|legal_range:legal.transit_max }} day{{ legal.transit_max|pluralize }}; door delivery can take one more day for the courier. In any case your order must arrive no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
+  <p>Once your payment is confirmed, we pack the order and hand it to Uzpost — you can follow it on the “My orders” page. Uzpost usually delivers anywhere in the country within {{ legal.transit_min|legal_range:legal.transit_max }} day{{ legal.transit_max|pluralize }}; door delivery can take one more day for the courier. In any case your order must arrive no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
 </section>
 
 <section class="legal__sec" id="uncollected">
   <h2>5. If you don’t collect it</h2>
   <p>The branch holds the parcel for {{ legal.hold_months }} month{{ legal.hold_months|pluralize }}. Collect it soon after the notice arrives: after the second notice Uzpost may charge a storage fee.</p>
-  <p>A parcel that is not collected in time, or is refused, comes back to us. We then keep <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> of your payment and refund the rest within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. So check the postcode and the address carefully — you can see them again on the order page.</p>
+  <p>A parcel that is not collected in time, or is refused, comes back to us. We then keep <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> of your payment and refund the rest within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. So check the postcode and the address carefully — you can see them again on the order page.</p>
 </section>
 
 <section class="legal__sec" id="exchange">

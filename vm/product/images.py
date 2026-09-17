@@ -22,11 +22,14 @@ Pillow only; it is already a dependency (``ImageField`` requires it) and §4
 forbids new ones.
 """
 import io
+import logging
 
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
 from PIL import Image, UnidentifiedImageError
+
+logger = logging.getLogger(__name__)
 
 #: Long edge, in pixels. The largest a review photo is ever shown is a lightbox
 #: on a laptop; 1600 covers that with room to spare and turns a 4 MB phone
@@ -147,6 +150,161 @@ def sanitise(upload, name_hint='review', max_edge=None):
             code='unprocessable')
 
     return ContentFile(out.getvalue(), name=f'{name_hint}.jpg')
+
+
+# --------------------------------------------------------------- renditions
+# Phase 9. A photograph is stored once, at full size, and delivered as WebP at
+# the width the screen in front of it actually needs. The originals in
+# `media/products/` run to 3.8 MB, which is fifteen times the whole budget for
+# one image (§5), and the owner and his customers both upload straight from
+# phones - so this is not a nicety, it is the difference between a catalogue
+# that loads on mobile data and one that does not.
+
+#: The widths written for every photograph, smallest first. A card is never
+#: wider than 300 px and the product page's frame is 608 px, so 400 and 800
+#: cover ordinary screens at 1x and 2x; 1600 is what a 3x phone asks for and
+#: what the full-screen viewer opens.
+RENDITION_WIDTHS = (400, 800, 1600)
+
+#: Renditions live one folder below the originals - `products/a.jpg` becomes
+#: `products/w/a-800.webp`. `upload_to` writes originals straight into
+#: `products/` and `reviews/`, so nothing else can land in here and a derived
+#: name can never collide with a file somebody uploaded.
+RENDITION_DIR = 'w'
+
+#: Encoder effort, 0-6. Pillow's default; 6 is about 5 % smaller and several
+#: times slower, and this runs while the owner waits for an upload to finish.
+WEBP_METHOD = 4
+
+#: §5 caps the largest image delivered at 250 KB. Quality is stepped down until
+#: the file fits rather than left at one number and hoped for: a dense design at
+#: 1600 px does not fit at 82, and a flat one wastes bytes below it.
+RENDITION_BUDGET = 250 * 1024
+#: 48 is the floor, not a target. Below it a photograph starts to look like a
+#: photograph of a photograph, and a picture nobody wants to look at is not a
+#: saving. A source detailed enough to miss the budget even here keeps the
+#: smallest file rather than being refused.
+QUALITY_STEPS = (80, 72, 64, 56, 48)
+
+
+def rendition_name(original, width):
+    """The stored name of one rendition of the stored file ``original``."""
+    head, _, tail = original.rpartition('/')
+    stem = tail.rsplit('.', 1)[0]
+    leaf = f'{RENDITION_DIR}/{stem}-{width}.webp'
+    return f'{head}/{leaf}' if head else leaf
+
+
+def rendition_widths(source_width):
+    """Which widths to write for a photograph this wide.
+
+    Never upscales: a 900 px photograph is written at 400, 800 and 900, not at
+    1600, because the extra pixels would be invented ones that cost bytes.
+    """
+    return sorted({min(width, source_width) for width in RENDITION_WIDTHS})
+
+
+def build_renditions(fieldfile):
+    """Measure a stored photograph, write its renditions, and describe them.
+
+    Returns ``(width, height, {'src': name, 'w': [[width, name], ...]})``, or
+    ``None`` if the file could not be read at all.
+
+    Never raises. It runs after an upload has already been accepted and after
+    its row has been committed: a photograph that cannot be re-encoded is a
+    photograph served at full size, which is slow, and not an error page, which
+    is broken. The one caller that wants to know is the backfill command, and a
+    ``None`` tells it.
+    """
+    name = getattr(fieldfile, 'name', '') or ''
+    if not name:
+        return None
+    storage = fieldfile.storage
+    try:
+        with storage.open(name, 'rb') as handle:
+            data = handle.read()
+        with Image.open(io.BytesIO(data)) as opened:
+            # Everything happens inside the `with`: `exif_transpose` may hand
+            # back the same object, and using it after the file is closed is an
+            # error that only shows up on some formats.
+            source = _apply_orientation(opened)
+            if source.mode in ('RGBA', 'LA', 'P'):
+                # Alpha survives into WebP rather than being flattened: the page
+                # ground is dark and a white box behind a cut-out would show.
+                source = source.convert('RGBA')
+            elif source.mode != 'RGB':
+                source = source.convert('RGB')
+            width, height = source.size
+            written = []
+            for target in rendition_widths(width):
+                if target == width:
+                    frame = source
+                else:
+                    frame = source.resize(
+                        (target, max(1, round(height * target / width))), Image.LANCZOS)
+                written.append([target, _store(storage, rendition_name(name, target),
+                                               _encode_webp(frame))])
+    except Exception:
+        logger.exception('could not build the renditions of %s', name)
+        return None
+    return width, height, {'src': name, 'w': written}
+
+
+def measure(fieldfile):
+    """``(width, height)`` of a stored image, or ``None``. Never raises.
+
+    Header only - Pillow reads the size without decoding a pixel - so this is
+    cheap enough to run on every save of a row that holds an image.
+    """
+    name = getattr(fieldfile, 'name', '') or ''
+    if not name:
+        return None
+    try:
+        with fieldfile.storage.open(name, 'rb') as handle:
+            with Image.open(handle) as opened:
+                return opened.size
+    except Exception:
+        logger.exception('could not measure %s', name)
+        return None
+
+
+def measure_path(path):
+    """``(width, height)`` of an image on disk, or ``None``. Never raises.
+
+    For the files that are not in storage at all - the drawn size guide is a
+    static asset the owner replaces by hand.
+    """
+    try:
+        with Image.open(path) as opened:
+            return opened.size
+    except Exception:
+        logger.exception('could not measure %s', path)
+        return None
+
+
+def _encode_webp(image):
+    """``image`` as WebP bytes, at the highest quality that fits the budget."""
+    blob = b''
+    for quality in QUALITY_STEPS:
+        out = io.BytesIO()
+        image.save(out, format='WEBP', quality=quality, method=WEBP_METHOD)
+        blob = out.getvalue()
+        if len(blob) <= RENDITION_BUDGET:
+            break
+    return blob
+
+
+def _store(storage, name, blob):
+    """Write ``blob`` at exactly ``name`` and return the name it went to.
+
+    Not ``storage.save`` alone: that renames around a name already taken, and
+    these names are derived from the original's rather than chosen - so the
+    second build of the same photograph would write `a-800_Xk3d1.webp` and
+    leave the page pointing at a file nothing refreshes.
+    """
+    if storage.exists(name):
+        storage.delete(name)
+    return storage.save(name, ContentFile(blob))
 
 
 def _apply_orientation(image):

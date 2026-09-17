@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block title %}{% trans "Biz haqimizda" %}{% endblock %}
+{% block meta_description %}{% trans "GRAPHIX — Oʻzbekistonda chop etiladigan original grafik futbolkalar. Biz kimmiz, qanday ishlaymiz va nimaga eʼtibor beramiz." %}{% endblock %}
+{% block og_description %}{% trans "GRAPHIX — Oʻzbekistonda chop etiladigan original grafik futbolkalar. Biz kimmiz, qanday ishlaymiz va nimaga eʼtibor beramiz." %}{% endblock %}
 
 {% comment %}
   Rewritten in Phase 8 in the brand voice (§9 Phase 8 item 6), and only with
@@ -14,9 +16,9 @@
   <article class="prose stack stack--lg">
     <h1 class="h1">{% trans "Biz haqimizda" %}</h1>
 
-    <p class="lede">{% trans "Kiyishni istaydigan grafik futbolkalar — Oʻzbekiston boʻylab yetkazib beriladi." %}</p>
+    <p class="lede">{% trans "Kiyishni istaydigan grafik futbolkalar — Oʻzbekiston boʻylab yetkazib beriladi." %}</p>
 
-    <p class="body">{% trans "GRAPHIX bitta narsa bilan shugʻullanadi — grafik futbolka bilan. Dizayn egningizda ham ekrandagidek koʻrinishi kerak. Shuning uchun mahsulot sahifasida eng katta joy rasmga beriladi, mato, zichlik va bosma usuli esa alohida yozib qoʻyiladi." %}</p>
+    <p class="body">{% trans "GRAPHIX bitta narsa bilan shugʻullanadi — grafik futbolka bilan. Dizayn egningizda ham ekrandagidek koʻrinishi kerak. Shuning uchun mahsulot sahifasida eng katta joy rasmga beriladi, mato, zichlik va bosma usuli esa alohida yozib qoʻyiladi." %}</p>
 
     <p class="body">{% trans "Doʻkonga chiqadigan har bir futbolka avval tekshiriladi: print ham, mato ham oʻzimiz kiyadigan darajada boʻlishi kerak." %}</p>
 
@@ -24,7 +26,7 @@
     <p class="body">{% trans "Oʻlcham jadvalidagi qiymatlar kiyimning oʻzidan oʻlchangan. Sharhni faqat mahsulotni olgan xaridor qoldiradi va har bir sharh chop etilishidan oldin tekshiriladi. Yetkazib berish narxi va muddati buyurtma berishdan oldin koʻrsatiladi." %}</p>
 
     <h2 class="h2">{% trans "Oʻz dizayningiz" %}</h2>
-    <p class="body">{% trans "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual dizaynli futbolka tayyorlaymiz." %}</p>
+    <p class="body">{% trans "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual dizaynli futbolka tayyorlaymiz." %}</p>
 
     <div class="row row--wrap">
       <a class="btn btn--primary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>

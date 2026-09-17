@@ -5,6 +5,7 @@ below); required keys use ``os.environ[...]`` so a missing one fails loudly at
 startup rather than running with an unsafe default.
 """
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -78,6 +79,7 @@ TEMPLATES = [
                 'cart.context_processors.liked_count',
                 'product.context_processors.nav_categories',
                 'core.context_processors.languages',
+                'core.context_processors.seo',
                 'core.context_processors.size_guide',
                 'core.context_processors.delivery_tiers',
             ],
@@ -134,6 +136,26 @@ TEST_RUNNER = 'core.runner.Runner'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+#: True while `manage.py test` is running. Read from the command line because
+#: the settings are imported before the test runner exists - and a worker
+#: started by `--parallel` is handed the parent's argv, so it agrees.
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
+# Hashed static filenames in production (§9 Phase 9 item 6), so nginx can serve
+# every asset with a year's cache and a deploy still reaches the browser: the
+# name changes with the content. Not in development, where the hash would
+# change on every edit, and NOT under test: the manifest is written by
+# `collectstatic`, and without one every `{% static %}` raises - the test runner
+# turns DEBUG off, so this is the only thing separating a test run from a
+# production one here.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': (
+        'django.contrib.staticfiles.storage.StaticFilesStorage'
+        if DEBUG or TESTING
+        else 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage')},
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

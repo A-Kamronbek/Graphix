@@ -30,7 +30,9 @@ from django.utils.translation import gettext_lazy as _
 #: registered name is what makes the public offer say who it is from, which the
 #: E-commerce Law requires of an offer. Kamronbek's call (§17 #184): name,
 #: address and contacts only - no tax number and no bank details on a public
-#: page.
+#: page. The address is printed in one place, the terms' seller section: the
+#: E-commerce Law (art. 16) wants a postal address in the offer, and nowhere
+#: else needs it (§17 #226). The privacy policy points there.
 #:
 #: ``legal_form`` is a sole proprietor - *yakka tartibdagi tadbirkor*, YaTT -
 #: stated as the form and nothing more: no certificate number (§17 #208,

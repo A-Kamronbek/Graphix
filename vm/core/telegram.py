@@ -8,7 +8,7 @@ A notification leaves by one of two routes, chosen by ``.env``:
 
 * **The shop's bot service** (``TELEGRAM_BOT_WEBHOOK_URL``). The bot is a
   program of its own that talks to Telegram; the site POSTs each event to it
-  as JSON, with the pre-rendered message and the facts behind it, and signs
+  as JSON, with the pre-rendered mesdsage and the facts behind it, and signs
   the request with ``WEBSITE_WEBHOOK_SECRET`` - a value the two sides share
   and nobody else knows (§17 #206). The contract is written down for whoever
   runs the bot in ``docs/integrations/telegram-bot.md``.

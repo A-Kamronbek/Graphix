@@ -1,4 +1,4 @@
-{% load i18n i18n_fields date_tags %}
+{% load i18n i18n_fields date_tags image_tags %}
 {% comment %}
   The reviews section of the product page.
 
@@ -82,8 +82,9 @@
         {% if review.images.all %}
           <div class="review__pics">
             {% for image in review.images.all %}
-              <img src="{{ image.picture.url }}" data-zoom loading="lazy" decoding="async"
-                   alt="{% blocktrans with name=product|t:'name' %}{{ name }} — mijoz rasmi{% endblocktrans %}">
+              <img {% photo_attrs image 'review' %} data-zoom
+                   data-zoom-src="{% photo_zoom image %}" loading="lazy" decoding="async"
+                   alt="{% blocktrans with name=product|t:'name' %}{{ name }} — mijoz rasmi{% endblocktrans %}">
             {% endfor %}
           </div>
         {% endif %}

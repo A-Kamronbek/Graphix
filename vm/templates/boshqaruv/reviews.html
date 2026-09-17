@@ -1,5 +1,5 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n date_tags %}
+{% load i18n date_tags image_tags %}
 {% block title %}{% trans "Sharhlar" %}{% endblock %}
 
 {% comment %}
@@ -45,7 +45,7 @@
       {% if review.images.all %}
         <div class="mod__pics">
           {% for image in review.images.all %}
-            <img src="{{ image.picture.url }}" alt="" loading="lazy" decoding="async">
+            <img {% photo_attrs image 'panel' %} alt="" loading="lazy" decoding="async">
           {% endfor %}
         </div>
       {% endif %}
@@ -54,7 +54,7 @@
         <span class="badge {% if review.status == 'approved' %}badge--success{% elif review.status == 'rejected' %}badge--danger{% else %}badge--info{% endif %}"
               data-mod-badge>{{ review.get_status_display }}</span>
         <span class="small muted" data-mod-rating>
-          {% blocktrans with avg=review.product.rating_avg n=review.product.review_count %}{{ avg }} — {{ n }} ta{% endblocktrans %}
+          {% blocktrans with avg=review.product.rating_avg n=review.product.review_count %}{{ avg }} — {{ n }} ta{% endblocktrans %}
         </span>
         {# Only the decision that would change something. An approved review #}
         {# offering "Approve" is a button that does nothing, and a screen full #}

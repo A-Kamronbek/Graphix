@@ -20,6 +20,17 @@
   <title>{% block title %}{% trans "Bosh sahifa" %}{% endblock %} — GRAPHIX</title>
   <meta name="description" content="{% block meta_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
 
+  {# A page behind a login, a cart, a form or an error is not a search result. #}
+  {# Every one of them overrides this block; `follow` stays on, so the links #}
+  {# out of them are still worth something. #}
+  {% block robots %}{% endblock %}
+
+  {# One address per page. The site answers on the bare domain, on www and on #}
+  {# the server's own address, and a catalogue found on two of them is indexed #}
+  {# well on neither. Printed only when there is one: the 500 page renders #}
+  {# with no context at all (§17 #66). #}
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+
   <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
   <link rel="icon" href="{% static 'img/favicon.ico' %}" sizes="32x32">
   <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
@@ -33,19 +44,31 @@
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
   <meta property="og:title" content="{% block og_title %}GRAPHIX — {% trans "grafik futbolkalar" %}{% endblock %}">
   <meta property="og:description" content="{% block og_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
-  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:locale" content="{{ og_locale }}">
+  {% for other in og_locale_alternates %}<meta property="og:locale:alternate" content="{{ other }}">
+  {% endfor %}
   <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endblock %}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  {# The share card's own size; a product page overrides both with the size of #}
+  {# the photograph it shares, which is 4:5 and not this. #}
+  {% block og_image_size %}<meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">{% endblock %}
+  <meta property="og:image:alt" content="{% block og_image_alt %}{% trans "GRAPHIX — grafik futbolkalar" %}{% endblock %}">
+  {# `twitter:card` and nothing else: X, Telegram and every previewer that #}
+  {# copied their format fall back to the Open Graph tags above for the title, #}
+  {# the description and the picture. Repeating those three under a second set #}
+  {# of names is two places for a page to get its own title wrong. #}
   <meta name="twitter:card" content="summary_large_image">
 
-  {# One alternate per language, plus x-default pointing at Uzbek. The URLs #}
-  {# come from the same context processor as the switcher, so the two can #}
-  {# never disagree about where a language lives. #}
-  {% for l in languages %}
-  <link rel="alternate" hreflang="{{ l.code }}" href="{{ request.scheme }}://{{ request.get_host }}{{ l.url }}">
+  {# One alternate per language, plus x-default: the Uzbek copy of this page, #}
+  {# not the home page - it names the version for a reader whose language the #}
+  {# site does not have, and the front door is not the page they asked for. #}
+  {# Built from the path alone, so the sort a visitor happened to pick does #}
+  {# not become another Russian version of the shop. #}
+  {% for alt in seo_alternates %}
+  <link rel="alternate" hreflang="{{ alt.code }}" href="{{ alt.url }}">
   {% endfor %}
-  <link rel="alternate" hreflang="x-default" href="{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}">
+  {% if seo_default_url %}<link rel="alternate" hreflang="x-default" href="{{ seo_default_url }}">{% endif %}
 
   {# Both faces are used above the fold on every page, so both are preloaded. #}
   {# Self-hosted and subset - no third-party request blocks the first paint. #}
@@ -57,6 +80,10 @@
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/components.css' %}">
   <link rel="stylesheet" href="{% static 'css/pages.css' %}">
+
+  {# Everything this page has to say to a search engine, in one @graph: two #}
+  {# Product nodes on one page is one product described twice. #}
+  {% if jsonld %}<script type="application/ld+json">{{ jsonld }}</script>{% endif %}
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -92,6 +119,11 @@
   {# reader hears a change the page made without being asked (§9 item 18). The #}
   {# container is always present and empty; only JavaScript ever fills it. #}
   <div class="toasts" data-toasts role="status" aria-live="polite"></div>
+
+  {# What the page did, for somebody who cannot see that it did it. A toast is #}
+  {# shown *and* announced; this says the things that change quietly — the #}
+  {# heart's count, which moves with no message beside it (§9 item 18). #}
+  <div class="sr-only" data-announce role="status" aria-live="polite" aria-atomic="true"></div>
 
   {# What the browser's own form controls say, in the page's language: the #}
   {# sentences are rendered here through gettext and `forms.js` uses them #}

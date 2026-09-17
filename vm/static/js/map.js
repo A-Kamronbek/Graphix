@@ -8,9 +8,14 @@
  * The interface is deliberately small: init, setPin, getPin, onPinMove,
  * locate, reverseGeocode. No page ever touches a `google.*` global.
  *
- * Everything here is optional to the checkout. If the key is blank the script
- * tag is not rendered at all; if the script is blocked or fails, `ready` never
- * resolves and the page carries on with a typed address (§3, §17 #91).
+ * Everything here is optional to the checkout. If the key is blank there is no
+ * address to load from; if the script is blocked or fails, `ready` answers
+ * false and the page carries on with a typed address (§3, §17 #91).
+ *
+ * Nothing is fetched until a customer asks for a map. The provider's script
+ * used to load with the checkout page, which gave Google the IP address of
+ * everyone who reached it — including the many who type their address and
+ * never open a map (§18 #34). `load` is the one door in.
  */
 (function () {
   'use strict';
@@ -22,16 +27,39 @@
 
   var waiting = [];
   var loaded = false;
+  var loading = false;
+  var failed = false;
+
+  /* How long to wait for the provider before telling the page it is not
+   * coming. A blocked request can hang rather than error, and a customer
+   * looking at an empty box needs an answer either way. */
+  var TIMEOUT = 12000;
 
   /* Google calls this when its script finishes. Named on window because the
    * loader takes a global callback name, not a function. */
   window.GXMapReady = function () {
     loaded = true;
-    waiting.splice(0).forEach(function (fn) { fn(); });
+    loading = false;
+    flush(true);
   };
 
+  function flush(ok) {
+    waiting.splice(0).forEach(function (fn) { fn(ok); });
+  }
+
+  function giveUp() {
+    if (loaded) return;
+    loading = false;
+    failed = true;
+    flush(false);
+  }
+
+  /* `fn` is called with true once the provider is there, or false once it is
+   * clear it will not be. Never with nothing: a caller that shows a control
+   * when the map loads has to be told when it does not. */
   function whenReady(fn) {
-    if (loaded) fn();
+    if (loaded) fn(true);
+    else if (failed) fn(false);
     else waiting.push(fn);
   }
 
@@ -50,6 +78,29 @@
     available: function () { return loaded; },
 
     ready: whenReady,
+
+    /* Fetch the provider, once, when the customer has asked for a map.
+     *
+     * `async` is right here and `defer` was right before: map.js is already
+     * running, so GXMapReady exists before this tag is in the document — the
+     * ordering §17 #119 was protecting is guaranteed by *when* this is called
+     * rather than by how the tag is written. A second call while the first is
+     * in flight queues the callback instead of fetching twice; a call after a
+     * failure tries again, because the customer pressing the button again is
+     * a retry. */
+    load: function (src, done) {
+      if (done) whenReady(done);
+      if (loaded || loading) return;
+      if (!src) { giveUp(); return; }
+      loading = true;
+      failed = false;
+      var tag = document.createElement('script');
+      tag.src = src;
+      tag.async = true;
+      tag.onerror = giveUp;
+      document.head.appendChild(tag);
+      window.setTimeout(giveUp, TIMEOUT);
+    },
 
     /* Draw the map into `el` with a draggable pin. Returns nothing; the pin's
      * position arrives through onPinMove. */

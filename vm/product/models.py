@@ -107,7 +107,93 @@ class Tag(models.Model):
         ordering = ['kind', 'slug']
 
 
-class SizeChart(models.Model):
+class Measured(models.Model):
+    """An uploaded image that knows its own pixel size.
+
+    Phase 9 puts `width` and `height` on every `<img>` the site renders, so the
+    browser can hold the space before the file arrives; the numbers have to be
+    stored, because reading them from disk while a page renders is a file open
+    per image. Filled by the signal that runs after the row commits, and by
+    `manage.py build_renditions` for everything uploaded before this existed.
+
+    ``image_field`` is the name of the column holding the file: a product
+    photograph calls it `picture`, a size chart calls it `image`, and the
+    template tag that renders either of them should not have to know which.
+    """
+    image_field = 'picture'
+
+    width = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    height = models.PositiveIntegerField(null=True, blank=True, editable=False)
+
+    class Meta:
+        abstract = True
+
+    @property
+    def photo_file(self):
+        """The stored file this row holds, whatever its column is called."""
+        return getattr(self, self.image_field, None)
+
+    @property
+    def has_photo(self):
+        """True when there is a file to render at all."""
+        photo = self.photo_file
+        return bool(photo and photo.name)
+
+    def sources(self):
+        """``[(width, stored name), ...]`` - nothing, for an image with no renditions."""
+        return []
+
+    def srcset(self):
+        """The ``srcset`` value for this image, or ``''`` when it has none."""
+        photo = self.photo_file
+        return ', '.join('%s %dw' % (photo.storage.url(name), width)
+                         for width, name in self.sources())
+
+    def display_url(self):
+        """What ``src`` points at.
+
+        The middle rendition rather than the largest: a browser that understands
+        `srcset` never fetches `src` at all, and one that does not is old enough
+        that the smaller file is the kinder answer.
+        """
+        rows = self.sources()
+        if not rows:
+            return self.photo_file.url if self.has_photo else ''
+        return self.photo_file.storage.url(rows[len(rows) // 2][1])
+
+    def zoom_url(self):
+        """The largest rendition - what the full-screen viewer opens."""
+        rows = self.sources()
+        if not rows:
+            return self.photo_file.url if self.has_photo else ''
+        return self.photo_file.storage.url(rows[-1][1])
+
+
+class Photograph(Measured):
+    """A photograph stored once and delivered as WebP at several widths.
+
+    The product gallery and a customer's review photograph do exactly the same
+    thing with their file, so they say it once here; only ``upload_to`` differs,
+    which is why ``picture`` itself stays on each table.
+    """
+    #: ``{'src': <the original's stored name>, 'w': [[width, name], ...]}``.
+    #: Keyed by the original's name on purpose: a row whose file was replaced
+    #: then describes renditions of a file it no longer holds, and saying so is
+    #: what makes the signal rebuild them instead of serving the old picture.
+    renditions = models.JSONField(default=dict, blank=True, editable=False)
+
+    class Meta:
+        abstract = True
+
+    def sources(self):
+        """The renditions that describe the file this row holds *now*."""
+        data = self.renditions or {}
+        if not self.has_photo or data.get('src') != self.photo_file.name:
+            return []
+        return [(int(width), name) for width, name in data.get('w', ())]
+
+
+class SizeChart(Measured):
     """A sizing guide, image first.
 
     The uploaded chart is the primary content and the only thing the owner has
@@ -120,6 +206,9 @@ class SizeChart(models.Model):
     a chart now reaches a product because somebody chose it on the product, or
     because it is the category's, and nothing else.
     """
+    #: The chart's own column, not `picture` - see :class:`Measured`.
+    image_field = 'image'
+
     name = models.CharField(max_length=120)
     image = models.ImageField(upload_to='size-charts/', null=True, blank=True)
     note = models.TextField(blank=True, default='', help_text="Oʻzbekcha — asosiy matn")
@@ -167,12 +256,18 @@ class Product(models.Model):
     name_ru = models.CharField(max_length=255, blank=True, default='')
     name_en = models.CharField(max_length=255, blank=True, default='')
     slug = models.SlugField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Indexed: every listing that is not filtered is ordered by it - the shop's
+    # default sort, the home page's newest row, and the fallback for the
+    # popularity and rating sorts (§9 Phase 9 item 8).
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     description = models.TextField(null=True, blank=True)
     description_ru = models.TextField(blank=True, default='')
     description_en = models.TextField(blank=True, default='')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
-    tags = models.ManyToManyField(Tag, blank=True, related_name='products')
+    # Required (§17 #228): a product with no tag cannot be filtered to or
+    # recommended. `blank=False` makes the Django admin ask for one too; the
+    # panel checks it in `panel.catalogue.save_product`.
+    tags = models.ManyToManyField(Tag, related_name='products')
     is_active = models.BooleanField(default=True)
 
     # Denormalised counters. Maintained with F() expressions inside a transaction,
@@ -236,7 +331,7 @@ class Product(models.Model):
         return None
 
 
-class ImageP(models.Model):
+class ImageP(Photograph):
     """A product photo, displayed in ``order`` (lowest first)."""
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     picture = models.ImageField(upload_to="products/")
@@ -446,6 +541,10 @@ class Review(models.Model):
     class Meta:
         unique_together = ('user', 'product')
         ordering = ['-created_at']
+        # The product page's query, exactly: this product, approved, newest
+        # first. `status` has an index of its own and `product` has the foreign
+        # key's, but neither answers the three together (§9 Phase 9 item 8).
+        indexes = [models.Index(fields=['product', 'status', '-created_at'])]
         constraints = [
             # `choices` is a form-and-admin convenience; it is not enforced by
             # anything that writes through the ORM. This column feeds
@@ -460,7 +559,7 @@ class Review(models.Model):
         ]
 
 
-class ReviewImage(models.Model):
+class ReviewImage(Photograph):
     """A photo attached to a review. Only visible once its review is approved."""
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='images')
     picture = models.ImageField(upload_to='reviews/')

@@ -122,6 +122,35 @@ def _count(raw):
         raise ValidationError(_('Notoʻgʻri son.'))
 
 
+#: The lists whose rows must not share a name (§18 #31, §17 #229). A tag is
+#: compared only with the tags of its own kind - "Qora" may be a colour and a
+#: collection - and the other three with their whole table.
+UNIQUE_NAMES = {'tag', 'tagkind', 'method', 'category'}
+
+
+def refuse_duplicate(table, name, tag_kind=None, exclude_pk=None):
+    """Raise if another row of ``table`` already has this Uzbek name.
+
+    Letter case is ignored: "Anime" and "anime" are the same chip to a
+    shopper. Two identical chips in one filter group are a question the owner
+    would have to answer later, so the form answers it now. ``tag_kind`` is
+    the kind a tag is being saved under; ``exclude_pk`` is the row being
+    renamed, which may keep its own name.
+    """
+    if table not in UNIQUE_NAMES:
+        return
+    model = EDITABLE[table][0]
+    rows = model.objects.filter(name__iexact=str(name).strip())
+    if table == 'tag':
+        rows = rows.filter(kind=tag_kind)
+    if exclude_pk is not None:
+        rows = rows.exclude(pk=exclude_pk)
+    twin = rows.first()
+    if twin is not None:
+        raise ValidationError(
+            _('«%(name)s» nomi bu roʻyxatda allaqachon bor.') % {'name': twin.name})
+
+
 READERS = {
     'text': lambda raw: str(raw).strip(),
     'bool': lambda raw: str(raw) in ('1', 'true', 'on'),
@@ -167,7 +196,15 @@ def set_field(kind, pk, field, raw):
     limit = getattr(model._meta.get_field(field), 'max_length', None)
     if limit and isinstance(value, str) and len(value) > limit:
         raise ValidationError(
-            _('Juda uzun — koʻpi bilan %(n)d ta belgi.') % {'n': limit})
+            _('Juda uzun — koʻpi bilan %(n)d ta belgi.') % {'n': limit})
+
+    # A rename, or a tag moved to another kind, must not produce the twin the
+    # create form refuses (§17 #229).
+    if field == 'name':
+        refuse_duplicate(kind, value, tag_kind=getattr(row, 'kind', None),
+                         exclude_pk=row.pk)
+    elif kind == 'tag' and field == 'kind':
+        refuse_duplicate(kind, row.name, tag_kind=value, exclude_pk=row.pk)
 
     setattr(row, field, value)
     row.save(update_fields=[field])
@@ -197,7 +234,7 @@ def delete_row(kind, pk):
     try:
         row.delete()
     except ProtectedError:
-        raise ValidationError(_('Bundan foydalanilmoqda — avval boʻshating.'))
+        raise ValidationError(_('Bundan foydalanilmoqda — avval boʻshating.'))
     if picture:
         picture.delete(save=False)
     return name

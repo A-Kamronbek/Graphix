@@ -65,7 +65,11 @@
   /* ------------------------------------------------------------- drawer */
   /* Focus is moved into the drawer on open and back to the button on close, the
    * backdrop is removed from the tree entirely while closed, and Tab is held
-   * inside while it is open. */
+   * inside while it is open.
+   *
+   * A closed drawer is `inert`. It is moved off screen with a transform rather
+   * than removed, so without that its links are still focusable and Tab walks
+   * off the page into a menu nobody can see. */
   function initDrawer() {
     var drawer = $('[data-drawer]');
     var backdrop = $('[data-drawer-backdrop]');
@@ -78,6 +82,7 @@
       if (open === drawer.classList.contains('is-open')) return;
       drawer.classList.toggle('is-open', open);
       drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+      drawer.toggleAttribute('inert', !open);
       opener.setAttribute('aria-expanded', open ? 'true' : 'false');
       if (backdrop) backdrop.hidden = !open;
       lockScroll(open);
@@ -211,6 +216,23 @@
     });
   }
 
+  /* ------------------------------------------------------- announcements */
+  /* A change the page makes on its own has to reach somebody who cannot see it
+   * (§9 Phase 9 item 18). The heart announces its own pressed state through
+   * `aria-pressed`, but the count beside it moves silently and nothing says a
+   * design was saved — so the page says so, in the page's language, through a
+   * polite live region.
+   *
+   * Cleared first: a live region whose text does not change announces nothing,
+   * and saving two designs in a row would otherwise set the same sentence
+   * twice and be read once. */
+  function announce(text) {
+    var host = $('[data-announce]');
+    if (!host || !text) return;
+    host.textContent = '';
+    window.setTimeout(function () { host.textContent = text; }, 60);
+  }
+
   /* ------------------------------------------------------------- toasts */
   /* A transient confirmation, in a container the shell always renders with
    * aria-live. Used by the heart and by copy-link; the server's own messages
@@ -246,13 +268,25 @@
       var wasCount = countEl ? countEl.textContent : '';
       var wasHidden = countEl ? countEl.hidden : true;
 
+      /* The count is visible inside the button, so it belongs in the button's
+       * name: an `aria-label` replaces the element's content entirely, and a
+       * name that leaves the visible text out is the mismatch axe reports as
+       * label-content-name-mismatch — and, worse, a number a screen reader
+       * never reads (Phase 9's axe pass). */
+      function label(pressed, shown) {
+        var base = (pressed ? btn.dataset.labelOn : btn.dataset.labelOff)
+                   || btn.getAttribute('aria-label') || '';
+        return shown ? base + ' (' + shown + ')' : base;
+      }
+
       function paint(pressed, count) {
+        if (countEl) {
+          if (count !== null && count !== undefined) countEl.textContent = String(count);
+          countEl.hidden = String(countEl.textContent) === '0';
+        }
         btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
-        btn.setAttribute('aria-label', pressed ? btn.dataset.labelOn || btn.getAttribute('aria-label')
-                                               : btn.dataset.labelOff || btn.getAttribute('aria-label'));
-        if (!countEl) return;
-        if (count !== null && count !== undefined) countEl.textContent = String(count);
-        countEl.hidden = String(countEl.textContent) === '0';
+        btn.setAttribute('aria-label',
+                         label(pressed, countEl && !countEl.hidden ? countEl.textContent : ''));
       }
 
       /* Optimistic: the count moves by one in the direction of the tap, and is
@@ -270,7 +304,10 @@
           return res.json().then(function (data) { window.location.href = data.login_url; });
         }
         if (!res.ok) throw new Error('like failed');
-        return res.json().then(function (data) { paint(data.liked, data.count); });
+        return res.json().then(function (data) {
+          paint(data.liked, data.count);
+          announce(data.liked ? btn.dataset.announceOn : btn.dataset.announceOff);
+        });
       }).catch(function () {
         paint(wasPressed, wasCount);
         if (countEl) countEl.hidden = wasHidden;
@@ -337,6 +374,7 @@
   GX.$ = $;
   GX.$$ = $$;
   GX.toast = toast;
+  GX.announce = announce;
   GX.trapFocus = trapFocus;
   GX.lockScroll = lockScroll;
   GX.focusablesIn = focusablesIn;

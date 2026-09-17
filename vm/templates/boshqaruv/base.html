@@ -88,6 +88,10 @@
   {# string typed into a .js file never reaches gettext (§4), so the eight the #}
   {# script needs are written in `panel/templatetags/panel_i18n.py` and handed #}
   {# over here, escaped by `json_script`. #}
+  {# Where a refusal is shown. The storefront's toast, in a polite live #}
+  {# region, in place of three window.alert calls (§18 #27). #}
+  <div class="toasts" data-toasts role="status" aria-live="polite"></div>
+
   {% panel_strings as pnl_strings %}{{ pnl_strings|json_script:"pnl-i18n" }}
   {% include "partials/_form_messages.html" %}
   <script src="{% static 'js/panel.js' %}" defer></script>

@@ -42,9 +42,9 @@ MAX_IMAGES = 8
 #: The brackets are what the owner replaces; docs/content/product-copy.md
 #: explains each part (§17 #197).
 DESCRIPTION_TEMPLATE = (
-    _('Dizayn: [nima tasvirlangan va nimadan ilhomlangan — bir-ikki gap]'),
-    _('Bosma: [qayerda — old, orqa yoki ikkala tomonda; taxminiy oʻlchami, sm]'),
-    _('Bichim: [qanday oʻtiradi — oddiy yoki keng; oʻlcham tanlash boʻyicha maslahat]'),
+    _('Dizayn: [nima tasvirlangan va nimadan ilhomlangan — bir-ikki gap]'),
+    _('Bosma: [qayerda — old, orqa yoki ikkala tomonda; taxminiy oʻlchami, sm]'),
+    _('Bichim: [qanday oʻtiradi — oddiy yoki keng; oʻlcham tanlash boʻyicha maslahat]'),
     _('Parvarish: 30 °C da, teskari tomonidan yuving. Bosma ustidan dazmollamang. '
       'Oqartiruvchi ishlatmang, mashinada quritmang.'),
 )
@@ -132,7 +132,7 @@ def _text(data, name, label):
     value = (data.get(name) or '').strip()
     limit = Product._meta.get_field(name).max_length
     if limit and len(value) > limit:
-        raise Refused(_('“%(field)s” juda uzun — koʻpi bilan %(n)d ta belgi.')
+        raise Refused(_('“%(field)s” juda uzun — koʻpi bilan %(n)d ta belgi.')
                       % {'field': label, 'n': limit})
     return value
 
@@ -176,12 +176,18 @@ def save_product(data, product=None):
     product.print_method = (PrintMethod.objects.filter(pk=method_id).first()
                             if method_id.isdigit() else None)
 
-    product.is_active = bool(data.get('is_active'))
-    product.save()
-
+    # At least one tag, read before anything is written. Tags are what the
+    # shop's filters and the Phase 13 recommender work from, and a product
+    # without one is invisible to both (§12 risk #22, §17 #228).
     # `getlist` on a QueryDict; a plain dict in a test gets a list back.
     wanted = data.getlist('tags') if hasattr(data, 'getlist') else data.get('tags', [])
-    product.tags.set(Tag.objects.filter(pk__in=[t for t in wanted if str(t).isdigit()]))
+    tags = list(Tag.objects.filter(pk__in=[t for t in wanted if str(t).isdigit()]))
+    if not tags:
+        raise Refused(_('Kamida bitta teg tanlang.'))
+
+    product.is_active = bool(data.get('is_active'))
+    product.save()
+    product.tags.set(tags)
     return product
 
 

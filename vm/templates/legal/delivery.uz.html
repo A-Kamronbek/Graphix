@@ -4,7 +4,7 @@
 
 <section class="legal__sec" id="prices">
   <h2>1. Narxlar</h2>
-  <p>Butun Oʻzbekiston boʻylab, «Oʻzbekiston pochtasi» orqali — Toshkentda ham, viloyatlarda ham.</p>
+  <p>Butun Oʻzbekiston boʻylab, «Oʻzbekiston pochtasi» orqali — Toshkentda ham, viloyatlarda ham.</p>
   {% if delivery_options %}
     <dl class="legal__facts">
       {% for opt in delivery_options %}
@@ -26,28 +26,28 @@
 
 <section class="legal__sec" id="home">
   <h2>3. Eshikkacha</h2>
-  <p>Kuryer buyurtmani siz koʻrsatgan manzilga olib boradi va oldindan qoʻngʻiroq qiladi. Manzilni qoʻlda yozishingiz yoki xaritada belgilashingiz mumkin — belgi manzilni aniqlashtiradi, ammo koʻcha va uy raqami baribir kerak.</p>
+  <p>Kuryer buyurtmani siz koʻrsatgan manzilga olib boradi va oldindan qoʻngʻiroq qiladi. Manzilni qoʻlda yozishingiz yoki xaritada belgilashingiz mumkin — belgi manzilni aniqlashtiradi, ammo koʻcha va uy raqami baribir kerak.</p>
 </section>
 
 <section class="legal__sec" id="timing">
   <h2>4. Qancha vaqt ketadi</h2>
-  <p>Toʻlov tasdiqlangach, buyurtmani tayyorlab Pochtaga topshiramiz — holatini «Buyurtmalarim» sahifasida kuzatib borasiz. Pochta joʻnatmani mamlakat boʻylab odatda {{ legal.transit_min|legal_range:legal.transit_max }} kunda yetkazadi, eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin. Har qanday holatda buyurtma toʻlovdan keyin {{ legal.delivery_deadline_days }} kundan kechiktirmay yetkazilishi kerak.</p>
+  <p>Toʻlov tasdiqlangach, buyurtmani tayyorlab Pochtaga topshiramiz — holatini «Buyurtmalarim» sahifasida kuzatib borasiz. Pochta joʻnatmani mamlakat boʻylab odatda {{ legal.transit_min|legal_range:legal.transit_max }} kunda yetkazadi, eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin. Har qanday holatda buyurtma toʻlovdan keyin {{ legal.delivery_deadline_days }} kundan kechiktirmay yetkazilishi kerak.</p>
 </section>
 
 <section class="legal__sec" id="uncollected">
   <h2>5. Joʻnatmani olib ketmasangiz</h2>
   <p>Pochta boʻlimi joʻnatmani {{ legal.hold_months }} oy saqlaydi. Xabar kelgach, kechiktirmay olib keting: ikkinchi xabarnomadan keyin pochta saqlash haqi olishi mumkin.</p>
-  <p>Muddatida olinmagan yoki rad etilgan joʻnatma bizga qaytadi. Shunda toʻlovingizdan <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> ushlab qolinadi, qolgani {{ legal.refund_days }} kun ichida qaytariladi. Shuning uchun indeks va manzilni diqqat bilan tekshiring — ularni buyurtma sahifasida qayta koʻrishingiz mumkin.</p>
+  <p>Muddatida olinmagan yoki rad etilgan joʻnatma bizga qaytadi. Shunda toʻlovingizdan <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> ushlab qolinadi, qolgani {{ legal.refund_days }} kun ichida qaytariladi. Shuning uchun indeks va manzilni diqqat bilan tekshiring — ularni buyurtma sahifasida qayta koʻrishingiz mumkin.</p>
 </section>
 
 <section class="legal__sec" id="exchange">
   <h2>6. Oʻlcham toʻgʻri kelmasa</h2>
-  <p>Kiyilmagan, yuvilmagan va yorliqlari saqlangan mahsulotni olganingizdan keyin {{ legal.exchange_days }} kun ichida boshqa oʻlchamga almashtirishingiz mumkin. Avval bizga yozing — qayerga yuborishni aytamiz. Mahsulotni qaytarish va yangi oʻlchamni joʻnatish xarajatlarini xaridor toʻlaydi. Kerakli oʻlcham qolmagan boʻlsa, mahsulot narxini qaytaramiz.</p>
+  <p>Kiyilmagan, yuvilmagan va yorliqlari saqlangan mahsulotni olganingizdan keyin {{ legal.exchange_days }} kun ichida boshqa oʻlchamga almashtirishingiz mumkin. Avval bizga yozing — qayerga yuborishni aytamiz. Mahsulotni qaytarish va yangi oʻlchamni joʻnatish xarajatlarini xaridor toʻlaydi. Kerakli oʻlcham qolmagan boʻlsa, mahsulot narxini qaytaramiz.</p>
 </section>
 
 <section class="legal__sec" id="defects">
   <h2>7. Nuqson yoki shikast boʻlsa</h2>
   <p>Mahsulot nuqsonli yoki shikastlangan holda kelsa, iloji boricha tezroq rasm yoki video bilan bizga yozing: almashtirib beramiz yoki pulini qaytaramiz, barcha yetkazib berish xarajatlari esa bizning hisobimizdan. Nuqson haqida olganingizdan keyin {{ legal.defect_claim_months }} oy ichida murojaat qilishingiz mumkin.</p>
   <p>Qadoq shikastlangan boʻlsa, joʻnatmani pochtaning oʻzida koʻzdan kechiring va xodim ishtirokida dalolatnoma tuzdiring.</p>
-  <p>Toʻliq qoidalar — <a class="link" href="{% url 'terms' %}">Foydalanish shartlari</a>da.</p>
+  <p>Toʻliq qoidalar — <a class="link" href="{% url 'terms' %}">Foydalanish shartlari</a>da.</p>
 </section>

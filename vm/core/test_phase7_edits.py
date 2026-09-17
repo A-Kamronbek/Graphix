@@ -258,12 +258,15 @@ class RefusalKeepsTypingTests(TestCase):
     def setUp(self):
         self.staff = make_staff('typing', '+998901260030')
         _product, self.variant = make_product('Mavjud', stock=2)
+        self.tag = Tag.objects.create(slug='terish', name='Terish')
         self.client.force_login(self.staff)
 
     def test_the_refused_values_come_back_on_the_screen(self):
+        # With a tag on it, because a product without one is refused before the
+        # price is read (§17 #228) — and the wrong price is the point here.
         response = self.client.post(reverse('panel_product_new'), {
             'name': 'Yangi dizayn', 'name_ru': 'Новый дизайн',
-            'description': 'Uzun tavsif',
+            'description': 'Uzun tavsif', 'tags': [self.tag.pk],
             'price_%s' % self.variant.size_id: 'wqe',
         })
         self.assertEqual(response.status_code, 200)

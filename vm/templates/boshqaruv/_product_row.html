@@ -1,4 +1,4 @@
-{% load i18n static price_format %}
+{% load i18n static price_format image_tags %}
 {% comment %}
   One product on the list: a thumbnail, its name, one price, a switch, and a
   stock box per size.
@@ -26,8 +26,7 @@
       {% if first %}
         {# Same fallback as the storefront: a row can point at a file that is #}
         {# no longer on disk, and a broken image tells the owner nothing. #}
-        <img src="{{ first.picture.url }}" alt="" loading="lazy" decoding="async"
-             onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
+        <img {% photo_attrs first 'panel' %} alt="" loading="lazy" decoding="async">
       {% else %}
         <span class="prod__nopic" aria-hidden="true">
           <svg class="i" ><use href="#i-image"></use></svg>

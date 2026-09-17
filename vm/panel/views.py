@@ -325,7 +325,7 @@ def order_status(request, order_no):
         })
 
     if change is not None:
-        messages.success(request, _('%(no)s — holat yangilandi.') % {'no': order.order_no})
+        messages.success(request, _('%(no)s — holat yangilandi.') % {'no': order.order_no})
     return redirect(_safe_next(request, 'panel_orders'))
 
 
@@ -634,7 +634,7 @@ def review_moderate(request, pk):
         'label': review.get_status_display(),
         'rating': str(review.product.rating_avg),
         'count': review.product.review_count,
-        'rating_line': _('%(avg)s — %(n)s ta') % {
+        'rating_line': _('%(avg)s — %(n)s ta') % {
             'avg': review.product.rating_avg, 'n': review.product.review_count},
     })
 
@@ -761,11 +761,17 @@ def tag_new(request):
         return redirect('panel_settings')
 
     kind_id = request.POST.get('kind', '')
+    kind = TagKind.objects.filter(pk=kind_id).first() if kind_id.isdigit() else None
+    try:
+        reference.refuse_duplicate('tag', name[:60], tag_kind=kind)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_settings')
     Tag.objects.create(
         slug=_free_slug(Tag, name, 'teg'), name=name[:60],
         name_ru=(request.POST.get('name_ru') or '').strip()[:60],
         name_en=(request.POST.get('name_en') or '').strip()[:60],
-        kind=TagKind.objects.filter(pk=kind_id).first() if kind_id.isdigit() else None,
+        kind=kind,
     )
     messages.success(request, _('Teg qoʻshildi.'))
     return redirect('panel_settings')
@@ -794,6 +800,11 @@ def lookup_new(request, kind):
         return redirect('panel_settings')
 
     limit = model._meta.get_field('name').max_length
+    try:
+        reference.refuse_duplicate(kind, name[:limit])
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_settings')
     row = model(name=name[:limit],
                 name_ru=(request.POST.get('name_ru') or '').strip()[:limit],
                 name_en=(request.POST.get('name_en') or '').strip()[:limit])

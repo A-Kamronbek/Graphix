@@ -270,7 +270,10 @@ class DefinitionOfDoneTests(TestCase):
 
     def test_the_slug_survives_a_rename(self):
         """It is the product's permanent URL; renaming must not break its links."""
-        body = {'name': 'Birinchi nom', 'is_active': 'on'}
+        # A tag, because a product without one is refused since §17 #228 — and
+        # this test is about the slug, not about that refusal.
+        body = {'name': 'Birinchi nom', 'is_active': 'on',
+                'tags': [self.tags[0].pk]}
         for size in self.sizes[:1]:
             body['price_%s' % size.pk] = '100000'
         self.client.post(reverse('panel_product_new'), body)
@@ -289,10 +292,15 @@ class DefinitionOfDoneTests(TestCase):
         self.assertFalse(Product.objects.filter(name='').exists())
 
     def test_nothing_is_saved_when_the_grid_is_refused(self):
-        """One transaction: a product whose grid failed must not exist half-made."""
+        """One transaction: a product whose grid failed must not exist half-made.
+
+        Everything else about the post is valid — the name and a tag — so the
+        empty grid is what is being refused here and not something earlier.
+        """
         before = Product.objects.count()
         self.client.post(reverse('panel_product_new'),
-                         {'name': 'Yarim', 'is_active': 'on'})
+                         {'name': 'Yarim', 'is_active': 'on',
+                          'tags': [self.tags[0].pk]})
         self.assertEqual(Product.objects.count(), before)
 
     def test_the_form_is_reachable_and_guarded(self):
