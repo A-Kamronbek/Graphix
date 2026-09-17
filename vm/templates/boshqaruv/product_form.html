@@ -1,5 +1,5 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n i18n_fields %}
+{% load i18n i18n_fields image_tags %}
 {% block title %}{% if product %}{{ product.name }}{% else %}{% trans "Yangi mahsulot" %}{% endif %}{% endblock %}
 
 {% comment %}
@@ -44,12 +44,12 @@
            data-max-pixels="{{ max_pixels }}">
     <h2>{% trans "Rasmlar" %}</h2>
     <p class="field__hint">
-      {% blocktrans with n=max_images %}Koʻpi bilan {{ n }} ta. Birinchisi asosiy rasm — tartibni surib oʻzgartiring.{% endblocktrans %}
+      {% blocktrans with n=max_images %}Koʻpi bilan {{ n }} ta. Birinchisi asosiy rasm — tartibni surib oʻzgartiring.{% endblocktrans %}
     </p>
     <ol class="shots" data-shots>
       {% for image in product.images.all %}
         <li class="shot" draggable="true" data-id="{{ image.pk }}">
-          <img src="{{ image.picture.url }}" alt="" loading="lazy" decoding="async">
+          <img {% photo_attrs image 'panel' %} alt="" loading="lazy" decoding="async">
           <button type="button" class="shot__x" data-shot-delete="{{ image.pk }}"
                   aria-label="{% trans 'Oʻchirish' %}">
             <svg class="i i--sm" aria-hidden="true"><use href="#i-close"></use></svg>
@@ -71,7 +71,7 @@
     <h2>{% trans "Nomi va tavsifi" %}</h2>
     {# The description template (plan §9 Phase 8 item 7): one sentence on its #}
     {# shape here, and a button beside each empty box that puts it in. #}
-    <p class="field__hint">{% trans "Tavsif toʻrt qismdan iborat: dizayn, bosma, bichim va parvarish. Mato, zichlik va bosma usuli pastda alohida kiritiladi — ularni tavsifda takrorlamang." %}</p>
+    <p class="field__hint">{% trans "Tavsif toʻrt qismdan iborat: dizayn, bosma, bichim va parvarish. Mato, zichlik va bosma usuli pastda alohida kiritiladi — ularni tavsifda takrorlamang." %}</p>
     {# Three languages, stacked rather than tabbed: a tab hides the two you #}
     {# have not filled in, and the ones you have not filled in are the whole #}
     {# problem (§3 — Uzbek is the source, the other two are written). #}
@@ -120,7 +120,7 @@
           <option value="{{ category.pk }}" {% if form.category|stringformat:"s" == category.pk|stringformat:"s" %}selected{% endif %}>{{ category|t:"name" }}</option>
         {% endfor %}
       </select>
-      <p class="field__hint">{% trans "Yangi turkum — Sozlamalar sahifasida." %}</p>
+      <p class="field__hint">{% trans "Yangi turkum — Sozlamalar sahifasida." %}</p>
     </div>
     <div class="field">
       <label class="label" for="p-gsm">{% trans "Zichligi (g/m²)" %}</label>
@@ -150,7 +150,7 @@
           <option value="{{ method.pk }}" {% if form.print_method|stringformat:"s" == method.pk|stringformat:"s" %}selected{% endif %}>{{ method|t:"name" }}</option>
         {% endfor %}
       </select>
-      <p class="field__hint">{% trans "Yangi usul — Sozlamalar sahifasida." %}</p>
+      <p class="field__hint">{% trans "Yangi usul — Sozlamalar sahifasida." %}</p>
     </div>
     <div class="field">
       <label class="label" for="p-chart">{% trans "Oʻlcham jadvali" %}</label>
@@ -168,7 +168,9 @@
     {# Tags, not categories, are what the Phase 13 recommender reads (§17 #26), #}
     {# which is why they are a visible block rather than a field at the bottom. #}
     {# Grouped under their axis and filtered by a search box: a flat list is #}
-    {# readable at eight tags and unreadable at forty. #}
+    {# readable at eight tags and unreadable at forty. At least one is required #}
+    {# and the save says so; a checkbox group has no native "one of" (§17 #228). #}
+    <p class="small muted">{% trans "Kamida bittasini tanlang — filtrlar va tavsiyalar teglardan tuziladi." %}</p>
     <label class="search search--sm">
       <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
       <span class="sr-only">{% trans "Teg qidirish" %}</span>
@@ -191,7 +193,7 @@
         </div>
       {% endif %}
     {% empty %}
-      <p class="muted small">{% trans "Hali teg yoʻq — Sozlamalar sahifasida qoʻshing." %}</p>
+      <p class="muted small">{% trans "Hali teg yoʻq — Sozlamalar sahifasida qoʻshing." %}</p>
     {% endfor %}
     <p class="muted small" data-chip-empty hidden>{% trans "Mos teg topilmadi." %}</p>
   </section>

@@ -180,6 +180,9 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
    red — the template picks one class, worse first (§17 #180). */
 .stockbox.is-low { border-color: color-mix(in srgb, var(--c-warning) 55%, var(--c-line)); }
 .stockbox.is-saving { opacity: .5; }
+/* The one that was refused stays marked after the toast has gone, so a number
+   that did not save is still findable in a grid of twenty (§18 #27). */
+.stockbox.is-error { border-color: var(--c-danger); }
 .stockbox.is-saved { border-color: var(--c-brand); }
 
 /* ---------------------------------------------------------------- switch */
@@ -187,7 +190,7 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
   min-height: 44px; cursor: pointer; font-size: var(--fs-sm); }
 .switch input { appearance: none; width: 44px; height: 26px; flex: none;
   border-radius: var(--r-full); background: var(--c-surface-3);
-  border: 1px solid var(--c-line-strong); position: relative;
+  border: 1px solid var(--c-line-control); position: relative;
   transition: background var(--t-fast), border-color var(--t-fast); }
 .switch input::after { content: ""; position: absolute; top: 2px; left: 2px;
   width: 20px; height: 20px; border-radius: 50%; background: var(--c-fg-muted);
@@ -284,7 +287,7 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
 .grid td:last-child { text-align: center; }
 .grid input[type="checkbox"] { appearance: none; width: 24px; height: 24px;
   border-radius: var(--r-sm); background: var(--c-surface);
-  border: 1px solid var(--c-line-strong); cursor: pointer; }
+  border: 1px solid var(--c-line-control); cursor: pointer; }
 .grid input[type="checkbox"]:checked { background: var(--c-brand);
   border-color: var(--c-brand); }
 .grid input[type="checkbox"]:focus-visible { outline: 2px solid var(--c-brand);

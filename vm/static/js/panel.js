@@ -39,6 +39,40 @@ var SAY = (function () {
 })();
 
 
+/* What the panel says when something does not save.
+ *
+ * Five refusals were said with `window.alert` - the three §18 #27 names and
+ * two more of the same shape. It blocks the page until it is
+ * dismissed, it cannot be styled or placed, on a phone it covers the row being
+ * edited, and its button is in the browser's language rather than the panel's
+ * (§18 #27). The gallery on the same screen already showed its refusals on the
+ * page, and the storefront shows transient ones as a toast — this is that
+ * toast, in a polite live region, so a refusal is read out as well as seen.
+ *
+ * The container is created if the shell has not rendered one: a message that
+ * does not appear is worse than an ugly one, and this runs on every screen.
+ */
+function TELL(message, kind) {
+  'use strict';
+  var host = document.querySelector('[data-toasts]');
+  if (!host) {
+    host = document.createElement('div');
+    host.className = 'toasts';
+    host.setAttribute('data-toasts', '');
+    host.setAttribute('role', 'status');
+    host.setAttribute('aria-live', 'polite');
+    document.body.appendChild(host);
+  }
+  var line = document.createElement('div');
+  line.className = 'toast toast--' + (kind || 'danger');
+  line.textContent = message;
+  host.appendChild(line);
+  /* Longer than the storefront's four seconds: this one is always a refusal,
+     and the owner is usually holding a parcel rather than watching the screen. */
+  window.setTimeout(function () { line.remove(); }, 6000);
+}
+
+
 (function () {
   'use strict';
 
@@ -97,7 +131,7 @@ var SAY = (function () {
       if (!data.ok) {
         /* Put the control back where it was and say so out loud rather than
            leaving a select showing a status the order is not in. */
-        window.alert(data.error || SAY('failed'));
+        TELL(data.error || SAY('failed'));
         fallBack();
         return;
       }
@@ -165,13 +199,17 @@ var SAY = (function () {
     if (input.dataset.size) body.append('size', input.dataset.size);
 
     var box = input.closest('.stockbox');
-    if (box) { box.classList.add('is-saving'); box.classList.remove('is-saved'); }
+    if (box) {
+      box.classList.add('is-saving');
+      box.classList.remove('is-saved', 'is-error');
+    }
 
     post(row.dataset.inlineUrl, body)
       .then(function (data) {
         if (box) box.classList.remove('is-saving');
         if (!data.ok) {
-          window.alert(data.error || SAY('failed'));
+          TELL(data.error || SAY('failed'));
+          if (box) box.classList.add('is-error');
           return;
         }
         /* Show what was actually stored: "12 000" typed into the price box is
@@ -449,7 +487,7 @@ var SAY = (function () {
 
     send(card.dataset.url, body).then(function (data) {
       card.querySelectorAll('[data-mod]').forEach(function (b) { b.disabled = false; });
-      if (!data.ok) { window.alert(data.error || SAY('failed')); return; }
+      if (!data.ok) { TELL(data.error || SAY('failed')); return; }
 
       var badge = card.querySelector('[data-mod-badge]');
       if (badge) {
@@ -518,7 +556,7 @@ var SAY = (function () {
     send(row.dataset.refUrl, body)
       .then(function (data) {
         control.classList.remove('is-saving-field');
-        if (!data.ok) { window.alert(data.error || SAY('failed')); return; }
+        if (!data.ok) { TELL(data.error || SAY('failed')); return; }
         if (control.type !== 'checkbox' && data.value !== undefined
             && String(data.value) !== control.value) {
           control.value = data.value;
@@ -550,7 +588,7 @@ var SAY = (function () {
     button.disabled = true;
     send(button.dataset.refDelete, new FormData()).then(function (data) {
       button.disabled = false;
-      if (!data.ok) { window.alert(data.error || SAY('failed')); return; }
+      if (!data.ok) { TELL(data.error || SAY('failed')); return; }
       row.remove();
     });
   });

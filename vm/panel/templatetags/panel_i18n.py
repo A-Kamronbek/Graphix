@@ -25,9 +25,9 @@ def panel_strings():
         'remove': _('Oʻchirish'),
         'tooMany': _('Koʻpi bilan {n} ta rasm.'),
         'tooBig': _('“{name}” juda katta.'),
-        'badType': _('“{name}” — qoʻllab-quvvatlanmaydigan tur.'),
-        'tooManyPixels': _('“{name}” — rasm oʻlchami juda katta.'),
-        'notAnImage': _('“{name}” — rasm sifatida oʻqib boʻlmadi.'),
+        'badType': _('“{name}” — qoʻllab-quvvatlanmaydigan tur.'),
+        'tooManyPixels': _('“{name}” — rasm oʻlchami juda katta.'),
+        'notAnImage': _('“{name}” — rasm sifatida oʻqib boʻlmadi.'),
         'confirmDelete': _('“{name}” oʻchirilsinmi?'),
         'noFile': _('Tanlanmagan'),
     }

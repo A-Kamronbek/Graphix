@@ -515,6 +515,7 @@
   var lngInput = $('[data-longitude]');
   var addressInput = $('[data-address]');
   var mapBlock = $('[data-map]');
+  var mapError = mapBlock && $('[data-map-error]', mapBlock);
 
   function setSource(source) {
     if (sourceInput) sourceInput.value = source;
@@ -527,9 +528,27 @@
        * meaningful rather than missing data (§17 #88). */
       if (latInput) latInput.value = '';
       if (lngInput) lngInput.value = '';
-    } else if (GX.map && GX.map.available()) {
-      ensureMap();
+    } else {
+      loadMap();
     }
+  }
+
+  /* The provider is fetched on the first tap of "Xaritadan" and never before
+   * (§18 #34), so this is where waiting for it lives. The answer is one of
+   * two: the map appears, or the toggle goes back to manual entry and says
+   * why — a customer looking at an empty grey box has no way to know that the
+   * form still works. */
+  function loadMap() {
+    if (!GX.map || !mapBlock) return;
+    if (mapError) mapError.hidden = true;
+    GX.map.load(mapBlock.dataset.mapSrc, function (ok) {
+      if (ok) {
+        ensureMap();
+        return;
+      }
+      if (mapError) mapError.hidden = false;
+      setSource('manual');
+    });
   }
 
   var mapStarted = false;
@@ -606,20 +625,22 @@
     $$('[data-source]', sourceToggle).forEach(function (btn) {
       btn.addEventListener('click', function () { setSource(btn.dataset.source); });
     });
-    /* The toggle only appears once a provider has actually loaded. Until then
-     * there is nothing to toggle to, and offering a choice that leads to a
-     * blank grey box is worse than not offering one.
+    /* The toggle appears when there is a map to offer — which since §18 #34 is
+     * known from the page rather than from a loaded script: `data-map-src` is
+     * the provider's address, rendered only when a key is configured. Waiting
+     * for the script to arrive would mean fetching it, which is the thing that
+     * is not done until somebody asks.
      *
-     * And once it does load, the state the page came back with is restored.
-     * Submitting the form with a field missing re-renders it with
-     * `address_source` still set to `map` and the coordinates still in their
-     * hidden inputs — but nothing put the map back on screen, so the customer
-     * was shown the manual form and their pin survived only as two numbers
-     * they could not see. The pin is still there; now so is the map (§17 #118). */
-    if (GX.map) GX.map.ready(function () {
+     * The state the page came back with is restored here too. Submitting the
+     * form with a field missing re-renders it with `address_source` still set
+     * to `map` and the coordinates still in their hidden inputs — but nothing
+     * put the map back on screen, so the customer was shown the manual form
+     * and their pin survived only as two numbers they could not see. The pin
+     * is still there; now so is the map (§17 #118). */
+    if (mapBlock && mapBlock.dataset.mapSrc) {
       sourceToggle.hidden = false;
       if (sourceInput && sourceInput.value === 'map') setSource('map');
-    });
+    }
   }
 
   /* ------------------------------------------------------------- startup */

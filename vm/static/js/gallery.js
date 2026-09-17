@@ -3,6 +3,11 @@
  * The first image is already in the document and the thumbnails are real links to
  * image URLs, so with JavaScript off the customer still sees the product — just
  * without the ability to switch. Nothing here is required to buy.
+ *
+ * A thumbnail carries the whole source set of the photograph it stands for, not
+ * one URL: the main image is responsive since Phase 9, and swapping `src` alone
+ * left `srcset` describing the previous photograph — which a browser is free to
+ * keep using, so the wrong picture stayed on the screen at some widths.
  */
 (function () {
   'use strict';
@@ -16,9 +21,17 @@
 
   var index = 0;
 
+  function swap(el, attribute, value) {
+    if (value) el.setAttribute(attribute, value);
+    else el.removeAttribute(attribute);
+  }
+
   function show(next) {
     index = (next + thumbs.length) % thumbs.length;
-    main.src = thumbs[index].getAttribute('data-gallery-thumb');
+    var thumb = thumbs[index];
+    main.src = thumb.getAttribute('data-gallery-thumb');
+    swap(main, 'srcset', thumb.getAttribute('data-gallery-srcset'));
+    swap(main, 'data-zoom-src', thumb.getAttribute('data-gallery-zoom'));
     thumbs.forEach(function (t, i) {
       t.setAttribute('aria-current', i === index ? 'true' : 'false');
     });

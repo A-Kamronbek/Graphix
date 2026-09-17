@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n i18n_fields %}
 {% block title %}{% trans "Sharh qoldirish" %}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% comment %}
   One page per order, not per product: the parcel arrived and it had things in

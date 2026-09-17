@@ -1,6 +1,8 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields %}
+{% load static i18n i18n_fields image_tags %}
 {% block title %}{% trans "Oʻlcham jadvali" %}{% endblock %}
+{% block meta_description %}{% trans "GRAPHIX futbolkalarining oʻlchamlari: koʻkrak, uzunlik, yelka va yeng — santimetrda, kiyimning oʻzidan olingan." %}{% endblock %}
+{% block og_description %}{% trans "GRAPHIX futbolkalarining oʻlchamlari: koʻkrak, uzunlik, yelka va yeng — santimetrda, kiyimning oʻzidan olingan." %}{% endblock %}
 {% block extra_js %}<script src="{% static 'js/viewer.js' %}" defer></script>{% endblock %}
 
 {% comment %}
@@ -21,6 +23,7 @@
     {# numbers on a chart are small, and a phone should be able to get at them. #}
     {% if size_guide_image %}
       <img class="sizeguide__img" src="{{ size_guide_image }}" data-zoom
+           width="{{ size_guide_size.0 }}" height="{{ size_guide_size.1 }}"
            alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
            loading="lazy" decoding="async">
     {% endif %}
@@ -33,8 +36,8 @@
         {# than no heading at all. #}
         {% if chart.name %}<h2 class="h3">{{ chart.name }}</h2>{% endif %}
         {% if chart.image %}
-          <img class="sizeguide__img" src="{{ chart.image.url }}" alt="{{ chart.name }}"
-               loading="lazy" decoding="async">
+          <img class="sizeguide__img" {% photo_attrs chart 'chart' %}
+               alt="{{ chart.name }}" loading="lazy" decoding="async">
         {% endif %}
         {% if chart|t:"note" %}<p class="body">{{ chart|t:"note" }}</p>{% endif %}
 
@@ -67,7 +70,7 @@
       </section>
     {% endfor %}
 
-    <p class="body">{% trans "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz." %}</p>
+    <p class="body">{% trans "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz." %}</p>
     <a class="btn btn--primary" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
   </article>
 </div>

@@ -1,11 +1,19 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format %}
+{% load static i18n i18n_fields price_format image_tags %}
 
 {% block title %}{{ product|t:"name" }}{% endblock %}
 {% block og_type %}product{% endblock %}
 {% block og_title %}{{ product|t:"name" }} — GRAPHIX{% endblock %}
-{% block og_description %}{{ product|t:"description"|striptags|truncatewords:28 }}{% endblock %}
-{% block og_image %}{% with product.images.first as img %}{% if img and img.picture %}{{ request.scheme }}://{{ request.get_host }}{{ img.picture.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endif %}{% endwith %}{% endblock %}
+{% block meta_description %}{% if product|t:"description" %}{{ product|t:"description"|striptags|truncatewords:28 }}{% else %}{% blocktrans with name=product|t:"name" %}{{ name }} — GRAPHIX original grafik futbolkasi. Premium trikotaj, Oʻzbekiston boʻylab yetkazib berish.{% endblocktrans %}{% endif %}{% endblock %}
+{% block og_description %}{% if product|t:"description" %}{{ product|t:"description"|striptags|truncatewords:28 }}{% else %}{% blocktrans with name=product|t:"name" %}{{ name }} — GRAPHIX original grafik futbolkasi. Premium trikotaj, Oʻzbekiston boʻylab yetkazib berish.{% endblocktrans %}{% endif %}{% endblock %}
+{# The photograph itself, at full size: the share card is frequently the first #}
+{# thing a customer ever sees of a design (§9 Phase 9 item 10). The original #}
+{# rather than a rendition — a previewer fetches it once, off the page. #}
+{% block og_image %}{% with product.images.all|first as img %}{% if img and img.picture %}{{ request.scheme }}://{{ request.get_host }}{{ img.picture.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endif %}{% endwith %}{% endblock %}
+{% block og_image_size %}{% with product.images.all|first as img %}{% if img.width and img.height %}<meta property="og:image:width" content="{{ img.width }}">
+  <meta property="og:image:height" content="{{ img.height }}">{% else %}<meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">{% endif %}{% endwith %}{% endblock %}
+{% block og_image_alt %}{{ product|t:"name" }}{% endblock %}
 
 {% block content %}
 <div class="wrap section">
@@ -31,11 +39,14 @@
     {# — see the note on .pdp__gallery--rail in pages.css (§17 #109). #}
     <div class="pdp__gallery{% if product.images.count > 1 %} pdp__gallery--rail{% endif %}" data-gallery>
       <div class="pdp__frame">
-        {% with product.images.first as img %}
-          <img data-gallery-main
-               src="{% if img and img.picture and img.picture.name %}{{ img.picture.url }}{% else %}{% static 'img/no-image.jpg' %}{% endif %}"
-               alt="{{ product|t:'name' }}" decoding="async"
-               onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
+        {% with product.images.all|first as img %}
+          {# The largest, sharpest thing on the page (§8) and the page's LCP #}
+          {# element, so it is fetched first and never deferred. #}
+          {# `data-zoom-src` is the full-width rendition the viewer opens: what #}
+          {# the frame is showing is sized for the frame. #}
+          <img data-gallery-main {% photo_attrs img 'pdp' %}
+               data-zoom-src="{% photo_zoom img %}"
+               alt="{{ product|t:'name' }}" decoding="async" fetchpriority="high">
         {% endwith %}
       </div>
 
@@ -46,10 +57,15 @@
 <div class="pdp__rail" role="group" aria-label="{% trans 'Rasmlar' %}">
           {% for img in product.images.all %}
             {% if img.picture and img.picture.name %}
-              <button type="button" data-gallery-thumb="{{ img.picture.url }}"
+              {# The thumbnail carries the whole source set the main image will #}
+              {# need, not one URL: swapping `src` alone left the chosen #}
+              {# photograph being fetched at full width on a phone. #}
+              <button type="button" data-gallery-thumb="{{ img.display_url }}"
+                      data-gallery-srcset="{% photo_srcset img %}"
+                      data-gallery-zoom="{% photo_zoom img %}"
                       aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
                       aria-label="{% blocktrans with n=forloop.counter %}Rasm {{ n }}{% endblocktrans %}">
-                <img src="{{ img.picture.url }}" alt="" loading="lazy" decoding="async">
+                <img {% photo_attrs img 'rail' %} alt="" loading="lazy" decoding="async">
               </button>
             {% endif %}
           {% endfor %}
@@ -138,9 +154,11 @@
           <div class="pdp__actions">
             <button type="submit" class="like" form="gx-like" data-like
                     aria-pressed="{% if is_liked %}true{% else %}false{% endif %}"
-                    aria-label="{% if is_liked %}{% trans 'Saqlanganlardan olib tashlash' %}{% else %}{% trans 'Saqlash' %}{% endif %}"
+                    aria-label="{% if is_liked %}{% trans 'Saqlanganlardan olib tashlash' %}{% else %}{% trans 'Saqlash' %}{% endif %}{% if product.likes_count %} ({{ product.likes_count }}){% endif %}"
                     data-label-on="{% trans 'Saqlanganlardan olib tashlash' %}"
                     data-label-off="{% trans 'Saqlash' %}"
+                    data-announce-on="{% trans 'Saqlandi.' %}"
+                    data-announce-off="{% trans 'Saqlanganlardan olib tashlandi.' %}"
                     data-error="{% trans 'Xatolik yuz berdi. Qayta urinib koʻring.' %}">
               <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
               <span class="like__count num" data-like-count{% if not product.likes_count %} hidden{% endif %}>{{ product.likes_count }}</span>
@@ -243,6 +261,7 @@
     <div class="sizeguide stack" data-sizeguide-content hidden>
       {% if size_guide_image %}
         <img class="sizeguide__img" src="{{ size_guide_image }}"
+             width="{{ size_guide_size.0 }}" height="{{ size_guide_size.1 }}"
              alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
              loading="lazy" decoding="async">
       {% endif %}
@@ -322,11 +341,6 @@
 <script src="{% static 'js/gallery.js' %}" defer></script>
 <script src="{% static 'js/variant.js' %}" defer></script>
 <script src="{% static 'js/viewer.js' %}" defer></script>
-{% if review_jsonld %}
-  {# What puts star ratings in a Google result. Emitted only when there are #}
-  {# approved reviews to describe: schema.org requires aggregateRating to #}
-  {# correspond to real ones, and a product with none must not claim any. #}
-  {# The view escapes `<` so review text cannot close this element early. #}
-  <script type="application/ld+json">{{ review_jsonld }}</script>
-{% endif %}
+{# The structured data - the product, its offer, its reviews and the trail to #}
+{# it - is one block in the head now, printed by base.html from `jsonld`. #}
 {% endblock %}

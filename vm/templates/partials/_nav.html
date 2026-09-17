@@ -39,14 +39,15 @@
 
     {# The count and the page are Phase 5; the toggle that fills it is 6b. #}
     <a href="{% if user.is_authenticated %}{% url 'liked' %}{% else %}{% url 'login' %}{% endif %}"
-       aria-label="{% trans 'Saqlanganlar' %}">
+       aria-label="{% trans 'Saqlanganlar' %}{% if liked_count %} ({{ liked_count }}){% endif %}">
       <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
-      {% if liked_count %}<span class="nav__count">{{ liked_count }}</span>{% endif %}
+      {% if liked_count %}<span class="nav__count" aria-hidden="true">{{ liked_count }}</span>{% endif %}
     </a>
 
-    <a href="{% url 'cart' %}" aria-label="{% trans 'Savat' %}">
+    <a href="{% url 'cart' %}"
+       aria-label="{% trans 'Savat' %}{% if cart_count %} ({{ cart_count }}){% endif %}">
       <svg class="i" aria-hidden="true"><use href="#i-cart"></use></svg>
-      {% if cart_count %}<span class="nav__count">{{ cart_count }}</span>{% endif %}
+      {% if cart_count %}<span class="nav__count" aria-hidden="true">{{ cart_count }}</span>{% endif %}
     </a>
 
     <a href="{% if user.is_authenticated %}{% url 'account' %}{% else %}{% url 'login' %}{% endif %}"

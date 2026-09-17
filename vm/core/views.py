@@ -5,7 +5,6 @@ from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.staticfiles import finders
 from django.http import Http404, HttpResponse
 from django.template.loader import select_template
 from django.utils import translation
@@ -16,8 +15,7 @@ from django.contrib import messages
 from django.urls import Resolver404, resolve, reverse
 from product.models import Product, Category
 from django.templatetags.static import static
-from core.context_processors import SIZE_GUIDE_IMAGE
-from . import legal, telegram
+from . import legal, seo, telegram
 from .models import Msg
 from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
@@ -73,6 +71,7 @@ def _legal_page(request, key, **extra):
     context = {
         'doc_key': key,
         'doc_title': legal.TITLES[key],
+        'doc_description': DOC_DESCRIPTIONS.get(key, ''),
         'back_url': _back_url(request, key),
         **legal.document(key),
         **extra,
@@ -80,6 +79,19 @@ def _legal_page(request, key, **extra):
     html = body.render(context, request)
     context.update(body_html=html, toc=legal.contents(html))
     return render(request, 'legal/document.html', context)
+
+
+#: What each document is, in one sentence, for the search result and the share
+#: card. Not the document's own first line: that is a legal sentence, and a
+#: result page is read by somebody deciding whether to open it at all.
+DOC_DESCRIPTIONS = {
+    'terms': _('GRAPHIX ommaviy ofertasi: buyurtma, toʻlov, yetkazib berish, '
+               'qaytarish va almashtirish shartlari.'),
+    'privacy': _('GRAPHIX maxfiylik siyosati: qanday maʼlumotlar yigʻiladi, '
+                 'nima uchun va qancha muddat saqlanadi.'),
+    'delivery': _('Oʻzbekiston boʻylab yetkazib berish: pochta boʻlimiga yoki '
+                  'eshikkacha — muddatlar, narxlar va qaytarish tartibi.'),
+}
 
 
 def terms(request):
@@ -128,15 +140,23 @@ def home(request):
 
     newest = annotate_cards(live.prefetch_related('images', 'variants'),
                             user=request.user).distinct()
+    # One query for both, because they are the same query: the hero is the
+    # newest design and so is the first card. Asking twice cost a second round
+    # trip and a second prefetch for a row already in hand.
+    latest = list(newest.order_by('-created_at')[:8])
     return render(request, 'core/home.html', {
         # The hero photograph is the newest design, so the page leads with stock
         # that is actually for sale rather than a fixed marketing image.
-        'featured': newest.order_by('-created_at').first(),
-        'newest': list(newest.order_by('-created_at')[:8]),
+        'featured': latest[0] if latest else None,
+        'newest': latest,
         # "Siz uchun" is most-liked until Phase 13 replaces it with the real
         # recommender — the plan's own stand-in, not a placeholder.
         'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:4]),
         'categories': Category.objects.all()[:6],
+        # The shop itself, and the search box a result may carry. Only on the
+        # home page: an Organization repeated on forty pages is the same fact
+        # forty times, and this is the page a search engine treats as the site.
+        'jsonld': seo.payload(seo.organisation(request), seo.website(request)),
     })
 
 
@@ -153,14 +173,14 @@ def size_guide(request):
     The modal on the product page is Phase 6a; this page is its indexable twin.
     """
     from product.models import SizeChart
+    from .context_processors import size_guide_image
     charts = list(SizeChart.objects.prefetch_related('rows__size'))
-    image = finders.find(SIZE_GUIDE_IMAGE) and static(SIZE_GUIDE_IMAGE)
-    if not charts and not image:
+    url, _size = size_guide_image()
+    if not charts and not url:
         raise Http404('no size guide has been uploaded yet')
-    return render(request, 'core/size_guide.html', {
-        'charts': charts,
-        'size_guide_image': image,
-    })
+    # The picture and its dimensions come from the context processor, which is
+    # the one place that looks it up (§17 #111).
+    return render(request, 'core/size_guide.html', {'charts': charts})
 
 
 def about(request):

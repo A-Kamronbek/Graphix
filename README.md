@@ -6,9 +6,10 @@ delivery, and a storefront in Uzbek, Russian and English — Uzbek first.
 
 Production: **https://graphix.uz** — not deployed yet; see `docs/PLAN.md`.
 
-The Django project package is still named `vm/` and the repository is still
-`ValleyMade`, both from the pre-rebrand name. Renaming them is deliberately
-deferred until after launch — the plan explains why.
+The repository is `Graphix`; the Django project package inside it is still
+named `vm/`, from the pre-rebrand name, and the local working folder may still
+be called `ValleyMade`. Renaming the package is deliberately deferred until
+after launch — the plan explains why.
 
 ---
 
@@ -64,6 +65,8 @@ vm/
 ├── locale/     uz, ru and en translation catalogues
 ├── data/       regions.csv, and how it was built
 └── manage.py
+deploy/
+└── nginx/      the production web-server config (compression, caching, HTTP/2)
 docs/
 ├── PLAN.md        the plan — read it first
 ├── integrations/  what the site sends to the Telegram bot service
@@ -75,8 +78,8 @@ docs/
 ## Local setup
 
 ```bash
-git clone git@github.com:A-Kamronbek/ValleyMade.git
-cd ValleyMade/vm   # repository name predates the GRAPHIX rebrand
+git clone git@github.com:A-Kamronbek/Graphix.git
+cd Graphix/vm   # the package is still `vm`, from the pre-rebrand name
 
 python -m venv ../.venv
 # Windows: ..\.venv\Scripts\activate   |   Linux/macOS: source ../.venv/bin/activate
@@ -90,6 +93,13 @@ python manage.py compilemessages      # needs GNU gettext; .mo files are not tra
 python manage.py createsuperuser
 python manage.py runserver            # then open http://127.0.0.1:8000/uz/
 ```
+
+`createsuperuser` leaves the new account's phone unverified, and every page
+outside `/admin/` sends an unverified account to the SMS code screen. Sign in
+at `http://127.0.0.1:8000/admin/` first, open your own user, fill in the phone
+and tick **phone_verified**, and the storefront and the panel both open (§19
+Q34). Do that before visiting any other page: an unverified account that sits
+on the code screen until the window lapses is deleted, superuser or not.
 
 `python manage.py seed_demo_catalogue` replaces the local catalogue with the
 eight demo designs every screenshot is measured against. It deletes catalogue
@@ -151,7 +161,12 @@ rebuild and runs after Phase 10:
 3. `python manage.py migrate && python manage.py seed_regions && python manage.py collectstatic --noinput`.
    Also `python manage.py compilemessages` — .mo files are build output and are not
    in the repository, so the site falls back to Uzbek everywhere without this step.
-4. Run gunicorn under systemd, reverse-proxied by nginx (sockets, static/media).
+   With `DEBUG=False` the static files are served under hashed names, so
+   `collectstatic` is not optional: without it every page raises on the first
+   `{% static %}`.
+4. Run gunicorn under systemd, reverse-proxied by nginx — `deploy/nginx/graphix.conf`
+   is the config, with gzip, a year's cache on the hashed assets, HTTP/2 and the
+   upload ceiling a phone photograph needs.
 5. Issue HTTPS certificates with certbot; the security settings in `settings.py`
    switch on automatically when `DEBUG=False`.
 6. Register the Click webhook URL; verify a live payment end to end.
@@ -162,6 +177,10 @@ rebuild and runs after Phase 10:
    nginx's access log the same thirty-day rotation the Django log already has.
 9. Schedule nightly `pg_dump` and `media/` backups, copied off-server, and verify a
    restore before the site takes a real order.
+10. `python manage.py build_renditions` once, after the first deploy and after
+    restoring a media folder: photographs uploaded before Phase 9 have no WebP
+    renditions, and until they do they are served at full size. New uploads
+    build their own.
 
 ## Backups
 

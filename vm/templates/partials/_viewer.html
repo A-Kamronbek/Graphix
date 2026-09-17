@@ -3,8 +3,14 @@
 {# Building it here rather than in JavaScript keeps its two strings inside #}
 {# gettext, which a script cannot reach (§17 #80). It is empty and hidden #}
 {# until something opens it, so it costs a few bytes on pages that never do. #}
+{# The two names a zoomable photograph is given (§18 #24): the suffix when the #}
+{# picture has an `alt` of its own, and the label when it has none. Here #}
+{# rather than in viewer.js for the reason every other string is: a sentence #}
+{# typed into a .js file cannot be translated (§17 #80). #}
 <div class="viewer" data-viewer hidden role="dialog" aria-modal="true"
-     aria-label="{% trans 'Kattalashtirilgan koʻrinish' %}">
+     aria-label="{% trans 'Kattalashtirilgan koʻrinish' %}"
+     data-zoom-label="{% trans 'Rasmni kattalashtirish' %}"
+     data-zoom-suffix="{% trans 'kattalashtirish' %}">
   <button type="button" class="viewer__close" data-viewer-close
           aria-label="{% trans 'Yopish' %}">
     <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>

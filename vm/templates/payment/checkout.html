@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n i18n_fields price_format legal_tags %}
 {% block title %}{% trans "Rasmiylashtirish" %}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% comment %}
   Where the parcel is going, asked in the order a person actually knows it:
@@ -162,8 +163,12 @@
             </button>
           </div>
 
-          {% if google_maps_key %}
-            <div class="map" data-map hidden>
+          {% if google_maps_src %}
+            {# The provider's address, not the provider: nothing is fetched #}
+            {# until the customer presses "Xaritadan", so Google learns #}
+            {# nothing at all about somebody who never opens the map — not #}
+            {# even that they were on this page (§18 #34). #}
+            <div class="map" data-map data-map-src="{{ google_maps_src }}" hidden>
               <div class="map__canvas" data-map-canvas
                    aria-label="{% trans 'Yetkazib berish manzili xaritasi' %}"></div>
               <button type="button" class="btn btn--secondary btn--sm" data-map-locate>
@@ -171,8 +176,13 @@
                 {% trans "Joylashuvimni aniqlash" %}
               </button>
               <small class="field__hint">
-                {% trans "Belgini kerakli joyga suring. Manzil quyida toʻldiriladi — uni tahrirlashingiz mumkin." %}
+                {% trans "Belgini kerakli joyga suring. Manzil quyida toʻldiriladi — uni tahrirlashingiz mumkin." %}
               </small>
+              {# Said on the page rather than in the console: a map that will #}
+              {# not load is a form the customer still has to finish. #}
+              <p class="field__error" data-map-error hidden>
+                {% trans "Xaritani yuklab boʻlmadi. Manzilni qoʻlda kiriting." %}
+              </p>
             </div>
           {% endif %}
 
@@ -186,7 +196,7 @@
                       autocomplete="street-address"
                       placeholder="{% trans 'Koʻcha, uy, xonadon' %}">{{ form_data.address|default:'' }}</textarea>
             <small class="field__hint">
-              {% trans "Viloyat va tumanni yuqorida tanladingiz — bu yerga faqat koʻcha va uy raqamini yozing." %}
+              {% trans "Viloyat va tumanni yuqorida tanladingiz — bu yerga faqat koʻcha va uy raqamini yozing." %}
             </small>
           </div>
         </div>
@@ -310,23 +320,12 @@
 {% block extra_js %}
 <script src="{% static 'js/map.js' %}" defer></script>
 <script src="{% static 'js/checkout.js' %}" defer></script>
-{% if google_maps_key %}
-  {# Loaded only on this page: the map is needed on one form, which is what #}
-  {# made a paid provider affordable at all (§17 #83). If it fails to arrive #}
-  {# GX.map stays unavailable and the address field carries the form. #}
-  {#  #}
-  {# `defer`, NOT `async`. Deferred scripts run in document order, so map.js #}
-  {# has defined the GXMapReady callback before Google can call it. With #}
-  {# `async` the Google file runs the moment it arrives — which on a second #}
-  {# visit is straight out of the HTTP cache, ahead of our own deferred #}
-  {# scripts — and it called a callback that did not exist yet: "GXMapReady is #}
-  {# not a function", no map, and only for people who had been here before #}
-  {# (§17 #119). It still does not block parsing or first paint. #}
-  {#  #}
-  {# `language` and `region` are what make the place names Google returns #}
-  {# comparable to ours: asked in the page's own language, and biased to #}
-  {# Uzbekistan so a search never drifts to a same-named place abroad. #}
-  <script defer
-    src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&loading=async&language={{ LANGUAGE_CODE }}&region=UZ&callback=GXMapReady"></script>
-{% endif %}
+{# Google's own script is NOT loaded here. It used to be, with the page, and #}
+{# that handed Google the IP address of every customer who reached the #}
+{# checkout whether or not they ever touched a map (§18 #34). `GX.map.load` #}
+{# fetches it from `data-map-src` on the first tap of "Xaritadan"; map.js #}
+{# defines the GXMapReady callback before it goes out, which is what the #}
+{# old `defer`-not-`async` ordering was protecting (§17 #119). If it never #}
+{# arrives, the toggle goes back to manual entry and the address field #}
+{# carries the form, exactly as it does with no key at all (§17 #91). #}
 {% endblock %}

@@ -1,9 +1,16 @@
 {% load i18n %}
-{# Mobile menu. Hidden from assistive tech and from tab order while closed via #}
-{# the hidden attribute on the backdrop, so a closed drawer can never trap focus. #}
+{# Mobile menu. #}
+{# #}
+{# `inert` while closed, and that is not decoration: the drawer is moved off #}
+{# the screen with a transform, so its links stay in the layout and stay #}
+{# focusable — Tab walked out of the page and into an invisible menu, which is #}
+{# what `aria-hidden` on its own cannot fix (Phase 9's axe pass). `inert` takes #}
+{# the whole subtree out of the tab order and out of the accessibility tree #}
+{# without touching the transition; main.js removes it as the drawer opens. #}
 <div class="drawer__backdrop" data-drawer-backdrop hidden></div>
 
-<nav id="gx-drawer" class="drawer" data-drawer aria-label="{% trans 'Menyu' %}" aria-hidden="true">
+<nav id="gx-drawer" class="drawer" data-drawer aria-label="{% trans 'Menyu' %}"
+     aria-hidden="true" inert>
   <div class="row row--between drawer__hd">
     <span class="eyebrow">{% trans "Menyu" %}</span>
     <button type="button" data-drawer-close aria-label="{% trans 'Yopish' %}">

@@ -1,6 +1,7 @@
 """Checkout, Click payment start/webhook, and order views."""
 import json
 from decimal import Decimal, InvalidOperation
+from urllib.parse import quote
 
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,6 +10,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.utils import translation
 from django.utils.translation import gettext as _
 from click_up.views import ClickWebhook
 
@@ -66,7 +68,27 @@ def _delivery_context():
         # Shaharlar under their own headings (§17 #87).
         'districts_json': json.dumps(by_region, ensure_ascii=False),
         'google_maps_key': settings.GOOGLE_MAPS_API_KEY,
+        # The provider's own URL, built here rather than written into the
+        # template: the key, the page's language and the region all live on
+        # this side, and since §18 #34 the page holds the address instead of
+        # fetching it - the script is loaded when the customer asks for a map.
+        'google_maps_src': _maps_src(),
     }
+
+
+def _maps_src():
+    """The Google Maps loader URL, or '' when no key is configured.
+
+    ``language`` and ``region`` are what make the place names Google returns
+    comparable to ours: asked in the page's own language, and biased to
+    Uzbekistan so a lookup never drifts to a same-named place abroad.
+    """
+    key = settings.GOOGLE_MAPS_API_KEY
+    if not key:
+        return ''
+    return ('https://maps.googleapis.com/maps/api/js'
+            '?key=%s&loading=async&language=%s&region=UZ&callback=GXMapReady'
+            % (quote(key, safe=''), translation.get_language() or 'uz'))
 
 
 def _read_delivery(post):
@@ -304,8 +326,13 @@ class ClickWebhookAPIView(ClickWebhook):
 @login_required
 def order_detail(request, pk):
     """Order detail page, with per-line totals computed for the template."""
+    # `variant__size` as well as the product and its photographs: the template
+    # prints the size of every line, and without it that was a query per line
+    # (§9 Phase 9 item 7).
     order = get_object_or_404(
-        Order.objects.select_related('cart').prefetch_related('cart__cart_items__variant__product__images'),
+        Order.objects.select_related('cart').prefetch_related(
+            'cart__cart_items__variant__product__images',
+            'cart__cart_items__variant__size'),
         pk=pk, user=request.user,
     )
     for it in order.cart.cart_items.all():

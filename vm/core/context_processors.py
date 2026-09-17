@@ -1,10 +1,21 @@
 """Template context shared by every page's chrome."""
+import os
+
 from django.conf import settings
 from django.contrib.staticfiles import finders
+from django.templatetags.static import static
 from django.urls import translate_url
 from django.utils.translation import get_language
 
+from . import seo as seo_module
+
 SIZE_GUIDE_IMAGE = 'img/size_guide.png'
+
+#: The drawn guide's pixel size, remembered against the file's modification
+#: time. Reading it costs a file open, the product page renders the chart on
+#: every request, and the owner may still drop a new picture in without a
+#: restart (§17 #69) - the stat call is what keeps both true.
+_GUIDE_SIZE = {}
 
 
 def languages(request):
@@ -38,6 +49,66 @@ def languages(request):
     return {'languages': items, 'active_language': active}
 
 
+def size_guide_image():
+    """``(url, (width, height))`` for the drawn size guide, or ``(None, None)``.
+
+    One lookup for the three places that need it - the product page's hidden
+    chart, the standalone page and this module - so they cannot show different
+    files or different sizes (§17 #111).
+    """
+    path = finders.find(SIZE_GUIDE_IMAGE)
+    if not path:
+        return None, None
+    try:
+        stamp = os.path.getmtime(path)
+    except OSError:
+        return None, None
+    cached = _GUIDE_SIZE.get(path)
+    if not cached or cached[0] != stamp:
+        from product import images
+        cached = (stamp, images.measure_path(path))
+        _GUIDE_SIZE[path] = cached
+    return static(SIZE_GUIDE_IMAGE), cached[1]
+
+
+def has_size_guide():
+    """Is there a size guide at all - a drawn one, or structured rows?
+
+    The page, the footer link, the product page's link and the sitemap all ask
+    this one question, so none of them can advertise a guide another one 404s.
+    """
+    if finders.find(SIZE_GUIDE_IMAGE):
+        return True
+    # Imported here rather than at module scope: this module is loaded while the
+    # app registry is still being populated.
+    from product.models import SizeChart
+    return SizeChart.objects.exists()
+
+
+def seo(request):
+    """The canonical URL and the language alternates for this page.
+
+    A context processor rather than a tag, because every page needs them and
+    none of them should have to remember. The 500 page renders with no context
+    at all (§17 #66), so base.html prints each of these only if it is there.
+    """
+    if request is None or not hasattr(request, 'path'):
+        return {}
+    rows = seo_module.alternates(request)
+    active = get_language() or settings.LANGUAGE_CODE
+    return {
+        'canonical_url': seo_module.canonical(request),
+        'seo_alternates': rows,
+        'seo_default_url': seo_module.default_url(request),
+        # Open Graph wants a locale, not a language: `uz`, which is what the
+        # `lang` attribute carries, is not one.
+        'og_locale': seo_module.OG_LOCALES.get(active, 'uz_UZ'),
+        'og_locale_alternates': [seo_module.OG_LOCALES[row['code']] for row in rows
+                                 if row['code'] != active
+                                 and row['code'] in seo_module.OG_LOCALES],
+    }
+
+
 def size_guide(request):
     """Whether there is a size guide to link to at all.
 
@@ -51,15 +122,20 @@ def size_guide(request):
 
     The image lookup goes through the staticfiles finders, which is what
     ``{% static %}`` uses, so it answers the same before and after
-    ``collectstatic``. Neither result is cached: the owner drops the file in and
-    the site picks it up without a restart.
+    ``collectstatic``. The owner drops the file in and the site picks it up
+    without a restart.
+
+    The URL and the picture's size come with it, so the product page and the
+    standalone page no longer each work them out (§9 Phase 9 item 4 wants a
+    ``width`` and a ``height`` on every image, and an image the template is
+    handed as a bare URL has neither).
     """
-    if finders.find(SIZE_GUIDE_IMAGE):
-        return {'has_size_guide': True}
-    # Imported here rather than at module scope: this module is loaded while the
-    # app registry is still being populated.
-    from product.models import SizeChart
-    return {'has_size_guide': SizeChart.objects.exists()}
+    url, size = size_guide_image()
+    return {
+        'has_size_guide': bool(url) or has_size_guide(),
+        'size_guide_image': url,
+        'size_guide_size': size or ('', ''),
+    }
 
 
 def delivery_tiers(request):

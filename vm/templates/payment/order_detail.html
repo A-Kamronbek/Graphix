@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format legal_tags date_tags %}
+{% load static i18n i18n_fields price_format legal_tags date_tags image_tags %}
 {% block title %}{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% block content %}
 <div class="wrap section stack stack--lg">
@@ -22,13 +23,9 @@
       {% for it in order.cart.cart_items.all %}
         <article class="cartline">
           <a class="cartline__thumb" href="{% url 'item' it.variant.product.slug %}">
-            {% with it.variant.product.images.first as img %}
-              {% if img and img.picture and img.picture.name %}
-                <img src="{{ img.picture.url }}" alt="{{ it.variant.product|t:'name' }}" loading="lazy"
-                     onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-              {% else %}
-                <img src="{% static 'img/no-image.jpg' %}" alt="{{ it.variant.product|t:'name' }}" loading="lazy">
-              {% endif %}
+            {% with it.variant.product.images.all|first as img %}
+              <img {% photo_attrs img 'thumb' %} alt="{{ it.variant.product|t:'name' }}"
+                   decoding="async"{% if not forloop.first %} loading="lazy"{% endif %}>
             {% endwith %}
           </a>
           <div class="stack stack--sm">

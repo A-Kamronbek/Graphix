@@ -6,9 +6,8 @@ tells Google the three prefixes are the same page in different languages rather
 than duplicate content.
 """
 from django.contrib.sitemaps import Sitemap
-from django.contrib.staticfiles import finders
 from django.urls import reverse
-from core.context_processors import SIZE_GUIDE_IMAGE
+from core.context_processors import has_size_guide
 from product.models import Product
 
 
@@ -24,9 +23,12 @@ class StaticViewSitemap(Sitemap):
         # /saqlanganlar/ is deliberately absent: it needs a login, so it has
         # nothing to show a crawler.
         names = ['home', 'shop', 'about', 'contact', 'delivery', 'terms', 'privacy']
-        # The size guide 404s until the owner uploads the image, and a sitemap
-        # that advertises a 404 is worse than one that omits the page.
-        if finders.find(SIZE_GUIDE_IMAGE):
+        # The size guide 404s until there is something to show, and a sitemap
+        # that advertises a 404 is worse than one that omits the page. The same
+        # question the page itself answers: a drawn chart OR structured rows -
+        # asking only about the picture left the page out of the sitemap while
+        # it was live and rendering its tables (§17 #111).
+        if has_size_guide():
             names.append('size_guide')
         return names
 

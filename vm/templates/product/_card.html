@@ -1,4 +1,4 @@
-{% load static i18n i18n_fields price_format %}
+{% load static i18n i18n_fields price_format image_tags %}
 {# One product card: shop grid, related strip, home rows and the saved page. #}
 {# Expects `p`, annotated with `min_price`, `in_stock` and (for a signed-in #}
 {# visitor) `is_liked` by product.views.annotate_cards. #}
@@ -7,19 +7,20 @@
 {# the text underneath stays quiet. No layout shift: the frame holds the #}
 {# catalogue's 4:5 ratio before the image loads. #}
 {# #}
+{# `eager` and `lcp` are set by the pages that put a row of cards in the first #}
+{# screen. A lazy image inside the first screen is a slower LCP, and the #}
+{# browser only honours `fetchpriority="high"` on one image per page — so the #}
+{# first card asks for priority and the rest of its row simply are not lazy. #}
+{# #}
 {# The heart is a form, and it sits OUTSIDE the card's link: a form inside an #}
 {# anchor is invalid HTML, and nesting one there made tapping the heart follow #}
 {# the link. `.card` is the positioned ancestor it floats against. #}
 <article class="card">
   <a href="{% url 'item' p.slug %}">
     <div class="card__media">
-      {% with p.images.first as img %}
-        {% if img and img.picture and img.picture.name %}
-          <img src="{{ img.picture.url }}" alt="{{ p|t:'name' }}" loading="lazy" decoding="async"
-               onerror="this.onerror=null;this.src='{% static 'img/no-image.jpg' %}'">
-        {% else %}
-          <img src="{% static 'img/no-image.jpg' %}" alt="{{ p|t:'name' }}" loading="lazy" decoding="async">
-        {% endif %}
+      {% with p.images.all|first as img %}
+        <img {% photo_attrs img 'card' %} alt="{{ p|t:'name' }}" decoding="async"
+             {% if lcp %}fetchpriority="high"{% elif not eager %}loading="lazy"{% endif %}>
       {% endwith %}
 
       {% if p.in_stock is False %}
@@ -44,9 +45,11 @@
     {# (§17 #80). A hardcoded Uzbek label in a script has already shipped once. #}
     <button type="submit" class="like" data-like
             aria-pressed="{% if p.is_liked %}true{% else %}false{% endif %}"
-            aria-label="{% if p.is_liked %}{% trans 'Saqlanganlardan olib tashlash' %}{% else %}{% trans 'Saqlash' %}{% endif %}"
+            aria-label="{% if p.is_liked %}{% trans 'Saqlanganlardan olib tashlash' %}{% else %}{% trans 'Saqlash' %}{% endif %}{% if p.likes_count %} ({{ p.likes_count }}){% endif %}"
             data-label-on="{% trans 'Saqlanganlardan olib tashlash' %}"
             data-label-off="{% trans 'Saqlash' %}"
+            data-announce-on="{% trans 'Saqlandi.' %}"
+            data-announce-off="{% trans 'Saqlanganlardan olib tashlandi.' %}"
             data-error="{% trans 'Xatolik yuz berdi. Qayta urinib koʻring.' %}">
       <svg class="i i--sm" aria-hidden="true"><use href="#i-heart"></use></svg>
       <span class="like__count num" data-like-count{% if not p.likes_count %} hidden{% endif %}>{{ p.likes_count }}</span>

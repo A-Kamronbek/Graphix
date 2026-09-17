@@ -326,8 +326,13 @@ class AdminDefaultColourTests(TestCase):
 
     def test_creating_a_product_in_the_admin_fills_the_variant_colour(self):
         self.client.force_login(self.staff)
+        # A tag, because a product needs at least one wherever it is created
+        # (§17 #228) - the admin asks for one too, from `blank=False`.
+        from product.models import Tag
+        tag = Tag.objects.first()
         response = self.client.post('/admin/product/product/add/', {
             'category': '', 'slug': 'admin-mahsulot', 'is_active': 'on',
+            'tags': [str(tag.pk)],
             'name': 'Admin mahsulot', 'description': '', 'material': '',
             'name_ru': '', 'description_ru': '', 'material_ru': '',
             'name_en': '', 'description_en': '', 'material_en': '',

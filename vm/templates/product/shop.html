@@ -1,8 +1,18 @@
 {% extends "base.html" %}
 {% load i18n i18n_fields %}
 
-{% block title %}{% trans "Doʻkon" %}{% endblock %}
+{# A search result is a page of its own and page two really does hold other #}
+{# designs, so the number is in the title; the filters are not, because they #}
+{# are the same catalogue in a different order (see core/seo.py). #}
+{% block title %}{% if q %}“{{ q }}”{% elif search_page %}{% trans "Qidiruv" %}{% else %}{% trans "Doʻkon" %}{% endif %}{% if page_obj.number > 1 %} — {% blocktrans with n=page_obj.number %}{{ n }}-sahifa{% endblocktrans %}{% endif %}{% endblock %}
 {% block og_title %}{% trans "Doʻkon" %} — GRAPHIX{% endblock %}
+{% block meta_description %}{% trans "GRAPHIX katalogi: original grafik futbolkalar, premium trikotaj, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}
+{% block og_description %}{% trans "GRAPHIX katalogi: original grafik futbolkalar, premium trikotaj, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}
+{# The results of somebody's search are not a page to index — there are as #}
+{# many of them as there are things to type. The condition is INSIDE the #}
+{# block: a `{% block %}` wrapped in an `{% if %}` in a child template is #}
+{# registered whatever the condition says, and the shop would be noindex. #}
+{% block robots %}{% if search_page %}<meta name="robots" content="noindex, follow">{% endif %}{% endblock %}
 
 {% block content %}
 <div class="wrap section">
@@ -124,8 +134,14 @@
       <div class="stack stack--lg">
       {% if products %}
         <div class="grid-products">
+          {# The first row is in the first screen at every width, so it is not #}
+          {# lazy; the first card asks for priority as the LCP candidate. #}
           {% for p in products %}
-            {% include "product/_card.html" with p=p %}
+            {% if forloop.counter <= 4 %}
+              {% include "product/_card.html" with p=p eager=True lcp=forloop.first %}
+            {% else %}
+              {% include "product/_card.html" with p=p %}
+            {% endif %}
           {% endfor %}
         </div>
         {% include "product/_pager.html" with page_obj=page_obj base_query=base_query %}

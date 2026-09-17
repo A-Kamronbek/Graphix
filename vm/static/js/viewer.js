@@ -20,6 +20,8 @@
 
   var stage = viewer.querySelector('[data-viewer-stage]');
   var closeBtn = viewer.querySelector('[data-viewer-close]');
+  var ZOOM_LABEL = viewer.getAttribute('data-zoom-label') || '';
+  var ZOOM_SUFFIX = viewer.getAttribute('data-zoom-suffix') || '';
   var release = null;
   var opener = null;
 
@@ -101,17 +103,50 @@
            (el.hasAttribute('data-gallery-main') || el.hasAttribute('data-zoom'));
   }
 
-  document.addEventListener('click', function (e) {
-    var el = e.target;
-    if (!zoomable(el)) return;
+  function zoomOpen(el) {
     var img = document.createElement('img');
-    img.src = el.currentSrc || el.src;
+    /* The full-width rendition, not what the page is showing: the frame is
+     * given a photograph sized for the frame, and zooming into that is a
+     * blurry photograph. No `srcset` on the clone for the same reason — the
+     * viewer wants this file, at this size, whatever the viewport is. */
+    img.src = el.getAttribute('data-zoom-src') || el.currentSrc || el.src;
     img.alt = el.alt;
     open(img, el);
+  }
+
+  document.addEventListener('click', function (e) {
+    if (zoomable(e.target)) zoomOpen(e.target);
   });
 
+  /* Enter and Space, because these are controls now (below). Read off
+   * `document.activeElement` rather than from a listener per image: the
+   * gallery replaces nothing and the review photographs are rendered once, but
+   * one handler is one thing to keep right. */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    var el = document.activeElement;
+    if (!zoomable(el)) return;
+    e.preventDefault();          /* Space would otherwise scroll the page */
+    zoomOpen(el);
+  });
+
+  /* A photograph that opens full screen IS a control, and an <img> is not one:
+   * it takes no focus, answers no key and has no role, so the only way into a
+   * 72 px review photograph was a mouse or a finger (§18 #24). Given the role,
+   * the tab stop and a name here — one place for every zoomable image on the
+   * site — rather than by wrapping nine templates' images in a button.
+   *
+   * The name is the picture's own `alt` plus a word saying what pressing it
+   * does; an image with no alt gets the label alone. */
   Array.prototype.forEach.call(
     document.querySelectorAll('[data-gallery-main], [data-zoom]'),
-    function (el) { el.style.cursor = 'zoom-in'; }
+    function (el) {
+      el.classList.add('zoomable');
+      if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+      el.setAttribute('role', 'button');
+      var alt = (el.getAttribute('alt') || '').trim();
+      var name = alt ? (ZOOM_SUFFIX ? alt + ' — ' + ZOOM_SUFFIX : alt) : ZOOM_LABEL;
+      if (name) el.setAttribute('aria-label', name);
+    }
   );
 })();

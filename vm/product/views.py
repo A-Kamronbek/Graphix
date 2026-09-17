@@ -7,17 +7,14 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Exists, Min, OuterRef, Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.staticfiles import finders
 from django.http import JsonResponse
-from django.templatetags.static import static
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from core.context_processors import SIZE_GUIDE_IMAGE
+from core import seo
 from core.i18n import tfield
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
 from . import images, services
@@ -156,6 +153,13 @@ def _listing(request, search_page=False):
         'q': q,
         'sort': sort,
         'search_page': search_page,
+        # The catalogue's own trail. Not on the search page: a results page is
+        # noindex, and structured data on a page nobody may index is markup
+        # nothing will ever read.
+        'jsonld': None if search_page else seo.payload(seo.breadcrumbs(request, [
+            (_('Bosh sahifa'), reverse('home')),
+            (_('Doʻkon'), None),
+        ])),
     })
 
 
@@ -286,7 +290,7 @@ def item(request, slug):
         'product': product,
         'is_liked': is_liked,
         **_reviews(request, product),
-        'review_jsonld': _review_jsonld(request, product),
+        'jsonld': _product_jsonld(request, product),
         'colours': colours,
         'sizes': sizes,
         'unavailable_sizes': unavailable_sizes,
@@ -294,9 +298,9 @@ def item(request, slug):
         'is_purchasable': is_purchasable,
         'variants_json': json.dumps(variants_map),
         'size_chart': product.resolve_size_chart(),
-        # The drawn chart, if the owner has not replaced it with his own. Same
-        # lookup the standalone page uses, so the two never show different files.
-        'size_guide_image': finders.find(SIZE_GUIDE_IMAGE) and static(SIZE_GUIDE_IMAGE),
+        # The drawn chart comes from the context processor, which is also what
+        # the standalone page and the footer link read - so the two pages can
+        # never show different files (§17 #111).
         # The delivery line reads from the rows, so the page and the checkout can
         # never quote different prices (§18 #18). Imported here rather than at
         # module scope to keep product from taking a startup import on payment.
@@ -353,27 +357,58 @@ def _reviews(request, product):
     return {'reviews': page, 'review_distribution': distribution}
 
 
-def _review_jsonld(request, product):
-    """`aggregateRating` and `Review` structured data, or None.
+def _money(amount):
+    """A price as schema.org wants it: a number, as a string, no thousands mark."""
+    return format(amount.normalize(), 'f') if amount == amount.to_integral() else str(amount)
 
-    This is what puts star ratings in a Google result, which is the reason the
-    plan calls it an acquisition win rather than a nicety (§9 Phase 12 item 7).
-    Emitted only when there is something true to say: schema.org requires
-    `aggregateRating` to describe at least one real review, and a product with
-    none must not claim one.
+
+def _offers(request, product, url):
+    """The `offers` node: what this product costs and whether it can be bought.
+
+    One `Offer` when every size is the same price, which is the ordinary case
+    here, and an `AggregateOffer` when they are not - a range is the honest
+    answer, and a single price picked out of several is the kind of mismatch
+    between markup and page that earns a manual action (§18 #22).
+
+    Availability is purchasability, not the owner's switch: a size still listed
+    but out of stock cannot be bought, and that is what a shopping result is
+    telling somebody when it says "in stock".
+    """
+    variants = list(product.variants.all())
+    prices = sorted({v.price for v in variants if v.available})
+    if not prices:
+        return None
+    common = {
+        'priceCurrency': 'UZS',
+        'availability': ('https://schema.org/InStock'
+                         if any(v.is_purchasable for v in variants)
+                         else 'https://schema.org/OutOfStock'),
+        'itemCondition': 'https://schema.org/NewCondition',
+        'url': url,
+        'seller': {'@id': seo.absolute(request, '/') + '#shop'},
+    }
+    if len(prices) > 1:
+        return {'@type': 'AggregateOffer', 'lowPrice': _money(prices[0]),
+                'highPrice': _money(prices[-1]),
+                'offerCount': len([v for v in variants if v.available]), **common}
+    return {'@type': 'Offer', 'price': _money(prices[0]), **common}
+
+
+def _review_nodes(product):
+    """`aggregateRating` and `review`, or nothing at all.
+
+    What puts star ratings in a Google result, which is why the plan calls it an
+    acquisition win rather than a nicety (§9 Phase 12 item 7). Emitted only when
+    there is something true to say: schema.org requires `aggregateRating` to
+    describe at least one real review, and a product with none must not claim
+    one.
     """
     if not product.review_count:
-        return None
-
+        return {}
     approved = (Review.objects
                 .filter(product=product, status=Review.Status.APPROVED)
                 .select_related('user')[:20])
-
-    data = {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        'name': tfield(product, 'name'),
-        'url': request.build_absolute_uri(product.get_absolute_url()),
+    return {
         'aggregateRating': {
             '@type': 'AggregateRating',
             'ratingValue': str(product.rating_avg),
@@ -394,10 +429,43 @@ def _review_jsonld(request, product):
             for r in approved
         ],
     }
-    # `</script>` inside a JSON string would end the script element early and
-    # turn review text into markup. Escaping the angle bracket is the standard
-    # defence and costs nothing: JSON readers unescape < transparently.
-    return mark_safe(json.dumps(data, ensure_ascii=False).replace('<', '\\u003c'))
+
+
+def _product_jsonld(request, product):
+    """The whole of what this page says to a search engine, in one graph.
+
+    Phase 12 shipped the rating and the reviews, which is everything a review
+    snippet needs; Google also wants `offers` on a `Product` node and reports a
+    warning on every page without one (§18 #22). The trail comes with it: the
+    breadcrumb in a result is the shop's own navigation, and it is already on
+    the page for a reader.
+    """
+    url = seo.absolute(request, product.get_absolute_url())
+    description = tfield(product, 'description') or ''
+    node = {
+        '@type': 'Product',
+        'name': tfield(product, 'name'),
+        'url': url,
+        # The slug, not the id: it is the stable public name of this design,
+        # and it is what a purchase order or a support message would quote.
+        'sku': product.slug,
+        'brand': {'@type': 'Brand', 'name': 'GRAPHIX'},
+        'image': [seo.absolute(request, image.zoom_url())
+                  for image in product.images.all()[:4] if image.has_photo],
+    }
+    if description:
+        node['description'] = description
+    offers = _offers(request, product, url)
+    if offers:
+        node['offers'] = offers
+    node.update(_review_nodes(product))
+
+    trail = [(_('Bosh sahifa'), reverse('home')), (_('Doʻkon'), reverse('shop'))]
+    if product.category:
+        trail.append((tfield(product.category, 'name'),
+                      '%s?category=%d' % (reverse('shop'), product.category_id)))
+    trail.append((tfield(product, 'name'), None))
+    return seo.payload(node, seo.breadcrumbs(request, trail))
 
 
 @login_required

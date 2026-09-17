@@ -32,7 +32,14 @@
 
   /* lines */
   --c-line:          #2C2620;   /* hairline between rows */
-  --c-line-strong:   #453D31;   /* control borders */
+  --c-line-strong:   #453D31;   /* panel edges, dividers, decorative frames */
+  /* The boundary of anything a visitor operates: a field, a checkbox, a size
+     button, a filter chip. WCAG 2.1 asks 3:1 of a control's boundary against
+     what is behind it, because the border is often the only thing saying the
+     control is there at all - an unticked checkbox is a border and nothing
+     else. --c-line-strong is 1.8:1 on the page ground and cannot carry that
+     job; this is 3.54:1 (§17 #188, §19 Q22). */
+  --c-line-control:  #756853;
 
   /* brand accent */
   --c-brand:         #C6A44E;

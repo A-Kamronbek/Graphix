@@ -14,7 +14,7 @@
 }
 .btn--primary   { background: var(--c-brand); color: var(--c-brand-fg); }
 .btn--primary:hover:not(:disabled)   { background: var(--c-brand-hover); }
-.btn--secondary { background: var(--c-surface-2); color: var(--c-fg); border-color: var(--c-line-strong); }
+.btn--secondary { background: var(--c-surface-2); color: var(--c-fg); border-color: var(--c-line-control); }
 .btn--secondary:hover:not(:disabled) { background: var(--c-surface-3); border-color: var(--c-fg-subtle); }
 .btn--ghost     { background: transparent; color: var(--c-fg); }
 .btn--ghost:hover:not(:disabled)     { background: var(--c-surface-2); }
@@ -45,7 +45,7 @@
 .input, .textarea, .select {
   width: 100%; padding: var(--s-3) var(--s-4);
   background: var(--c-surface); color: var(--c-fg);
-  border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
+  border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   font-size: var(--fs-base); min-height: 48px;
   transition: border-color var(--t-fast), background var(--t-fast);
 }
@@ -75,7 +75,7 @@
   font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-semibold);
   margin-right: var(--s-3); padding: var(--s-2) var(--s-4);
   background: var(--c-surface-3); color: var(--c-fg);
-  border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
+  border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   cursor: pointer; transition: border-color var(--t-fast), background var(--t-fast);
 }
 .input[type="file"]:hover::file-selector-button { border-color: var(--c-fg-subtle); }
@@ -97,7 +97,7 @@
 
 .check { display: flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
 .check input { appearance: none; width: 22px; height: 22px; flex: none; margin-top: 1px;
-  background: var(--c-surface); border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
+  background: var(--c-surface); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   transition: background var(--t-fast), border-color var(--t-fast); }
 .check input[type="radio"] { border-radius: 50%; }
 .check input:checked { background: var(--c-brand); border-color: var(--c-brand); }
@@ -105,7 +105,7 @@
   background: var(--c-brand-fg); clip-path: polygon(19% 52%, 38% 71%, 81% 28%, 88% 37%, 38% 86%, 12% 60%); }
 .check input[type="radio"]:checked::after { clip-path: circle(26% at 50% 50%); }
 
-.stepper { display: inline-flex; align-items: center; border: 1px solid var(--c-line-strong);
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--c-line-control);
   border-radius: var(--r-sm); background: var(--c-surface); }
 .stepper button { width: 44px; height: 44px; display: grid; place-items: center; color: var(--c-fg); }
 .stepper button:hover:not(:disabled) { background: var(--c-surface-3); }
@@ -123,12 +123,12 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .otp { display: flex; gap: var(--s-2); }
 .otp input { width: 52px; height: 62px; text-align: center; font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold); background: var(--c-surface); color: var(--c-fg);
-  border: 1px solid var(--c-line-strong); border-radius: var(--r-sm); font-variant-numeric: tabular-nums; }
+  border: 1px solid var(--c-line-control); border-radius: var(--r-sm); font-variant-numeric: tabular-nums; }
 .otp input:focus { border-color: var(--c-brand); }
 .otp input:focus:not(:focus-visible) { outline: none; }
 
 .search { display: flex; align-items: center; gap: var(--s-2); width: 100%;
-  padding: 0 var(--s-4); background: var(--c-surface); border: 1px solid var(--c-line-strong);
+  padding: 0 var(--s-4); background: var(--c-surface); border: 1px solid var(--c-line-control);
   border-radius: var(--r-full); min-height: 44px; color: var(--c-fg-muted); }
 /* The input inside the pill is borderless and has `outline: none`, so the
    keyboard ring belongs on the pill: drawn here it frames the whole control
@@ -161,7 +161,7 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 /* ======================================================= 5. size selector */
 .sizes { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .sizes__btn { min-width: 60px; padding: var(--s-3) var(--s-2); background: var(--c-surface);
-  color: var(--c-fg); border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
+  color: var(--c-fg); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   font-weight: var(--fw-semibold); min-height: 48px;
   transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast); }
 .sizes__btn:hover:not(:disabled) { border-color: var(--c-fg-muted); }
@@ -240,6 +240,12 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .review__who { font-weight: var(--fw-semibold); }
 .review__date{ color: var(--c-fg-hint); font-size: var(--fs-sm); margin-left: auto; }
 .review__text{ color: var(--c-fg-muted); }
+/* A photograph that opens full screen is a control, and viewer.js makes it
+   one - the keyboard, a role and a name (§18 #24). The pointer belongs here
+   rather than in an inline style written by that script: a cursor is a design
+   value and design values live in CSS (§4). */
+.zoomable { cursor: zoom-in; }
+
 .review__pics{ display: flex; gap: var(--s-2); margin-top: var(--s-3); }
 .review__pics img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--r-sm);
   border: 1px solid var(--c-line); }
@@ -302,7 +308,7 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .viewer__close { position: absolute; top: var(--s-3); right: var(--s-3);
   z-index: 1; width: 48px; height: 48px; display: grid; place-items: center;
   color: var(--c-fg); background: var(--c-surface-2);
-  border: 1px solid var(--c-line-strong); border-radius: var(--r-full); }
+  border: 1px solid var(--c-line-control); border-radius: var(--r-full); }
 .viewer__close:hover { background: var(--c-surface-3); }
 .viewer__stage { flex: 1; overflow: auto; touch-action: pinch-zoom;
   padding: var(--s-7) var(--s-4) var(--s-5);
@@ -396,7 +402,7 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 /* ====================================================== 15. filters / chips */
 .chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .chips button { padding: var(--s-2) var(--s-4); min-height: 40px; border-radius: var(--r-full);
-  border: 1px solid var(--c-line-strong); color: var(--c-fg-muted); font-size: var(--fs-sm);
+  border: 1px solid var(--c-line-control); color: var(--c-fg-muted); font-size: var(--fs-sm);
   font-weight: var(--fw-semibold); transition: color var(--t-fast), border-color var(--t-fast); }
 .chips button:hover { color: var(--c-fg); border-color: var(--c-fg-muted); }
 .chips button[aria-pressed="true"] { background: var(--c-fg); color: var(--c-bg); border-color: var(--c-fg); }
@@ -553,14 +559,14 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 @media (min-width: 720px) { .foot__grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* ================================================= 19. language switcher */
-.lang { display: inline-flex; border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
+.lang { display: inline-flex; border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   overflow: hidden; }
 /* One <form> per language, because each button posts a different destination
    (§17 #115) — `display: contents` keeps the buttons as the flex children the
    rule below is written for, so the wrapper is invisible to the layout. */
 .lang form { display: contents; }
 .lang button { padding: var(--s-2) var(--s-3); font-size: var(--fs-sm); font-weight: var(--fw-semibold);
-  color: var(--c-fg-muted); border-right: 1px solid var(--c-line-strong); min-height: 40px; }
+  color: var(--c-fg-muted); border-right: 1px solid var(--c-line-control); min-height: 40px; }
 .lang form:last-child button { border-right: 0; }
 .lang button[aria-pressed="true"] { background: var(--c-surface-3); color: var(--c-fg); }
 

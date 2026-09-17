@@ -600,7 +600,15 @@ class RichResultTests(TestCase):
         found = re.search(
             r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
         self.assertIsNotNone(found, 'no structured data on a reviewed product')
-        return json.loads(found.group(1))
+        # Phase 9 put every node on the page into one `@graph` — the product,
+        # its offer and the trail to it — because two script elements is two
+        # things claiming to describe the page. The reviews live on the
+        # Product node, which is what this file is about.
+        graph = json.loads(found.group(1))['@graph']
+        for node in graph:
+            if node.get('@type') == 'Product':
+                return node
+        self.fail('no Product node in the structured data')
 
     def test_the_block_is_valid_json(self):
         """It is a stranger's text inside a script element; only a parser knows."""

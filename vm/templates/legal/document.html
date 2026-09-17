@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% load i18n legal_tags %}
 {% block title %}{{ doc_title }}{% endblock %}
+{# One sentence about the document, written in the view: a legal text's own #}
+{# first line is a legal sentence, and a search result is read by somebody #}
+{# deciding whether to open it at all. #}
+{% block meta_description %}{{ doc_description }}{% endblock %}
+{% block og_description %}{{ doc_description }}{% endblock %}
+{% block og_title %}{{ doc_title }} — GRAPHIX{% endblock %}
 
 {% comment %}
   One shape for the three legal documents: the title and the version in

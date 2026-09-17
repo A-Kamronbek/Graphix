@@ -223,9 +223,20 @@ class ReferenceTests(TestCase):
         self.assertEqual(tag.slug, 'yangi-kolleksiya')
         self.assertEqual(tag.kind, collection)
 
-    def test_two_tags_with_the_same_name_get_different_slugs(self):
+    def test_the_same_name_twice_in_one_list_is_refused(self):
+        """It used to make a second row with a `-2` slug. Two identical chips
+        in one filter group is a question the owner would have to answer
+        later, so the form answers it now (§18 #31, §17 #229)."""
         self.client.post(reverse('panel_tag_new'), {'name': 'Takror'})
         self.client.post(reverse('panel_tag_new'), {'name': 'Takror'})
+        self.assertEqual(Tag.objects.filter(name='Takror').count(), 1)
+
+    def test_the_same_name_under_two_axes_still_gets_two_slugs(self):
+        """A colour called Qora and a collection called Qora are two things."""
+        style = TagKind.objects.get(slug='style')
+        collection = TagKind.objects.get(slug='collection')
+        self.client.post(reverse('panel_tag_new'), {'name': 'Takror', 'kind': style.pk})
+        self.client.post(reverse('panel_tag_new'), {'name': 'Takror', 'kind': collection.pk})
         self.assertEqual(Tag.objects.filter(name='Takror').count(), 2)
         self.assertEqual(Tag.objects.filter(slug='takror-2').count(), 1)
 
