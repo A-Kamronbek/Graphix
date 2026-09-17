@@ -1,5 +1,5 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n l10n price_format %}
+{% load i18n l10n price_format date_tags %}
 {% block title %}{{ order.order_no }}{% endblock %}
 
 {% comment %}
@@ -95,7 +95,7 @@
         {# `tel:` URI with spaces in it is one some Android dialers refuse. #}
         <dd><a class="link tap" href="tel:{{ order.phone|cut:' ' }}">{{ order.phone }}</a></dd>
         <dt>{% trans "Sana" %}</dt>
-        <dd>{{ order.created_at|date:"j E Y, H:i" }}</dd>
+        <dd>{{ order.created_at|date:"j E Y, H:i"|month_case }}</dd>
         <dt>{% trans "Toʻlov" %}</dt>
         <dd>{{ order.get_payment_method_display }}</dd>
       </dl>
@@ -131,7 +131,7 @@
           <div class="trail__row">
             <span>{{ change.from_label|default:"—" }} → <strong>{{ change.to_label }}</strong></span>
             <span>{% if change.changed_by %}{{ change.changed_by.username }}{% else %}{% trans "oʻchirilgan hisob" %}{% endif %}</span>
-            <time datetime="{{ change.changed_at|date:'c' }}">{{ change.changed_at|date:"j E, H:i" }}</time>
+            <time datetime="{{ change.changed_at|date:'c' }}">{{ change.changed_at|date:"j E, H:i"|month_case }}</time>
           </div>
         {% empty %}
           <p class="muted small">{% trans "Holat hali oʻzgartirilmagan." %}</p>

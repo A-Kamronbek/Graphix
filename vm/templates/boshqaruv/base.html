@@ -89,6 +89,7 @@
   {# script needs are written in `panel/templatetags/panel_i18n.py` and handed #}
   {# over here, escaped by `json_script`. #}
   {% panel_strings as pnl_strings %}{{ pnl_strings|json_script:"pnl-i18n" }}
+  {% include "partials/_form_messages.html" %}
   <script src="{% static 'js/panel.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>

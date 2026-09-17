@@ -40,7 +40,8 @@ def _cancel_and_delete(request, reason=None):
         # Whether this account is safe to drop is decided in one place, so the
         # middleware's copy of this path cannot disagree with it (§12 risk #4).
         # An unverified signup that already holds a claimed cart or an order is
-        # a customer, and deleting it would CASCADE their things away.
+        # a customer: deleting it would CASCADE the cart away, and an order
+        # makes the database refuse the delete outright (§17 #219).
         logout(request)  # flushes session (incl. otp_* keys)
         user_services.delete_if_disposable(user)
     if reason:

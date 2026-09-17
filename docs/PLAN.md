@@ -4,8 +4,8 @@
 **Repo:** `D:\phyton\ValleyMade\` (Django project package `vm/`)
 **Production:** **graphix.uz** (domain secured, not yet deployed). valleymade.uz is abandoned — see §17 #35.
 **Owner / developer:** Kamronbek
-**Plan version:** 2.17 · created 2026-09-08 · last amended 2026-09-16
-**Status:** Phases 0, 1a, 2, 3, 4, 5, 6, 7, 8 and 12 complete · **Phase 8 complete and rechecked** · Phase 1b unblocked (the VPS is bought)
+**Plan version:** 2.18 · created 2026-09-08 · last amended 2026-09-17
+**Status:** Phases 0, 1a, 2, 3, 4, 5, 6, 7, 8 and 12 complete · **the backlog rechecked and cleared before Phase 9 (2026-09-17)** · Phase 9 is next · Phase 1b unblocked (the VPS is bought — OVHcloud, Warsaw)
 **This is the merged plan (§17 #89).** Two versions of this file existed on 2026-09-12: a planning line at v1.5 and an implementation line at v1.19. v2.0 is one document again, and the delivery redesign and Google Maps from the planning line are carried into it.
 
 ---
@@ -71,8 +71,9 @@ stated separately in §13 and is the order that actually matters.
 
 ## 1. Where the project stands today
 
-An honest baseline, from a full read of every Python file, template, `main.css` and `main.js`, plus
-an inspection of the live site.
+An honest baseline, taken on 2026-09-08 before the rebuild began, from a full read of every Python
+file, template, `main.css` and `main.js`, plus an inspection of the live site. What has changed since
+is in §15 and §17.
 
 ### What is genuinely good and must be preserved
 
@@ -135,8 +136,8 @@ Found during Phase 0, not in the original audit:
 
 7. ✅ **`requirements.txt` was UTF-16 encoded**, which `pip install -r` cannot read on every
    platform. → *Rewritten as UTF-8 in Phase 0.*
-8. **`django-environ` is pinned but never imported** — the project reads its `.env` through
-   `python-dotenv`. Left in place pending Kamronbek's confirmation (§18 #4).
+8. ✅ **`django-environ` was pinned but never imported** — the project reads its `.env` through
+   `python-dotenv`. → *Removed 2026-09-13 (§18 #4).*
 
 ---
 
@@ -180,17 +181,17 @@ Settled during planning. Changing any of these requires a §17 decision-log entr
 | Map abstraction | **All map code sits behind one thin internal wrapper** | Written before the provider was settled, and it is exactly why changing it cost nothing: the provider moved from Yandex to Google with no code to rewrite, because none had been written outside the plan. Keep the wrapper — 2GIS and Leaflet stay one file away. |
 | Saved items | **One "like" — public count and private saved list in a single action** | One heart, one model. Matches how every fashion store and social app works, and how the customer describes it. Feeds the popularity sort and the recommender. |
 | Guest browsing | **Anonymous cart; login required at checkout** | Guests browse and fill a cart freely; the login wall moves from "add to cart" to "checkout". Captures most of the conversion benefit without reworking the most sensitive code in the project. |
-| Rebuild strategy | **Evolve in place, one branch per phase** | Same repo, same database. The site stays live and improving throughout. |
+| Rebuild strategy | **Evolve in place, one branch per phase** | Same repo, one branch per phase. *The old database held nothing and valleymade.uz is abandoned, so graphix.uz starts from a fresh database on the new VPS and nothing is deployed before Phase 1b (§17 #34–#36).* |
 | New Python dependencies | **None.** | Everything needed is already installed or is in the standard library. |
-| Language strategy | **Uzbek default (no URL prefix), `/ru/` and `/en/` prefixed** | Best for SEO and for the majority audience. |
-| Internal package name | **`vm/` stays** for now | Renaming touches wsgi, systemd, nginx and the venv. Deferred to an optional Phase 11 task. |
+| Language strategy | **Uzbek default; every language prefixed — `/uz/`, `/ru/`, `/en/`** *(amended 2026-09-14, §17 #121 — Uzbek was unprefixed until then)* | One URL shape for all three. An unprefixed default is a special case Django keeps working around — it is what left the language switcher one-way (§17 #115). Old unprefixed URLs redirect into the prefixed tree. |
+| Internal package name | **`vm/` stays** for now | Renaming touches wsgi, systemd, nginx and the venv. Deferred to after launch, paired with the repository rename (Phase 11, §18 #9). |
 | Brand mark | **The existing six-point asterisk carries over** | Already vector, already distinctive. It needs a clean geometric redraw, not a redesign. |
-| Delivery | **Two methods, no free threshold: 15 000 UZS to an Uzpost branch · 40 000 UZS to the home. All shipping via Uzpost, Tashkent and regions alike.** | Simple, predictable, and each tier reflects real cost. The home tier rose from 30 000 on the owner's pricing call (§17 #85) — **the code still says 30 000 and Phase 6e changes it** (§18 #18). |
-| Branch delivery | **No branch table. The customer picks a region and a district, then types the 6-digit postal index of their branch.** | Owner's decision, 2026-09-12 (§17 #84), and it removes the hardest dependency in the project: there is no public Uzpost branch list, so a `PickupPoint` table meant owning and verifying a dataset we could not obtain. Every Uzbek knows their own postal index; two small reference tables (14 regions, ~210 districts and cities) are verifiable by hand in an afternoon. **Phase 4 shipped the `PickupPoint` table before this decision existed; Phase 6d retires it.** |
+| Delivery | **Two methods, no free threshold: 15 000 UZS to an Uzpost branch · 40 000 UZS to the home. All shipping via Uzpost, Tashkent and regions alike.** | Simple, predictable, and each tier reflects real cost. The home tier rose from 30 000 on the owner's pricing call (§17 #85); the rows and the copy have said 40 000 since Phase 6e (§18 #18). |
+| Branch delivery | **No branch table. The customer picks a region and a district, then types the 6-digit postal index of their branch.** | Owner's decision, 2026-09-12 (§17 #84), and it removes the hardest dependency in the project: there is no public Uzpost branch list, so a `PickupPoint` table meant owning and verifying a dataset we could not obtain. Every Uzbek knows their own postal index; two small reference tables (14 regions, ~210 districts and cities) are verifiable by hand in an afternoon. **Phase 4 shipped the `PickupPoint` table before this decision existed; Phase 6d retired it.** |
 | Colour | **Removed from the product-page UI; kept in the data model** | Every design ships in one colourway, so the picker is noise. Deleting the model would be a destructive migration with no benefit. |
 | Reviews | **Verified purchase only, with moderation** | Only a customer with a delivered order containing that product can review it. Photos are queued for approval before they appear publicly. |
 | Recommendations | **Tag-overlap, not machine learning. Data collected from day one, algorithm built after launch.** | A recommender needs like data and product tags to be worth anything. Tags land in Phase 4; the algorithm is Phase 13. |
-| Telegram notifications | **Committed deliverable, not optional** | A push to the owner's phone within seconds of an order is worth more than any dashboard. |
+| Telegram notifications | **Committed deliverable, not optional** | A push to the owner's phone within seconds of an order is worth more than any dashboard. *Built in 6f; switched on from `.env`, straight to Telegram or through the shop's bot service (§17 #93, #206).* |
 | Legal documents | **Written in-project** | Drafted to a real standard against Uzbek law. Independent review recommended, not blocking. |
 
 ### Research finding: Uzpost branch data — *why the branch table was dropped*
@@ -236,8 +237,9 @@ is caught at checkout against a prefix we know (§17 #86).
 
 The rebuild adds **zero** new Python packages. Verified: Redis caching is built into Django 6;
 Pillow handles thumbnails; `django.utils.text.slugify` handles slugs; Django's own `gettext` handles
-i18n; `requests` (already installed) handles Telegram and any Uzpost seeding; Django's built-in
-runner handles tests; Google Maps is browser-side JavaScript.
+i18n; `requests` (already installed) handles Telegram; the region tables are built from the SOATO
+classifier with the standard library (§17 #98); Django's built-in runner handles tests; Google Maps is
+browser-side JavaScript.
 
 To **remove** in Phase 0: `djangorestframework_simplejwt`, `django-cors-headers`.
 
@@ -271,7 +273,8 @@ never the cloud container's bash, which cannot see the D: drive.
 
 `main` is the integration branch (§17 #32). One branch per phase, cut from `main`:
 `phase-0-stabilise`, `phase-1-rebrand`, … Merged back into `main` when the phase's Definition of
-Done passes. Deploy after each merge.
+Done passes. Once the site is live, a merge into `main` is what gets deployed; nothing is deployed
+before Phase 1b (§17 #36).
 
 ### Non-negotiables
 
@@ -309,6 +312,8 @@ scroll at any width.
 
 ## 6. Target information architecture
 
+Every path in the tree sits under a language prefix — `/uz/`, `/ru/` or `/en/` (§17 #121).
+
 ```
 /                          Home
 /shop/                     Catalogue — search, filter, sort
@@ -316,7 +321,7 @@ scroll at any width.
 /qidiruv/                  Global search results          ← new
 /saqlanganlar/             Liked / saved items            ← new
 /cart/                     Cart  (anonymous allowed)
-/checkout/                 Checkout — login required, delivery + pickup point
+/checkout/                 Checkout — login required; region and district, then a branch index or a street
 /payment/<id>/             Payment (Click)
 /order/<id>/               Order detail
 /order/<id>/status/        Order status timeline
@@ -329,17 +334,15 @@ scroll at any width.
 /terms/                    Terms of use
 /privacy/                  Privacy policy                 ← new
 /yetkazib-berish/          Delivery & returns             ← new
-/size-guide/               General sizing guide           ← new
+/olcham-jadvali/           General sizing guide           ← new
 /boshqaruv/                Custom admin panel             ← new (staff only)
-/admin/                    Django admin (kept)
-
-/ru/…  /en/…               Same tree, prefixed
 ```
 
 **Must stay outside `i18n_patterns()`** — called by machines, and a language prefix would break them:
 
 - `/payment/click/update/` — the Click webhook. **Breaking this breaks payments.**
-- `/admin/`, `/sitemap.xml`, `/robots.txt`, `/media/`, `/static/`
+- `/admin/` (the Django admin, kept as the fallback), `/sitemap.xml`, `/robots.txt`,
+  `/site.webmanifest`, `/favicon.ico`, `/i18n/` (the language switch), `/media/`, `/static/`
 
 ---
 
@@ -473,8 +476,8 @@ class DeliveryOption(Model):            # NEW
     price            DecimalField(15,0)
     free_from_items  PositiveSmallIntegerField(0) # 0 = never free (current policy)
     requires_branch  BooleanField(False)          # region + district + index, not an address
-                                                  # shipped as `requires_pickup_point`; Phase 6d
-                                                  # renames it in the migration that drops the table
+                                                  # shipped as `requires_pickup_point`; renamed
+                                                  # in Phase 6d (migration 0014)
     is_active        BooleanField(True)
     sort_order       PositiveSmallIntegerField(0)
 
@@ -494,7 +497,7 @@ class District(Model):                  # NEW — tumanlar AND regionally-subord
     region           FK(Region, PROTECT, related_name='districts')
     code             CharField(8, unique)         # SOATO code
     name_uz/ru/en    CharField(80)
-    kind             CharField(10, choices=['district', 'city'])   # tuman | shahar
+    kind             CharField(10, choices=['district', 'city', 'other'])   # tuman | shahar | Boshqa (§17 #97)
     is_active        BooleanField(True, db_index)
     Meta: ordering = ['region', 'name_uz'], unique_together = ('region', 'name_uz')
 
@@ -503,10 +506,19 @@ Order        + order_no        CharField(20, unique, db_index)   # "GX-260908-00
              + address_source  CharField(10, blank, choices=['map','manual'])  # home delivery
              + delivery_option FK(DeliveryOption, null, blank, PROTECT)
              + delivery_price  DecimalField(15,0, default=0)     # SNAPSHOT at checkout
-             + region          FK(Region, null, blank, PROTECT)      # branch method
-             + district        FK(District, null, blank, PROTECT)    # branch method
-             + postal_index    CharField(6, blank, db_index)         # branch method
-             + location_snapshot TextField(blank)   # frozen text of whichever branch was chosen
+             + region          FK(Region, null, blank, PROTECT)      # both methods (§17 #106)
+             + district        FK(District, null, blank, PROTECT)    # both methods (§17 #106)
+             + postal_index    CharField(6, blank, db_index)         # branch method only
+             + location_note   CharField(160, blank)   # the Boshqa escape's own words (§17 #97)
+             + location_snapshot TextField(blank)   # frozen text of where the parcel was sent
+             + recipient_name  CharField(120, blank)   # who collects it (§17 #190)
+             ~ user            FK(User, PROTECT)   # was CASCADE: an order outlives its account (§17 #219)
+
+class PaymentOption(Model):             # NEW in Phase 6 (§17 #99) — Click on, cash off
+    code             CharField(20, unique)        # matches Order.payment_method
+    name_uz/ru/en, note_uz/ru/en
+    is_active        BooleanField(False, db_index)
+    sort_order       PositiveSmallIntegerField(0)
 ```
 
 **Seeded delivery options:**
@@ -517,8 +529,8 @@ Order        + order_no        CharField(20, unique, db_index)   # "GX-260908-00
 | `uzpost_door` | Eshikkacha yetkazib berish | **40 000** | address — dropped pin or typed | Uzpost courier to your address |
 
 The code is `uzpost_door`, not `uzpost_home`: that is what Phase 4 seeded and what any existing order's
-`PROTECT` foreign key points at. Renaming it would buy nothing. **The seeded price is still 30 000 —
-Phase 6e changes it, along with the copy on the product and delivery pages** (§18 #18).
+`PROTECT` foreign key points at. Renaming it would buy nothing. Phase 6e raised the seeded price
+from 30 000 to 40 000, and the copy on the product and delivery pages with it (§18 #18).
 
 Both tiers ship via Uzpost, in Tashkent and every region alike. There is currently **no free-delivery
 threshold** — `free_from_items` stays 0. The field exists so a promotion can be switched on later
@@ -529,8 +541,9 @@ at checkout, and `location_snapshot` freezes as text whatever the customer chose
 index, or the address. A district renamed or deactivated a year later cannot rewrite where a parcel
 was sent.
 
-**Validation, and it is the point of this design** (§17 #86). A branch order **must** carry a region, a
-district and an index; a home order must carry none of them. The index must be exactly six digits, and
+**Validation, and it is the point of this design** (§17 #86). Both methods **must** carry a region and a
+district (§17 #106); a branch order adds the index, and a home order a street address and no index. The
+index must be exactly six digits, and
 its **first two digits must match the chosen region's `postal_prefix`** — the one check that catches the
 typo that would otherwise send a parcel to another province. **Both drawers carry a `Boshqa` (Other) escape with a free-text field**, for an address the
 classifier does not cover — a new district, a spelling the customer knows and we do not. When the
@@ -570,14 +583,20 @@ Built once in Phase 2, then never re-invented. Lives in `static/css/tokens.css`.
 
 ```
 static/css/   tokens.css · base.css · components.css · pages.css · panel.css
-static/js/    main.js · gallery.js · variant.js · map.js · panel.js
+static/js/    main.js · gallery.js · variant.js · viewer.js · auth.js · checkout.js · map.js
+              admin_map.js · forms.js · panel.js
 ```
 
-`map.js` talks only to a thin internal wrapper (`GX.map`) exposing `init`, `addMarkers`,
-`onMarkerSelect`, `setPin`, `getPin`, `reverseGeocode`. No page ever calls a Google global directly —
-that is what makes a provider swap a one-file change.
+`map.js` talks only to a thin internal wrapper (`GX.map`) exposing `init`, `show` (the admin's
+read-only map, §17 #108), `setPin`, `getPin` and `reverseGeocode` — the marker calls went with the
+branch table (§17 #84). No page ever calls a Google global directly — that is what makes a provider
+swap a one-file change.
 
 ### Token set (values decided in Phase 2, shape decided now)
+
+*The shape as planned. Where the values differ, `tokens.css` is the authority: radius is 3 · 6 · 14,
+`--container-wide` was deleted (§17 #81), there is a `--z-sticky` layer, and breakpoints are set per
+component — 640 · 720 · 860 · 1024 in use.*
 
 ```
 Colour     --c-bg, --c-surface, --c-surface-2, --c-fg, --c-fg-muted, --c-fg-subtle,
@@ -605,12 +624,13 @@ current site reads as cramped and amateur on mobile.
 The six-point asterisk carries over. It is a good mark — geometric, distinctive, reads at 16 px, and
 works as a logo, a bullet, a loading spinner and a section divider.
 
-Current state: `static/img/favicon.svg` is a **traced** path with a 3125 pt viewBox and hundreds of
-nodes (1.9 KB). Phase 1 **redraws it geometrically** — three rotated bars on a `0 0 24 24` viewBox,
-roughly 300 bytes, exact at every size, recolourable via `currentColor`. Same mark, correctly built.
+Before Phase 1a, `static/img/favicon.svg` was a **traced** path with a 3125 pt viewBox and hundreds of
+nodes (1.9 KB). Phase 1a **redrew it geometrically** — three rotated bars on a `0 0 24 24` viewBox,
+225 bytes, exact at every size, recolourable via `currentColor`. Same mark, correctly built.
 
-Deliverables: `logo-mark.svg`, `logo-full.svg` (mark + GRAPHIX wordmark), `logo-stacked.svg`, each in
-light and dark lockups. Source PNG archived at `docs/brand/logo-mark-source.png`.
+Deliverables: `logo-mark.svg`, `logo-full.svg` (mark + GRAPHIX wordmark), `logo-stacked.svg`, each one
+`currentColor` file that serves light and dark grounds alike. Source PNG archived at
+`docs/brand/logo-mark-source.png`; the share card's source is `docs/brand/og-card.html` (§17 #223).
 
 ### Component inventory
 
@@ -695,8 +715,9 @@ three-feature-icons layout, decorative emoji, stock lifestyle imagery that isn't
 Domain secured. Eskiz sender approved under the GRAPHIX name.
 
 **Phase 1 is split (§17 #36).** Everything that can be done locally is **1a**; everything that needs
-a running server is **1b**. Kamronbek is buying a new VPS (Ubuntu 24.04, 2 vCPU / 4 GB / 40 GB SSD)
-and will not deploy until the site is worth deploying, so 1b is deliberately parked. The rest of the
+a running server is **1b**. Kamronbek has bought the new VPS (OVHcloud, Warsaw — Ubuntu 24.04,
+2 vCore / 4 GB / 40 GB SSD) and will not deploy until the site is worth deploying, so 1b is deliberately
+parked. The rest of the
 plan does **not** wait for it: Phase 2 starts as soon as 1a is done.
 
 ---
@@ -751,9 +772,12 @@ Ubuntu 24.04, 2 vCore, 4 GB RAM, 40 GB SSD — the specs §19 Q15 asked for. It 
 §13 slot, after Phase 10 and before Phase 11: there is no reason to stand the site up before the
 test suite is green, and an idle server costs rent either way. Nothing else waits on it.
 
-8. **Provision the VPS** (Ubuntu 24.04, 2 vCore / 4 GB / 40 GB SSD — bought) and deploy to it as a fresh
-   install — there is nothing to migrate (§17 #34): nginx `server_name`, certbot for graphix.uz +
-   www, gunicorn + systemd, PostgreSQL, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, the `.env`.
+8. **Provision the VPS** (OVHcloud, Warsaw — Ubuntu 24.04, 2 vCore / 4 GB / 40 GB SSD — bought) and
+   deploy to it as a fresh install — there is nothing to migrate (§17 #34): nginx `server_name`,
+   certbot for graphix.uz + www, gunicorn + systemd, PostgreSQL, `ALLOWED_HOSTS`,
+   `CSRF_TRUSTED_ORIGINS`, the `.env`; then `migrate`, `seed_regions` (no migration loads the regions),
+   `compilemessages` and `collectstatic`. The owner's staff account needs a verified phone before the
+   panel will open for it (§19 Q34).
    Two items moved here from Phase 0 (§17 #31):
    - **Redis** — install it, set `REDIS_URL`, and confirm the rate limiter counts correctly across
      more than one gunicorn worker. Without it, risk #15 is live from the first day of traffic.
@@ -778,7 +802,8 @@ test suite is green, and an idle server costs rent either way. Nothing else wait
     `manage.py prune_guest_carts` daily from cron or a systemd timer — the policy says a guest cart is
     deleted after thirty days, and nothing but that command deletes one. Give nginx's access log the
     same thirty-day rotation the Django log already has (`LOG_RETENTION_DAYS`). The VPS is in Warsaw,
-    and the policy's cross-border section says so (§17 #211).
+    and the policy's cross-border section says so (§17 #211); Poland is on the Cabinet of Ministers'
+    list of countries that protect personal data equally (§17 #215).
 
 **Phase 1b Definition of Done:** graphix.uz serves over HTTPS · a real Click payment completes and
 the order flips to `paid` · an OTP SMS arrives branded GRAPHIX · the OG image renders correctly when
@@ -1021,8 +1046,8 @@ against OpenStreetMap, and **verified by hand**. Launch scope is a decision (§1
 regional capitals is a sane starting set; nationwide can follow.
 
 > **Superseded on 2026-09-12 (§17 #84).** Everything below shipped and works, and none of it is
-> used any more: there is no branch table in the target model. Phase 6d replaces it with `Region`,
-> `District` and a typed postal index, and retires `PickupPoint`, `seed_pickup_points` and
+> used any more: there is no branch table in the target model. Phase 6d replaced it with `Region`,
+> `District` and a typed postal index, and retired `PickupPoint`, `seed_pickup_points` and
 > `data/pickup_points.csv`. Kept here unedited because Phase 4 is closed and its record should say
 > what it actually did — and because the reasoning below is *why* the redesign happened.
 
@@ -1060,7 +1085,7 @@ languages) before the next begins.
    - **Heart** (saves + counts) and **share** buttons
    - Description, **reviews section**, related products
    - Delivery line: "15 000 so'm pochta boʻlimiga · 30 000 so'm eshikkacha" — **what shipped.**
-     Phase 6e changes the second figure to 40 000 (§17 #85)
+     Phase 6e changed the second figure to 40 000 (§17 #85)
    - Sticky add-to-cart bar on mobile
 3. **Shop (`/shop/`)** — responsive grid; filters as a sticky sidebar on desktop and a sheet that
    comes down from the top on mobile (§17 #76, #77); **tag filters**; pagination; a real empty state.
@@ -1074,8 +1099,9 @@ languages) before the next begins.
 6. **Cart** — line items with thumbnails, quantity steppers, totals; the checkout button prompts
    login for guests, stating plainly that the cart is kept. **The anonymous cart itself is Phase 6g.**
    Phase 4 built the model for it — nullable `user`, `session_key`, two partial unique constraints —
-   but the views never followed: `cart`, `cart_update` and `cart_remove` are still `@login_required`
-   and `cart_add` sends an anonymous visitor to login. Found by this phase's gate review (§17 #79).
+   but the views never followed: `cart`, `cart_update` and `cart_remove` were still `@login_required`
+   and `cart_add` sent an anonymous visitor to login. Found by this phase's gate review (§17 #79);
+   built in 6g.
 7. **Liked items (`/saqlanganlar/`)** — same grid as shop, with remove and "add to cart" actions.
 8. **Auth pages** — login, signup, OTP, the three password-reset steps. Behaviour unchanged; only
    presentation.
@@ -1116,7 +1142,8 @@ proving them (§17 #79).
 
 *Goal: the features that make the shop genuinely better to use.*
 
-**6a — Size guide and the zoomable viewer.** The standalone `/size-guide/` page already shipped in
+**6a — Size guide and the zoomable viewer.** The standalone `/size-guide/` page (now
+`/olcham-jadvali/`) already shipped in
 Phase 5, and it shows the chart only when `static/img/size_guide.png` is actually there — Kamronbek's
 call, and the right one: if there is no chart, nobody should learn that there was supposed to be one
 (§17 #69). The link beside the size selector goes to that page.
@@ -1147,8 +1174,9 @@ whenever he wants; the page picks it up with no deploy (#69).
 - Anonymous visitors see the count and get a login prompt on click.
 - Rate limited via `core/ratelimit.py` (60 toggles / 5 min / user).
 - New sorts: **Ommabop** (`?sort=popular`) and **Reyting** (`?sort=rating`).
-- **Share button** — `navigator.share` on mobile; on desktop a menu with copy-link, Telegram and
-  Instagram. Telegram first: it is where Uzbek sharing actually happens.
+- **Share button** — `navigator.share` on mobile; on desktop a menu with Telegram and copy-link.
+  Telegram first: it is where Uzbek sharing actually happens. *Instagram was dropped as built: it has
+  no URL that shares a link, so copy-link is the Instagram path (`main.js`).*
 
 **6c — Global search.** Header search field on every page, posting to `/qidiruv/`. Matches product
 name (all languages), description and tag names. Debounced suggestions are a nice-to-have, not a
@@ -1216,8 +1244,9 @@ address, not to a coordinate; the pin adds precision on top of one. That also me
 or a denied permission costs the customer nothing.
 
 **The map is needed on this one form only**, which is what made Google affordable (§17 #83): all map
-code behind the `GX.map` wrapper (§8), Google Maps JS loaded `async` on the home-delivery branch
-alone, after the form is interactive, never blocking first paint.
+code behind the `GX.map` wrapper (§8), Google Maps JS never blocking first paint. *As built it is
+`defer`, not `async` (§17 #119), and it loads with the checkout page whenever a key is set; loading it
+only when the map is about to be used is §18 #34.*
 
 **The key is `GOOGLE_MAPS_API_KEY` in `.env`, and it ships blank** (§17 #93). Everything is written as
 though it were set — loader, wrapper, pin, reverse-geocoding, the referrer restriction documented in
@@ -1266,8 +1295,7 @@ verify that before running it, not after.
   choosing home reveals the address toggle and the map.
 - **Change the seeded home price from 30 000 to 40 000** (§17 #85) — the migration row, the product
   page's delivery line, `delivery.html`, the style guide and the three `.po` entries that carry the
-  delivery paragraph, plus the assertion in `core/test_phase4.py`. Today the plan and the code
-  disagree, and the code is what a customer sees (§18 #18).
+  delivery paragraph, plus the assertion in `core/test_phase4.py`. *Done — §18 #18.*
 - Both tiers ship via Uzpost, Tashkent and regions alike — stated at checkout, on the confirmation, on
   `/yetkazib-berish/` and in the terms. The customer should never be surprised about who delivers.
 - `delivery_price` snapshotted onto the order; the total computed inside the existing locked
@@ -1279,7 +1307,8 @@ verify that before running it, not after.
   no gain, and the admin may yet need to record an exception — but the storefront offers one method,
   and the checkout view **rejects any other value rather than defaulting past it**. A disabled control
   that has sat there since before the rebuild reads as "coming soon" to a customer; deleting it is
-  the honest version.
+  the honest version. *Amended during the build: cash is kept and switched off, as a `PaymentOption`
+  row the owner can turn on — an inactive method is absent from checkout, not greyed out (§17 #99).*
 - **Delivery timeframes are quoted, not guessed.** Look them up on uz.post for both tiers, Tashkent
   and regions (§19 Q10), and state them at checkout, on the confirmation and on `/yetkazib-berish/`.
   A customer deciding between 15 000 and 40 000 is really deciding between two waits.
@@ -1300,7 +1329,7 @@ a Telegram outage can never fail a checkout.
 
 | Event | Message contents |
 |---|---|
-| **New order** | Order number · item count and each line (name / size × qty) · total · delivery tier and price · **pickup branch or map link** · payment method · customer name and phone (tap-to-call) · short address · link to the order in the admin panel |
+| **New order** | Order number · item count and each line (name / size × qty) · total · delivery tier and price · **region · district · index, or the address and a map link** · payment method · recipient name and phone (tap-to-call) · link to the order in the Django admin |
 | **Payment confirmed** | Order number · amount · "To'landi ✅" |
 | **New contact message** | Sender name and username · phone (tap-to-call) · topic · message body · admin link |
 | **New review awaiting moderation** | Product · rating · excerpt · whether photos were attached · admin link |
@@ -1395,7 +1424,8 @@ and the seller's details are written there once and printed by the footer and th
    *Built:* eleven sections. Written against the law as amended on 26.03.2026 (ZRU-1125), which
    narrowed data localisation to biometric, genetic and telecom data, so an ordinary shop database may
    sit on a server abroad provided the policy says so — the server is in Warsaw, and it does (§17 #211);
-   which of the amendment's conditions the host meets is §19 Q32. Registering with the state register of
+   the host meets the first of the amendment's conditions — Poland is on the Cabinet of Ministers' list
+   (§17 #215, §19 Q32). Registering with the state register of
    personal-data operators is the owner's to do (§19 Q30). Every retention period it states is a value
    the code enforces, the log's thirty days included (§17 #196).
 2. ✅ **Terms of use** (`/terms/`) — parties and definitions; registration and phone verification;
@@ -1483,7 +1513,8 @@ photographed and looked at
 11. JSON-LD: `Product` (with `offers` and **`aggregateRating` once reviews exist**), `Review`,
     `BreadcrumbList`, `Organization`.
 12. Sitemap across all three languages with `hreflang`; canonicals; updated `robots.txt`.
-13. Verify every 301 from the old domain and the old `/item/<pk>/` URLs.
+13. Verify the old `/item/<pk>/` URLs still 301 to their product. There is no old domain to
+    redirect (§17 #35).
 
 **Accessibility**
 
@@ -1491,7 +1522,8 @@ photographed and looked at
 15. Screen-reader pass on the critical path: shop → product → cart → checkout.
 16. Contrast audit against the final palette — starting with form-control borders, which get a token
     of their own, `--c-line-control: #756853` (§17 #188, §19 Q22).
-17. Focus trapping in modals, the drawer and the pickup picker; focus restored on close.
+17. Focus trapping in modals, the navigation drawer and the region and district drawers; focus
+    restored on close.
 18. `aria-live` for the cart count, toasts and like-count updates.
 19. Verify with reduced motion enabled and at 200 % browser zoom.
 
@@ -1521,24 +1553,22 @@ Test) · the whole checkout flow completable with the keyboard alone.
 1. `manage.py check --deploy` clean.
 2. Verify HSTS, secure cookies, `SECURE_PROXY_SSL_HEADER`, CSP headers.
 3. Rate limiter correct with Redis across multiple gunicorn workers.
-4. All new endpoints (like, review, panel, pickup lookup) enforce authentication, ownership and CSRF.
+4. All new endpoints (like, review, panel) enforce authentication, ownership and CSRF.
 5. No view leaks another user's order, cart or liked items.
 6. Click webhook validates signatures; a replayed callback is a no-op.
 7. **Review photo upload rejects non-images and oversized files server-side**, not only in the browser,
    and strips EXIF (phone photos carry GPS coordinates).
-8. Admin panel image upload validated server-side too.
+8. Admin image upload validated server-side too — the panel since Phase 7, the Django admin since
+   §17 #221. Verify both.
 9. Review `DEBUG=False` error pages for information leakage.
 
 **Repository hygiene** — small, long-standing items, done here because Phase 10 is the last phase
 that touches the repo before it is deployed and they each affect what gets installed or cloned:
 
-- **Drop `django-environ` from `requirements.txt`** (§18 #4, confirmed). It is pinned and never
-  imported — the project reads `.env` through `python-dotenv` — so this is a one-line removal plus a
-  clean `pip install -r` to prove nothing depended on it.
-- **Delete the `Kamron's` branch** (§18 #5, confirmed). `main` has been the integration branch since
-  Phase 0 (§17 #32) and `Kamron's` was merged into it then. Confirm it is an ancestor of `main` with
-  `git branch --merged`, then delete it locally and on the remote. The apostrophe needs quoting in
-  every shell command and breaks some tooling, which is the whole reason it is on the list.
+- ~~**Drop `django-environ` from `requirements.txt`**~~ ✅ *Done 2026-09-13, brought forward (§18 #4).*
+- ~~**Delete the `Kamron's` branch**~~ ✅ *Done 2026-09-13, brought forward (§18 #5).*
+- **Tests write into `vm/media/`** (§18 #42) — give every test that saves a file a throwaway
+  `MEDIA_ROOT`, as the newer ones do, and clear what earlier runs left.
 
 **Operations**
 
@@ -1562,22 +1592,24 @@ database and `media/` restored successfully · uptime monitoring live and alerti
 3. Full manual pass on real devices — a mid-range Android and an iPhone, on mobile data, not wifi.
 4. Final end-to-end live tests with a real card: **one order on each delivery tier** — a branch
    order by region, district and index, and a home order with a dropped pin — plus one home order
-   with the address typed rather than pinned. No cash test: there is no cash (§17 #94).
+   with the address typed rather than pinned. No cash test while cash is off (§17 #99); if the owner
+   switches it on before launch, add one.
 5. Verify Telegram notifications end to end — through the bot service if it relays them (§17 #206),
    otherwise with the production bot token and chat ID.
 6. Announce: Telegram channel, Instagram, Search Console.
 7. Watch closely for 72 hours: server logs, failed payments, 404s in Search Console, Lighthouse field
    data, Telegram delivery.
 8. **Legal pages.** Q27, Q28, Q29 and Q31 are answered and in the text (§17 #208–#211), edited into
-   1.0 in place. Before launch: Q30 — registering as a personal-data operator — is the owner's; Q32
-   asks which of ZRU-1125's conditions the Warsaw host meets; Q33 asks where the bot service runs.
+   1.0 in place. Before launch: Q30 — registering as a personal-data operator — is the owner's; Q33
+   asks where the bot service runs. Q32 is answered — Poland is on the Cabinet of Ministers' list —
+   and the texts stay as they are (§17 #215).
    Then, if the texts are otherwise unchanged, set the three `VERSIONS` dates in `core/legal.py` to
    the launch day: nobody has been shown the 2026-09-15 wording, so this is the one time an existing
    row may be edited.
 
 **After launch, once everything above is stable:** independent legal review of the Phase 8 documents ·
 **rename the GitHub repository `ValleyMade` → `graphix` and the internal package `vm` → `graphix`**
-(§18 #5 and #9, both confirmed). Do the two together: the package rename touches the settings module,
+(the repository: §18 #9, confirmed; the package: §3). Do the two together: the package rename touches the settings module,
 wsgi, systemd, nginx and the venv, and the repository rename changes the clone URL and every local
 remote — one rehearsal on a staging copy covers both, and doing them apart means two disruptions
 instead of one. GitHub redirects the old repository URL, so nothing breaks the moment it happens; the
@@ -1591,7 +1623,8 @@ package rename is the half that can.
 moderation UI lands with the rest of the admin panel and the product page is built only once.
 
 1. **Submission flow** — `/order/<id>/sharh/`, reachable from a delivered order in the account area and
-   from a link in the order-complete SMS. Rating 1–5, optional text, up to 4 photos.
+   from a link in the order-complete SMS. Rating 1–5, optional text, up to 4 photos. *The SMS link
+   waits on Eskiz moderating the message bodies (§17 #104); the account area carries the entry points.*
 2. **Eligibility, enforced server-side:** the user must own an order with status `done` containing that
    product; one review per user per product; `Review.order` records which order granted the right.
 3. **Moderation** — every review is `pending` on creation and invisible until a staff member approves
@@ -1673,7 +1706,8 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
   the integration work)*
 - Wishlist sharing between users
 - Loyalty points
-- Cash on delivery, and cash generally — the shop takes online payment only (§17 #94)
+- Cash as a default — cash on delivery and cash payment are a `PaymentOption` row that ships off;
+  the owner can switch it on without a deploy (§17 #99, amending #94)
 - Machine-learning recommendations (Phase 13 is deliberately not this)
 - Custom-design ordering as a self-service flow — handled through the contact form, which is the right
   level of complexity for now
@@ -1705,7 +1739,7 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 | 19 | `media/` not in the database backup | Medium — irreplaceable photography lost | Explicit `media/` backup in Phase 10 |
 | 20 | Legal documents wrong under Uzbek law | Medium — regulatory exposure | Written carefully in Phase 8; independent review recommended in Phase 11 |
 | 21 | Task chats drift from the plan or each other | Medium — inconsistent codebase | §0 cross-chat protocol; every task chat reads the plan and updates §15–§17 |
-| 22 | Tags never get filled in, so Phase 13 has no signal | Medium — the recommender is worthless | Tags are a required field in the Phase 7 product form, not optional |
+| 22 | Tags never get filled in, so Phase 13 has no signal | Medium — the recommender is worthless | **Planned, not built:** the Phase 7 product form offers tags as a searchable block but saves a product without one. Whether to require one is §19 Q35 |
 | 23 | The chosen typeface lacks U+02BB, so Uzbek renders as tofu | Medium — `Oʻzbekiston` breaks in the brand's own language | Check the cmap of every candidate face in Phase 2 before shortlisting. Poppins already failed this test; so did Prata, Forum, Tenor Sans and Bodoni Moda, i.e. every conventional Cyrillic fashion display face |
 | 24 | A layout bug ships as a design decision | Medium — wasted review rounds and lost trust | Round one's desktop page was rejected as a design when the real fault was an uncapped image height and a 900 px breakpoint. Screenshot every page at 390 px **and** at desktop width before showing it, and hold it against §17 #47 |
 | 25 | An uncollected branch parcel returns at our expense | Medium, and it recurs | The Postal Service Rules hold an ordinary parcel — the service we use — at the branch for a month, then send it back and **we** pay both legs (§17 #186, #210). **The refund rule is decided** — 15 000 so'm kept, the rest refunded within ten days (§17 #187) — and stated in the terms, on the delivery page and on the order page of every branch order, where the customer checks their index. The three-week reminder this row once promised is **not built**: it needs to know when the parcel reached the branch (§18 #35) |
@@ -1723,7 +1757,8 @@ New phases are appended as Phase 14, 15, … and **never renumbered**. Execution
 
 **Phase 1b (deployment) moved to just before launch (§17 #36).** It was originally early because a
 domain move has external lead times — but there is no domain move any more: valleymade.uz is
-abandoned and graphix.uz is a fresh deployment onto a VPS that hasn't been bought (§17 #35). Standing
+abandoned and graphix.uz is a fresh deployment onto a VPS that had not been bought then (§17 #35) —
+it has been since: OVHcloud, Warsaw (§19 Q15, Q31). Standing
 up a server months before there is anything worth serving buys nothing and costs rent. It still runs
 *before* Phase 11, because Phase 11's live payment tests and 72-hour watch need a live site.
 
@@ -1763,17 +1798,17 @@ Phase 13 (recommendations) runs after launch, once there is like data worth read
 | 3 i18n foundation | ▌ Medium–Large | Infrastructure is quick; three languages of real copy is not |
 | 4 Data model | ▌ Medium | Tags, reviews, cart changes. Shipped a `PickupPoint` table that §17 #84 then retired — the replacement reference tables land in Phase 6d |
 | 5 Frontend rebuild | █ **Largest** | Eleven page groups × six breakpoints × three languages |
-| 6 Features | ▊ Large | Size guide, likes, share, search, the delivery redesign, the Google map, Telegram, anonymous cart. **Lighter than it was**: the branch picker, the thousands of rows behind it and its two open questions are gone (§17 #84) — but it now also carries the migration that retires what Phase 4 built. Splitting it is still worth considering |
+| 6 Features | ▊ Large | Size guide, likes, share, search, the delivery redesign, the Google map, Telegram, anonymous cart. **Lighter than it was**: the branch picker, the thousands of rows behind it and its two open questions are gone (§17 #84) — but it now also carries the migration that retires what Phase 4 built. Delivered as sub-phases 6a–6h |
 | 12 Reviews | ▌ Medium | Submission, moderation, display, photo handling, SEO |
 | 7 Admin panel | ▊ Large | A second interface; product creation and moderation are both substantial |
 | 8 Legal & content | ▌ Medium | Three documents × three languages |
 | 9 Perf / SEO / a11y | ▌ Medium | Image pipeline is the bulk |
-| 10 Testing | ▋ Medium–Large | ~90 tests now |
+| 10 Testing | ▋ Medium–Large | 571 tests before it starts (2026-09-17) |
 | 11 Launch | ▎ Small–Medium | Gated by photography and catalogue entry |
 | 13 Recommendations | ▎ Small | One cached query — the thinking is done in this plan |
 
 **Phases 2, 5 and 6 decide whether this project succeeds.** Everything else is supporting work.
-Phase 6 has grown enough that splitting it is worth considering once it starts.
+Phase 6 grew enough that it was delivered as sub-phases, 6a to 6h.
 
 ---
 
@@ -1792,7 +1827,7 @@ Phase 6 has grown enough that splitting it is worth considering once it starts.
 | 12 Reviews | ✅ Done | `phase-12-reviews`, `phase-12-recheck` | 2026-09-14 | 2026-09-14 | All eight items but the SMS link, which is blocked on Eskiz body moderation (§17 #104) — the account area carries the entry points instead. Eligibility, moderation, EXIF-stripped photos, the distribution, the lightbox and the JSON-LD. Six defects in the build pass (§17 #122–#128), **twelve more in the recheck that followed** — a plural that read wrong in two languages, a wrong Uzbek letter inherited from three earlier phases, a text limit that lived only in HTML, a decompression bomb the size check could not see, a form that threw away what the customer typed, the only unrated write endpoint on the site, a notification that could not see its own photographs, an unconstrained rating column, the plan file destroyed a second time, a Russian date in the wrong case, a browser-default box around the rating, and an anchor that hid its own heading under the header (§17 #129–#140). The last three were found by photographing the pages and looking at them, not by any assertion. **226 tests** |
 | 7 Admin panel | ✅ Done | `phase-7-panel` | 2026-09-14 | 2026-09-14 | **7a done:** a `panel` app at `/boshqaruv/`, its own guard (a signed-in customer gets 403, not a second login form), a mobile-first shell on the site's own tokens, the dashboard, and the orders list and detail with filters, search, an inline status change and the audit trail. **The panel may assume JavaScript** — Kamronbek's decision, §17 #141, and the one place on the project where that is true. New: `panel.OrderStatusChange` (§17 #142) and `core.Msg.is_read`. **7b done:** the catalogue list with availability, price and per-size stock editable in place, and the create/edit screen — three languages, specs, tags, the size × stock grid, and a gallery that uploads through the same pipeline as a customer's review photo, checks the file before sending it, and reorders by drag. The DoD's "a complete product in one sitting" is a test. **7c–7e done:** the moderation queue (photographs shown at a size somebody can judge, approval through the service that moves the rating), the contact inbox with read/unread and a tap-to-call number, and the reference screens — delivery tiers, tags and size charts on one page, regions and their two hundred districts on another with a search. Five models edit through **one endpoint behind an allowlist** (§17 #149). **All ten items; 317 tests.** Rechecked and corrected four times since, at Kamronbek's request: fourteen defects the phase's own tests could not see (v2.12), ten corrections he found by using the panel (v2.13), four from the settings screen (v2.14), and five more from the dashboard and the account screens — the wording, the low-stock rule and the size pills (v2.15). **424 tests** |
 | 8 Legal & content | ✅ Done | `phase-8-content` | 2026-09-15 | 2026-09-16 | All seven items. Three documents × three languages as nine whole-text templates in one shared page (§17 #182), every figure read from the code that enforces it (§17 #183), the seller named without tax or bank details (§17 #184). Q11, Q12, Q22 and Q26 answered and built or scheduled (§17 #185–#189). **Found on the way:** the checkout threw away the name it asked for — fixed first, on its own branch (§17 #190); every home order called its address a post office (§17 #191); the fuzzy-entry test could not see a wrapped msgid (§17 #198); the suite's language leak surfaced in a Phase 7 test while a single failure under `--parallel` took the whole run down (§17 #199); and driving the pages found a Russian title wider than a phone (§17 #202) and a consent link whose tap opened the other document (§17 #203), and a range the dash split across two lines (§17 #204). **486 tests**. **Rechecked 2026-09-16** on `phase-8-recheck`: Q27–Q29 and Q31 answered and built, the Telegram bot relay, and six fixes the first pass missed (§17 #205–#214). **525 tests** |
-| 9 Perf / SEO / a11y | ⬜ Not started | `phase-9-quality` | — | — | |
+| 9 Perf / SEO / a11y | ⬜ Not started | `phase-9-quality` | — | — | **Ready to start.** Before it, the backlog was rechecked and cleared on `fix/backlog-before-phase9` (2026-09-17): §18 #8, #23, #26, #28, #29, #33, #38, #39 and #40 closed, §19 Q32 answered, a signup defect in Russian and English fixed, and the stale statements in this plan corrected (§17 #215–#225) |
 | 10 Testing | ⬜ Not started | `phase-10-tests` | — | — | |
 | 11 Launch | ⬜ Not started | `phase-11-launch` | — | — | |
 | 13 Recommendations | ⬜ Not started | `phase-13-recommend` | — | — | After launch |
@@ -1843,6 +1878,7 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 2026-09-15 | Task | fix | **The checkout asked for the recipient's name and threw it away.** Found while reading the checkout for Phase 8: the view required and validated a name, then never passed it on, so every order went out under the account holder's name — wrong for a gift or a parent, and a branch hands a parcel only to the person named on it. Fixed before Phase 8 started, on its own branch (`fix/checkout-recipient-name`, merged into `main` as c4037bf): `Order.recipient_name` with migration 0017, a 120-character limit refused with a sentence, and the name shown on the order page, the panel's list, detail and search, the Django admin and the Telegram notification. Orders from before show the account's name as they always did (§17 #190). **435 tests** | Phase 8 |
 | 2026-09-16 | Task | 8 | v2.16: **Phase 8 complete — the three legal documents, in three languages, and the copy around them.** Kamronbek answered the four questions it waited on: the seller is the registered name and address with the contacts and nothing else — no tax number, no bank details (§17 #184); an uncollected parcel costs the customer 15 000 so'm and the admin refunds the rest (§17 #187); a wrong size is exchanged at the customer's cost (§17 #185); and the status follows the tile to *Yetkazilmoqda* (§17 #189). Q22 he left to me: form controls get a border token of their own in Phase 9 (§17 #188). **Built:** `/privacy/` (new, eleven sections), `/terms/` (seventeen, the public offer among them) and `/yetkazib-berish/` (seven), each written whole per language in `templates/legal/` rather than cut into the catalogue (§17 #182), inside one page that prints the version, the day it took effect, a contents list read out of the text (§17 #192) and the history. Every figure they state — prices, payment methods, the 15 000, every period, every retention time — comes from the row or the constant that enforces it, and a test changes the source and watches the page follow (§17 #183); two values that had no single home got one, and the production log is now rotated and kept thirty days so the policy could say so (§17 #196). The footer, signup and checkout link both documents, and signup asks for consent to processing (§17 #195). About and Contact were rewritten — the same-day Tashkent promise is gone (§17 #194) — and the product form offers the four-part description template in each box's own language (§17 #197). `uzb_dates` is deleted (§18 #25). The research changed two of the plan's own facts: "Resolution 2219" is the Postal Service Rules' Ministry of Justice registration number, and a branch holds a parcel 14 days to a month, not always a month (§17 #186). **Defects found on the way:** the checkout was discarding the recipient's name (fixed first, separately — row above); every home order was labelled a post office (§17 #191); the catalogue tools could not read a msgid with a link in it, and the fuzzy test could not see a wrapped one — two entries were silently Uzbek under `/ru/` and `/en/` while it passed (§17 #198); and the new tests moved the suite's language leak onto a Phase 7 test, where it surfaced as a crashed parallel run with a dropped database in every other line — `core/runner.py` now resets the language per test and reports a failure instead of dying (§17 #199). **Then the pages were driven and photographed, and that found three more:** the Russian privacy policy scrolled sideways on a phone, because its title is one 422 px word (§17 #202); a tap on the terms link in the signup consent opened the privacy policy, because the second link's tap target covered the first (§17 #203); and two fixes made earlier in the phase had never reached the machine at all — the write reported success and the file held its old version (§17 #201). A fourth came from looking at them: a range split after its dash (§17 #204). English now names the carrier one way (§17 #200). 33 strings written by hand in three languages, one of them a plural. **486 tests**, `check` and `makemigrations --check` clean, `compilemessages` clean, `audit_live` 0 findings and 0 console errors across 24 pages × 5 widths × 3 languages · `drive_legal` 61 checks — every link in the signup consent, beside the checkout button, in a document's contents at 390 and 1440, on the order page and on the contact page opens what it says and lands below the sticky header · every changed page photographed at 390 and 1440 and looked at | Phase 9 — performance, SEO and accessibility; before launch, §19 Q27–Q31 |
 | 2026-09-16 | Task | 8 | v2.17: **Phase 8 rechecked, four of its last five questions answered, and the Telegram bot wired in.** Kamronbek answered: the seller is a sole proprietor — the terms now say who sells, and the seller block and the contact card carry the form, with no certificate number (§17 #208); the postal index was to be looked up — it is 150700, Qoʻqon's main post office, since nothing public maps Sharq dahasi to a branch (§17 #209); parcels go as ordinary parcels, so a branch holds one a month and every page says one month, not "30 days" (§17 #210); the server is in Warsaw, and the privacy policy now says the site's own data is kept in Poland under the GDPR, while which of ZRU-1125's conditions the host meets goes to the legal review (§17 #211, §19 Q32). Q30 is with the owner. **The grey site was not the site**: Dark Reader in his Brave repainted every page; the pages now lock it out and say they are dark (§17 #205). **The bot:** a friend is building the shop's bot and gave it `WEBSITE_WEBHOOK_SECRET`; with `TELEGRAM_BOT_WEBHOOK_URL` set, the four events go to it as signed JSON, and the contract is `docs/integrations/telegram-bot.md` (§17 #206). Both lines are in `.env`, blank — the secret goes in by hand — and the test run blanks them, so no test can notify the shop (§17 #207). **The two 404s in his log** — `/favicon.ico` and Chrome DevTools' probe — are answered (§17 #213). **The recheck** read every Phase 8 file again and drove the pages in his Brave and in Edge: "back" could lead to the same document in the language just left (§17 #212); the contact card broke the email address inside "com" (§17 #214); the prune command's help said "not touched" of a filter on the creation date; the Russian delivery page linked Uzpost's Uzbek map; and the style guide lacked the dark lock. The cancellation message still names an order by its database id, and an Uzbek ordinal can break after its hyphen — §18 #39, #40. Two strings written by hand in three languages, one of them a plural. **525 tests**, `check` and `makemigrations --check` clean, `compilemessages` clean, no entry empty or fuzzy, `audit_live` 0 findings and 0 console errors across 24 pages × 5 widths × 3 languages, `drive_legal` 65 checks, the changed pages photographed at 390 and 1440 and looked at | Phase 9 — performance, SEO and accessibility; before launch, §19 Q30, Q32, Q33 |
+| 2026-09-17 | Task | fix | v2.18: **The backlog rechecked and cleared before Phase 9, and Q32 answered.** Kamronbek asked whether everything was clean and ready. **Q32** — from OVHcloud, where he bought the Warsaw VPS, and from the state: Poland is No. 32 on the Cabinet of Ministers' list of countries that protect personal data equally (Resolution No. 415 of 29.07.2026), which is ZRU-1125's first condition; OVHcloud's data processing agreement keeps the data in the datacentre chosen, and its ISO 27001/27017/27018 scope covers VPS. The privacy policy stays as it is, at his word (§17 #215). **His three:** the panel's date filter is dd/mm/yyyy with the browser's calendar behind a button (§17 #217); Uzbek months are lower case — "16 sentabr 2026" (§17 #218); a cancelled order is named by its GX- number (§17 #216); the ordinal break stays (§17 #224). **The recheck's defects, which he chose to fix now:** a browser's own validation words and file-picker labels now speak the page's language (§17 #222), the review form's file field first (§18 #29); an account with orders can no longer be deleted — `Order.user` is `PROTECT`, migration 0019 (§17 #219); a deleted photograph takes its file with it after the commit (§17 #220); the Django admin cleans uploads like the panel (§17 #221); the share card is redrawn in the brand's type (§17 #223). **A defect nobody had met:** an unverified account on `/ru/verify-phone/` or `/en/verify-phone/` was redirected to the same page for ever, because the middleware knew only the Uzbek paths — a signup in Russian or English could not be finished; fixed in its own commit, the OTP flow untouched (§17 #225). **The documentation:** an audit of this plan and the repo's docs found statements that later decisions had made false — §3's language row, §6's unprefixed tree, §7's home-order rule, the cash line in §11, risk #22, the VPS "not bought", the Maps script's loading, and more — all corrected here; the README is rewritten; the bot contract's example no longer gives a branch order a pin. Two new questions (§19 Q34, Q35) and two backlog rows (§18 #41, #42). 17 strings written in three languages. **571 tests** (46 new), `check` and `makemigrations --check` clean, `compilemessages` clean, no entry empty or fuzzy, `audit_live`, `drive_legal` and a new `drive_backlog` in an English-language browser, the changed pages photographed and looked at | Phase 9 — performance, SEO and accessibility; before launch, §19 Q30, Q33, Q34 |
 
 ## 17. Decision log
 
@@ -2078,6 +2114,17 @@ Legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 | 213 | 2026-09-16 | **`/favicon.ico` redirects to the icon, and Chrome DevTools' probe gets an empty answer in development** | The two 404 warnings in Kamronbek's runserver log. Browsers ask for `/favicon.ico` whatever a page's `<head>` says; it is a 301 to the static icon now, worked out per request. `/.well-known/appspecific/com.chrome.devtools.json` is DevTools asking whether the site is a local workspace; 204 means no, and the route exists only with `DEBUG` on, because nobody debugs the live site with DevTools often enough for its 404 to matter | `vm/urls.py`, `core/views.py` |
 
 | 214 | 2026-09-16 | **A long email address wraps before its @** | Seen in the browser: links may break anywhere rather than overflow (base.css), and the contact card broke the seller's address inside "com". `email_break` puts a `<wbr>` before the @ wherever the address is printed as text; copying it still gives the address | `core/templatetags/legal_tags.py` |
+| 215 | 2026-09-17 | **Q32: the Warsaw host meets ZRU-1125's first condition — Poland is on the Cabinet of Ministers' list. The privacy policy is not changed** | Kamronbek bought the VPS from OVHcloud and asked for the answer from there. It comes from two places. **The state:** Cabinet of Ministers Resolution No. 415 of 29.07.2026, in force 03.08.2026, approves the list of foreign states that protect personal data equally, and Poland is No. 32 on it — which is the first of ZRU-1125's conditions for keeping ordinary personal data abroad. **The host:** OVHcloud's data processing agreement makes it a processor, keeps data in the datacentre the customer chose and does not move it without approval (§6.1), covers its own non-EEA subsidiaries with the EU standard contractual clauses (§6.4), and leaves transfer formalities to the customer (§6.6); its ISO/IEC 27001, 27017 and 27018 certificates cover VPS in every datacentre outside the US. **The policy stays as it is**, at Kamronbek's word: it already says the data is kept in Poland (§17 #211), and the legal basis is not something customers ask about. Recorded here so the legal review starts from it | §19 Q32 |
+| 216 | 2026-09-17 | **A cancelled order is named by its GX- number** | §18 #39, Kamronbek's choice. The message said "#45 bekor qilindi" — the database id, which §7 says is never shown and no other screen shows. It is now "GX-260917-0001 raqamli buyurtma bekor qilindi.", written in all three languages; the old msgid is obsolete in the catalogues | `payment/views.py` |
+| 217 | 2026-09-17 | **The panel's date filter is typed and shown dd/mm/yyyy; the browser's calendar stays one tap away** | §18 #38. Kamronbek saw mm/dd/yyyy in the panel: a native date input draws the browser's own format, and an English browser's is American whatever the page's language — nothing on the page can change that. So the two fields are text: day first (a dot is read too), a pattern that refuses anything else before it is sent, and the format in each language as the placeholder (*kk/oo/yyyy*, *дд/мм/гггг*, *dd/mm/yyyy*). A calendar button opens the browser's own picker through `showPicker()` on a native input hidden under the field, and the date picked is written back day first; a browser without `showPicker()` shows no button and the field is typed. The view still reads an ISO date, so a link made before the change keeps working, and it refuses 09/16/2026 rather than guess. `calendar` joins the icon sprite and the style guide | `panel/views.py`, `boshqaruv/orders.html`, `panel.js`, `panel.css` |
+| 218 | 2026-09-17 | **An Uzbek month is written in lower case — "16 sentabr 2026" — by one filter** | §18 #38. Django's Uzbek month names are capitalised mid-line. Kamronbek accepted "16 sentabr 2026" rather than the documents' "2026-yil 16-sentabr", so the date formats stay and `month_case` (`core/templatetags/date_tags.py`) lowers the result when the page is Uzbek; Russian and English are untouched. Every template date that prints a month's name goes through it, and a test fails for one that does not. The day is the shop's own: Django's `date` filter converts to Tashkent time before formatting, which was the other half of #38 | `date_tags.py`, seven templates |
+| 219 | 2026-09-17 | **An account with orders cannot be deleted — `Order.user` is `PROTECT`** | §18 #33, brought forward from Phase 10. It was `CASCADE`, so deleting a customer deleted their sales records — which the Tax Code keeps and the privacy policy promises to keep. The database now refuses, and the admin lists the orders that block the delete and deletes nothing. Closing such an account means clearing its name and phone by hand until an "anonymise" path exists. The abandoned-signup clean-up already refused to delete an account with an order (§12 risk #4) and is unchanged | `payment/models.py`, migration 0019 |
+| 220 | 2026-09-17 | **A deleted photograph takes its file with it — after the commit, and only if no row still names it** | §18 #28, brought forward from Phase 10. Django stopped deleting files with their rows in 1.3 for two reasons, and both are real here: a rolled-back delete needs its file, and two rows may name one file — the demo seed deletes the catalogue and recreates rows over the same photographs in one transaction. So `product/signals.py` queues the delete for the commit and first checks `ImageP`, `ReviewImage` and `SizeChart` for the name; a file that will not delete is logged and left. It covers product photos, review photos and size charts, deleted one by one, in bulk (the panel) or by cascade. A picture *replaced* in the Django admin still leaves its old file (§18 #41) | `product/signals.py` |
+| 221 | 2026-09-17 | **The Django admin cleans an uploaded picture the way the panel does** | §18 #23. The admin's product-photo, review-photo and size-chart forms put a new upload through `images.sanitise` — the re-encode that strips GPS and shrinks the file — at the sizes the site already uses: 2000 px for product photos and size charts, 1600 for review photos. A file that is not an image is refused on the field; an unchanged or cleared field is left alone | `product/admin.py` |
+| 222 | 2026-09-17 | **What a form's native controls say is in the page's language** | Found in the pre-Phase 9 recheck; Kamronbek chose to fix it now. A required field on an Uzbek page said "Please fill out this field." and a file input "Choose Files / No file chosen" — the browser's words, in the browser's language. `forms.js`, loaded by both shells, answers each validation check with a sentence written in all three languages and rendered into the page by a tag, so it works on the 500 page too (§17 #66); a field that states its own format — a `title`, or the checkout index's `data-error-format` — says that instead. A field marked `data-file-field` becomes a translated button and a line naming what was picked; without JavaScript the native control stays. The review form is the first (§18 #29), and `.field__file` moved to `components.css` so both shells share it. It is the only script that sets a custom validity message | `forms.js`, `form_tags.py`, `_form_messages.html`, `review_form.html` |
+| 223 | 2026-09-17 | **The share card is redrawn in the brand's own type** | §18 #8, open since Phase 2. `docs/brand/og-card.html` is the source: the header's lockup, the about page's line in Playfair Display and the delivery line in Onest, on the site's ground, with no accent and no figure that could go stale (§17 #39). Edge renders the PNG from it with one command, written in the file | `docs/brand/og-card.html`, `static/img/og-image.png` |
+| 224 | 2026-09-17 | **An Uzbek ordinal may break after its hyphen, and it is left as it is** | §18 #40, Kamronbek's call. §18 #37's dash pass in Phase 9 leaves ordinals alone. §18 #26 closes with it, as already done: the chart upload has used the styled label since Phase 7 | — |
+| 225 | 2026-09-17 | **An unverified account can reach the code page in every language** | Found in the pre-Phase 9 recheck, reading the middleware against §17 #121 and then driving it. `PhoneVerificationMiddleware` resolved its exempt pages once, at startup, in the default language — so only `/uz/verify-phone/` and its siblings were exempt, and an unverified account on `/ru/verify-phone/` or `/en/verify-phone/` was redirected to the page it was already on, for ever. A signup in Russian or English could not be finished, and the account could not even sign out. The exempt names are now resolved in every language, and `/i18n/` joins the exempt prefixes so the language can be changed on the code page. The OTP flow itself — codes, expiry, attempts, rate limits, the clean-up — is unchanged, and the fix is its own commit because §4 treats anything touching auth with care | `user/middleware.py` |
 
 ## 18. Backlog
 
@@ -2093,7 +2140,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 5 | ~~Rename the git branch `Kamron's`~~ **✅ Done 2026-09-13** | 2026-09-08 | Confirmed merged into `main` with `git branch --merged`, then deleted. It turned out not to exist on the remote at all — `git ls-remote` shows only `main` — so what looked like a remote branch was a stale tracking ref, pruned. The apostrophe did break the delete command exactly as predicted, which is why it was on this list |
 | 6 | Give the commit history real messages going forward | 2026-09-08 | ✅ **Closed 2026-09-12 — already the practice.** Kamronbek: the convention applies from Phase 0 onward; the `.` commits are the old ValleyMade history and stay as they are. Nothing to do |
 | 7 | ~~**Instagram and TikTok links** — need the real handles~~ **✅ Closed 2026-09-11: there are no accounts** | 2026-09-09 | Both were `href="#"` in the footer and were removed in Phase 1a rather than shipped dead. Instagram matters: §9 Phase 9 calls it out as a primary sharing surface alongside Telegram. Kamronbek: *“just delete them, there is no insta or tiktok”*. The footer already shipped without them, so nothing changes in the markup; this row and §19 Q16 are closed rather than deferred. If accounts are opened later it is a one-line edit to `_footer.html` |
-| 8 | Redraw the OG card once the display typeface exists | 2026-09-09 | The Phase 1a card is set in Poppins Bold, which is a placeholder — and which lacks U+02BB, so the tagline had to be set in a second face. Phase 2 picks the real face; regenerate the card then |
+| 8 | ~~Redraw the OG card once the display typeface exists~~ **✅ Done 2026-09-17 (§17 #223)** | 2026-09-09 | The Phase 1a card was set in Poppins Bold, a placeholder that lacks U+02BB. Redrawn in Playfair Display and Onest from `docs/brand/og-card.html` |
 | 9 | Rename the GitHub repository `ValleyMade` → `graphix` | 2026-09-09 | ⏳ **Confirmed, not done.** Kamronbek asked for it on 2026-09-13, but it cannot be done from here: there is no `gh` CLI on the machine and the rename is a change to his GitHub account, not to the repository on disk. It is one field in the repository's Settings page, and `git remote set-url` afterwards. Still best paired with the `vm/` → `graphix` package rename in Phase 11 — one rehearsal covers both — but there is no reason to wait if he wants the name now |
 | 10 | **Dev PostgreSQL dies with the laptop's sleep cycle** | 2026-09-09 | Diagnosed during the Phase 3 verification pass. The Windows event log shows sleep/resume and kernel-shutdown events that line up exactly with PostgreSQL restarting; its own log shows **clean shutdowns, no crash, no FATAL**. Anything holding a connection across a sleep — a test run, a `runserver` — dies with *"server closed the connection unexpectedly"*. It is environmental and a retry always works. If it becomes annoying, set the machine not to sleep while a dev server is up, or point local dev at a PostgreSQL in Docker that restarts with the daemon. **Not a code defect — do not chase it as one.** |
 | 11 | ~~Wrap the service-layer messages in `cart/services.py` with `gettext`~~ **✅ Done 2026-09-10 (Phase 5)** | 2026-09-10 | §4 says no hardcoded user-facing strings after Phase 3, and Phase 4 added two more raw Uzbek `CartError` messages next to the two that were already there — deliberately consistent with their neighbours rather than half-converting the file. These four are `messages.error()` text, so they *are* user-facing. Done: all five raises wrapped (three distinct messages), the Uzbek respelt with U+02BB, Russian and English written by hand. One came back from `makemessages` fuzzy — caught by the §17 #63 test |
@@ -2108,30 +2155,32 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 20 | **One inline `style` attribute remains, in `_icons.svg.html`** | 2026-09-12 | The sprite root carries `style="position:absolute"`. It is the standard idiom for an inline SVG sprite and the only `style` attribute left on the site; noted so "no `style` attribute" in the Phase 5 checklist is read as "one, deliberately, on a container that renders nothing" rather than as an oversight |
 | 21 | **UzPost partner programme** | 2026-09-12 | Promoted to §19 Q24, with the contact details and what it could change — better rates, payment collected at handover, possibly tracking numbers. Left here so the idea is findable from both places |
 | 22 | **`offers` is missing from the Product structured data** | 2026-09-14 | The JSON-LD Phase 12 added carries `name`, `url`, `aggregateRating` and the reviews, which is everything a **review snippet** needs and is what Phase 12 item 7 asked for. Google also wants `offers` — price, currency, availability — on a `Product` node, and without it Search Console will report a warning (not an error, so the stars still appear) on every product page. The data is already on the page; it is a dozen lines. Left for **Phase 9**, where SEO lives, rather than widened into Phase 12 |
-| 23 | **Photographs uploaded through the Django admin bypass `images.sanitise`** | 2026-09-14 | The customer’s upload path strips EXIF by re-encoding (§9 Phase 12 item 5). A staff member adding a photograph to a review — or to a product, which has always been the case — goes straight to the `ImageField` and keeps whatever metadata the file carried, including GPS. It is staff-only and so not the untrusted path, which is why it is noted rather than fixed at the end of a phase; **Phase 7 replaces this admin**, and the custom panel should run every image through the same function. Worth doing there for products as much as for reviews |
+| 23 | ~~**Photographs uploaded through the Django admin bypass `images.sanitise`**~~ **✅ Done 2026-09-17 (§17 #221)** | 2026-09-14 | The customer’s upload path strips EXIF by re-encoding (§9 Phase 12 item 5). A staff member adding a photograph to a review — or to a product, which has always been the case — goes straight to the `ImageField` and keeps whatever metadata the file carried, including GPS. It is staff-only and so not the untrusted path, which is why it is noted rather than fixed at the end of a phase; **Phase 7 replaces this admin**, and the custom panel should run every image through the same function. Worth doing there for products as much as for reviews |
 | 24 | **A zoomable image cannot be reached from a keyboard** | 2026-09-14 | Review photographs are 72 px thumbnails that open full-screen in the viewer, and the only way in is a mouse or a finger: `<img data-zoom>` is not focusable, carries no role and answers no key. The product gallery has had the same shape since §17 #79, so this is the site-wide pattern rather than anything Phase 12 introduced — and it matters more for a review photo, which is useless at 72 px. Fixing it is a `<button>` around the image, or a `tabindex` and a key handler, in `viewer.js` once for every zoomable image on the site. **Phase 9**, where accessibility lives |
 | 25 | ~~**`payment/templatetags/uzb_dates.py` prints Uzbek months in every language**~~ **✅ Done 2026-09-16 (Phase 8)** | 2026-09-14 | Both templates use Django's `date:"j E Y"`, the file is deleted, and a test fails if anything loads it again. The order page's date is checked in Russian |
-| 26 | The size-chart upload on `/boshqaruv/sozlamalar/` uses a bare file input, so it shows the browser's own English "Choose File" on an Uzbek screen. The panel's gallery already uses the pattern that avoids it — a visually-hidden input driven by a styled `<label>`. The review form has the same bare input, so this is one change in two places. | 2026-09-14 | Phase 9 |
+| 26 | ~~The size-chart upload on `/boshqaruv/sozlamalar/` uses a bare file input, so it shows the browser's own English "Choose File" on an Uzbek screen. The panel's gallery already uses the pattern that avoids it — a visually-hidden input driven by a styled `<label>`. The review form has the same bare input, so this is one change in two places.~~ **✅ Closed 2026-09-17 — already done:** the chart upload has used the styled label since Phase 7 (§17 #224) | 2026-09-14 | Phase 9 |
 | 27 | `panel.js` says three things with `window.alert()` — a failed status save, a failed inline save, a failed reference save. The gallery on the same screen shows its refusals in an error line instead, which is the better pattern and the one the storefront uses. | 2026-09-14 | Phase 9 |
-| 28 | Deleting a product photograph removes the row but leaves the file on disk. Nothing reads it again, so it is storage rather than correctness, but it accumulates. | 2026-09-14 | Phase 10 |
-| 29 | The review form's file input is still a bare `type="file"`, so it shows the browser's own English "Choose File". The panel's chart upload and its gallery both use the styled-label pattern that avoids it; this is the last place that does not. | 2026-09-14 | Phase 9 |
+| 28 | ~~Deleting a product photograph removes the row but leaves the file on disk. Nothing reads it again, so it is storage rather than correctness, but it accumulates.~~ **✅ Done 2026-09-17** — the file goes with its row, after the commit (§17 #220) | 2026-09-14 | Phase 10 |
+| 29 | ~~The review form's file input is still a bare `type="file"`, so it shows the browser's own English "Choose File". The panel's chart upload and its gallery both use the styled-label pattern that avoids it; this is the last place that does not.~~ **✅ Done 2026-09-17** — a translated button and a line naming the files (§17 #222) | 2026-09-14 | Phase 9 |
 | 30 | ~~`Product.fit` is still `TextChoices` — two cuts, by §17 #70~~ **✅ Closed 2026-09-14 — the field is gone (§17 #172).** A cut is a tag now, so a third one is a row the owner types, not a migration. | 2026-09-14 | — |
 | 31 | Two reference rows may share a name (their slugs differ). Harmless today; if the owner ever ends up with two tags called the same thing in the same kind, a warning on the create form would be kinder than letting him find out later. | 2026-09-14 | Phase 9 |
 | 32 | Record which version of the terms and the privacy policy a customer accepted, and when — at signup and with each order | 2026-09-16 | The consent is asked for and the documents are versioned (§17 #195), but nothing stores the pair. If a dispute ever turns on what a customer agreed to, the answer today is "whatever the site said that week". Two nullable columns and a `VERSIONS` lookup **Phase 10.** |
-| 33 | **Deleting a user deletes their orders** — the privacy policy promises the opposite | 2026-09-16 | `Order.user` is `on_delete=CASCADE`. The policy says order records are kept for the tax period even after an account is deleted, and the Tax Code wants them. Until an "anonymise this account" path exists, **a deletion request must never be handled with the admin's delete button**: clear the name, username and phone by hand and keep the orders **Phase 10.** |
+| 33 | ~~**Deleting a user deletes their orders**~~ **✅ Done 2026-09-17 — `Order.user` is `PROTECT` (§17 #219)**. The privacy policy promised the opposite | 2026-09-16 | `Order.user` is `on_delete=CASCADE`. The policy says order records are kept for the tax period even after an account is deleted, and the Tax Code wants them. Until an "anonymise this account" path exists, **a deletion request must never be handled with the admin's delete button**: clear the name, username and phone by hand and keep the orders **Phase 10.** |
 | 34 | Load the Google Maps script only when the map is about to be used | 2026-09-16 | It loads with the checkout page, so Google receives the visitor's IP whether or not they ever touch the map. Loading it on the first interaction is better for privacy and for the page's weight, and the policy would then be describing a narrower transfer **Phase 9.** |
 | 35 | The three-week "your parcel is waiting" reminder in risk #25 is not built | 2026-09-16 | It needs to know when a parcel reached its branch, which today means a tracking number (§18 #1, §19 Q24) or a status the owner sets by hand, and an SMS body Eskiz has moderated **After launch.** |
 | 36 | English copy is not consistent with itself: apostrophes are mixed (’ and '), and "T-shirt" is also written "t-shirt" and "tee" | 2026-09-16 | Phase 8's strings use ’ and "T-shirt"; about fifteen older ones use ' and three use "t-shirt". One pass over the English catalogue, with the SEO copy work **Phase 9.** |
 | 37 | A spaced dash can begin a line: "Bu" at the end of one line, "— Pochta eʼlon qilgan…" at the start of the next (the terms, 390 px) | 2026-09-16 | A no-break space before every spaced em dash, in all three languages, in one pass — the same kind of fix as §17 #204, for the copy rather than for a figure **Phase 9.** |
-| 38 | Uzbek dates outside the documents read "16 Sentabr 2026" | 2026-09-16 | Django's Uzbek `E` capitalises the month mid-line and has no *-yil* form. `legal_date` already writes "2026-yil 16-sentabr" for the documents; the order pages and the review dates should share one filter — and it must convert to local time first, because a date taken from UTC names the wrong day for the five hours after midnight in Tashkent (a Phase 8 test met exactly that) **Phase 9.** |
-| 39 | Cancelling an unpaid order says "#45 bekor qilindi" — the database id, where every other screen and the terms call an order by its GX- number | 2026-09-16 | Found in the Phase 8 recheck. One message in `payment/views.py`, and its msgid changes with it, so it is copy work in three languages **Phase 9.** |
-| 40 | An Uzbek ordinal breaks after its hyphen: "369-" at the end of a line and "moddasi" at the start of the next (the terms, 390 px) | 2026-09-16 | The same kind of break §17 #204 closed for ranges. A word joiner after the hyphen, or a no-break hyphen if the fonts carry one, in the same typography pass as #37 **Phase 9.** |
+| 38 | ~~Uzbek dates outside the documents read "16 Sentabr 2026"~~ **✅ Done 2026-09-17** — "16 sentabr 2026", Kamronbek's choice (§17 #218), and the panel's date fields day first (§17 #217) | 2026-09-16 | Django's Uzbek `E` capitalises the month mid-line and has no *-yil* form. `legal_date` already writes "2026-yil 16-sentabr" for the documents; the order pages and the review dates should share one filter — and it must convert to local time first, because a date taken from UTC names the wrong day for the five hours after midnight in Tashkent (a Phase 8 test met exactly that) **Phase 9.** |
+| 39 | ~~Cancelling an unpaid order says "#45 bekor qilindi" — the database id, where every other screen and the terms call an order by its GX- number~~ **✅ Done 2026-09-17** — named by its GX- number (§17 #216) | 2026-09-16 | Found in the Phase 8 recheck. One message in `payment/views.py`, and its msgid changes with it, so it is copy work in three languages **Phase 9.** |
+| 40 | ~~An Uzbek ordinal breaks after its hyphen: "369-" at the end of a line and "moddasi" at the start of the next (the terms, 390 px)~~ **✅ Closed 2026-09-17 — left as it is**, Kamronbek's call (§17 #224) | 2026-09-16 | The same kind of break §17 #204 closed for ranges. A word joiner after the hyphen, or a no-break hyphen if the fonts carry one, in the same typography pass as #37 **Phase 9.** |
+| 41 | A picture replaced in the Django admin leaves its old file on disk | 2026-09-17 | §17 #220 removes a file when its row is deleted. Replacing the file on a row that stays happens only in the Django admin — the panel adds and deletes pictures, never replaces them — so it is rare and staff-only. The same on-commit, still-named check from a `pre_save` receiver would cover it **Phase 10.** |
+| 42 | Tests write photographs into `vm/media/` | 2026-09-17 | The panel's photo tests (`test_phase7b`) and the review tests (`test_phase12`) save through the real storage, so every run leaves files in the developer's media folder — 438 in `products/` and 137 in `reviews/` on 2026-09-17, most of them test output. The newer tests use a throwaway `MEDIA_ROOT`; the older ones should too, and the leftovers need clearing without touching the demo catalogue's photographs. It matters more now that a deleted row deletes its file (§17 #220): a test that deletes a row after a commit must never point at the real folder **Phase 10.** |
 
 ## 19. Open questions
 
 | # | Question | Needed by | Status |
 |---|---|---|---|
-| 1 | A Google Maps Platform API key | Phase 1b | ✅ **Answered 2026-09-12**, and **a key was supplied 2026-09-13**. It is in `vm/.env` (gitignored) and the map renders. **Two things are still outstanding on the Google project and only Kamronbek can do them:** (a) **billing is not enabled**, so the *Geocoding* API answers `REQUEST_DENIED` — the map works, the pin is stored, but it cannot fill the address field, and the customer types it instead (which is the degradation §17 #91 already required, so nothing is broken); (b) the key is **unrestricted** — it ships in the page by design, so it needs an HTTP-referrer restriction to `graphix.uz` and `valleymade.uz` plus a budget alert, on the day it goes to the server (§12 risk #5). **Everything downstream of the geocoder is built and tested** (§17 #116, #117, #120): a dropped pin fills the region, the district and the street line, verified against the exact component shapes Google returns for Tashkent city, Tashkent region and Samarkand. Enabling billing turns that on with no deploy |
+| 1 | A Google Maps Platform API key | Phase 1b | ✅ **Answered 2026-09-12**, and **a key was supplied 2026-09-13**. It is in `vm/.env` (gitignored) and the map renders. **Two things are still outstanding on the Google project and only Kamronbek can do them:** (a) **billing is not enabled**, so the *Geocoding* API answers `REQUEST_DENIED` — the map works, the pin is stored, but it cannot fill the address field, and the customer types it instead (which is the degradation §17 #91 already required, so nothing is broken); (b) the key is **unrestricted** — it ships in the page by design, so it needs an HTTP-referrer restriction to `graphix.uz` and `www.graphix.uz` plus a budget alert, on the day it goes to the server (§12 risk #5). **Everything downstream of the geocoder is built and tested** (§17 #116, #117, #120): a dropped pin fills the region, the district and the street line, verified against the exact component shapes Google returns for Tashkent city, Tashkent region and Samarkand. Enabling billing turns that on with no deploy |
 | 2 | Telegram bot token and chat ID | Phase 1b | ✅ **Answered 2026-09-12** — same as Q1: `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` ship blank, 6f is built and tested as though they were set, and an unset token logs a warning and sends nothing (§17 #93) |
 | 3 | ~~Can Uzpost supply an official branch list (index codes, addresses, coordinates, hours)?~~ | — | ✅ **Closed 2026-09-12 — the question no longer needs an answer.** §17 #84 replaced the branch table with region + district + a customer-typed postal index, so nothing waits on a dataset we cannot obtain. `PickupPoint`, `seed_pickup_points` and the header-only CSV are retired in Phase 6d |
 | 4 | ~~Pickup-point launch scope — Tashkent only, regional capitals, or nationwide?~~ | — | ✅ **Closed 2026-09-12** — there are no pickup points to scope. Every Uzpost branch is reachable from day one, because the customer supplies its index (§17 #84) |
@@ -2152,7 +2201,7 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 21 | The dev machine sleeps and takes PostgreSQL down with it, so a command that spans a sleep dies with *"server closed the connection unexpectedly"*. Harmless — retry. Worth knowing before someone debugs it as a code fault (§18 #10). | — | ℹ️ Environment, not a defect |
 | 22 | ~~`--c-line-strong` is 1.8:1 against the page ground, and §9 asks for 3:1 on UI boundaries~~ | Phase 9 | ✅ **Decided 2026-09-15**, on Kamronbek's instruction to make the call: form controls get `--c-line-control: #756853` (3.54:1 on the page); `--c-line-strong` stays as it is for panel edges and dividers (§17 #188). Built in Phase 9 |
 | 23 | ~~`data/regions.csv` — who verifies it?~~ | — | ✅ **Closed 2026-09-13 — built and verified** (§17 #98). Original answer: Build it from the SOATO / MHOBT classifier, cross-check against published directories and the public compilations without copying them (§17 #90), confirm every postal prefix, and write the sources and the method into `data/README.md` so it can be re-checked rather than re-trusted |
-| 24 | **Call Uzpost about the partner programme, before launch.** They run *UzPost multibrend topshirish punktlari*, built for marketplaces and online stores delivering to their branches, and *Bir Qadam*, next-day to designated branches nationwide. Better rates and possibly tracking numbers (§11 puts tracking out of scope; this could change that). The cash-at-handover part no longer applies — §17 #94 took cash out entirely. **+998 71 233-57-47 · info@pochta.uz.** A business conversation, not development work, but it bears directly on risk #6. | Phase 11 at the latest | ⏳ Open |
+| 24 | **Call Uzpost about the partner programme, before launch.** They run *UzPost multibrend topshirish punktlari*, built for marketplaces and online stores delivering to their branches, and *Bir Qadam*, next-day to designated branches nationwide. Better rates and possibly tracking numbers (§11 puts tracking out of scope; this could change that). The cash-at-handover part matters only if the owner switches cash on (§17 #99). **+998 71 233-57-47 · info@pochta.uz.** A business conversation, not development work, but it bears directly on risk #6. | Phase 11 at the latest | ⏳ Open |
 | 25 | ~~Should Uzbek take a `/uz/` prefix like the other two languages?~~ | — | ✅ **Answered and done, 2026-09-14 — yes.** Built the same day, before any of it could go stale: §3's locked row is amended, `prefix_default_language=True`, old unprefixed URLs redirect into the prefixed tree, and `core/test_i18n.py` holds the new shape (§17 #121). The reasoning as it was put to him: §3 locks Uzbek at `/` with Russian at `/ru/` and English at `/en/`, so this is a locked decision and not something to change quietly. **For:** it removes a whole class of bug at the source — with every language prefixed, `LocaleMiddleware` stops forcing the default language on unprefixed paths and `set_language` works unaided (§17 #115 was one symptom); and `/` could then send a visitor to their own language instead of always serving Uzbek. **Against:** every Uzbek URL changes, so the site needs a 301 for each one, and the sitemap, the canonicals, the OG URLs and `core/tests.py` all move with them — work that is cheap now and expensive after launch. **The switcher was fixed either way**, so nothing was waiting on this; it was a URL-shape decision, not a bug fix |
 | 26 | ~~Should the status label follow the "Yetkazilmoqda" tile?~~ | — | ✅ **Done 2026-09-16** — yes. Label only; the stored value is unchanged; English is "In transit" (§17 #189) |
 | 27 | ~~**What is the seller's legal form?**~~ | — | ✅ **Answered 2026-09-16** — a sole proprietor (YaTT). Stated as the form and nothing more: the terms say who sells, the seller block and the contact card carry it, no certificate number (§17 #208) |
@@ -2160,8 +2209,10 @@ Ideas raised but not yet placed in a phase. Reviewed in the planning chat, then 
 | 29 | ~~**Which Uzpost service will parcels go by — Bir Qadam or an ordinary parcel?**~~ | — | ✅ **Answered 2026-09-16** — ordinary parcels. A branch holds one a month, and the pages say one month (§17 #210). Q24's conversation with Uzpost may still change the service; if it does, the constant and the wording change with it |
 | 30 | **Register the shop with the state register of personal-data operators** before the site takes a real customer's data. The owner's to do, not code — but the privacy policy is written on the assumption that it is done | Phase 11 | ⏳ Open — Kamronbek is passing it to the owner (2026-09-16) |
 | 31 | ~~**Where is the VPS?**~~ | — | ✅ **Answered 2026-09-16** — Warsaw, Poland. The privacy policy says the site's data is kept there (§17 #211); what remains is Q32 |
-| 32 | **Which of ZRU-1125's conditions does the Warsaw host meet?** Ordinary data may be kept abroad if the country is recognised as equally protective (the Cabinet of Ministers keeps the list), under standard contract terms, or where the operator follows international standards. Poland applies the GDPR, but whether it is on the list — or whether the host's terms or the shop's practice count — is a question for the legal review, before launch | Phase 11 | ⏳ Open |
+| 32 | ~~**Which of ZRU-1125's conditions does the Warsaw host meet?**~~ | — | ✅ **Answered 2026-09-17** — the first: Poland is No. 32 on the Cabinet of Ministers' list of countries that protect personal data equally (Resolution No. 415 of 29.07.2026, in force 03.08.2026). OVHcloud's data processing agreement and certificates are consistent with it. The privacy policy is not changed, at Kamronbek's word (§17 #215) |
 | 33 | **Where does the Telegram bot service run, and at what address?** The site relays to it once `TELEGRAM_BOT_WEBHOOK_URL` is set (§17 #206). The address must be HTTPS unless the bot is on the site's own server, and if the bot runs anywhere but the Warsaw server, the privacy policy has to name that country too | Phase 1b | ⏳ Open |
+| 34 | **Should a staff account get past the phone-verification wall?** `PhoneVerificationMiddleware` exempts `/admin/` but not the panel, which is language-prefixed, and `createsuperuser` leaves `phone_verified` false — so the owner's account, made that way on the server, is sent to the OTP screen instead of the panel (§17 #153, raised then and not decided). Either the middleware lets staff through, or the account is marked verified when it is created. It changes auth, so it is Kamronbek's call | Phase 1b | ⏳ Open |
+| 35 | **Should the product form require at least one tag?** Risk #22 planned it; the Phase 7 form saves a product without one, and the Phase 13 recommender has nothing to work with for such a product. Requiring one is a behaviour change | Phase 11 | ⏳ Open |
 
 **Resolved:**
 

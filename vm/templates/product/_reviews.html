@@ -1,4 +1,4 @@
-{% load i18n i18n_fields %}
+{% load i18n i18n_fields date_tags %}
 {% comment %}
   The reviews section of the product page.
 
@@ -74,7 +74,7 @@
           {# 2026" — the nominative, which reads like a heading rather than a #}
           {# date. Uzbek and English have no alternative form and are #}
           {# unchanged, checked in all three before this was changed. #}
-          <time class="review__date" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j E Y" }}</time>
+          <time class="review__date" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j E Y"|month_case }}</time>
         </div>
 
         {% if review.text %}<p class="review__text">{{ review.text|linebreaksbr }}</p>{% endif %}

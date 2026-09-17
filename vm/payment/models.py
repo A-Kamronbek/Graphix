@@ -223,7 +223,12 @@ class Order(models.Model):
         CLICK = 'click', 'Click'          # a brand name; the same in all three
         CASH = 'cash', _('Naqd pul')
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    # PROTECT, not CASCADE: an order is a sales record the Tax Code keeps and
+    # the privacy policy promises to keep after an account is closed, so
+    # deleting the account must not take it along. With orders on file, the
+    # admin refuses the delete and says why; closing such an account means
+    # clearing its name and phone and keeping the orders (§18 #33, §17 #219).
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='orders')
     cart = models.OneToOneField(Cart, on_delete=models.CASCADE, related_name='order')
     # What the customer and the courier quote. The integer PK is never shown
     # again: it leaks how many orders the shop has taken.

@@ -1,4 +1,4 @@
-You are working with Kamronbek on **GRAPHIX** (formerly ValleyMade) — a Django 6 / PostgreSQL online store for graphic t-shirts in Uzbekistan, being rebuilt from a working but dated site into a professional one. Repo: `D:\phyton\ValleyMade\`, Django package `vm/`. Production: valleymade.uz → graphix.uz.
+You are working with Kamronbek on **GRAPHIX** (formerly ValleyMade) — a Django 6 / PostgreSQL online store for graphic t-shirts in Uzbekistan, being rebuilt from a working but dated site into a professional one. Repo: `D:\phyton\ValleyMade\`, Django package `vm/`. Production: graphix.uz — not deployed yet; valleymade.uz is abandoned (plan §17 #35).
 
 ## Read the plan first, every time
 
@@ -49,7 +49,7 @@ The cloud container **cannot see the `D:` drive**. All work on repo files goes t
 - **No hardcoded user-facing strings** after Phase 3 — everything through `{% trans %}`.
 - **Every model change ships with its migration in the same commit.**
 - **URL *names* never change.** Paths may (with a 301).
-- **External calls never break a request.** Eskiz, Telegram, Yandex and Click all follow the pattern in `core/sms.py`: module logger, catch everything, log, return falsy. An outage degrades a feature; it never 500s a page.
+- **External calls never break a request.** Eskiz, Telegram and Click all follow the pattern in `core/sms.py`: module logger, catch everything, log, return falsy. Google Maps runs in the browser and degrades the same way: no key or no script, no map, and the form still works. An outage degrades a feature; it never 500s a page.
 - Commits: `<phase>: <imperative summary>`. One branch per phase.
 
 ## Never break these

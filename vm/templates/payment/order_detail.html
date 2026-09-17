@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format legal_tags %}
+{% load static i18n i18n_fields price_format legal_tags date_tags %}
 {% block title %}{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}{% endblock %}
 
 {% block content %}
@@ -46,7 +46,7 @@
     <aside class="checkout__summary panel stack">
       <h2 class="h3">{% trans "Tafsilotlar" %}</h2>
       <dl class="spec">
-        <div class="spec__row"><dt>{% trans "Sana" %}</dt><dd>{{ order.created_at|date:"j E Y" }}</dd></div>
+        <div class="spec__row"><dt>{% trans "Sana" %}</dt><dd>{{ order.created_at|date:"j E Y"|month_case }}</dd></div>
         {% if order.recipient_name %}
           <div class="spec__row"><dt>{% trans "Qabul qiluvchi" %}</dt><dd>{{ order.recipient_name }}</dd></div>
         {% endif %}

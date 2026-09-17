@@ -1,5 +1,5 @@
 {% extends "boshqaruv/base.html" %}
-{% load i18n %}
+{% load i18n date_tags %}
 {% block title %}{% trans "Sharhlar" %}{% endblock %}
 
 {% comment %}
@@ -37,7 +37,7 @@
         </span>
         <a class="link" href="{% url 'panel_product' slug=review.product.slug %}">{{ review.product.name }}</a>
         <span class="small muted">{{ review.user.first_name|default:review.user.username }}</span>
-        <time class="small muted" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j E, H:i" }}</time>
+        <time class="small muted" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j E, H:i"|month_case }}</time>
       </div>
 
       {% if review.text %}<p class="mod__text">{{ review.text|linebreaksbr }}</p>{% endif %}

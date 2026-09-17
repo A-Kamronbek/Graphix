@@ -2,14 +2,19 @@
 
 Phase 4 registers the new models and keeps the product form honest about what the
 owner actually has to fill in: no slug (derived from the name), no colour (there
-is only one colourway), and no denormalised counters (maintained by code). The
-full admin pass is Phase 7.
+is only one colourway), and no denormalised counters (maintained by code). Since
+Phase 7 the day-to-day work is done in the panel (``/boshqaruv/``); this admin is
+the superuser's fallback, and a photograph uploaded here is cleaned exactly like
+one uploaded there (§18 #23).
 """
+from django import forms
 from django.contrib import admin
+from django.core.files.uploadedfile import UploadedFile
 from django.db.models import Min, Count
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+from . import images
 from .models import (Category, Colour, ImageP, PrintMethod, Product,
                      ProductLike, Review, ReviewImage, Size, SizeChart,
                      SizeChartRow, Tag, TagKind, Variant, default_colour)
@@ -26,9 +31,54 @@ def _thumb(picture, size=60):
     )
 
 
+class CleanPhotoForm(forms.ModelForm):
+    """Run an uploaded picture through ``images.sanitise`` (§18 #23).
+
+    The storefront and the panel re-encode every photograph they are given,
+    which is what strips a phone's GPS coordinates before the picture is
+    published; this admin used to store the file exactly as it arrived. Only a
+    *new* upload is touched: an unchanged field holds the file already stored,
+    and a cleared one holds ``False``. A refusal — not an image, too large —
+    is raised here and shown on the field, in the words the storefront uses.
+    """
+
+    #: The stored file's name, before storage makes it unique.
+    name_hint = 'mahsulot'
+    #: The long edge the picture is shrunk to; ``None`` means a review photo's.
+    max_edge = images.PRODUCT_MAX_EDGE
+
+    def _clean_upload(self, field):
+        """``field``'s cleaned value, re-encoded when it is a new upload."""
+        value = self.cleaned_data.get(field)
+        if isinstance(value, UploadedFile):
+            return images.sanitise(value, name_hint=self.name_hint,
+                                   max_edge=self.max_edge)
+        return value
+
+    def clean_picture(self):
+        """A product or review photograph."""
+        return self._clean_upload('picture')
+
+    def clean_image(self):
+        """A size chart's picture."""
+        return self._clean_upload('image')
+
+
+class ReviewPhotoForm(CleanPhotoForm):
+    """A review photograph: the review form's name and size."""
+    name_hint = 'review'
+    max_edge = None
+
+
+class ChartImageForm(CleanPhotoForm):
+    """A size chart: the name and size the panel stores one at."""
+    name_hint = 'chart'
+
+
 class ImagePInline(admin.TabularInline):
     """Inline editor for a product's images."""
     model = ImageP
+    form = CleanPhotoForm
     extra = 1
     fields = ('preview', 'picture', 'order')
     readonly_fields = ('preview',)
@@ -201,6 +251,7 @@ class SizeChartRowInline(admin.TabularInline):
 @admin.register(SizeChart)
 class SizeChartAdmin(admin.ModelAdmin):
     """Size-guide admin. Image first; the table is optional (§17 #15)."""
+    form = ChartImageForm
     list_display = ('preview', 'name', 'row_count')
     list_display_links = ('preview', 'name')
     search_fields = ('name',)
@@ -233,6 +284,7 @@ class SizeChartAdmin(admin.ModelAdmin):
 class ReviewImageInline(admin.TabularInline):
     """Photos attached to a review; visible on the site only once approved."""
     model = ReviewImage
+    form = ReviewPhotoForm
     extra = 0
     fields = ('preview', 'picture', 'order')
     readonly_fields = ('preview',)
@@ -329,6 +381,7 @@ class ColourAdmin(admin.ModelAdmin):
 @admin.register(ImageP)
 class ImagePAdmin(admin.ModelAdmin):
     """Standalone product-image admin with thumbnail previews."""
+    form = CleanPhotoForm
     list_display = ('thumb', 'product', 'order')
     list_display_links = ('thumb', 'product')
     search_fields = ('product__name',)

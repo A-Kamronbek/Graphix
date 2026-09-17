@@ -131,7 +131,7 @@ A customer placed an order. It is not paid yet (`status` is `paying`).
   "delivery": {"code": "uzpost_office", "name": "Pochta boʻlimigacha",
                "price": 15000, "to_branch": true},
   "address": "Toshkent shahri · Chilonzor tumani · 100011",
-  "location": {"lat": 41.2995, "lng": 69.2401},
+  "location": null,
   "recipient": {"name": "Ali Valiyev", "phone": "+998 90 123 45 67"},
   "notes": "",
   "items": [{"product": "Mahsulot", "size": "M", "quantity": 1, "price": 175000}],
@@ -143,7 +143,8 @@ A customer placed an order. It is not paid yet (`status` is `paying`).
 - `to_branch` is `true` when the parcel goes to a post office, `false` for a
   door delivery.
 - `address` is the destination as it was frozen at checkout, on one line.
-- `location` is `null` unless the customer dropped a pin on the map.
+- `location` is `null` unless the customer dropped a pin on the map, which
+  only a home delivery has: `{"lat": 41.2995, "lng": 69.2401}`.
 - `recipient` is the person named on the parcel, which is not always the
   account holder.
 

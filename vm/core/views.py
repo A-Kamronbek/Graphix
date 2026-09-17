@@ -238,7 +238,7 @@ STYLE_ICONS = [
     'mark', 'search', 'heart', 'cart', 'user', 'share', 'menu', 'close', 'check',
     'minus', 'plus', 'chevron-down', 'chevron-right', 'arrow-left', 'arrow-right',
     'star', 'filter', 'sort', 'truck', 'box', 'pin', 'phone', 'mail', 'telegram', 'info',
-    'warning', 'image', 'trash', 'ruler',
+    'warning', 'image', 'trash', 'ruler', 'calendar',
 ]
 
 

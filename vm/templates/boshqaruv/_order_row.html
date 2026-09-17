@@ -1,4 +1,4 @@
-{% load i18n price_format %}
+{% load i18n price_format date_tags %}
 {% comment %}
   One order, on the list and on the dashboard. A card in a hand and a table row
   on a laptop, from the same markup — `.ord` changes its grid at 900 px.
@@ -12,7 +12,7 @@
 <article class="ord" data-order="{{ order.order_no }}">
   <div class="ord__hd">
     <a class="ord__no tap" href="{% url 'panel_order' order_no=order.order_no %}">{{ order.order_no }}</a>
-    <time class="ord__when" datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:"j E, H:i" }}</time>
+    <time class="ord__when" datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:"j E, H:i"|month_case }}</time>
   </div>
 
   <div class="ord__body">
