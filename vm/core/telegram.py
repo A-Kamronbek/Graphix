@@ -4,6 +4,12 @@ Structured exactly like :mod:`core.sms`, and for the same reason: module
 logger, catch everything, log, return a boolean, **never raise**. A Telegram
 outage degrades a feature; it must never fail a checkout (§4, §12 risk #17).
 
+There are three events - a paid order, a contact message, a review waiting
+for moderation - and each is sent once, when it happens. An order is notified
+when the money arrives and not when it is placed (§17 #237): an abandoned
+checkout and a cancelled payment are not parcels, and the owner should not
+have to work out which of his notifications are.
+
 A notification leaves by one of two routes, chosen by ``.env``:
 
 * **The shop's bot service** (``TELEGRAM_BOT_WEBHOOK_URL``). The bot is a
@@ -203,17 +209,28 @@ def notify(text, *, event='notification', data=None, preview=False):
 
 # ------------------------------------------------------------------ helpers
 
-def admin_url(obj):
-    """Absolute link to an object's Django admin page, for the owner's phone."""
+def panel_url(name, anchor='', **kwargs):
+    """Absolute link to a screen of the staff panel (§17 #237).
+
+    These links used to lead to the Django admin. The panel is where the owner
+    actually works - its order screen carries the status control and the
+    parcel's details, where the admin's is a form of forty columns - so that is
+    where a notification leads now.
+
+    Built in Uzbek, because every URL carries a language prefix (§17 #121) and
+    a notification is not a request: it has no language of its own, and the
+    panel is read in Uzbek. Returns ``''`` when the route cannot be built, and
+    the caller prints no link at all rather than a broken one.
+    """
     from django.urls import NoReverseMatch, reverse
+    from django.utils import translation
     try:
-        path = reverse(
-            f'admin:{obj._meta.app_label}_{obj._meta.model_name}_change',
-            args=[obj.pk],
-        )
+        with translation.override('uz'):
+            path = reverse(name, kwargs=kwargs or None)
     except NoReverseMatch:
+        logger.warning("no panel route for %s; the notification carries no link", name)
         return ''
-    return f"{settings.SITE_URL.rstrip('/')}{path}"
+    return f"{settings.SITE_URL.rstrip('/')}{path}{anchor}"
 
 
 def _phone_line(label, phone):
@@ -230,9 +247,17 @@ def _som(amount):
 
 # ------------------------------------------------------------------- events
 
-def notify_new_order(order):
-    """A new order, with everything needed to act on it without opening a laptop."""
-    lines = [f"🧾 <b>Yangi buyurtma</b> {esc(order.order_no or order.pk)}"]
+def notify_paid_order(order):
+    """A paid order, with everything needed to act on it without a laptop.
+
+    One message per order, and it goes when the money has arrived (§17 #237).
+    There used to be two - a long one when the order was created and a short
+    one when it was paid - so the owner heard about every abandoned checkout
+    and every payment that fell through, and had to work out which of the
+    notifications on his phone were parcels. This is the same message the
+    creation used to send, with the status it actually has.
+    """
+    lines = [f"✅ <b>Yangi buyurtma — toʻlandi</b> {esc(order.order_no or order.pk)}"]
 
     items = list(order.cart.cart_items.select_related('variant__product', 'variant__size'))
     for item in items:
@@ -259,7 +284,9 @@ def notify_new_order(order):
     if order.notes:
         lines.append(f"<b>Izoh:</b> {esc(order.notes)}")
 
-    link = admin_url(order)
+    # By its number, which is what the parcel and every screen call it.
+    link = (panel_url('panel_order', order_no=order.order_no) if order.order_no
+            else panel_url('panel_orders'))
     if link:
         lines.append(f'\n<a href="{link}">Buyurtmani ochish</a>')
 
@@ -290,23 +317,11 @@ def notify_new_order(order):
                    'size': item.variant.size.size,
                    'quantity': item.quantity,
                    'price': _som(item.price_stat)} for item in items],
+        # The key keeps its old name so the bot that reads it keeps working;
+        # what changed is where it points (§17 #237).
         'admin_url': link,
     }}
-    notify('\n'.join(lines), event='order.created', data=data)
-
-
-def notify_payment(order):
-    """Payment confirmed — short, because the order message already said the rest."""
-    notify(f"✅ <b>Toʻlandi</b> {esc(order.order_no or order.pk)}\n"
-           f"{esc(order.total_price)} soʻm",
-           event='order.paid',
-           data={'order': {
-               'id': order.pk,
-               'number': order.order_no or str(order.pk),
-               'total': _som(order.total_price),
-               'currency': 'UZS',
-               'admin_url': admin_url(order),
-           }})
+    notify('\n'.join(lines), event='order.paid', data=data)
 
 
 def notify_message(msg):
@@ -319,7 +334,7 @@ def notify_message(msg):
         f"\n<b>Mavzu:</b> {esc(msg.topic)}",
         esc(msg.msg_text),
     ]
-    link = admin_url(msg)
+    link = panel_url('panel_messages', anchor=f'#xabar-{msg.pk}')
     if link:
         lines.append(f'\n<a href="{link}">Xabarni ochish</a>')
     notify('\n'.join(lines), event='message.created', data={'message': {
@@ -345,7 +360,8 @@ def notify_review(review):
         lines.append(esc(excerpt))
     if photos:
         lines.append("📷 Rasm biriktirilgan")
-    link = admin_url(review)
+    # The queue opens on the pending ones, which is what this review is.
+    link = panel_url('panel_reviews', anchor=f'#sharh-{review.pk}')
     if link:
         lines.append(f'\n<a href="{link}">Sharhni ochish</a>')
     notify('\n'.join(lines), event='review.created', data={'review': {

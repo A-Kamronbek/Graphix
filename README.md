@@ -44,7 +44,8 @@ progress. Read it before changing anything.
   their metadata
 - Staff panel at `/uz/boshqaruv/` for orders, products, reviews, messages and
   reference data; the Django admin at `/admin/` remains as the fallback
-- Telegram notifications for new orders, payments, contact messages and reviews
+- Telegram notifications for paid orders, contact messages and reviews — an order
+  is announced when its payment lands, never before
 - Terms, privacy policy and delivery page, versioned
 - Rate limiting on sign-in, OTP, password reset, contact, likes and reviews
 
@@ -140,9 +141,11 @@ simply off. Never commit `.env`.
   merchant dashboard.
 - **Eskiz** — the sender name and every message body must be moderated before
   production sends succeed; `4546` is the test sender.
-- **Telegram** — with `TELEGRAM_BOT_WEBHOOK_URL` set, each event is POSTed to the
-  bot service, signed with `WEBSITE_WEBHOOK_SECRET`; otherwise the site calls the
-  Bot API with the token and chat ID. The contract is
+- **Telegram** — three events (a paid order, a contact message, a review); each
+  is sent once, after the change it reports is saved. With
+  `TELEGRAM_BOT_WEBHOOK_URL` set they are POSTed to the bot service, signed with
+  `WEBSITE_WEBHOOK_SECRET`; otherwise the site calls the Bot API with the token
+  and chat ID. The contract is
   [`docs/integrations/telegram-bot.md`](docs/integrations/telegram-bot.md).
 - **Google Maps** — the key ships in the page, so restrict it to the site's
   referrers and set a budget alert. Geocoding needs billing enabled on the

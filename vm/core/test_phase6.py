@@ -843,7 +843,21 @@ class TelegramTests(TestCase):
 
 
 class TelegramDeliveryTests(TestCase):
-    """The four events fire, on commit, and a broken gateway breaks nothing."""
+    """The three events fire, on commit, and a broken gateway breaks nothing.
+
+    There were four. An order used to notify twice - once when it was written
+    and once when it was paid for - and now it notifies once, when the money
+    has arrived (§17 #237).
+    """
+
+    def _pay(self, order):
+        """Put a successful Click transaction through, the way the callback does."""
+        from click_up.models import ClickTransaction
+        from payment import services as payment_services
+        txn = ClickTransaction.objects.create(
+            transaction_id='click-telegram-%d' % order.pk, account_id=order.pk,
+            amount=order.total_price, state=ClickTransaction.SUCCESSFULLY)
+        payment_services.apply_successful_payment(txn.transaction_id)
 
     def setUp(self):
         from payment.models import DeliveryOption
@@ -866,25 +880,42 @@ class TelegramDeliveryTests(TestCase):
             'address_source': 'manual', 'payment_method': 'click', 'notes': '',
         })
 
-    def test_an_order_sends_one_message(self):
-        """captureOnCommitCallbacks: the send is queued on commit, not inline."""
+    def test_an_unpaid_order_notifies_nobody(self):
+        """An order still `paying` may never be paid for (§17 #237)."""
         with mock.patch('core.telegram.send', return_value=True) as send:
             with self.captureOnCommitCallbacks(execute=True):
                 self._checkout()
+        self.assertEqual(send.call_count, 0)
+
+    def test_the_payment_sends_the_order_itself(self):
+        """captureOnCommitCallbacks: the send is queued on commit, not inline."""
+        from payment.models import Order
+        self._checkout()
+        order = Order.objects.get(cart=self.cart)
+        with mock.patch('core.telegram.send', return_value=True) as send:
+            with self.captureOnCommitCallbacks(execute=True):
+                self._pay(order)
         self.assertEqual(send.call_count, 1)
         body = send.call_args[0][0]
         self.assertIn('Yangi buyurtma', body)
+        self.assertIn('toʻlandi', body)
+        # Everything the order message always carried, on the one that is sent.
         self.assertIn('Bildirishnoma', body)
+        self.assertIn(order.order_no, body)
+        self.assertIn('boshqaruv/buyurtmalar/%s/' % order.order_no, body)
 
-    def test_a_telegram_failure_does_not_break_the_checkout(self):
+    def test_a_telegram_failure_does_not_undo_the_payment(self):
         from payment.models import Order
+        self._checkout()
+        order = Order.objects.get(cart=self.cart)
         with mock.patch('core.telegram.send', side_effect=RuntimeError('boom')):
             with self.assertRaises(RuntimeError):
                 # on_commit callbacks run after the response in a real request;
-                # executing them here proves the ORDER still exists either way.
+                # executing them here proves the PAYMENT stands either way.
                 with self.captureOnCommitCallbacks(execute=True):
-                    self._checkout()
-        self.assertTrue(Order.objects.filter(cart=self.cart).exists())
+                    self._pay(order)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
 
     def test_a_contact_message_notifies(self):
         with mock.patch('core.telegram.send', return_value=True) as send:

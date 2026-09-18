@@ -83,9 +83,13 @@ class CheckoutKeepsTheNameTests(TestCase):
         self.assertEqual(order.recipient_name, '')
 
     def test_the_notification_names_the_recipient(self):
+        """The notification goes when the order is paid for (§17 #237)."""
+        from core import telegram
+        self._checkout()
+        order = Order.objects.get(cart=self.cart)
         with mock.patch('core.telegram.send', return_value=True) as send:
             with self.captureOnCommitCallbacks(execute=True):
-                self._checkout()
+                telegram.notify_paid_order(order)
         body = send.call_args[0][0]
         self.assertIn('Dilnoza Karimova', body)
         self.assertNotIn('Hisob egasi', body)

@@ -27,7 +27,10 @@
 
 <div class="pnl__section stack">
   {% for msg in msgs %}
-    <article class="note {% if not msg.is_read %}is-unread{% endif %}" data-msg="{{ msg.pk }}"
+    {# The id is what the Telegram notification links to (§17 #237), so a #}
+    {# message opens on the message rather than at the top of the list. #}
+    <article id="xabar-{{ msg.pk }}"
+             class="note {% if not msg.is_read %}is-unread{% endif %}" data-msg="{{ msg.pk }}"
              data-url="{% url 'panel_message_read' pk=msg.pk %}">
       <div class="note__hd">
         <strong>{{ msg.topic }}</strong>
