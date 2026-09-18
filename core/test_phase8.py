@@ -16,6 +16,7 @@ from unittest import mock
 from django.conf import settings
 from django.core.cache import cache
 from django.template import Context, Template
+from core.runner import project_python_files
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone, translation
@@ -214,7 +215,7 @@ class FiguresFollowTheCodeTests(TestCase):
 
     def test_the_log_is_kept_for_the_period_the_policy_states(self):
         """Rotated by day, `LOG_RETENTION_DAYS` files kept (§17 #196)."""
-        source = (Path(settings.BASE_DIR) / 'vm' / 'settings.py').read_text(encoding='utf-8')
+        source = (Path(settings.BASE_DIR) / 'config' / 'settings.py').read_text(encoding='utf-8')
         self.assertIn("'class': 'logging.handlers.TimedRotatingFileHandler'", source)
         self.assertIn("'backupCount': LOG_RETENTION_DAYS", source)
         self.assertEqual(legal.facts().log_days, settings.LOG_RETENTION_DAYS)
@@ -225,12 +226,8 @@ class RateLimitWindowTests(SimpleTestCase):
 
     def test_no_limit_on_the_site_outlives_the_promise(self):
         from core.ratelimit import MAX_WINDOW
-        root = Path(settings.BASE_DIR)
         windows = []
-        for path in sorted(root.rglob('*.py')):
-            rel = path.relative_to(root).as_posix()
-            if '/test' in rel or 'migrations/' in rel:
-                continue
+        for path, rel in project_python_files():
             for node in ast.walk(ast.parse(path.read_text(encoding='utf-8'))):
                 if not isinstance(node, ast.Call):
                     continue

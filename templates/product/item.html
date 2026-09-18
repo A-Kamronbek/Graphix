@@ -4,8 +4,8 @@
 {% block title %}{{ product|t:"name" }}{% endblock %}
 {% block og_type %}product{% endblock %}
 {% block og_title %}{{ product|t:"name" }} — GRAPHIX{% endblock %}
-{% block meta_description %}{% if product|t:"description" %}{{ product|t:"description"|striptags|truncatewords:28 }}{% else %}{% blocktrans with name=product|t:"name" %}{{ name }} — GRAPHIX original grafik futbolkasi. Premium trikotaj, Oʻzbekiston boʻylab yetkazib berish.{% endblocktrans %}{% endif %}{% endblock %}
-{% block og_description %}{% if product|t:"description" %}{{ product|t:"description"|striptags|truncatewords:28 }}{% else %}{% blocktrans with name=product|t:"name" %}{{ name }} — GRAPHIX original grafik futbolkasi. Premium trikotaj, Oʻzbekiston boʻylab yetkazib berish.{% endblocktrans %}{% endif %}{% endblock %}
+{% block meta_description %}{% if product|t:"description" %}{{ product|t:"description"|striptags|truncatewords:28 }}{% else %}{% blocktrans with name=product|t:"name" %}{{ name }} — GRAPHIX original grafik futbolkasi. Premium trikotaj, Oʻzbekiston boʻylab yetkazib berish.{% endblocktrans %}{% endif %}{% endblock %}
+{% block og_description %}{% if product|t:"description" %}{{ product|t:"description"|striptags|truncatewords:28 }}{% else %}{% blocktrans with name=product|t:"name" %}{{ name }} — GRAPHIX original grafik futbolkasi. Premium trikotaj, Oʻzbekiston boʻylab yetkazib berish.{% endblocktrans %}{% endif %}{% endblock %}
 {# The photograph itself, at full size: the share card is frequently the first #}
 {# thing a customer ever sees of a design (§9 Phase 9 item 10). The original #}
 {# rather than a rendition — a previewer fetches it once, off the page. #}

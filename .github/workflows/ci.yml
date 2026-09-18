@@ -1,0 +1,120 @@
+# GRAPHIX - continuous integration.
+#
+# Runs the whole suite against a real PostgreSQL on every push and every pull
+# request, so a broken main branch cannot reach the server.
+#
+# The Redis step exists because of a specific bug. settings.py has always
+# selected Django's Redis cache backend the moment REDIS_URL is set, and the
+# package that backend imports was never installed - so the first cache read in
+# production would have raised, on every page. No test caught it because no
+# test and no local run ever sets REDIS_URL, so that branch had never once
+# executed. It executes here now (plan §17 #240).
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  # A new push supersedes the run in flight for the same branch.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: tests
+    runs-on: ubuntu-24.04
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: graphix
+          POSTGRES_USER: graphix
+          POSTGRES_PASSWORD: graphix
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # None of these are secrets. There is no .env in CI and settings.py falls
+      # through to the environment, so this block IS the configuration.
+      SECRET_KEY: ci-only-never-used-to-sign-anything-real
+      DEBUG: 'True'
+      ALLOWED_HOSTS: 127.0.0.1,localhost
+      DB_NAME: graphix
+      DB_USER: graphix
+      DB_PASSWORD: graphix
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      CLICK_SERVICE_ID: ci
+      CLICK_MERCHANT_ID: ci
+      CLICK_SECRET_KEY: ci
+      ESKIZ_EMAIL: ci@example.invalid
+      ESKIZ_PASSWORD: ci
+      ESKIZ_FROM: '4546'
+      SITE_URL: http://127.0.0.1:8000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install gettext
+        # compilemessages shells out to msgfmt; without it every page falls
+        # back to Uzbek and two dozen assertions about Russian copy fail.
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq gettext
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Compile the translation catalogues
+        # --ignore .venv is not needed here (CI has no venv in the tree) but is
+        # kept identical to the documented command so the two cannot drift.
+        run: python manage.py compilemessages --ignore .venv
+
+      - name: System check
+        run: python manage.py check
+
+      - name: Deployment check
+        # The production security settings only switch on with DEBUG off, so
+        # this is the only run in which they are checked at all.
+        run: python manage.py check --deploy
+        env:
+          DEBUG: 'False'
+
+      - name: The Redis cache backend actually works
+        run: |
+          python - <<'PY'
+          import os, django
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+          django.setup()
+          from django.conf import settings
+          from django.core.cache import cache
+          backend = settings.CACHES['default']['BACKEND']
+          assert 'redis' in backend, backend
+          cache.set('ci-probe', 'ok', 30)
+          assert cache.get('ci-probe') == 'ok'
+          print('%s reads and writes' % backend)
+          PY
+        env:
+          REDIS_URL: redis://127.0.0.1:6379/1
+
+      - name: Test suite
+        run: python manage.py test --parallel 4 --noinput

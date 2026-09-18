@@ -118,7 +118,7 @@ class BrowserProbeTests(SimpleTestCase):
         self.assertEqual(response.content, b'')
 
     def test_the_probe_is_routed_in_development_only(self):
-        import vm.urls as root
+        import config.urls as root
 
         def reload_routes():
             importlib.reload(root)
@@ -326,7 +326,7 @@ class OfflineRunTests(SimpleTestCase):
                 self.assertEqual(os.environ[name], '')
 
     def test_both_bot_service_values_are_read_from_the_environment(self):
-        source = (ROOT / 'vm' / 'settings.py').read_text(encoding='utf-8')
+        source = (ROOT / 'config' / 'settings.py').read_text(encoding='utf-8')
         for name in ('TELEGRAM_BOT_WEBHOOK_URL', 'WEBSITE_WEBHOOK_SECRET'):
             with self.subTest(name=name):
                 self.assertIn(f'{name} = os.environ.get("{name}", "")', source)
@@ -338,7 +338,7 @@ class OfflineRunTests(SimpleTestCase):
                 self.assertRegex(example, rf'(?m)^{name}=\s*$')
 
     def test_the_contract_names_every_header_the_site_sends(self):
-        contract = (ROOT.parent / 'docs' / 'integrations' / 'telegram-bot.md').read_text(
+        contract = (ROOT / 'docs' / 'integrations' / 'telegram-bot.md').read_text(
             encoding='utf-8')
         with self.settings(**RELAY), answered() as post:
             telegram.deliver('order.paid', 'x', {})

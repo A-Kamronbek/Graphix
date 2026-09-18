@@ -1,7 +1,7 @@
 # GRAPHIX - the nightly backup (plan §9 Phase 1b item 8, §12 risk #19).
 #
 # Runs as the application user and reads the database credentials out of the
-# application's own vm/.env, so there is exactly one copy of the password on
+# application's own .env, so there is exactly one copy of the password on
 # this machine and no root job that could write anywhere.
 #
 # The unit is expected to FAIL LOUDLY when the off-server destination is not

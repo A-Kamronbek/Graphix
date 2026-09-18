@@ -16,7 +16,7 @@ points at it. It leaves alone the things that are not catalogue: user accounts
 (so nobody is locked out of their own dev site), delivery and payment options,
 regions and districts, and contact messages.
 
-The photographs live in `docs/design/demo-catalogue/` because `vm/media/` is
+The photographs live in `docs/design/demo-catalogue/` because `media/` is
 gitignored, and are copied into place when they are missing - so this works on a
 fresh clone with no further setup.
 
@@ -207,11 +207,11 @@ class Command(BaseCommand):
     def _place_images(self):
         """Copy any missing photograph out of the tracked folder into media.
 
-        `vm/media/` is gitignored, so on a fresh clone the photographs only exist
+        `media/` is gitignored, so on a fresh clone the photographs only exist
         under `docs/design/demo-catalogue/`. Copying rather than symlinking keeps
         this working on Windows without developer mode.
         """
-        source = settings.BASE_DIR.parent / 'docs' / 'design' / 'demo-catalogue'
+        source = settings.BASE_DIR / 'docs' / 'design' / 'demo-catalogue'
         target = settings.MEDIA_ROOT / 'products'
         target.mkdir(parents=True, exist_ok=True)
 

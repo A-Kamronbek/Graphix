@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'vm.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -87,7 +87,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'vm.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -108,7 +108,7 @@ TIME_ZONE = 'Asia/Tashkent'
 
 # ---- languages ----
 # Uzbek is the source of truth. All three languages carry a URL prefix - /uz/,
-# /ru/, /en/ - see vm/urls.py, where i18n_patterns is applied with
+# /ru/, /en/ - see config/urls.py, where i18n_patterns is applied with
 # prefix_default_language=True (§17 #121). Uzbek Latin is written with U+02BB
 # (oʻ, gʻ), never an ASCII apostrophe.
 LANGUAGE_CODE = 'uz'

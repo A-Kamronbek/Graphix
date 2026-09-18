@@ -77,7 +77,7 @@ def local(year, month, day, hour=12):
 
 
 class TempMedia:
-    """Mixin: uploads go to a throwaway folder, never into ``vm/media/``."""
+    """Mixin: uploads go to a throwaway folder, never into ``media/``."""
 
     @classmethod
     def setUpClass(cls):
@@ -545,7 +545,7 @@ class IconAndShareCardTests(TestCase):
         self.assertIn('<meta property="og:image:height" content="630">', head)
 
     def test_the_card_has_a_source_in_the_brand_folder(self):
-        source = ROOT.parent / 'docs' / 'brand' / 'og-card.html'
+        source = ROOT / 'docs' / 'brand' / 'og-card.html'
         text = source.read_text(encoding='utf-8')
         self.assertIn('Playfair Display', text)
         self.assertIn('--window-size=1200,630', text)

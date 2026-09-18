@@ -10,7 +10,7 @@
 # started last wins, and stopping either one deletes the directory under the
 # other. A directory per service costs nothing and cannot do that.
 #
-# settings.py loads vm/.env itself, so there is no EnvironmentFile here. One
+# settings.py loads .env itself, so there is no EnvironmentFile here. One
 # file holds the credentials and one process reads it.
 
 [Unit]
@@ -27,14 +27,14 @@ User=graphix
 # www-data so nginx can open the socket; --umask 007 makes it group-writable
 # and nothing wider.
 Group=www-data
-WorkingDirectory=/srv/graphix/vm
+WorkingDirectory=/srv/graphix
 RuntimeDirectory=graphix
 RuntimeDirectoryMode=0755
 
 # --max-requests recycles a worker every ~1000 requests so a slow leak can
 # never grow without bound; the jitter stops all three recycling at once.
 # --timeout matches proxy_read_timeout in the nginx site.
-ExecStart=/srv/graphix/.venv/bin/gunicorn vm.wsgi:application \
+ExecStart=/srv/graphix/.venv/bin/gunicorn config.wsgi:application \
     --bind unix:/run/graphix/graphix.sock \
     --umask 007 \
     --workers 3 \
@@ -59,7 +59,7 @@ ProtectHome=true
 ProtectKernelTunables=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
-ReadWritePaths=/srv/graphix/vm/media /srv/graphix/vm/logs
+ReadWritePaths=/srv/graphix/media /srv/graphix/logs
 
 [Install]
 WantedBy=multi-user.target

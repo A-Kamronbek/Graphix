@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-APP_DIR=${APP_DIR:-/srv/graphix/vm}
+APP_DIR=${APP_DIR:-/srv/graphix}
 BACKUP_DIR=${BACKUP_DIR:-/srv/graphix-backups}
 SCRATCH=graphix_restorecheck
 

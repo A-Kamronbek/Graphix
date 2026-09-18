@@ -293,7 +293,7 @@ def favicon(request):
 def devtools_probe(request):
     """Chrome's DevTools asking whether this site is a local workspace.
 
-    Development only (see ``vm/urls.py``). DevTools requests
+    Development only (see ``config/urls.py``). DevTools requests
     ``/.well-known/appspecific/com.chrome.devtools.json`` whenever it is open,
     and the answer that means "no" is an empty one: 204 says it without a
     "Not Found" warning in the runserver log on every reload (§17 #213).

@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageChops
 
 S = 1400                      # working square
 FONTS = "/tmp/fonts"
-PAPER = "/mnt/user-data/uploads/ValleyMade/vm/media/products/photo-1601662528567-526cd06f6582.avif"
+PAPER = "media/products/photo-1601662528567-526cd06f6582.avif"
 
 SHIRT = (
  "M 402,114 C 402,86 444,70 500,70 C 556,70 598,86 598,114 "

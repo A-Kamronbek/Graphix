@@ -54,7 +54,7 @@ class ProductSitemap(Sitemap):
         return reverse('item', kwargs={'slug': obj.slug})
 
 
-# Registered in vm/urls.py under the sitemap view.
+# Registered in config/urls.py under the sitemap view.
 sitemaps = {
     'static': StaticViewSitemap,
     'products': ProductSitemap,

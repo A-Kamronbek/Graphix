@@ -6,7 +6,7 @@
 # disk, not in PostgreSQL.
 #
 # What it does, in order:
-#   1. reads the database credentials from the application's own vm/.env, so
+#   1. reads the database credentials from the application's own .env, so
 #      there is one copy of that password on the machine and not two;
 #   2. writes a compressed custom-format dump, plus a sidecar file of exact row
 #      counts that restore-check.sh compares against;
@@ -24,7 +24,7 @@
 
 set -euo pipefail
 
-APP_DIR=${APP_DIR:-/srv/graphix/vm}
+APP_DIR=${APP_DIR:-/srv/graphix}
 BACKUP_DIR=${BACKUP_DIR:-/srv/graphix-backups}
 CONFIG=${CONFIG:-$BACKUP_DIR/backup.env}
 KEEP_DAYS=${KEEP_DAYS:-14}

@@ -9,6 +9,7 @@ import ast
 from pathlib import Path
 
 from django.conf import settings
+from core.runner import project_python_files
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse, resolve
 from django.utils import translation
@@ -390,12 +391,8 @@ class UserFacingPythonStringTests(SimpleTestCase):
         return False
 
     def test_no_flash_message_or_form_error_is_an_unwrapped_literal(self):
-        root = Path(settings.BASE_DIR)
         offences = []
-        for path in sorted(root.rglob('*.py')):
-            rel = path.relative_to(root).as_posix()
-            if 'migrations/' in rel or rel.startswith('vm/') or '/test' in rel:
-                continue
+        for path, rel in project_python_files():
             tree = ast.parse(path.read_text(encoding='utf-8'), filename=rel)
             for node in ast.walk(tree):
                 if not isinstance(node, ast.Call):

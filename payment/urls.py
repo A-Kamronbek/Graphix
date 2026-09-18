@@ -2,7 +2,7 @@
 from django.urls import path
 from . import views
 
-# Machine-facing. Kept in its own list because vm/urls.py includes it OUTSIDE
+# Machine-facing. Kept in its own list because config/urls.py includes it OUTSIDE
 # i18n_patterns: Click POSTs to this exact path and would 404 against /uz/, /ru/
 # or /en/. Breaking it means silent payment failures (§12 risk #2), so a test
 # asserts the path resolves unprefixed.

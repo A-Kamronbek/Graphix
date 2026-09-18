@@ -15,9 +15,9 @@ __pycache__/
 venv/
 
 # --- django ---
-/vm/media/
-/vm/staticfiles/
-/vm/logs/
+/media/
+/staticfiles/
+/logs/
 *.sqlite3
 
 # --- files the Claude desktop app drops here when delivering images ---

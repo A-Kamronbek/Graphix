@@ -44,6 +44,44 @@ OFFLINE = ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID',
            'TELEGRAM_BOT_WEBHOOK_URL', 'WEBSITE_WEBHOOK_SECRET')
 
 
+def project_python_files():
+    """Yield every ``.py`` file this project wrote, and none it merely installed.
+
+    The apps and the settings package sit at the repository root now, beside
+    ``.venv``, ``.git``, ``docs`` and ``deploy``. A test that wants to read the
+    project's own source therefore cannot walk ``BASE_DIR`` any more: it would
+    parse every installed dependency and every scratch script on the machine,
+    and one of those failing to compile would fail the test for a reason that
+    has nothing to do with the site. That is exactly what happened when the
+    repository was flattened.
+
+    Django already knows where each installed app lives, so ask it and keep the
+    ones that are direct children of the repository root - which excludes
+    everything under ``.venv`` without naming ``.venv``. The settings package is
+    added separately because it is not an app, and it is found through
+    ``SETTINGS_MODULE`` so that renaming it again cannot leave this behind.
+
+    Migrations and the tests themselves are left out: neither is user-facing
+    code, and both are written in shapes these scans would misread.
+
+    Yields ``(path, rel)`` pairs sorted by path, where ``rel`` names the file
+    the way a developer would, so a failure message can quote it.
+    """
+    from pathlib import Path
+
+    from django.apps import apps
+
+    base = Path(settings.BASE_DIR)
+    roots = [Path(c.path) for c in apps.get_app_configs()
+             if Path(c.path).parent == base]
+    roots.append(base / settings.SETTINGS_MODULE.split('.')[0])
+    for path in sorted({p for root in roots for p in root.rglob('*.py')}):
+        rel = path.relative_to(base).as_posix()
+        if 'migrations/' in rel or '/test' in rel:
+            continue
+        yield path, rel
+
+
 def go_offline():
     """Blank :data:`OFFLINE` in this process and in every worker it starts.
 

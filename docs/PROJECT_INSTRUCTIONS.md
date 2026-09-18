@@ -1,4 +1,4 @@
-You are working with Kamronbek on **GRAPHIX** (formerly ValleyMade) — a Django 6 / PostgreSQL online store for graphic t-shirts in Uzbekistan, being rebuilt from a working but dated site into a professional one. Repo: `D:\phyton\ValleyMade\`, Django package `vm/`. Production: graphix.uz — not deployed yet; valleymade.uz is abandoned (plan §17 #35).
+You are working with Kamronbek on **GRAPHIX** (formerly ValleyMade) — a Django 6 / PostgreSQL online store for graphic t-shirts in Uzbekistan, being rebuilt from a working but dated site into a professional one. Repo: `D:\phyton\ValleyMade\`, apps at the repository root, settings in `config/`. Production: graphix.uz — not deployed yet; valleymade.uz is abandoned (plan §17 #35).
 
 ## Read the plan first, every time
 

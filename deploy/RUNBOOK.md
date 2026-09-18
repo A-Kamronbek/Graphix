@@ -137,9 +137,9 @@ credential to keep anywhere.
 ## 7. The environment file
 
 ```bash
-sudo -u graphix cp /srv/graphix/vm/.env.example /srv/graphix/vm/.env
-sudo -u graphix chmod 600 /srv/graphix/vm/.env
-sudo -u graphix nano /srv/graphix/vm/.env
+sudo -u graphix cp /srv/graphix/.env.example /srv/graphix/.env
+sudo -u graphix chmod 600 /srv/graphix/.env
+sudo -u graphix nano /srv/graphix/.env
 ```
 
 **[Kamronbek]** — fill it in. The values that must change from the example:
@@ -164,12 +164,12 @@ a breakage.
 ## 8. Build
 
 ```bash
-cd /srv/graphix/vm
-sudo -u graphix ../.venv/bin/python manage.py migrate
-sudo -u graphix ../.venv/bin/python manage.py seed_regions
-sudo -u graphix ../.venv/bin/python manage.py compilemessages
-sudo -u graphix ../.venv/bin/python manage.py collectstatic --noinput
-sudo -u graphix ../.venv/bin/python manage.py check --deploy
+cd /srv/graphix
+sudo -u graphix .venv/bin/python manage.py migrate
+sudo -u graphix .venv/bin/python manage.py seed_regions
+sudo -u graphix .venv/bin/python manage.py compilemessages
+sudo -u graphix .venv/bin/python manage.py collectstatic --noinput
+sudo -u graphix .venv/bin/python manage.py check --deploy
 ```
 
 `seed_regions` is not a migration — no migration loads the fourteen regions and
@@ -186,8 +186,8 @@ lists anything, stop and read it rather than continuing.
 **[Kamronbek]**
 
 ```bash
-cd /srv/graphix/vm
-sudo -u graphix ../.venv/bin/python manage.py createsuperuser
+cd /srv/graphix
+sudo -u graphix .venv/bin/python manage.py createsuperuser
 ```
 
 Then open `https://<host>/admin/` once TLS is up and **mark that account's
@@ -371,7 +371,7 @@ site deletes one. Without this timer that sentence is false.
 
 1. Register the webhook as `https://graphix.uz/payment/click/update/`.
 2. Put `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID` and `CLICK_SECRET_KEY` in
-   `/srv/graphix/vm/.env`, then `sudo systemctl restart graphix`.
+   `/srv/graphix/.env`, then `sudo systemctl restart graphix`.
 3. Buy something real for 1 000 so'm and let it complete.
 
 Then confirm all three halves, because a payment can look fine in the app and
