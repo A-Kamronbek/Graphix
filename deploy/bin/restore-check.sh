@@ -21,8 +21,15 @@ APP_DIR=${APP_DIR:-/srv/graphix}
 BACKUP_DIR=${BACKUP_DIR:-/srv/graphix-backups}
 SCRATCH=graphix_restorecheck
 
-# Tables that being empty proves the restore failed, whatever pg_restore said.
-# A dump that restores with no products or no users is not a dump of this site.
+# Tables that must EXIST in the restored database. A dump without these is a
+# dump of something else, whatever pg_restore said about it.
+#
+# Their being empty is not checked here, and deliberately: whether a table lost
+# its rows is already decided, exactly, by comparing it against the count taken
+# when the dump was made. Failing on "empty" as well would mean a brand-new
+# installation - no products, no customers, no orders yet - reporting that its
+# backups do not work, which is both wrong and the worst possible moment to
+# cry wolf.
 MUST_HAVE=(product_product product_variant payment_order user_user)
 
 log() { printf '%s  %s\n' "$(date +%H:%M:%S)" "$*"; }
@@ -119,16 +126,20 @@ while IFS=$'\t' read -r table expected; do
 done < <(tail -n +2 "$COUNTS")
 printf '\n'
 
+rows=0
 for table in "${MUST_HAVE[@]}"; do
     n=$(count_in "$SCRATCH" "$table")
     if [ "$n" = MISSING ]; then
         printf 'restore-check: %s is absent from the restored database\n' "$table" >&2
         fail=1
-    elif [ "$n" -eq 0 ]; then
-        printf 'restore-check: %s restored empty\n' "$table" >&2
-        fail=1
+    else
+        rows=$((rows + n))
     fi
 done
+if [ "$rows" -eq 0 ]; then
+    log "note: no products, customers or orders yet - this checks that the"
+    log "      backup machinery works, not that it saved anything valuable"
+fi
 
 # One real row, end to end. Row counts prove the shape restored; this proves the
 # bytes did. The live database is read and nothing else.

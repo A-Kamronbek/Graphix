@@ -98,6 +98,17 @@ sudo chmod 700 /srv/graphix-backups
 `--system` and `nologin`: nothing should ever log in as this user, and the
 backup job reaches its files through group membership rather than a shell.
 
+**Create `media/` and `logs/` explicitly.** Both are gitignored, so neither a
+clone nor an archive brings them, and `graphix.service` names both in
+`ReadWritePaths` — systemd refuses to start a unit whose read-write path does
+not exist, with `status=226/NAMESPACE` and no mention of which path. That is
+the right behaviour (a site that cannot write an upload should not pretend to
+be up) but it is an unhelpful way to learn it.
+
+```bash
+sudo -u graphix mkdir -p /srv/graphix/media /srv/graphix/logs
+```
+
 ---
 
 ## 5. The code
@@ -208,6 +219,23 @@ systemctl status graphix.service --no-pager
 ls -l /run/graphix/graphix.sock          # srw-rw---- graphix www-data
 ```
 
+Check the application answers before putting nginx in front of it, so that if
+something is wrong you know which half it is. **Probe as root**: the socket is
+`graphix:www-data` mode 0770 so that nginx can open it and nobody else can, and
+a probe run as `ubuntu` gets a connection refused that looks exactly like a
+crashed application.
+
+```bash
+sudo curl -s -o /dev/null -w '%{http_code}\n' \
+     --unix-socket /run/graphix/graphix.sock \
+     -H 'Host: graphix.uz' -H 'X-Forwarded-Proto: https' \
+     http://graphix.uz/uz/
+```
+
+`X-Forwarded-Proto: https` is not optional in that probe: `SECURE_SSL_REDIRECT`
+is on with `DEBUG=False`, so without it every request answers 301 and nothing
+is proved.
+
 The socket is under `/run/graphix/`, not a shared `/run/gunicorn/`, so it
 cannot collide with the other site's (`graphix.service` explains why).
 
@@ -218,27 +246,40 @@ something worth backing up and somewhere to put it.
 
 ## 11. nginx, over http first
 
+`graphix.conf` names certificate files, and nginx will not start while a
+named certificate is missing — so the real site cannot go in until certbot has
+issued one, and certbot cannot answer its challenge until something is serving
+graphix.uz on port 80. `graphix-acme.conf` is that something, and it is
+deleted again in step 13.
+
 ```bash
-sudo cp /srv/graphix/deploy/nginx/graphix.conf /etc/nginx/sites-available/graphix.conf
-sudo ln -s /etc/nginx/sites-available/graphix.conf /etc/nginx/sites-enabled/
 sudo mkdir -p /var/www/certbot
+sudo cp /srv/graphix/deploy/nginx/graphix-acme.conf /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/graphix-acme.conf /etc/nginx/sites-enabled/
 sudo cp /srv/graphix/deploy/logrotate/graphix /etc/logrotate.d/graphix
 sudo logrotate --debug /etc/logrotate.d/graphix     # parses, changes nothing
-sudo nginx -t
+sudo nginx -t                                       # the OTHER site must still pass
+sudo systemctl reload nginx
 ```
 
-`nginx -t` will complain about the missing certificate, because the two `443`
-blocks reference files certbot has not written yet. That is expected. Comment
-out both `443` server blocks, reload, and let certbot put them back:
+Now the site can be tested by Host header, before the domain points anywhere:
 
 ```bash
-sudo systemctl reload nginx
-curl -sI http://<host>/ -H 'Host: graphix.uz' | head -3
+sleep 2     # reload returns before the old workers have gone
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: graphix.uz' http://127.0.0.1/uz/
 ```
 
-A 301 to `https://graphix.uz` is the right answer here — Django's
-`SECURE_SSL_REDIRECT` is on and TLS is not up yet. The site being unreachable
-at this exact moment is correct, not a fault.
+That `sleep` is not superstition. `systemctl reload nginx` returns as soon as
+the signal is sent, and a check run in the same breath is answered by the old
+workers with the old configuration — which reads as a 404 from the site that
+was already there.
+
+Confirm the other site is unharmed before going further:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://valleymade.uz/
+systemctl is-active valleymade.service
+```
 
 ---
 
@@ -265,11 +306,22 @@ below this line works before that.
 
 ## 13. TLS
 
+`certonly`, not `--nginx`: the plugin edits the site it finds, and what it
+would find is the temporary one. Issuing separately keeps the TLS
+configuration in `graphix.conf`, in the repository, where it can be reviewed.
+
 ```bash
-sudo certbot --nginx -d graphix.uz -d www.graphix.uz
+sudo certbot certonly --webroot -w /var/www/certbot \
+     -d graphix.uz -d www.graphix.uz
+
+# now the real site can load, because the certificate it names exists
+sudo cp /srv/graphix/deploy/nginx/graphix.conf /etc/nginx/sites-available/
+sudo ln -sf /etc/nginx/sites-available/graphix.conf /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/graphix-acme.conf
 sudo nginx -t && sudo systemctl reload nginx
+
 sudo systemctl status certbot.timer --no-pager     # renewal is automatic
-curl -sI https://graphix.uz/ | head -5
+sleep 2; curl -sI https://graphix.uz/ | head -5
 ```
 
 Then check the three things that are easy to get wrong and silent when wrong:
