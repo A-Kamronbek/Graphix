@@ -1,0 +1,13 @@
+# Nightly, before the shop's day starts and after its evening has finished.
+
+[Unit]
+Description=GRAPHIX - database and media backup, nightly
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Asia/Tashkent
+Persistent=true
+RandomizedDelaySec=900
+Unit=graphix-backup.service
+
+[Install]
+WantedBy=timers.target

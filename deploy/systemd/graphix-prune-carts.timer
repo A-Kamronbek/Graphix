@@ -1,0 +1,17 @@
+# Daily, at a quiet hour in the timezone the shop actually operates in.
+#
+# Persistent=true so a run missed while the machine was off happens at the next
+# boot rather than being skipped: a thirty-day promise that quietly becomes
+# thirty-two because of a reboot is still a broken promise.
+
+[Unit]
+Description=GRAPHIX - prune abandoned guest carts, daily
+
+[Timer]
+OnCalendar=*-*-* 04:20:00 Asia/Tashkent
+Persistent=true
+RandomizedDelaySec=600
+Unit=graphix-prune-carts.service
+
+[Install]
+WantedBy=timers.target

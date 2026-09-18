@@ -1,0 +1,28 @@
+# GRAPHIX - the nightly backup (plan §9 Phase 1b item 8, §12 risk #19).
+#
+# Runs as the application user and reads the database credentials out of the
+# application's own vm/.env, so there is exactly one copy of the password on
+# this machine and no root job that could write anywhere.
+#
+# The unit is expected to FAIL LOUDLY when the off-server destination is not
+# configured. A backup that only ever lands on the machine it is backing up is
+# not a backup, and a job that reports success while doing that is worse than
+# no job at all.
+
+[Unit]
+Description=GRAPHIX - database and media backup
+Wants=postgresql.service
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=graphix
+Group=www-data
+ExecStart=/srv/graphix/deploy/bin/backup.sh
+# Stops a slow or hung off-server copy from overlapping tomorrow's run.
+TimeoutStartSec=3600
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/graphix-backups
