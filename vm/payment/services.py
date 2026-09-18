@@ -130,11 +130,10 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
         locked_cart.status = False
         locked_cart.save(update_fields=['status'])
 
-        # Queued inside the transaction, sent after it commits. A notification
-        # for an order that then rolled back is worse than no notification, and
-        # an HTTP call inside the transaction would hold the cart's row lock
-        # open for the length of it (§17 #17).
-        telegram.notify_new_order(order)
+        # Nothing is sent here. The shop's Telegram notification goes when the
+        # payment arrives, not when the order is written (§17 #237): an order
+        # that is still `paying` may never be paid for, and a notification for
+        # one is a parcel the owner goes looking for and does not find.
 
     return order
 
@@ -183,7 +182,11 @@ def apply_successful_payment(click_trans_id):
             _move_stock(order, -1)
             order.status = Order.Status.PAID
             order.save(update_fields=['status', 'updated_at'])
-            telegram.notify_payment(order)
+            # Queued inside the transaction and sent after it commits: a
+            # notification for a payment that then rolled back is worse than
+            # none, and an HTTP call inside the transaction would hold the
+            # order's row open for the length of it (§12 risk #17).
+            telegram.notify_paid_order(order)
 
 
 def apply_cancelled_payment(click_trans_id):

@@ -8,6 +8,33 @@ each event once, when it happens.
 
 The code is `vm/core/telegram.py`.
 
+**Changed 2026-09-18 (§17 #237):** there is no `order.created` event any more.
+An order is sent **once, when it has been paid for**, as `order.paid`, and that
+event now carries everything `order.created` used to. An unpaid or cancelled
+order sends nothing at all. A bot written against the older contract keeps
+working — it will simply stop receiving `order.created`, and will find the
+order's full details on `order.paid` where before there was only a total.
+`admin_url` now points at the shop's own panel rather than the Django admin.
+
+## How it fits together
+
+```
+A customer pays for an order on the site
+                  ↓
+The site marks the order paid and saves it
+                  ↓
+The site POSTs the order to the bot as signed JSON   ← this document
+                  ↓
+The bot checks the secret (or the signature) and reads the event
+                  ↓
+The bot sends the message to the shop's Telegram chat
+```
+
+The bot is a service of its own: BotFather gives it an identity, and the
+program the bot's developer runs gives it its behaviour. It does not read the
+website or its database, and nothing it does is triggered by the shop — every
+notification arrives here, pushed by the site, once.
+
 ## Setting it up
 
 Both sides hold **the same secret**. Generate it once and paste it into both
@@ -56,9 +83,9 @@ The body is UTF-8 JSON:
 
 ```json
 {
-  "event": "order.created",
+  "event": "order.paid",
   "sent_at": "2026-09-16T23:41:07.512+05:00",
-  "text": "🧾 <b>Yangi buyurtma</b> GX-260916-0001\n• Mahsulot — M × 1\n…",
+  "text": "✅ <b>Yangi buyurtma — toʻlandi</b> GX-260916-0001\n• Mahsulot — M × 1\n…",
   "parse_mode": "HTML",
   "data": {"order": {"…": "…"}}
 }
@@ -111,19 +138,28 @@ Refuse anything that fails with `401` and do nothing with it.
 
 ## The events
 
+Three: a paid order, a contact message, a review waiting for moderation.
+
 Amounts are whole so'm, as integers. Dates are ISO 8601 with a time zone.
-`admin_url` links to the order, message or review in the site's admin; it is
-empty if the admin is not reachable. Field values below are examples.
+`admin_url` links to the staff panel — the order's own screen, or the list the
+message or review is on, with the row's anchor. The key keeps its old name so
+a bot reading it keeps working; what changed is where it points (§17 #237). It
+is empty if the link cannot be built. Field values below are examples.
 
-### `order.created`
+### `order.paid`
 
-A customer placed an order. It is not paid yet (`status` is `paying`).
+A customer's payment went through. This is the only order event: nothing is
+sent when the order is written, because an order that is still `paying` may
+never be paid for, and the shop should not have to work out which of its
+notifications are parcels.
+
+`status` is `paid`. Everything else is the order as it was placed.
 
 ```json
 {"order": {
   "id": 42,
   "number": "GX-260916-0001",
-  "status": "paying",
+  "status": "paid",
   "created_at": "2026-09-16T18:41:05.123Z",
   "total": 190000,
   "currency": "UZS",
@@ -135,10 +171,12 @@ A customer placed an order. It is not paid yet (`status` is `paying`).
   "recipient": {"name": "Ali Valiyev", "phone": "+998 90 123 45 67"},
   "notes": "",
   "items": [{"product": "Mahsulot", "size": "M", "quantity": 1, "price": 175000}],
-  "admin_url": "https://graphix.uz/admin/payment/order/42/change/"
+  "admin_url": "https://graphix.uz/uz/boshqaruv/buyurtmalar/GX-260916-0001/"
 }}
 ```
 
+- `created_at` is when the order was placed, not when it was paid for; the
+  request's own `sent_at` is the moment the payment landed.
 - `delivery` is `null` for an order without a delivery method.
 - `to_branch` is `true` when the parcel goes to a post office, `false` for a
   door delivery.
@@ -148,15 +186,6 @@ A customer placed an order. It is not paid yet (`status` is `paying`).
 - `recipient` is the person named on the parcel, which is not always the
   account holder.
 
-### `order.paid`
-
-The payment for an order went through.
-
-```json
-{"order": {"id": 42, "number": "GX-260916-0001", "total": 190000,
-           "currency": "UZS", "admin_url": "https://graphix.uz/admin/payment/order/42/change/"}}
-```
-
 ### `message.created`
 
 A signed-in customer sent a message through the contact page.
@@ -164,7 +193,8 @@ A signed-in customer sent a message through the contact page.
 ```json
 {"message": {"id": 7, "name": "Ali Valiyev", "username": "ali",
              "phone": "+998 90 123 45 67", "subject": "Oʻlcham haqida",
-             "text": "Salom! …", "admin_url": "https://graphix.uz/admin/core/msg/7/change/"}}
+             "text": "Salom! …",
+             "admin_url": "https://graphix.uz/uz/boshqaruv/xabarlar/#xabar-7"}}
 ```
 
 ### `review.created`
@@ -174,8 +204,17 @@ when the review is created — approving or rejecting it sends nothing.
 
 ```json
 {"review": {"id": 3, "product": "Mahsulot", "rating": 5, "text": "Zoʻr!",
-            "has_photos": true, "admin_url": "https://graphix.uz/admin/product/review/3/change/"}}
+            "has_photos": true,
+            "admin_url": "https://graphix.uz/uz/boshqaruv/sharhlar/#sharh-3"}}
 ```
+
+## The bot's own commands
+
+`/start` and `/chatid` answer with the chat's id. They are how the bot's
+developer finds the value to configure the bot with, and they are a
+development convenience: answering them does not subscribe anybody to
+anything, and once the chat id is set they are not needed. Nothing on this
+site's side uses them.
 
 ## Personal data
 

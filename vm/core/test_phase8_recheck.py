@@ -215,7 +215,7 @@ class RelayTests(SimpleTestCase):
 
 
 class RelayedEventTests(TestCase):
-    """The four events, relayed, with the facts behind each message."""
+    """The three events, relayed, with the facts behind each message."""
 
     def setUp(self):
         self.geo = make_regions()
@@ -231,27 +231,40 @@ class RelayedEventTests(TestCase):
         self.assertEqual(post.call_count, 1)
         return sent(post)
 
-    def test_a_checkout_relays_the_order_and_its_facts(self):
+    def _checkout(self):
+        """Place an order through the real form. Returns it."""
         cart = Cart.objects.create(user=self.user, status=True)
         CartItem.objects.create(cart=cart, variant=self.variant, quantity=2,
                                 price_stat=self.variant.price)
-        body, headers = self.relayed(lambda: self.client.post(reverse('checkout'), {
+        self.client.post(reverse('checkout'), {
             'name': 'Qabul Qiluvchi', 'phone': '+998 90 140 00 02',
             'delivery_option': 'uzpost_door',
             'region': self.geo['tashkent'].pk, 'district': self.geo['chilonzor'].pk,
             'address': 'Amir Temur koʻchasi 1', 'address_source': 'manual',
             'payment_method': 'click', 'notes': '<i>eshik yonida</i>',
-        }))
-        order = Order.objects.get(cart=cart)
-        self.assertEqual(body['event'], 'order.created')
-        self.assertEqual(headers['X-Webhook-Event'], 'order.created')
+        })
+        return Order.objects.get(cart=cart)
+
+    def test_a_checkout_relays_nothing_until_it_is_paid(self):
+        """§17 #237: an order that is still `paying` is not a parcel."""
+        with self.settings(**RELAY), answered() as post:
+            with self.captureOnCommitCallbacks(execute=True):
+                self._checkout()
+        self.assertEqual(post.call_count, 0)
+
+    def test_a_paid_order_relays_the_order_and_its_facts(self):
+        order = self._checkout()
+        body, headers = self.relayed(lambda: telegram.notify_paid_order(order))
+        self.assertEqual(body['event'], 'order.paid')
+        self.assertEqual(headers['X-Webhook-Event'], 'order.paid')
         self.assertIn('Yangi buyurtma', body['text'])
+        self.assertIn('toʻlandi', body['text'])
         self.assertIn('&lt;i&gt;eshik yonida&lt;/i&gt;', body['text'])
 
         data = body['data']['order']
         self.assertEqual(data['number'], order.order_no)
         self.assertEqual(data['total'], int(order.total_price))
-        self.assertEqual(data['status'], 'paying')
+        self.assertEqual(data['status'], order.status)
         self.assertEqual(data['recipient'], {'name': 'Qabul Qiluvchi', 'phone': order.phone})
         self.assertEqual(data['delivery']['code'], 'uzpost_door')
         self.assertIs(data['delivery']['to_branch'], False)
@@ -260,12 +273,22 @@ class RelayedEventTests(TestCase):
         self.assertEqual(data['notes'], '<i>eshik yonida</i>')
         self.assertEqual(data['items'], [{'product': 'Relay', 'size': self.variant.size.size,
                                           'quantity': 2, 'price': int(self.variant.price)}])
+        # The link leads to the panel's own order screen, by its number.
+        self.assertTrue(data['admin_url'].endswith(
+            '/uz/boshqaruv/buyurtmalar/%s/' % order.order_no), data['admin_url'])
 
-    def test_a_payment_relays(self):
-        order = make_order(self.user, self.variant, status='paid')
-        body, _ = self.relayed(lambda: telegram.notify_payment(order))
+    def test_the_paid_event_is_the_one_a_real_payment_sends(self):
+        """The service, not the helper: the callback is what fires this."""
+        from click_up.models import ClickTransaction
+        from payment import services as payment_services
+        order = self._checkout()
+        txn = ClickTransaction.objects.create(
+            transaction_id='click-relay-%d' % order.pk, account_id=order.pk,
+            amount=order.total_price, state=ClickTransaction.SUCCESSFULLY)
+        body, _ = self.relayed(
+            lambda: payment_services.apply_successful_payment(txn.transaction_id))
         self.assertEqual(body['event'], 'order.paid')
-        self.assertEqual(body['data']['order']['number'], order.order_no)
+        self.assertEqual(body['data']['order']['status'], 'paid')
 
     def test_a_contact_message_relays(self):
         body, _ = self.relayed(lambda: self.client.post(
@@ -323,7 +346,7 @@ class OfflineRunTests(SimpleTestCase):
         for header in headers:
             with self.subTest(header=header):
                 self.assertIn(f'`{header}`', contract)
-        for event in ('order.created', 'order.paid', 'message.created', 'review.created'):
+        for event in ('order.paid', 'message.created', 'review.created'):
             with self.subTest(event=event):
                 self.assertIn(f'`{event}`', contract)
 

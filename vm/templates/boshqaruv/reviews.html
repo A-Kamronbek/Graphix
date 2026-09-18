@@ -27,7 +27,8 @@
 
 <div class="pnl__section stack stack--lg">
   {% for review in reviews %}
-    <article class="mod" data-review="{{ review.pk }}"
+    {# The id the review notification links to (§17 #237). #}
+    <article id="sharh-{{ review.pk }}" class="mod" data-review="{{ review.pk }}"
              data-url="{% url 'panel_review_moderate' pk=review.pk %}">
       <div class="mod__hd">
         <span class="stars stars--sm" aria-hidden="true">
