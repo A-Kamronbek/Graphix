@@ -1,0 +1,23 @@
+# GRAPHIX - delete guest carts older than thirty days (plan §9 Phase 1b item 13).
+#
+# The privacy policy tells the customer an abandoned guest cart is deleted after
+# thirty days (§17 #183, #196). Nothing else on the site deletes one, so if this
+# timer is not installed the policy is a statement the server does not keep.
+# That is the whole reason it exists.
+
+[Unit]
+Description=GRAPHIX - prune abandoned guest carts
+Wants=postgresql.service
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=graphix
+Group=www-data
+WorkingDirectory=/srv/graphix
+ExecStart=/srv/graphix/.venv/bin/python manage.py prune_guest_carts
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/graphix/logs

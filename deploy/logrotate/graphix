@@ -1,0 +1,33 @@
+# GRAPHIX - nginx log rotation (plan §9 Phase 1b item 13).
+#
+# Copied to /etc/logrotate.d/graphix.
+#
+# Thirty days, to match LOG_RETENTION_DAYS in settings.py: the Django log
+# already rotates itself on that schedule and the two halves of one request's
+# story should expire together. It also matches what the privacy policy says
+# about how long the site keeps technical records.
+#
+# This rotates GRAPHIX's own log files only. The distribution's
+# /etc/logrotate.d/nginx keeps handling the shared access.log and error.log,
+# which belong to the other site on this machine as much as to this one - the
+# same reason GRAPHIX does not edit that site's nginx config (§17 #241).
+
+/var/log/nginx/graphix.access.log
+/var/log/nginx/graphix.error.log {
+    daily
+    rotate 30
+    missingok
+    notifempty
+    compress
+    delaycompress
+    create 0640 www-data adm
+    sharedscripts
+    prerotate
+        if [ -d /etc/logrotate.d/httpd-prerotate ]; then \
+            run-parts /etc/logrotate.d/httpd-prerotate; \
+        fi
+    endscript
+    postrotate
+        test ! -f /run/nginx.pid || kill -USR1 `cat /run/nginx.pid`
+    endscript
+}

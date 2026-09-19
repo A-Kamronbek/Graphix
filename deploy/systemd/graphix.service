@@ -1,0 +1,65 @@
+# GRAPHIX - the application server (plan §9 Phase 1b item 8).
+#
+# Copied to /etc/systemd/system/graphix.service. It is in the repository so the
+# server's behaviour is reviewable and so a rebuild does not start from a blog
+# post, which is the same reason deploy/nginx/graphix.conf is here.
+#
+# The socket lives in /run/graphix/ rather than a shared /run/gunicorn/,
+# because this machine already serves another site (§17 #241) and two units
+# declaring the same RuntimeDirectory fight over its ownership: whichever
+# started last wins, and stopping either one deletes the directory under the
+# other. A directory per service costs nothing and cannot do that.
+#
+# settings.py loads .env itself, so there is no EnvironmentFile here. One
+# file holds the credentials and one process reads it.
+
+[Unit]
+Description=GRAPHIX (gunicorn)
+Documentation=https://github.com/A-Kamronbek/Graphix
+# Wants, not Requires: if PostgreSQL is slow to come back after a reboot we
+# want gunicorn started and restarting, not refusing to start at all.
+Wants=postgresql.service redis-server.service
+After=network-online.target postgresql.service redis-server.service
+
+[Service]
+Type=notify
+User=graphix
+# www-data so nginx can open the socket; --umask 007 makes it group-writable
+# and nothing wider.
+Group=www-data
+WorkingDirectory=/srv/graphix
+RuntimeDirectory=graphix
+RuntimeDirectoryMode=0755
+
+# --max-requests recycles a worker every ~1000 requests so a slow leak can
+# never grow without bound; the jitter stops all three recycling at once.
+# --timeout matches proxy_read_timeout in the nginx site.
+ExecStart=/srv/graphix/.venv/bin/gunicorn config.wsgi:application \
+    --bind unix:/run/graphix/graphix.sock \
+    --umask 007 \
+    --workers 3 \
+    --timeout 60 \
+    --graceful-timeout 30 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --access-logfile - \
+    --error-logfile - \
+    --capture-output
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+Restart=on-failure
+RestartSec=5s
+
+# The application writes exactly two places: uploaded photographs and its own
+# log. Everything else it touches is read-only, so say so.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/srv/graphix/media /srv/graphix/logs
+
+[Install]
+WantedBy=multi-user.target

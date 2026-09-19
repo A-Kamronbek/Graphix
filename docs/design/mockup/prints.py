@@ -135,7 +135,7 @@ def stacked(ink):
 
 def rampage():
     """Kamronbek's own existing graphic, cut out of its black background."""
-    src = Image.open("/mnt/user-data/uploads/ValleyMade/vm/media/products/"
+    src = Image.open("media/products/"
                      "ChatGPT_Image_Nov_20_2025_01_58_21_PM.png").convert("RGB")
     src = src.crop((150, 300, 1400, 720)).resize((A, int(A*420/1250)), Image.LANCZOS)
     lum = src.convert("L").point(lambda v: 0 if v < 26 else min(255, int((v-26)*1.9)))

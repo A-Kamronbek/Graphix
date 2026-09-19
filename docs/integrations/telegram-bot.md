@@ -6,7 +6,7 @@ the bot shows it to the shop's staff. This page is everything the bot needs
 to know to receive them. The bot never has to call the site: the site pushes
 each event once, when it happens.
 
-The code is `vm/core/telegram.py`.
+The code is `core/telegram.py`.
 
 **Changed 2026-09-18 (§17 #237):** there is no `order.created` event any more.
 An order is sent **once, when it has been paid for**, as `order.paid`, and that
@@ -44,7 +44,7 @@ Both sides hold **the same secret**. Generate it once and paste it into both
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-On the site, `vm/.env`:
+On the site, `.env`:
 
 ```
 TELEGRAM_BOT_WEBHOOK_URL=https://bot.example.uz/graphix/events
@@ -229,7 +229,7 @@ through the shop's Telegram bot, and that the site's data is stored in Poland
 
 ## Trying it
 
-From `vm/`, with both values in `.env`:
+From the repository root, with both values in `.env`:
 
 ```
 python manage.py shell -c "from core import telegram; print(telegram.deliver('test.ping', '<b>GRAPHIX</b>: sinov', {}))"

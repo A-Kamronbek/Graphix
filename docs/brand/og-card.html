@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
   GRAPHIX share card - the picture Telegram, Instagram and search results show
-  beside a link (vm/static/img/og-image.png, 1200 x 630).
+  beside a link (static/img/og-image.png, 1200 x 630).
 
   The source of that PNG. Phase 1a set the card in a placeholder face before
   the brand had one (plan §18 #8); this sets it in the site's own - Playfair
@@ -19,7 +19,7 @@
 
     & "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe" --headless
       --hide-scrollbars --window-size=1200,630 --virtual-time-budget=3000
-      "--screenshot=$PWD\vm\static\img\og-image.png" "$PWD\docs\brand\og-card.html"
+      "--screenshot=$PWD\static\img\og-image.png" "$PWD\docs\brand\og-card.html"
 -->
 <html lang="uz">
 <head>
@@ -27,10 +27,10 @@
 <title>GRAPHIX share card</title>
 <style>
   @font-face { font-family: "Playfair Display"; font-weight: 400 900;
-    src: url("../../vm/static/fonts/playfair-display-var.woff2") format("woff2-variations"); }
+    src: url("../../static/fonts/playfair-display-var.woff2") format("woff2-variations"); }
   @font-face { font-family: "Onest"; font-weight: 100 900;
-    src: url("../../vm/static/fonts/onest-var.woff2") format("woff2-variations"); }
-  /* The site's tokens (vm/static/css/tokens.css), copied because this page
+    src: url("../../static/fonts/onest-var.woff2") format("woff2-variations"); }
+  /* The site's tokens (static/css/tokens.css), copied because this page
      is rendered outside the site. */
   :root { --c-bg: #100E0C; --c-fg: #EFE9DE; --c-fg-muted: #B0A697; }
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden;
