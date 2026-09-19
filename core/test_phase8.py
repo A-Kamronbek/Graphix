@@ -387,7 +387,27 @@ class DateHelperTests(SimpleTestCase):
     """The hand-made Uzbek month list is gone, and nothing still asks for it."""
 
     def test_the_module_is_gone(self):
-        self.assertIsNone(importlib.util.find_spec('payment.templatetags.uzb_dates'))
+        """Gone is gone, whether its package survived it or not.
+
+        ``find_spec`` answers None when a module is missing from a package that
+        exists, and RAISES when the package itself is missing. Both mean gone -
+        but which one happens depends on whether an empty directory is lying
+        around, and that differs by machine.
+
+        It differed here. `payment/templatetags/` still existed, empty and
+        untracked, on the machine this was written on: Python reads a directory
+        with no ``__init__.py`` as a namespace package, so the call returned
+        None and the test passed. On a fresh clone the directory is simply not
+        there and the same call raises ``ModuleNotFoundError`` - which is what
+        CI reported on its very first run, having never seen that leftover.
+
+        The code was always right. The question was wrong.
+        """
+        try:
+            spec = importlib.util.find_spec('payment.templatetags.uzb_dates')
+        except ModuleNotFoundError:
+            spec = None          # the whole package is absent: more gone, not less
+        self.assertIsNone(spec)
 
     def test_no_template_loads_it(self):
         users = [p.name for p in TEMPLATES.rglob('*.html')
