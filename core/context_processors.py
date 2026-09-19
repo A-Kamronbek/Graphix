@@ -92,11 +92,15 @@ def seo(request):
     none of them should have to remember. The 500 page renders with no context
     at all (§17 #66), so base.html prints each of these only if it is there.
     """
+    # Carried even on the 500 page, which renders with no request at all
+    # (§17 #66): a pre-launch site should not become indexable by erroring.
+    indexable = {'site_indexable': settings.SITE_INDEXABLE}
     if request is None or not hasattr(request, 'path'):
-        return {}
+        return indexable
     rows = seo_module.alternates(request)
     active = get_language() or settings.LANGUAGE_CODE
     return {
+        **indexable,
         'canonical_url': seo_module.canonical(request),
         'seo_alternates': rows,
         'seo_default_url': seo_module.default_url(request),

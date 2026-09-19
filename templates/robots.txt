@@ -1,4 +1,12 @@
-{% load i18n %}{% get_available_languages as LANGS %}User-agent: *
+{% load i18n %}{% get_available_languages as LANGS %}{% if not site_indexable %}# The catalogue is not loaded yet, so there is nothing here worth
+# indexing and a good deal worth not indexing. Every page also carries a
+# noindex of its own, because Disallow stops a crawler reading a page but
+# not the address appearing in results on the strength of a link elsewhere.
+# Phase 11 removes SITE_INDEXABLE from the server .env and this file goes
+# back to what is below it.
+User-agent: *
+Disallow: /
+{% else %}User-agent: *
 Allow: /
 {% for code, name in LANGS %}Allow: /{{ code }}/
 {% endfor %}
@@ -38,3 +46,4 @@ Disallow: /{{ code }}/payment/
 Disallow: /{{ code }}/order/
 {% endfor %}
 Sitemap: https://graphix.uz/sitemap.xml
+{% endif %}

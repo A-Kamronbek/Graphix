@@ -222,6 +222,16 @@ WEBSITE_WEBHOOK_SECRET = os.environ.get("WEBSITE_WEBHOOK_SECRET", "")
 # request and so cannot ask one for the host.
 SITE_URL = os.environ.get("SITE_URL", "https://graphix.uz")
 
+# Whether search engines may index this site at all. True everywhere by
+# default, including in tests; the server sets it False until the catalogue
+# is loaded, so Google's first impression of graphix.uz is not a shop with
+# nothing in it and a home page promising a hundred designs (§19 Q37).
+#
+# The default is deliberately the permissive one. A noindex left on by
+# accident after launch is invisible and costs months of traffic; an Allow
+# left on before launch is a bad afternoon. Phase 11 deletes the variable.
+SITE_INDEXABLE = os.environ.get("SITE_INDEXABLE", "True") == "True"
+
 # ---- cache ----
 # Use Redis when REDIS_URL is set: it's shared across gunicorn workers, which the
 # rate limiter needs to count correctly. Otherwise fall back to per-process memory

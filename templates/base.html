@@ -23,7 +23,12 @@
   {# A page behind a login, a cart, a form or an error is not a search result. #}
   {# Every one of them overrides this block; `follow` stays on, so the links #}
   {# out of them are still worth something. #}
-  {% block robots %}{% endblock %}
+  {# Before launch nothing is indexable, and the flag WRAPS the block rather #}
+  {# than defaulting it: shop.html fills this block to noindex itself when #}
+  {# filtered, and a page that fills a block replaces its default - which left #}
+  {# the shop indexable with the flag off, the one page that most needs hiding #}
+  {# while the catalogue is empty (§19 Q37). #}
+  {% if not site_indexable %}<meta name="robots" content="noindex, nofollow">{% else %}{% block robots %}{% endblock %}{% endif %}
 
   {# One address per page. The site answers on the bare domain, on www and on #}
   {# the server's own address, and a catalogue found on two of them is indexed #}
