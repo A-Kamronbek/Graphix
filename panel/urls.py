@@ -47,6 +47,9 @@ urlpatterns = [
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),
     path('boshqaruv/sozlamalar/teg/', views.tag_new, name='panel_tag_new'),
     path('boshqaruv/sozlamalar/jadval/', views.chart_new, name='panel_chart_new'),
+    # A size is one field with no slug and no translations, so it gets its own
+    # route rather than a fourth shape inside the one below.
+    path('boshqaruv/sozlamalar/olcham/', views.size_new, name='panel_size_new'),
     # Tag kinds, print methods and categories: three tables of the same shape,
     # so one route with the table in the path rather than three near-copies.
     path('boshqaruv/sozlamalar/yangi/<str:kind>/', views.lookup_new,

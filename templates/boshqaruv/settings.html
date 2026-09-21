@@ -4,17 +4,18 @@
 
 {% comment %}
   The reference tables: delivery tiers, categories, tag kinds, tags, print
-  methods and size charts. Rows somebody changes two or three times a year.
+  methods, size charts, sizes and payment methods. Rows somebody changes two or
+  three times a year.
 
-  One screen rather than six, because six nav items for things touched twice a
-  year is six things to scroll past every day.
+  One screen rather than eight, because eight nav items for things touched
+  twice a year is eight things to scroll past every day.
 
   Every field here saves on its own through one endpoint, and that endpoint is
   safe because of an allowlist — `panel/reference.py` names what may be
   written, and nothing else on these models is reachable. `Region.code` is the
-  SOATO code and is not in it. Deleting has a second, shorter allowlist:
-  regions, districts and delivery tiers are missing from it because an order
-  points at all three.
+  SOATO code and is not in it, and neither is `PaymentOption.code`. Deleting
+  has a second, shorter allowlist: regions, districts, delivery tiers and
+  payment methods are missing from it because an order points at all four.
 
   Tag kinds and tags are two sections rather than one heading followed by a
   second heading: "Teglar" was sitting tight against the table above it with
@@ -33,6 +34,8 @@
   <a href="#teglar">{% trans "Teglar" %}</a>
   <a href="#bosma">{% trans "Bosma usullari" %}</a>
   <a href="#jadvallar">{% trans "Oʻlcham jadvallari" %}</a>
+  <a href="#olchamlar">{% trans "Oʻlchamlar" %}</a>
+  <a href="#tolov">{% trans "Toʻlov usullari" %}</a>
   <a href="{% url 'panel_regions' %}">{% trans "Hududlar" %}</a>
 </nav>
 
@@ -271,4 +274,115 @@
     </div>
   </form>
 </section>
+
+<section class="pnl__section" id="olchamlar">
+  <h2>{% trans "Oʻlchamlar" %}</h2>
+  <p class="field__hint">{% trans "Mahsulot variantlari shu oʻlchamlarga bogʻlanadi. Sotuvda turgan oʻlcham oʻchirilmaydi." %}</p>
+  {% comment %}
+    One field a row, and it is the axis of every product's price-and-stock
+    grid: renaming a size here renames it on every product at once.
+
+    A size any product sells cannot be deleted - `Variant.size` and
+    `SizeChartRow.size` are both PROTECT - and the panel says so rather than
+    offering a cascade that would quietly unfile the stock behind it.
+  {% endcomment %}
+  <div class="panel-card stack stack--sm">
+    {% for s in sizes %}
+      <div class="row--fields" data-ref="size" data-id="{{ s.pk }}"
+           data-ref-url="{% url 'panel_reference_inline' kind='size' pk=s.pk %}">
+        <label class="field">
+          <span class="label">{% trans "Oʻlcham" %}</span>
+          <input class="input" type="text" value="{{ s.size }}" maxlength="50"
+                 data-ref-field="size">
+        </label>
+        <button type="button" class="btn btn--ghost btn--sm ref__x"
+                data-ref-delete="{% url 'panel_reference_delete' kind='size' pk=s.pk %}"
+                data-ref-name="{{ s.size }}">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+          <span class="sr-only">{% trans "Oʻchirish" %}</span>
+        </button>
+      </div>
+    {% empty %}
+      <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+    {% endfor %}
+  </div>
+
+  <form class="panel-card stack stack--sm" method="post"
+        action="{% url 'panel_size_new' %}">
+    {% csrf_token %}
+    <h3 class="label">{% trans "Yangi oʻlcham" %}</h3>
+    <div class="row--fields">
+      <label class="field">
+        <span class="label">{% trans "Oʻlcham" %}</span>
+        <input class="input" type="text" name="size" required maxlength="50">
+      </label>
+      <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
+    </div>
+  </form>
+</section>
+
+<section class="pnl__section" id="tolov">
+  <h2>{% trans "Toʻlov usullari" %}</h2>
+  <p class="field__hint">{% trans "Toʻlov sahifasida qaysi usullar koʻrinishi shu yerdan yoqiladi va oʻchiriladi." %}</p>
+  {% comment %}
+    The switch is the point of this section. `code` is shown and not editable,
+    and it is not in the allowlist either: it is what the checkout matches on
+    and what a webhook arrives quoting, so a typo in it would take a payment
+    method off the site with no error anywhere.
+
+    There is no delete. An order records the method it was paid by, and
+    removing the row would leave old orders quoting something the shop can no
+    longer explain; switching it off is what the switch is for (§17 #99).
+  {% endcomment %}
+  {% for way in payments %}
+    <div class="panel-card stack stack--sm" data-ref="payment" data-id="{{ way.pk }}"
+         data-ref-url="{% url 'panel_reference_inline' kind='payment' pk=way.pk %}">
+      <div class="row row--between">
+        <strong>{{ way.code }}</strong>
+        <label class="switch">
+          <input type="checkbox" data-ref-field="is_active"
+                 {% if way.is_active %}checked{% endif %}>
+          <span>{% trans "Yoqilgan" %}</span>
+        </label>
+      </div>
+      <div class="row--fields">
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (uz)</span>
+          <input class="input" type="text" value="{{ way.name }}" maxlength="120"
+                 data-ref-field="name">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (ru)</span>
+          <input class="input" type="text" value="{{ way.name_ru }}" maxlength="120"
+                 data-ref-field="name_ru">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (en)</span>
+          <input class="input" type="text" value="{{ way.name_en }}" maxlength="120"
+                 data-ref-field="name_en">
+        </label>
+      </div>
+      <div class="row--fields">
+        <label class="field">
+          <span class="label">{% trans "Izoh" %} (uz)</span>
+          <input class="input" type="text" value="{{ way.note }}" maxlength="200"
+                 data-ref-field="note">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Izoh" %} (ru)</span>
+          <input class="input" type="text" value="{{ way.note_ru }}" maxlength="200"
+                 data-ref-field="note_ru">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Izoh" %} (en)</span>
+          <input class="input" type="text" value="{{ way.note_en }}" maxlength="200"
+                 data-ref-field="note_en">
+        </label>
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+  {% endfor %}
+</section>
+
 {% endblock %}

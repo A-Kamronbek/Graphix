@@ -32,7 +32,8 @@ from django.db import transaction
 from django.db.models import ExpressionWrapper, Prefetch
 
 from core.models import Msg
-from payment.models import DeliveryOption, District, Order, Region
+from payment.models import (DeliveryOption, District, Order, PaymentOption,
+                            Region)
 from product import images as image_pipeline
 from product import services as product_services
 from product.models import (Category, PrintMethod, Product, Review, Size,
@@ -682,7 +683,7 @@ def message_read(request, pk):
 
 @staff_only
 def settings_screen(request):
-    """Delivery tiers, tags and size charts: the rows that are edited rarely.
+    """Delivery, payment methods, sizes, tags and size charts: the rarely edited rows.
 
     One screen rather than three, because three nav items for things touched
     twice a year is three things to scroll past every day. Regions get their
@@ -691,6 +692,8 @@ def settings_screen(request):
     return render(request, 'boshqaruv/settings.html', {
         'screen': 'settings',
         'tiers': DeliveryOption.objects.all(),
+        'payments': PaymentOption.objects.all(),
+        'sizes': Size.objects.all(),
         'tags': Tag.objects.select_related('kind'),
         'charts': SizeChart.objects.all(),
         'kinds': TagKind.objects.all(),
@@ -811,6 +814,33 @@ def lookup_new(request, kind):
     row.slug = _free_slug(model, name, stem)
     row.save()
     messages.success(request, done)
+    return redirect('panel_settings')
+
+
+@staff_only
+@require_POST
+def size_new(request):
+    """Add a size. One field, no slug, no translations — "M" is "M".
+
+    Its own endpoint rather than a fourth entry in :func:`lookup_new`, which is
+    built for tables whose row is a name in three languages with a slug. A size
+    is none of those, and teaching that function a fourth shape would cost more
+    than this does.
+    """
+    name = (request.POST.get('size') or '').strip()
+    if not name:
+        messages.error(request, _('Oʻlcham kerak.'))
+        return redirect('panel_settings')
+
+    limit = Size._meta.get_field('size').max_length
+    try:
+        reference.refuse_duplicate('size', name[:limit])
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_settings')
+
+    Size.objects.create(size=name[:limit])
+    messages.success(request, _('Oʻlcham qoʻshildi.'))
     return redirect('panel_settings')
 
 
