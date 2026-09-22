@@ -220,7 +220,10 @@ class Order(models.Model):
         CANCELLED = 'cancelled', _('Bekor qilindi')
 
     class PaymentMethod(models.TextChoices):
-        CLICK = 'click', 'Click'          # a brand name; the same in all three
+        # Brand names; the same in all three languages, so no gettext.
+        CLICK = 'click', 'Click'
+        PAYME = 'payme', 'Payme'
+        OCTO = 'octo', 'Octo'
         CASH = 'cash', _('Naqd pul')
 
     # PROTECT, not CASCADE: an order is a sales record the Tax Code keeps and

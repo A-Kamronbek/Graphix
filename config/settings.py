@@ -207,6 +207,17 @@ CLICK_SERVICE_ID = os.environ["CLICK_SERVICE_ID"]
 CLICK_MERCHANT_ID = os.environ["CLICK_MERCHANT_ID"]
 CLICK_SECRET_KEY = os.environ["CLICK_SECRET_KEY"]
 
+# Payme and Octo ship BLANK, and the feature is built around that, the same way
+# the Maps key is (§17 #93): with no credentials the `PaymentOption` row stays
+# switched off, the method is not offered at checkout and is refused
+# server-side if one is POSTed anyway. `os.environ.get`, not `os.environ`:
+# a missing key must not stop the site booting (§17 #264).
+PAYME_ID = os.environ.get("PAYME_ID", "")
+PAYME_KEY = os.environ.get("PAYME_KEY", "")
+OCTO_SHOP_ID = os.environ.get("OCTO_SHOP_ID", "")
+OCTO_SECRET = os.environ.get("OCTO_SECRET", "")
+OCTO_UNIQUE_KEY = os.environ.get("OCTO_UNIQUE_KEY", "")
+
 TOLOV = {
     "CLICK": {
         "SERVICE_ID": CLICK_SERVICE_ID,
@@ -216,6 +227,38 @@ TOLOV = {
         "ACCOUNT_FIELD": "id",
         "ONE_TIME_PAYMENT": True,
         "COMMISSION_PERCENT": 0.0,
+    },
+    # Payme and Octo both take the field name from a setting, so they are
+    # told `total_price` outright. Click cannot be told (§17 #262) and reads
+    # `Order.amount`, which is the same number under the name it insists on.
+    # Payme quotes tiyin and tolov multiplies by 100 on our behalf; Click and
+    # Octo quote soʻm and it does not.
+    "PAYME": {
+        "PAYME_ID": PAYME_ID,
+        "PAYME_KEY": PAYME_KEY,
+        "ACCOUNT_MODEL": "payment.models.Order",
+        # `order_id`, not `id`, and the two ends have to agree: this name is
+        # the key inside Payme's `account` object AND what the webhook looks
+        # the order up by, with tolov special-casing `order_id` to mean the
+        # model's `id`. It is also the default `create_payment` builds the
+        # link with, so leaving both at the library's own pairing is the
+        # tested path — and `order_id` is what a Payme merchant cabinet is
+        # normally configured with anyway.
+        "ACCOUNT_FIELD": "order_id",
+        "AMOUNT_FIELD": "total_price",
+        "ONE_TIME_PAYMENT": True,
+    },
+    "OCTO_BANK": {
+        # int, not text: tolov types this one. Blank until the owner has a
+        # shop id, and `int("")` raises, so the coercion tolerates empty.
+        "OCTO_SHOP_ID": int(OCTO_SHOP_ID or 0),
+        "OCTO_SECRET": OCTO_SECRET,
+        "OCTO_UNIQUE_KEY": OCTO_UNIQUE_KEY,
+        "ACCOUNT_MODEL": "payment.models.Order",
+        "ACCOUNT_FIELD": "id",
+        "AMOUNT_FIELD": "total_price",
+        "ONE_TIME_PAYMENT": True,
+        "TEST_MODE": DEBUG,
     },
 }
 

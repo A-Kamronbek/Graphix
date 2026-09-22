@@ -32,6 +32,7 @@ from django.urls import resolve, reverse
 from django.utils import translation
 
 from cart.models import Cart, CartItem
+from payment import services as payment_services
 from payment import views as payment_views
 from payment.models import Order, PaymentOption
 from product.models import Size, SizeChartRow, Slide, slide_link
@@ -788,3 +789,82 @@ class TolovSwapTests(TestCase):
         """A raw gateway row is a debugging artefact, not something to browse."""
         from tolov.integrations.django.models import PaymentTransaction
         self.assertNotIn(PaymentTransaction, admin.site._registry)
+
+
+class PaymeAndOctoTests(TestCase):
+    """Item 5, second half: two more methods, both shipped switched off.
+
+    There are no credentials yet, so nothing here talks to a gateway. What it
+    holds is the shape: the rows exist and are off, the choices exist, the
+    callbacks are mounted unprefixed, and a method with no online step says so
+    instead of redirecting somewhere blank.
+    """
+
+    def test_both_methods_are_choices_on_the_order(self):
+        for code in ('payme', 'octo'):
+            with self.subTest(code=code):
+                self.assertIn(code, Order.PaymentMethod.values)
+
+    def test_both_rows_exist_and_are_switched_off(self):
+        """No credentials yet, so the owner must not be able to sell with them."""
+        for code in ('payme', 'octo'):
+            with self.subTest(code=code):
+                row = PaymentOption.objects.get(code=code)
+                self.assertFalse(row.is_active)
+
+    def test_the_new_rows_carry_all_three_languages(self):
+        """A PaymentOption keeps its copy in columns the owner can edit."""
+        for code in ('payme', 'octo'):
+            row = PaymentOption.objects.get(code=code)
+            for field in ('name', 'name_ru', 'name_en',
+                          'note', 'note_ru', 'note_en'):
+                with self.subTest(code=code, field=field):
+                    self.assertTrue(getattr(row, field).strip())
+
+    def test_a_switched_off_method_is_not_offered_at_checkout(self):
+        """The rows are off, so the checkout must not render them."""
+        user = make_user('tolovchi', '+998901300001')
+        _, variant = make_product('Tolov', stock=2)
+        self.client.force_login(user)
+        cart = Cart.objects.create(user=user, status=True)
+        CartItem.objects.create(cart=cart, variant=variant, quantity=1,
+                                price_stat=variant.price)
+        html = self.client.get(reverse('checkout')).content.decode()
+        for code in ('payme', 'octo'):
+            with self.subTest(code=code):
+                self.assertNotIn('value="%s"' % code, html)
+
+    def test_each_callback_is_mounted_unprefixed(self):
+        """A gateway is given one address and posts to it forever (§12 risk #2)."""
+        for name, path in (('click_webhook', '/payment/click/update/'),
+                           ('payme_webhook', '/payment/payme/update/'),
+                           ('octo_webhook', '/payment/octo/update/')):
+            with self.subTest(name=name):
+                self.assertEqual(reverse(name), path)
+                self.assertTrue(resolve(path))
+
+    def test_no_callback_is_served_under_a_language_prefix(self):
+        for path in ('/uz/payment/payme/update/', '/ru/payment/octo/update/'):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.post(path).status_code, 404)
+
+    def test_cash_has_no_pay_link_and_says_so(self):
+        """Not a falsy return: a blank redirect is how a payment bug hides."""
+        order = Order(payment_method=Order.PaymentMethod.CASH,
+                      total_price=Decimal('100000'))
+        with self.assertRaises(payment_services.PaymentMethodUnavailable):
+            payment_services.generate_paylink(order, 'https://graphix.uz/')
+
+    def test_the_payment_group_is_marked_required(self):
+        """§18 #45: with four methods live, nothing is pre-checked any more."""
+        user = make_user('tolovchi', '+998901300002')
+        _, variant = make_product('Nishon', stock=2)
+        self.client.force_login(user)
+        cart = Cart.objects.create(user=user, status=True)
+        CartItem.objects.create(cart=cart, variant=variant, quantity=1,
+                                price_stat=variant.price)
+        html = self.client.get(reverse('checkout')).content.decode()
+        group = re.search(r'<div[^>]*role="radiogroup"[^>]*>', html)
+        self.assertIsNotNone(group)
+        self.assertIn('aria-required="true"', group.group(0))
+        self.assertIn('aria-labelledby="pay-heading"', group.group(0))

@@ -7,11 +7,18 @@ from . import views
 # or /en/. Breaking it means silent payment failures (§12 risk #2), so a test
 # asserts the path resolves unprefixed.
 #
-# Single Click callback URL — handles both Prepare and Complete; click_up routes
-# by the request's action. The trailing slash matters: Click POSTs to this exact
-# path, and a slash-less POST wouldn't match.
+# One callback URL per gateway, each handling every step that gateway has:
+# tolov routes by the request's own action. The trailing slash matters — a
+# gateway POSTs to the exact path it was given, and a slash-less POST would
+# not match.
 webhook_urlpatterns = [
     path("payment/click/update/", views.ClickWebhookAPIView.as_view(), name='click_webhook'),
+    # Payme and Octo, Phase 14 item 5, and unprefixed for the same reason:
+    # a gateway is given one address and posts to it forever. Click's path is
+    # the one that must never move because Click already has it; these two are
+    # new, so the shape is chosen to match rather than inherited.
+    path("payment/payme/update/", views.PaymeWebhookAPIView.as_view(), name='payme_webhook'),
+    path("payment/octo/update/", views.OctoWebhookAPIView.as_view(), name='octo_webhook'),
 ]
 
 # Human-facing. Translated, and therefore language-prefixed.

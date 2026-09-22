@@ -1,8 +1,14 @@
-"""Checkout and Click payment operations.
+"""Checkout and payment operations.
 
-Turns an open cart into an Order under a row lock, generates the Click pay link,
-applies payment-status changes from Click's webhook callbacks, and moves stock as
-orders are paid for or cancelled.
+Turns an open cart into an Order under a row lock, generates the pay link for
+whichever method the order names, applies payment-status changes from the
+gateways' webhook callbacks, and moves stock as orders are paid for or
+cancelled.
+
+Four methods since Phase 14 — Click, Payme, Octo and cash — and the gateway
+part of that is only two functions deep: `generate_paylink` knows which client
+builds which link, and `apply_successful_payment` knows none of them, because
+the webhook resolves the order before calling it.
 """
 from decimal import Decimal
 
@@ -10,7 +16,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import F, Value
 from django.db.models.functions import Greatest
 from django.conf import settings
-from tolov import ClickGateway
+from tolov import ClickGateway, OctoGateway, PaymeGateway
 
 from cart.models import Cart
 from core import telegram
@@ -150,6 +156,56 @@ def generate_click_paylink(order, return_url):
         amount=order.total_price,
         return_url=return_url,
     )
+
+
+class PaymentMethodUnavailable(Exception):
+    """Raised when an order names a method the shop cannot start a payment for.
+
+    Its own exception rather than None, because the two cases the caller has
+    to tell apart — "this method has no online step" (cash) and "this method
+    is configured wrong" — both end in the customer being sent somewhere, and
+    silently redirecting to a blank page is how the first bug in a payment
+    flow hides.
+    """
+
+
+def generate_paylink(order, return_url):
+    """The hosted-payment link for whichever method the order was placed with.
+
+    One place that knows which gateway builds which link, so `payment_start`
+    does not grow a branch per method (§9 Phase 14 item 5). Cash has no link
+    at all and says so rather than returning something falsy.
+
+    Each gateway is constructed per call rather than held at module level: the
+    credentials come from settings, a blank one is a method the owner has not
+    switched on yet, and a module-level client would read them once at import
+    and cache the blank.
+    """
+    method = order.payment_method
+    if method == Order.PaymentMethod.CLICK:
+        return generate_click_paylink(order, return_url)
+
+    if method == Order.PaymentMethod.PAYME:
+        gateway = PaymeGateway(payme_id=settings.PAYME_ID,
+                               payme_key=settings.PAYME_KEY)
+        # Payme quotes tiyin, so'm * 100. tolov does this multiplication for
+        # us when it *checks* a callback, and not when it builds a link.
+        return gateway.create_payment(
+            id=order.id, amount=int(order.total_price) * 100,
+            return_url=return_url)
+
+    if method == Order.PaymentMethod.OCTO:
+        # `octo_shop_id` is typed int. The setting comes from the environment
+        # as text and is blank until the owner has one, so it is coerced here
+        # rather than at import — `int("")` raises, and a missing key must not
+        # stop the site booting (§17 #264).
+        gateway = OctoGateway(
+            octo_shop_id=int(settings.OCTO_SHOP_ID or 0),
+            octo_secret=settings.OCTO_SECRET)
+        return gateway.create_payment(
+            id=order.id, amount=order.total_price, return_url=return_url)
+
+    raise PaymentMethodUnavailable(method)
 
 
 def _move_stock(order, sign):

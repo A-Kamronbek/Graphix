@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 13:59+0500\n"
+"POT-Creation-Date: 2026-09-22 15:00+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -500,39 +500,39 @@ msgstr "Delivered"
 msgid "Bekor qilindi"
 msgstr "Cancelled"
 
-#: .\payment\models.py:224
+#: .\payment\models.py:227
 msgid "Naqd pul"
 msgstr "Cash"
 
-#: .\payment\models.py:288 .\templates\payment\checkout.html:167
+#: .\payment\models.py:291 .\templates\payment\checkout.html:167
 msgid "Xaritadan"
 msgstr "On the map"
 
-#: .\payment\models.py:289
+#: .\payment\models.py:292
 msgid "Qoʻlda kiritilgan"
 msgstr "Entered by hand"
 
-#: .\payment\models.py:342
+#: .\payment\models.py:345
 msgid "Viloyatni tanlang."
 msgstr "Choose a region."
 
-#: .\payment\models.py:344
+#: .\payment\models.py:347
 msgid "Tuman yoki shaharni tanlang."
 msgstr "Choose a district or city."
 
-#: .\payment\models.py:346
+#: .\payment\models.py:349
 msgid "Tanlangan tuman bu viloyatga tegishli emas."
 msgstr "That district is not in this region."
 
-#: .\payment\models.py:350
+#: .\payment\models.py:353
 msgid "Pochta indeksini kiriting."
 msgstr "Enter the postal index."
 
-#: .\payment\models.py:352
+#: .\payment\models.py:355
 msgid "Pochta indeksi 6 ta raqamdan iborat boʻlishi kerak."
 msgstr "A postal index is six digits."
 
-#: .\payment\models.py:355
+#: .\payment\models.py:358
 msgid ""
 "Bu indeks tanlangan viloyatga toʻgʻri kelmadi. Indeksni yoki viloyatni "
 "tekshiring."
@@ -540,53 +540,57 @@ msgstr ""
 "That index does not belong to the region you chose. Check the index or the "
 "region."
 
-#: .\payment\models.py:361
+#: .\payment\models.py:364
 msgid "Eshikkacha yetkazib berishda pochta boʻlimi tanlanmaydi."
 msgstr "Door delivery does not take a post office branch."
 
-#: .\payment\models.py:366
+#: .\payment\models.py:369
 msgid "Manzilni kiriting."
 msgstr "Enter an address."
 
-#: .\payment\views.py:175 .\payment\views.py:280
+#: .\payment\views.py:179 .\payment\views.py:284
 msgid "Savat boʻsh."
 msgstr "Your cart is empty."
 
-#: .\payment\views.py:234
+#: .\payment\views.py:238
 msgid "Toʻlov usulini tanlang."
 msgstr "Choose a payment method."
 
-#: .\payment\views.py:238
+#: .\payment\views.py:242
 msgid "Yetkazib berish turini tanlang."
 msgstr "Choose a delivery method."
 
-#: .\payment\views.py:242
+#: .\payment\views.py:246
 msgid "Ism va telefon raqamni toʻldiring."
 msgstr "Fill in your name and phone number."
 
-#: .\payment\views.py:248
+#: .\payment\views.py:252
 #, python-format
 msgid "Ism %(n)d belgidan oshmasligi kerak."
 msgstr "The name can be at most %(n)d characters long."
 
-#: .\payment\views.py:277
+#: .\payment\views.py:281
 msgid "Buyurtma allaqachon rasmiylashtirilgan."
 msgstr "This order has already been placed."
 
-#: .\payment\views.py:283
+#: .\payment\views.py:287
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
 msgstr "Order received. Please complete payment."
 
-#: .\payment\views.py:306
+#: .\payment\views.py:314
 msgid "Bu buyurtma uchun toʻlov holati allaqachon oʻzgargan."
 msgstr "The payment status of this order has already changed."
 
-#: .\payment\views.py:360
+#: .\payment\views.py:325
+msgid "Bu toʻlov usuli uchun onlayn toʻlov yoʻq."
+msgstr "This payment method has no online step."
+
+#: .\payment\views.py:430
 #, python-format
 msgid "%(no)s raqamli buyurtma bekor qilindi."
 msgstr "Order %(no)s has been cancelled."
 
-#: .\payment\views.py:363
+#: .\payment\views.py:433
 msgid "Buyurtmani bekor qilib boʻlmadi."
 msgstr "The order could not be cancelled."
 
@@ -776,8 +780,8 @@ msgstr "Add"
 #: .\templates\cart\cart.html:66 .\templates\cart\cart.html:74
 #: .\templates\partials\_footer.html:44
 #: .\templates\partials\_orders_table.html:22
-#: .\templates\payment\checkout.html:81 .\templates\payment\checkout.html:297
-#: .\templates\payment\checkout.html:305 .\templates\payment\checkout.html:310
+#: .\templates\payment\checkout.html:81 .\templates\payment\checkout.html:315
+#: .\templates\payment\checkout.html:323 .\templates\payment\checkout.html:328
 #: .\templates\payment\order_detail.html:34
 #: .\templates\payment\order_detail.html:37
 #: .\templates\payment\order_detail.html:59
@@ -845,7 +849,7 @@ msgstr "Orders"
 #: .\templates\boshqaruv\base.html:63 .\templates\boshqaruv\order.html:32
 #: .\templates\boshqaruv\product_form.html:26
 #: .\templates\boshqaruv\products.html:3 .\templates\boshqaruv\products.html:14
-#: .\templates\cart\cart.html:65 .\templates\payment\checkout.html:296
+#: .\templates\cart\cart.html:65 .\templates\payment\checkout.html:314
 msgid "Mahsulotlar"
 msgstr "Products"
 
@@ -959,13 +963,13 @@ msgstr "Breadcrumb"
 #: .\templates\boshqaruv\orders.html:43 .\templates\boshqaruv\settings.html:31
 #: .\templates\boshqaruv\settings.html:43 .\templates\cart\cart.html:69
 #: .\templates\partials\_footer.html:33 .\templates\payment\checkout.html:71
-#: .\templates\payment\checkout.html:304
+#: .\templates\payment\checkout.html:322
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Delivery"
 
 #: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:73
-#: .\templates\payment\checkout.html:308
+#: .\templates\payment\checkout.html:326
 #: .\templates\payment\order_detail.html:63
 msgid "Jami"
 msgstr "Total"
@@ -975,7 +979,7 @@ msgid "Usul"
 msgstr "Method"
 
 #: .\templates\boshqaruv\order.html:58 .\templates\boshqaruv\order.html:60
-#: .\templates\payment\checkout.html:208 .\templates\payment\checkout.html:331
+#: .\templates\payment\checkout.html:208 .\templates\payment\checkout.html:349
 #: .\templates\payment\order_detail.html:76
 msgid "Manzil"
 msgstr "Address"
@@ -1028,7 +1032,7 @@ msgid "Sana"
 msgstr "Date"
 
 #: .\templates\boshqaruv\order.html:99 .\templates\boshqaruv\orders.html:35
-#: .\templates\payment\checkout.html:249
+#: .\templates\payment\checkout.html:266
 #: .\templates\payment\order_detail.html:51 .\templates\payment\payment.html:3
 #: .\templates\payment\status.html:23
 msgid "Toʻlov"
@@ -1052,7 +1056,7 @@ msgstr "The status has not been changed yet."
 
 #: .\templates\boshqaruv\orders.html:17 .\templates\boshqaruv\products.html:21
 #: .\templates\boshqaruv\regions.html:26 .\templates\partials\_nav.html:21
-#: .\templates\partials\_nav.html:36 .\templates\payment\checkout.html:366
+#: .\templates\partials\_nav.html:36 .\templates\payment\checkout.html:384
 msgid "Qidirish"
 msgstr "Search"
 
@@ -1514,7 +1518,7 @@ msgstr "Remove %(name)s"
 
 #: .\templates\cart\cart.html:62 .\templates\partials\_orders_table.html:7
 #: .\templates\partials\_orders_table.html:17
-#: .\templates\payment\checkout.html:281
+#: .\templates\payment\checkout.html:299
 #: .\templates\payment\order_detail.html:3 .\templates\payment\payment.html:11
 #: .\templates\payment\status.html:11
 msgid "Buyurtma"
@@ -1846,7 +1850,7 @@ msgid "Menyu"
 msgstr "Menu"
 
 #: .\templates\partials\_drawer.html:16 .\templates\partials\_viewer.html:15
-#: .\templates\payment\checkout.html:333 .\templates\payment\checkout.html:358
+#: .\templates\payment\checkout.html:351 .\templates\payment\checkout.html:376
 #: .\templates\product\shop.html:45
 msgid "Yopish"
 msgstr "Close"
@@ -1951,7 +1955,7 @@ msgid "Viloyat"
 msgstr "Region"
 
 #: .\templates\payment\checkout.html:99 .\templates\payment\checkout.html:117
-#: .\templates\payment\checkout.html:356
+#: .\templates\payment\checkout.html:374
 msgid "Tanlang"
 msgstr "Choose"
 
@@ -2070,11 +2074,11 @@ msgstr[1] ""
 "Uzpost delivers anywhere in the country within %(span)s days. Door delivery "
 "can take one more day for the courier."
 
-#: .\templates\payment\checkout.html:263
+#: .\templates\payment\checkout.html:280
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr "No payment method is available right now. Please get in touch."
 
-#: .\templates\payment\checkout.html:271
+#: .\templates\payment\checkout.html:289
 #, python-format
 msgid ""
 "«Buyurtma berish» tugmasini bosib, <a class=\"link\" "
@@ -2085,19 +2089,19 @@ msgstr ""
 "href=\"%(terms_url)s\">terms of use</a> and the <a class=\"link\" "
 "href=\"%(privacy_url)s\">privacy policy</a>."
 
-#: .\templates\payment\checkout.html:277
+#: .\templates\payment\checkout.html:295
 msgid "Buyurtma berish"
 msgstr "Place the order"
 
-#: .\templates\payment\checkout.html:314
+#: .\templates\payment\checkout.html:332
 msgid "Savatga qaytish"
 msgstr "Back to the cart"
 
-#: .\templates\payment\checkout.html:343
+#: .\templates\payment\checkout.html:361
 msgid "Tayyor"
 msgstr "Done"
 
-#: .\templates\payment\checkout.html:368
+#: .\templates\payment\checkout.html:386
 msgid "Qidirish..."
 msgstr "Search..."
 

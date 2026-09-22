@@ -245,22 +245,39 @@
       </section>
 
       <section class="panel stack">
-        <h2 class="h3">{% trans "Toʻlov" %}</h2>
-        {# Only methods the shop currently offers are rendered. A method that is #}
-        {# switched off is absent rather than greyed out: a disabled control #}
-        {# reads as "coming soon" and invites the customer to wait for it. #}
-        {% for opt in payment_options %}
-          <label class="check">
-            <input type="radio" name="payment_method" value="{{ opt.code }}"
-                   {% if form_data.payment_method == opt.code or payment_options|length == 1 %}checked{% endif %}>
-            <span>
-              <strong>{{ opt|t:"name" }}</strong>
-              <span class="field__hint">{{ opt|t:"note" }}</span>
-            </span>
-          </label>
-        {% empty %}
-          <p class="msg msg--warn">{% trans "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning." %}</p>
-        {% endfor %}
+        {% comment %}
+          Marked, unlike the delivery heading above it, and the difference is
+          not inconsistency: this `h2` heads the radios and nothing else,
+          while "Yetkazib berish" also heads the address fields under it, so
+          a star there would claim more than it means (§18 #45).
+
+          It became worth marking at item 5. With one active method the form
+          pre-checked it and the group could not be empty; with Click, Payme,
+          Octo and cash live, nothing is pre-checked and a customer can reach
+          the button having chosen none.
+
+          Only methods the shop currently offers are rendered. A method that
+          is switched off is absent rather than greyed out: a disabled control
+          reads as "coming soon" and invites the customer to wait for it.
+        {% endcomment %}
+        <h2 class="h3" id="pay-heading">
+          {% trans "Toʻlov" %} <span class="req" aria-hidden="true">*</span>
+        </h2>
+        <div class="stack stack--sm" role="radiogroup"
+             aria-labelledby="pay-heading" aria-required="true">
+          {% for opt in payment_options %}
+            <label class="check">
+              <input type="radio" name="payment_method" value="{{ opt.code }}"
+                     {% if form_data.payment_method == opt.code or payment_options|length == 1 %}checked{% endif %}>
+              <span>
+                <strong>{{ opt|t:"name" }}</strong>
+                <span class="field__hint">{{ opt|t:"note" }}</span>
+              </span>
+            </label>
+          {% empty %}
+            <p class="msg msg--warn">{% trans "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning." %}</p>
+          {% endfor %}
+        </div>
       </section>
 
       {# Placing the order is accepting the offer (terms §1), so the page says #}
