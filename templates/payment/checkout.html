@@ -194,6 +194,23 @@
             </div>
           {% endif %}
 
+
+          {% comment %} The line the pin resolves to, and the way back into the fields.
+             Rendered `hidden`: it is only ever shown by the script, and the
+             script is also the only thing that can move the fields out of
+             the page and into the sheet. With the script blocked this stays
+             hidden and every field stays exactly where it has always been
+             (§17 #252, §17 #107). {% endcomment %}
+          <button type="button" class="addr" data-address-summary hidden
+                  data-empty="{% trans 'Manzilni kiriting' %}">
+            <span class="addr__body">
+              <span class="label">{% trans "Manzil" %}</span>
+              <span class="addr__text" data-address-text></span>
+            </span>
+            <svg class="i" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+            <span class="sr-only">{% trans "Manzilni tahrirlash" %}</span>
+          </button>
+
           <input type="hidden" name="address_source" value="{{ form_data.address_source|default:'manual' }}" data-address-source>
           <input type="hidden" name="latitude" value="{{ form_data.latitude|default:'' }}" data-latitude>
           <input type="hidden" name="longitude" value="{{ form_data.longitude|default:'' }}" data-longitude>
@@ -295,6 +312,33 @@
 
       <a class="link" href="{% url 'cart' %}">{% trans "Savatga qaytish" %}</a>
     </aside>
+  </div>
+</div>
+
+
+{% comment %} The address sheet. Empty on purpose: `checkout.js` MOVES the region,
+   district, street and note fields into it when the map is the chosen
+   source, and moves them back when it is not. Moved, not copied — two
+   copies of a field called `region` is two values posted under one name,
+   and the second one wins. It is also why this works with the script off:
+   nothing moves, so everything is still inline (§17 #252). {% endcomment %}
+<div class="picker-drawer" data-address-sheet hidden role="dialog"
+     aria-modal="true" aria-labelledby="addr-sheet-title">
+  <div class="picker-drawer__panel">
+    <div class="picker-drawer__hd">
+      <h2 class="h3" id="addr-sheet-title">{% trans "Manzil" %}</h2>
+      <button type="button" class="modal__close" data-address-sheet-close
+              aria-label="{% trans 'Yopish' %}">
+        <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+    <div class="stack addr-sheet__body" data-address-sheet-body></div>
+    {% comment %} Closes the sheet and nothing else. The fields write straight through
+       to the form, so there is nothing here to save — the button exists
+       because a sheet with no obvious way out reads as a trap. {% endcomment %}
+    <button type="button" class="btn btn--primary" data-address-sheet-close>
+      {% trans "Tayyor" %}
+    </button>
   </div>
 </div>
 

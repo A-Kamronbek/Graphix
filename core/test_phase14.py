@@ -654,3 +654,82 @@ class HomeSlidesTests(TempMedia, TestCase):
         self.assertNotIn('slides.js', self.page())
         self.slide('Ikki')
         self.assertIn('slides.js', self.page())
+
+
+class AddressSheetTests(TestCase):
+    """Item 4: the home address splits into a map and a sheet (§17 #252).
+
+    The moving is `checkout.js`'s job and no test here can see it. What these
+    hold is the half that survives without it — which is the half §17 #107
+    says must never quietly stop working — and the one structural promise the
+    markup can break on its own: each field exists once.
+    """
+
+    def setUp(self):
+        self.geo = make_regions()
+        self.user = make_user('manzilchi', '+998901280001')
+        self.product, self.variant = make_product('Manzil', stock=3)
+        self.client.force_login(self.user)
+        cart = Cart.objects.create(user=self.user, status=True)
+        CartItem.objects.create(cart=cart, variant=self.variant, quantity=1,
+                                price_stat=self.variant.price)
+
+    def page(self):
+        return self.client.get(reverse('checkout')).content.decode()
+
+    def test_every_address_field_renders_inline(self):
+        """With the script blocked the form is the form it has always been."""
+        html = self.page()
+        for field in ('region', 'district', 'location_note', 'address'):
+            with self.subTest(field=field):
+                self.assertRegex(html, r'(?:name|id)="(?:id_)?%s"' % field)
+
+    def test_the_sheet_ships_empty(self):
+        """It is filled by moving the fields into it, never by rendering them twice."""
+        html = self.page()
+        body = re.search(r'data-address-sheet-body[^>]*>(.*?)</div>', html, re.S)
+        self.assertIsNotNone(body, 'the sheet has no body')
+        self.assertEqual(body.group(1).strip(), '')
+
+    def test_no_field_is_rendered_twice(self):
+        """The whole argument for moving nodes rather than copying markup.
+
+        Two controls called `region` is two values under one name, and the
+        server has no way to know which the customer meant.
+
+        Scoped to the checkout form, and radios and checkboxes are skipped:
+        the delivery and payment groups share a name on purpose, and the
+        language switcher is three separate forms in the header.
+        """
+        form = self.page().split('data-checkout', 1)[1].split('</form>', 1)[0]
+        names = []
+        for tag, attrs in re.findall(r'<(input|select|textarea)\b([^>]*)>', form):
+            if 'type="radio"' in attrs or 'type="checkbox"' in attrs:
+                continue
+            found = re.search(r'\bname="([^"]+)"', attrs)
+            if found and found.group(1) != 'csrfmiddlewaretoken':
+                names.append(found.group(1))
+        self.assertTrue(names, 'the form parsed to no fields at all')
+        self.assertEqual(sorted(names), sorted(set(names)),
+                         'a field name is rendered more than once')
+
+    def test_the_summary_is_hidden_until_the_script_shows_it(self):
+        """A row that opens a sheet is useless when nothing can open one."""
+        html = self.page()
+        self.assertRegex(html, r'<button[^>]*data-address-summary[^>]*\shidden')
+
+    def test_the_sheet_is_a_labelled_dialog(self):
+        html = self.page()
+        sheet = re.search(r'<div[^>]*data-address-sheet[^>]*>', html)
+        self.assertIsNotNone(sheet)
+        for attr in ('role="dialog"', 'aria-modal="true"', 'aria-labelledby='):
+            with self.subTest(attr=attr):
+                self.assertIn(attr, sheet.group(0))
+
+    def test_the_sheet_is_translated(self):
+        """§17 #255: the rendered page, not the catalogue."""
+        for lang, word in (('ru', 'Адрес'), ('en', 'Address')):
+            with translation.override(lang):
+                url = reverse('checkout')
+            with self.subTest(lang=lang):
+                self.assertIn(word, self.client.get(url).content.decode())

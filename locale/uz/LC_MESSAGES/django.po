@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 13:29+0500\n"
+"POT-Creation-Date: 2026-09-22 13:59+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -774,8 +774,8 @@ msgstr "Qoʻshish"
 #: .\templates\cart\cart.html:66 .\templates\cart\cart.html:74
 #: .\templates\partials\_footer.html:44
 #: .\templates\partials\_orders_table.html:22
-#: .\templates\payment\checkout.html:81 .\templates\payment\checkout.html:279
-#: .\templates\payment\checkout.html:287 .\templates\payment\checkout.html:292
+#: .\templates\payment\checkout.html:81 .\templates\payment\checkout.html:297
+#: .\templates\payment\checkout.html:305 .\templates\payment\checkout.html:310
 #: .\templates\payment\order_detail.html:34
 #: .\templates\payment\order_detail.html:37
 #: .\templates\payment\order_detail.html:59
@@ -843,7 +843,7 @@ msgstr "Buyurtmalar"
 #: .\templates\boshqaruv\base.html:63 .\templates\boshqaruv\order.html:32
 #: .\templates\boshqaruv\product_form.html:26
 #: .\templates\boshqaruv\products.html:3 .\templates\boshqaruv\products.html:14
-#: .\templates\cart\cart.html:65 .\templates\payment\checkout.html:278
+#: .\templates\cart\cart.html:65 .\templates\payment\checkout.html:296
 msgid "Mahsulotlar"
 msgstr "Mahsulotlar"
 
@@ -957,13 +957,13 @@ msgstr ""
 #: .\templates\boshqaruv\orders.html:43 .\templates\boshqaruv\settings.html:31
 #: .\templates\boshqaruv\settings.html:43 .\templates\cart\cart.html:69
 #: .\templates\partials\_footer.html:33 .\templates\payment\checkout.html:71
-#: .\templates\payment\checkout.html:286
+#: .\templates\payment\checkout.html:304
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Yetkazib berish"
 
 #: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:73
-#: .\templates\payment\checkout.html:290
+#: .\templates\payment\checkout.html:308
 #: .\templates\payment\order_detail.html:63
 msgid "Jami"
 msgstr ""
@@ -973,6 +973,7 @@ msgid "Usul"
 msgstr "Usul"
 
 #: .\templates\boshqaruv\order.html:58 .\templates\boshqaruv\order.html:60
+#: .\templates\payment\checkout.html:208 .\templates\payment\checkout.html:331
 #: .\templates\payment\order_detail.html:76
 msgid "Manzil"
 msgstr ""
@@ -984,7 +985,7 @@ msgstr "Indeks"
 #: .\templates\boshqaruv\order.html:66 .\templates\boshqaruv\settings.html:369
 #: .\templates\boshqaruv\settings.html:374
 #: .\templates\boshqaruv\settings.html:379
-#: .\templates\payment\checkout.html:213
+#: .\templates\payment\checkout.html:231
 #: .\templates\payment\order_detail.html:100
 msgid "Izoh"
 msgstr ""
@@ -1025,7 +1026,7 @@ msgid "Sana"
 msgstr ""
 
 #: .\templates\boshqaruv\order.html:99 .\templates\boshqaruv\orders.html:35
-#: .\templates\payment\checkout.html:231
+#: .\templates\payment\checkout.html:249
 #: .\templates\payment\order_detail.html:51 .\templates\payment\payment.html:3
 #: .\templates\payment\status.html:23
 msgid "Toʻlov"
@@ -1049,7 +1050,7 @@ msgstr "Holat hali oʻzgartirilmagan."
 
 #: .\templates\boshqaruv\orders.html:17 .\templates\boshqaruv\products.html:21
 #: .\templates\boshqaruv\regions.html:26 .\templates\partials\_nav.html:21
-#: .\templates\partials\_nav.html:36 .\templates\payment\checkout.html:319
+#: .\templates\partials\_nav.html:36 .\templates\payment\checkout.html:366
 msgid "Qidirish"
 msgstr ""
 
@@ -1499,7 +1500,7 @@ msgstr "%(name)s — olib tashlash"
 
 #: .\templates\cart\cart.html:62 .\templates\partials\_orders_table.html:7
 #: .\templates\partials\_orders_table.html:17
-#: .\templates\payment\checkout.html:263
+#: .\templates\payment\checkout.html:281
 #: .\templates\payment\order_detail.html:3 .\templates\payment\payment.html:11
 #: .\templates\payment\status.html:11
 msgid "Buyurtma"
@@ -1830,7 +1831,8 @@ msgid "Menyu"
 msgstr ""
 
 #: .\templates\partials\_drawer.html:16 .\templates\partials\_viewer.html:15
-#: .\templates\payment\checkout.html:311 .\templates\product\shop.html:45
+#: .\templates\payment\checkout.html:333 .\templates\payment\checkout.html:358
+#: .\templates\product\shop.html:45
 msgid "Yopish"
 msgstr ""
 
@@ -1934,7 +1936,7 @@ msgid "Viloyat"
 msgstr ""
 
 #: .\templates\payment\checkout.html:99 .\templates\payment\checkout.html:117
-#: .\templates\payment\checkout.html:309
+#: .\templates\payment\checkout.html:356
 msgid "Tanlang"
 msgstr ""
 
@@ -2008,15 +2010,23 @@ msgstr ""
 msgid "Xaritani yuklab boʻlmadi. Manzilni qoʻlda kiriting."
 msgstr "Xaritani yuklab boʻlmadi. Manzilni qoʻlda kiriting."
 
-#: .\templates\payment\checkout.html:202
+#: .\templates\payment\checkout.html:206
+msgid "Manzilni kiriting"
+msgstr ""
+
+#: .\templates\payment\checkout.html:212
+msgid "Manzilni tahrirlash"
+msgstr ""
+
+#: .\templates\payment\checkout.html:220
 msgid "Koʻcha va uy"
 msgstr "Koʻcha va uy"
 
-#: .\templates\payment\checkout.html:205
+#: .\templates\payment\checkout.html:223
 msgid "Koʻcha, uy, xonadon"
 msgstr "Koʻcha, uy, xonadon"
 
-#: .\templates\payment\checkout.html:207
+#: .\templates\payment\checkout.html:225
 msgid ""
 "Viloyat va tumanni yuqorida tanladingiz — bu yerga faqat koʻcha va uy "
 "raqamini yozing."
@@ -2024,11 +2034,11 @@ msgstr ""
 "Viloyat va tumanni yuqorida tanladingiz — bu yerga faqat koʻcha va uy "
 "raqamini yozing."
 
-#: .\templates\payment\checkout.html:215
+#: .\templates\payment\checkout.html:233
 msgid "Majburiy emas"
 msgstr ""
 
-#: .\templates\payment\checkout.html:222
+#: .\templates\payment\checkout.html:240
 #, python-format
 msgid ""
 "Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
@@ -2040,11 +2050,11 @@ msgstr[0] ""
 "Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
 "yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
 
-#: .\templates\payment\checkout.html:245
+#: .\templates\payment\checkout.html:263
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr ""
 
-#: .\templates\payment\checkout.html:253
+#: .\templates\payment\checkout.html:271
 #, python-format
 msgid ""
 "«Buyurtma berish» tugmasini bosib, <a class=\"link\" "
@@ -2055,15 +2065,19 @@ msgstr ""
 "href=\"%(terms_url)s\">foydalanish shartlari</a> va <a class=\"link\" "
 "href=\"%(privacy_url)s\">maxfiylik siyosati</a>ga rozilik bildirasiz."
 
-#: .\templates\payment\checkout.html:259
+#: .\templates\payment\checkout.html:277
 msgid "Buyurtma berish"
 msgstr ""
 
-#: .\templates\payment\checkout.html:296
+#: .\templates\payment\checkout.html:314
 msgid "Savatga qaytish"
 msgstr ""
 
-#: .\templates\payment\checkout.html:321
+#: .\templates\payment\checkout.html:343
+msgid "Tayyor"
+msgstr ""
+
+#: .\templates\payment\checkout.html:368
 msgid "Qidirish..."
 msgstr ""
 
