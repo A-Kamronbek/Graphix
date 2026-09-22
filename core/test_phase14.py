@@ -21,17 +21,20 @@ so the tests check it against the server rather than counting stars.
 """
 import re
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import translation
 
 from cart.models import Cart, CartItem
 from payment.models import Order, PaymentOption
-from product.models import Size, SizeChartRow
+from product.models import Size, SizeChartRow, Slide, slide_link
 
+from .test_backlog import TempMedia
 from .test_phase4 import make_product
 from .test_phase6 import make_regions, make_user
 from .test_phase7 import make_staff
+from .test_phase7b import photo
 
 
 class SizeReferenceTests(TestCase):
@@ -402,3 +405,252 @@ class RequiredFieldMarksTests(TestCase):
         self.client.post(reverse('checkout'),
                          self.payload(self.HOME, drop='notes'))
         self.assertTrue(self.placed())
+
+
+class SlideLinkTests(TestCase):
+    """What a slide is allowed to point at.
+
+    The owner types this into a box and it becomes an `href` on the busiest
+    page of the site, so the rule is an allowlist rather than a blocklist:
+    two shapes are in, everything else is out.
+    """
+
+    def refuses(self, value):
+        with self.assertRaises(ValidationError, msg=value):
+            slide_link(value)
+
+    def test_a_page_on_this_site_is_fine(self):
+        for good in ('/', '/dokon/', '/uz/mahsulot/nimadir/', '/dokon/?tag=3'):
+            with self.subTest(good=good):
+                slide_link(good)
+
+    def test_an_https_address_is_fine(self):
+        slide_link('https://t.me/greatestamal')
+
+    def test_nothing_at_all_is_fine(self):
+        """A card that announces something without linking anywhere."""
+        slide_link('')
+
+    def test_javascript_is_refused(self):
+        """The whole reason this validator exists."""
+        for bad in ('javascript:alert(1)', 'JavaScript:alert(1)',
+                    ' javascript:alert(1)'):
+            with self.subTest(bad=bad):
+                self.refuses(bad)
+
+    def test_a_data_url_is_refused(self):
+        self.refuses('data:text/html;base64,PHNjcmlwdD4=')
+
+    def test_a_protocol_relative_link_is_refused(self):
+        """`//host/path` is an off-site link that reads like an internal one."""
+        self.refuses('//evil.example/promo')
+
+    def test_a_bare_host_is_refused(self):
+        """`evil.example` in an href is a relative path, not the site it looks like."""
+        self.refuses('evil.example')
+
+
+class SlidePanelTests(TempMedia, TestCase):
+    """Uploading, editing and removing a slide from the panel."""
+
+    def setUp(self):
+        self.staff = make_staff('slaydchi', '+998901270001')
+        self.client.force_login(self.staff)
+
+    def add(self, **overrides):
+        data = {'alt': 'Qishki chegirma', 'link': '/dokon/',
+                'picture': photo(size=(1200, 400), name='slide.jpg')}
+        data.update(overrides)
+        data = {k: v for k, v in data.items() if v is not None}
+        return self.client.post(reverse('panel_slide_new'), data)
+
+    def url(self, slide):
+        return reverse('panel_reference_inline',
+                       kwargs={'kind': 'slide', 'pk': slide.pk})
+
+    def test_a_slide_can_be_uploaded(self):
+        self.add()
+        slide = Slide.objects.get()
+        self.assertEqual(slide.alt, 'Qishki chegirma')
+        self.assertEqual(slide.link, '/dokon/')
+        self.assertTrue(slide.has_photo)
+
+    def test_the_picture_goes_through_the_image_pipeline(self):
+        """Re-encoded, so an upload here cannot carry EXIF or be a bomb."""
+        self.add()
+        self.assertTrue(Slide.objects.get().picture.name.endswith('.jpg'))
+
+    def test_a_new_slide_goes_to_the_end(self):
+        """It should not take over the top of the home page unannounced."""
+        self.add(alt='Birinchi')
+        self.add(alt='Ikkinchi')
+        order = list(Slide.objects.values_list('alt', flat=True))
+        self.assertEqual(order, ['Birinchi', 'Ikkinchi'])
+
+    def test_a_slide_without_a_description_is_refused(self):
+        """Without it the card is a link with no accessible name."""
+        self.add(alt='')
+        self.assertFalse(Slide.objects.exists())
+
+    def test_a_slide_without_a_picture_is_refused(self):
+        self.add(picture=None)
+        self.assertFalse(Slide.objects.exists())
+
+    def test_a_dangerous_link_is_refused_at_upload(self):
+        self.add(link='javascript:alert(1)')
+        self.assertFalse(Slide.objects.exists())
+
+    def test_a_customer_cannot_upload_one(self):
+        self.client.force_login(make_user('xaridor', '+998901270002'))
+        response = self.add()
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Slide.objects.exists())
+
+
+class SlideInlineEditTests(TempMedia, TestCase):
+    """The allowlist, applied to a slide."""
+
+    def setUp(self):
+        self.client.force_login(make_staff('slaydchi', '+998901270003'))
+        self.slide = Slide.objects.create(
+            picture=photo(size=(1200, 400), name='s.jpg'),
+            alt='Qishki chegirma', link='/dokon/')
+
+    def url(self):
+        return reverse('panel_reference_inline',
+                       kwargs={'kind': 'slide', 'pk': self.slide.pk})
+
+    def post(self, field, value):
+        return self.client.post(self.url(), {'field': field, 'value': value})
+
+    def test_the_switch_takes_a_slide_off_the_home_page(self):
+        self.assertTrue(self.slide.is_active)
+        self.assertEqual(self.post('is_active', '0').status_code, 200)
+        self.slide.refresh_from_db()
+        self.assertFalse(self.slide.is_active)
+
+    def test_the_description_can_be_edited_in_every_language(self):
+        for field, value in (('alt', 'Yangi'), ('alt_ru', 'Новый'),
+                             ('alt_en', 'New')):
+            with self.subTest(field=field):
+                self.assertEqual(self.post(field, value).status_code, 200)
+        self.slide.refresh_from_db()
+        self.assertEqual((self.slide.alt, self.slide.alt_ru, self.slide.alt_en),
+                         ('Yangi', 'Новый', 'New'))
+
+    def test_a_blank_description_is_refused(self):
+        """`alt` is the slide's only accessible name; NAME_FIELD points here."""
+        self.assertEqual(self.post('alt', '  ').status_code, 400)
+        self.slide.refresh_from_db()
+        self.assertEqual(self.slide.alt, 'Qishki chegirma')
+
+    def test_the_link_can_be_changed(self):
+        self.assertEqual(self.post('link', '/dokon/?tag=4').status_code, 200)
+        self.slide.refresh_from_db()
+        self.assertEqual(self.slide.link, '/dokon/?tag=4')
+
+    def test_a_dangerous_link_cannot_be_saved_through_the_endpoint(self):
+        """`set_field` saves with update_fields and runs no model validator.
+
+        Without the `link` reader in `panel/reference.py` this endpoint is a
+        way to put `javascript:` into an href on the home page, one POST from
+        any staff account.
+        """
+        for bad in ('javascript:alert(1)', '//evil.example/x', 'evil.example'):
+            with self.subTest(bad=bad):
+                self.assertEqual(self.post('link', bad).status_code, 400)
+        self.slide.refresh_from_db()
+        self.assertEqual(self.slide.link, '/dokon/')
+
+    def test_the_picture_is_not_reachable_through_the_endpoint(self):
+        self.assertEqual(self.post('picture', 'x.jpg').status_code, 400)
+
+    def test_a_slide_can_be_deleted(self):
+        response = self.client.post(reverse(
+            'panel_reference_delete', kwargs={'kind': 'slide', 'pk': self.slide.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Slide.objects.exists())
+
+
+class HomeSlidesTests(TempMedia, TestCase):
+    """What the home page does with them.
+
+    The hero is gone, so two of these guard things the hero used to provide
+    and nothing else does: exactly one `h1`, and a page that still works when
+    the owner has uploaded nothing at all.
+    """
+
+    def slide(self, alt, **kwargs):
+        return Slide.objects.create(
+            picture=photo(size=(1200, 400), name='s.jpg'), alt=alt, **kwargs)
+
+    def page(self):
+        return self.client.get(reverse('home')).content.decode()
+
+    def test_an_active_slide_is_on_the_page(self):
+        self.slide('Qishki chegirma')
+        self.assertIn('Qishki chegirma', self.page())
+
+    def test_a_switched_off_slide_is_not(self):
+        self.slide('Koʻrinmasin', is_active=False)
+        self.assertNotIn('Koʻrinmasin', self.page())
+
+    def test_the_page_has_exactly_one_heading_with_slides(self):
+        self.slide('Bir')
+        self.assertEqual(self.page().count('<h1'), 1)
+
+    def test_the_page_has_exactly_one_heading_without_them(self):
+        """The hero used to carry it. Nothing else does now (§17 #251)."""
+        self.assertEqual(self.page().count('<h1'), 1)
+
+    def test_the_buttons_are_there_either_way(self):
+        for slides in (0, 1):
+            if slides:
+                self.slide('Bir')
+            with self.subTest(slides=slides):
+                html = self.page()
+                self.assertIn(reverse('shop'), html)
+                self.assertIn(reverse('contact'), html)
+
+    def test_every_slide_image_is_described(self):
+        """A link whose only content is an image needs an accessible name."""
+        self.slide('Qishki chegirma', link='/dokon/')
+        html = self.page()
+        for tag in re.findall(r'<img[^>]*>', html):
+            if 'slides' in tag or 'Qishki' in tag:
+                with self.subTest(tag=tag[:60]):
+                    self.assertRegex(tag, r'alt="[^"]+"')
+
+    def test_the_first_slide_is_eager_and_the_rest_are_not(self):
+        """It is the page's largest paint; the others are below the fold."""
+        self.slide('Bir')
+        self.slide('Ikki')
+        html = self.page()
+        self.assertEqual(html.count('fetchpriority="high"'), 1)
+        self.assertEqual(html.count('loading="lazy"'), 1)
+
+    def test_the_carousel_is_translated(self):
+        """§17 #255 again, and it bit harder here.
+
+        msgmerge gave "Toʻxtatish" — the pause button — the translation of
+        "Create account", and "Aksiyalar" the translation of "Specification".
+        gettext ignores a fuzzy entry, so the page would simply have been
+        Uzbek; the danger is the flag being cleared by somebody who does not
+        read the entry. These assert the rendered page.
+        """
+        self.slide('Bir')
+        self.slide('Ikki')
+        for lang, words in (('ru', ('Акции', 'Остановить', 'Следующий слайд')),
+                            ('en', ('Promotions', 'Pause', 'Next slide'))):
+            with translation.override(lang):
+                url = reverse('home')
+            html = self.client.get(url).content.decode()
+            for word in words:
+                with self.subTest(lang=lang, word=word):
+                    self.assertIn(word, html)
+
+    def test_the_script_is_loaded_only_when_there_is_something_to_drive(self):
+        self.slide('Bir')
+        self.assertNotIn('slides.js', self.page())
+        self.slide('Ikki')
+        self.assertIn('slides.js', self.page())

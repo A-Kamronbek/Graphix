@@ -42,6 +42,11 @@ urlpatterns = [
     path('boshqaruv/xabarlar/<int:pk>/oqildi/', views.message_read,
          name='panel_message_read'),
 
+    # The home page's promotional cards. Not reference data — a promotion
+    # changes with the season — so its own screen and its own tab (§17 #251).
+    path('boshqaruv/slaydlar/', views.slides_screen, name='panel_slides'),
+    path('boshqaruv/slaydlar/yangi/', views.slide_new, name='panel_slide_new'),
+
     # Reference data: rows somebody changes two or three times a year, so that
     # none of it needs a deploy.
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),

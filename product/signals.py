@@ -41,14 +41,19 @@ from django.dispatch import receiver
 
 from core import telegram
 from . import images
-from .models import ImageP, Review, ReviewImage, SizeChart
+from .models import ImageP, Review, ReviewImage, SizeChart, Slide
 from .services import recompute_rating
 
 logger = logging.getLogger(__name__)
 
 #: Every column that holds an uploaded image, as ``(model, field name)``. A
 #: file is still in use while any of them names it.
-FILE_COLUMNS = ((ImageP, 'picture'), (ReviewImage, 'picture'), (SizeChart, 'image'))
+#:
+#: A model missing from this list is not a small omission: `still_used` is what
+#: stops one row's delete taking a file another row is serving, so an absent
+#: table makes that check answer "nobody is using it" for every file it holds.
+FILE_COLUMNS = ((ImageP, 'picture'), (ReviewImage, 'picture'),
+                (SizeChart, 'image'), (Slide, 'picture'))
 
 
 @receiver(post_save, sender=Review, dispatch_uid='notify_pending_review')
@@ -166,6 +171,7 @@ def measure_image(model, pk, using=None):
 
 @receiver(post_save, sender=ImageP, dispatch_uid='product_photo_renditions')
 @receiver(post_save, sender=ReviewImage, dispatch_uid='review_photo_renditions')
+@receiver(post_save, sender=Slide, dispatch_uid='slide_renditions')
 def photo_renditions(sender, instance, using=None, raw=False, **kwargs):
     """Build a photograph's renditions once its row has committed (§9 Phase 9).
 
@@ -198,6 +204,7 @@ def chart_measured(sender, instance, using=None, raw=False, **kwargs):
 
 @receiver(post_delete, sender=ImageP, dispatch_uid='product_photo_file')
 @receiver(post_delete, sender=ReviewImage, dispatch_uid='review_photo_file')
+@receiver(post_delete, sender=Slide, dispatch_uid='slide_file')
 def photo_file_goes_with_its_row(sender, instance, using=None, **kwargs):
     """A deleted photograph takes its file and its renditions with it (§18 #28)."""
     forget_file(instance.picture, using,

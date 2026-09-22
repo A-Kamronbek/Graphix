@@ -652,8 +652,10 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
   .foot li a { display: inline-flex; align-items: center; min-height: 44px; }
 
   /* Two stacked calls to action that differ by ten pixels look like a mistake
-     rather than a choice. Full width makes the pair deliberate. */
-  .home__hero .btn { flex: 1 0 100%; }
+     rather than a choice. Full width makes the pair deliberate. This moved
+     off `.home__hero` with the hero itself (§17 #251); the pair is the same
+     pair, now sitting under the slides. */
+  .home__cta .btn { flex: 1 0 100%; }
 
   /* Tag chips keep their pill proportions - a 44 px chip looks like a button -
      and grow their hit area with a pseudo-element instead. */

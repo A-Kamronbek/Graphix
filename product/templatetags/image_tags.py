@@ -21,7 +21,7 @@ register = template.Library()
 #: it out. It has to be stated in the markup: the browser chooses which file to
 #: fetch before a stylesheet has been parsed, so it cannot read the grid.
 #: Keep in step with components.css (.card__media), pages.css (.pdp__frame,
-#: .pdp__rail, .home__hero-art, .cartline__thumb) and panel.css.
+#: .pdp__rail, .slides__item, .cartline__thumb) and panel.css.
 SIZES = {
     # Two cards to a row, then three at 720, then four at 860, capped by the
     # 1280 container.
@@ -29,9 +29,9 @@ SIZES = {
     # The product page's frame: min(76vh, 760px) tall at 4:5, so 608 px wide at
     # most, and the page's own width below that.
     'pdp': '(min-width: 660px) 608px, 92vw',
-    # The hero is hidden below 860 px, where it is also lazy - so a phone never
-    # fetches it at all.
-    'hero': '460px',
+    # A home-page card fills the container: the page's width below the cap,
+    # and 1216 px (1280 less two 32 px gutters) above it.
+    'slide': '(min-width: 1280px) 1216px, 92vw',
     'rail': '64px',
     'thumb': '84px',
     'review': '72px',

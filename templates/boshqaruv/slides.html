@@ -1,0 +1,155 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n image_tags %}
+{% block title %}{% trans "Slaydlar" %}{% endblock %}
+
+{% comment %}
+  The cards at the top of the home page. A picture, where it goes, and a line
+  saying what it shows.
+
+  The picture is the whole content, so it is shown here at a size somebody can
+  actually judge — the same reasoning as the size charts (§17 #15). A 64 px
+  thumbnail of a banner tells the owner nothing about the banner.
+
+  The running order is a number rather than a drag handle. The product gallery
+  drags because a photograph has no name to sort by and there are eight of
+  them; there are three or four slides and each one has a description, so a
+  box with a number in it is less machinery for the same result.
+
+  Switching a slide off leaves it in this list. The one the owner turned off
+  last month is the one he is most likely to turn back on, and a list that
+  hides it reads as though it was deleted.
+{% endcomment %}
+
+{% block content %}
+<h1 class="pnl__title">{% trans "Slaydlar" %}</h1>
+<form hidden>{% csrf_token %}</form>
+
+{# A count after a colon rather than a sentence with a number in it. Uzbek #}
+{# does not inflect after a numeral, Russian has three forms and English #}
+{# two, so a plural here would be three catalogue entries and two of them #}
+{# would be identical — for a line that only has to report a number. #}
+<p class="field__hint">
+  {% blocktrans trimmed with n=live %}
+    Bosh sahifada koʻrinadigan slaydlar: {{ n }} ta.
+  {% endblocktrans %}
+</p>
+
+<section class="pnl__section">
+  {% for slide in slides %}
+    <div class="panel-card chart" data-ref="slide" data-id="{{ slide.pk }}"
+         data-ref-url="{% url 'panel_reference_inline' kind='slide' pk=slide.pk %}">
+      {% if slide.picture %}
+        <a class="chart__shot" href="{{ slide.picture.url }}" target="_blank" rel="noopener">
+          <img {% photo_attrs slide 'panel' %} alt="{{ slide.alt }}"
+               loading="lazy" decoding="async">
+        </a>
+      {% else %}
+        <span class="chart__shot chart__shot--empty">
+          <svg class="i" aria-hidden="true"><use href="#i-image"></use></svg>
+          <span class="small">{% trans "Rasm yoʻq" %}</span>
+        </span>
+      {% endif %}
+
+      <div class="chart__body stack stack--sm">
+        <div class="row row--between">
+          <label class="switch">
+            <input type="checkbox" data-ref-field="is_active"
+                   {% if slide.is_active %}checked{% endif %}>
+            <span>{% trans "Yoqilgan" %}</span>
+          </label>
+          <label class="field field--num">
+            <span class="label">{% trans "Tartibi" %}</span>
+            <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+                   value="{{ slide.sort_order }}" data-ref-field="sort_order">
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">{% trans "Havola" %}</span>
+          <input class="input" type="text" value="{{ slide.link }}" maxlength="200"
+                 placeholder="/dokon/" data-ref-field="link">
+        </label>
+
+        <div class="row--fields">
+          <label class="field">
+            <span class="label">{% trans "Tavsif" %} (uz)</span>
+            <input class="input" type="text" value="{{ slide.alt }}" maxlength="120"
+                   data-ref-field="alt">
+          </label>
+          <label class="field">
+            <span class="label">{% trans "Tavsif" %} (ru)</span>
+            <input class="input" type="text" value="{{ slide.alt_ru }}" maxlength="120"
+                   data-ref-field="alt_ru">
+          </label>
+          <label class="field">
+            <span class="label">{% trans "Tavsif" %} (en)</span>
+            <input class="input" type="text" value="{{ slide.alt_en }}" maxlength="120"
+                   data-ref-field="alt_en">
+          </label>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn--ghost btn--sm ref__x"
+              data-ref-delete="{% url 'panel_reference_delete' kind='slide' pk=slide.pk %}"
+              data-ref-name="{{ slide.alt }}">
+        <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+        <span class="sr-only">{% trans "Oʻchirish" %}</span>
+      </button>
+    </div>
+  {% empty %}
+    <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+  {% endfor %}
+</section>
+
+<section class="pnl__section">
+  <h2>{% trans "Yangi slayd" %}</h2>
+  {# Said here rather than discovered later: the card is wide on a laptop and #}
+  {# taller on a phone, so the same file is cropped two ways and anything #}
+  {# near an edge can be the part that goes. #}
+  <p class="field__hint">
+    {% trans "Muhim narsani rasmning oʻrtasiga joylashtiring — telefonda va noutbukda kesim har xil boʻladi." %}
+  </p>
+
+  <form class="panel-card stack stack--sm" method="post"
+        action="{% url 'panel_slide_new' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row--fields">
+      <div class="field field--wide">
+        <span class="label">{% trans "Rasm" %} <span class="req" aria-hidden="true">*</span></span>
+        <span class="field__file">
+          <label class="btn btn--secondary" for="slide-picture">{% trans "Rasm tanlash" %}</label>
+          <input class="sr-only" type="file" id="slide-picture" name="picture" required
+                 accept="image/jpeg,image/png,image/webp,image/avif" data-file-name>
+          <span class="small muted" data-file-label>{% trans "Tanlanmagan" %}</span>
+        </span>
+      </div>
+      <label class="field">
+        <span class="label">{% trans "Havola" %}</span>
+        <input class="input" type="text" name="link" maxlength="200" placeholder="/dokon/">
+      </label>
+    </div>
+
+    <div class="row--fields">
+      <label class="field">
+        <span class="label">{% trans "Tavsif" %} (uz) <span class="req" aria-hidden="true">*</span></span>
+        <input class="input" type="text" name="alt" required maxlength="120">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Tavsif" %} (ru)</span>
+        <input class="input" type="text" name="alt_ru" maxlength="120">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Tavsif" %} (en)</span>
+        <input class="input" type="text" name="alt_en" maxlength="120">
+      </label>
+      <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
+    </div>
+
+    {# Not decoration: the slide is an image inside a link, and a link whose #}
+    {# only content is an image has no accessible name at all. #}
+    <p class="field__hint">
+      {% trans "Tavsif ekran oʻquvchilari uchun — rasmda nima yozilganini qisqa yozing." %}
+    </p>
+  </form>
+</section>
+{% endblock %}

@@ -17,7 +17,8 @@ from django.utils.safestring import mark_safe
 from . import images
 from .models import (Category, Colour, ImageP, PrintMethod, Product,
                      ProductLike, Review, ReviewImage, Size, SizeChart,
-                     SizeChartRow, Tag, TagKind, Variant, default_colour)
+                     SizeChartRow, Slide, Tag, TagKind, Variant,
+                     default_colour)
 
 
 def _thumb(picture, size=60):
@@ -73,6 +74,11 @@ class ReviewPhotoForm(CleanPhotoForm):
 class ChartImageForm(CleanPhotoForm):
     """A size chart: the name and size the panel stores one at."""
     name_hint = 'chart'
+
+
+class SlideForm(CleanPhotoForm):
+    """A home-page card: the name and size the panel stores one at."""
+    name_hint = 'slide'
 
 
 class ImagePInline(admin.TabularInline):
@@ -246,6 +252,34 @@ class SizeChartRowInline(admin.TabularInline):
     extra = 0
     autocomplete_fields = ('size',)
     ordering = ('order',)
+
+
+@admin.register(Slide)
+class SlideAdmin(admin.ModelAdmin):
+    """The home page's cards. The panel at /boshqaruv/slaydlar/ is the real screen.
+
+    Registered here anyway, for the same reason every other table is: the
+    admin is where somebody looks when a row is behaving oddly, and a model
+    missing from it is a model you have to open a shell to see. `alt` is on
+    the list because it is what a slide is called; the picture is the content.
+    """
+    form = SlideForm
+    list_display = ('preview', 'alt', 'link', 'is_active', 'sort_order')
+    list_display_links = ('preview', 'alt')
+    list_editable = ('is_active', 'sort_order')
+    list_filter = ('is_active',)
+    search_fields = ('alt', 'alt_ru', 'alt_en', 'link')
+    fieldsets = (
+        (None, {'fields': ('picture', 'link', 'is_active', 'sort_order'),
+                'description': "Havola «/» bilan yoki https:// bilan boshlanadi."}),
+        ('Oʻzbekcha', {'fields': ('alt',)}),
+        ('Русский', {'fields': ('alt_ru',)}),
+        ('English', {'fields': ('alt_en',)}),
+    )
+
+    @admin.display(description='Rasm')
+    def preview(self, obj):
+        return _thumb(obj.picture, size=48)
 
 
 @admin.register(SizeChart)

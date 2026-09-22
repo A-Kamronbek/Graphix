@@ -25,8 +25,8 @@ from django.db.models import ProtectedError
 from django.utils.translation import gettext as _
 
 from payment.models import DeliveryOption, District, PaymentOption, Region
-from product.models import (Category, PrintMethod, Size, SizeChart, Tag,
-                            TagKind)
+from product.models import (Category, PrintMethod, Size, SizeChart, Slide,
+                            Tag, TagKind, slide_link)
 
 #: What each screen is allowed to change, and how to read the value. Nothing
 #: else on any of these models is reachable from the panel.
@@ -78,13 +78,28 @@ EDITABLE = {
         'note': 'text', 'note_ru': 'text', 'note_en': 'text',
         'is_active': 'bool', 'sort_order': 'count',
     }),
+    # A home-page card. `picture` is absent for the same reason a size
+    # chart's is: it is a file, set when the slide is created and changed by
+    # creating another. `link` gets its own reader rather than 'text' —
+    # `set_field` writes with `update_fields` and never runs a model
+    # validator, so 'text' here would let `javascript:` through the one box
+    # on the panel whose value becomes an `href` on the home page.
+    'slide': (Slide, {
+        'alt': 'text', 'alt_ru': 'text', 'alt_en': 'text',
+        'link': 'link', 'is_active': 'bool', 'sort_order': 'count',
+    }),
 }
 
 #: Where a row keeps the name a reader would call it by, when that is not a
 #: field called ``name``. A size is called "M" and keeps it in ``size``; two
 #: sizes called M, or one called nothing, are exactly as bad as they would be
 #: for a tag, and both checks below would have missed them.
-NAME_FIELD = {'size': 'size'}
+#:
+#: A slide's is ``alt``, and that entry is doing real work: `alt` is the only
+#: accessible name a slide has, so blanking it turns a card into an unlabelled
+#: link. It is deliberately absent from :data:`UNIQUE_NAMES` — two slides may
+#: honestly describe the same thing, and there is nothing to disambiguate.
+NAME_FIELD = {'size': 'size', 'slide': 'alt'}
 
 #: What may be removed, and what it costs. Everything here is either unlinked
 #: on delete (a tag comes off its products, a chart and a category fall back to
@@ -96,7 +111,11 @@ NAME_FIELD = {'size': 'size'}
 #: here - an order records the method it was paid by as text, and deleting
 #: the row would leave old orders quoting a method the shop can no longer
 #: explain. Switching it off is what the switch is for.
-DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size'}
+#: `slide` is here because a promotion that has run its course should go, and
+#: nothing points at one — it is content, not a record of anything. Its file
+#: and its renditions go with it, through the same `post_delete` receiver
+#: every other photograph uses.
+DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size', 'slide'}
 
 
 def _money(raw):
@@ -142,6 +161,20 @@ def _tagkind(raw):
     if kind is None:
         raise ValidationError(_('Bunday teg turi yoʻq.'))
     return kind
+
+
+def _link(raw):
+    """A slide's destination, checked by the model's own validator.
+
+    Through :func:`~product.models.slide_link` rather than repeating its rule,
+    because two copies of "what counts as a safe href" is one copy that will
+    be relaxed later without the other noticing. `set_field` saves with
+    ``update_fields``, which runs no validators at all, so this reader is the
+    only thing standing between the panel's box and the home page's `href`.
+    """
+    value = str(raw).strip()
+    slide_link(value)
+    return value
 
 
 def _count(raw):
@@ -190,6 +223,7 @@ READERS = {
     'prefix': _prefix,
     'count': _count,
     'tagkind': _tagkind,
+    'link': _link,
 }
 
 

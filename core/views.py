@@ -13,7 +13,7 @@ from django.utils.translation import get_language, gettext as _
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import Resolver404, resolve, reverse
-from product.models import Product, Category
+from product.models import Product, Category, Slide
 from django.templatetags.static import static
 from . import legal, seo, telegram
 from .models import Msg
@@ -130,9 +130,14 @@ def home(request):
     """Render the home page.
 
     A product row has to be at least partly visible at 390 x 844 without
-    scrolling (§17 #29), so the hero is height-capped in CSS and the newest
-    designs sit immediately under it. Three short queries, all annotated the same
-    way the shop annotates, so the cards render identically wherever they appear.
+    scrolling (§17 #29), so the slides are height-capped in CSS and the newest
+    designs sit immediately under them. Three short queries, all annotated the
+    same way the shop annotates, so the cards render identically wherever they
+    appear.
+
+    The page led with a hero until Phase 14: a fixed headline, a lede and the
+    newest design as a photograph. The owner replaced it with cards he manages
+    himself (§17 #251), and `featured` went with it — nothing else read it.
     """
     from product.views import annotate_cards
 
@@ -140,14 +145,12 @@ def home(request):
 
     newest = annotate_cards(live.prefetch_related('images', 'variants'),
                             user=request.user).distinct()
-    # One query for both, because they are the same query: the hero is the
-    # newest design and so is the first card. Asking twice cost a second round
-    # trip and a second prefetch for a row already in hand.
     latest = list(newest.order_by('-created_at')[:8])
     return render(request, 'core/home.html', {
-        # The hero photograph is the newest design, so the page leads with stock
-        # that is actually for sale rather than a fixed marketing image.
-        'featured': latest[0] if latest else None,
+        # Evaluated here rather than left as a queryset: the template counts
+        # them to decide whether the carousel's controls are worth rendering,
+        # and a queryset counted and then iterated is two queries.
+        'slides': list(Slide.objects.filter(is_active=True)),
         'newest': latest,
         # "Siz uchun" is most-liked until Phase 13 replaces it with the real
         # recommender — the plan's own stand-in, not a placeholder.
@@ -257,6 +260,7 @@ STYLE_SWATCHES = [
 STYLE_ICONS = [
     'mark', 'search', 'heart', 'cart', 'user', 'share', 'menu', 'close', 'check',
     'minus', 'plus', 'chevron-down', 'chevron-right', 'arrow-left', 'arrow-right',
+    'pause', 'play',
     'star', 'filter', 'sort', 'truck', 'box', 'pin', 'phone', 'mail', 'telegram', 'info',
     'warning', 'image', 'trash', 'ruler', 'calendar',
 ]

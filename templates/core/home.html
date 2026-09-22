@@ -5,35 +5,113 @@
 
 {% block content %}
 
-{# Hero. Height-capped in CSS so a product row is always partly visible at #}
-{# 390 x 844 without scrolling — a full-viewport hero on a shop is a known #}
-{# conversion killer (§17 #29). It leads with a real design that is in stock, #}
-{# not a fixed marketing image. #}
-<section class="home__hero">
-  <div class="wrap home__hero-inner">
-    <div class="stack">
-      <span class="eyebrow">{% trans "Toshkentdan, omborda mavjud" %}</span>
-      <h1 class="home__title">{% trans "Kiyishga arziydigan grafika." %}</h1>
-      <p class="lede">{% trans "Premium sifat · 100+ dizayn · Oʻzbekiston boʻylab yetkazib berish" %}</p>
-      <div class="row row--wrap">
-        <a class="btn btn--primary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
-        <a class="btn btn--secondary btn--lg" href="{% url 'contact' %}">{% trans "Oʻz dizayningiz" %}</a>
-      </div>
+{% comment %} The slides, and then the two buttons the hero used to hold. Owner's
+   layout (§17 #251): navbar, slides, the two buttons, then the product rows.
+
+   A scroll-snap track, not a JavaScript slider. With the script blocked the
+   track is still a horizontally scrollable row of cards a thumb can swipe,
+   which is a working carousel rather than the "first slide only" fallback
+   the plan settled for. The script adds the arrows, the dots and the
+   advancing; it is not what makes the thing usable.
+
+   The arrows, dots and pause button ship `hidden` and the script reveals
+   them. A control that does nothing is worse than no control, and without
+   the script none of the three can do anything.
+
+   An `h1` regardless. The slides carry their words inside their pictures, so
+   the page would otherwise have no heading at all — an accessibility and
+   SEO regression against a measured 100 (§17 #251). It is visually hidden
+   when there are slides to look at, and shown when there are none. {% endcomment %}
+{% if slides %}
+  <section class="slides" data-slides
+           aria-roledescription="{% trans 'karusel' %}"
+           aria-label="{% trans 'Aksiyalar' %}">
+    <h1 class="sr-only">{% trans "Grafik futbolkalar" %}</h1>
+
+    <div class="wrap slides__frame">
+      <ul class="slides__track" data-slides-track>
+        {% for slide in slides %}
+          <li class="slides__item" data-slides-item
+              aria-roledescription="{% trans 'slayd' %}"
+              aria-label="{{ forloop.counter }} / {{ slides|length }}">
+            {% if slide.link %}
+              <a class="slides__link" href="{{ slide.link }}">
+                {% comment %} The first slide is the page's largest paint, so it is
+                   eager and high priority; the rest are lazy. `photo_attrs`
+                   carries the stored width and height, which is what keeps
+                   CLS at zero while the file is still arriving. {% endcomment %}
+                <img {% photo_attrs slide 'slide' %} alt="{{ slide|t:'alt' }}"
+                     {% if forloop.first %}fetchpriority="high" decoding="async"{% else %}loading="lazy" decoding="async"{% endif %}>
+              </a>
+            {% else %}
+              <img {% photo_attrs slide 'slide' %} alt="{{ slide|t:'alt' }}"
+                   {% if forloop.first %}fetchpriority="high" decoding="async"{% else %}loading="lazy" decoding="async"{% endif %}>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+
+      {% if slides|length > 1 %}
+        <button type="button" class="slides__arrow slides__arrow--prev"
+                data-slides-prev hidden>
+          <svg class="i" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+          <span class="sr-only">{% trans "Oldingi slayd" %}</span>
+        </button>
+        <button type="button" class="slides__arrow slides__arrow--next"
+                data-slides-next hidden>
+          <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+          <span class="sr-only">{% trans "Keyingi slayd" %}</span>
+        </button>
+      {% endif %}
     </div>
 
-    {% if featured %}
-      <a class="home__hero-art" href="{% url 'item' featured.slug %}"
-         aria-label="{{ featured|t:'name' }}">
-        {% with featured.images.all|first as img %}
-          {# Lazy on purpose: the hero image is hidden below 860 px, and a lazy #}
-          {# image that is not displayed is never fetched, so a phone does not #}
-          {# pay for a picture it will not see. On desktop it sits in the first #}
-          {# screen, where the browser fetches it immediately anyway. #}
-          <img {% photo_attrs img 'hero' %} alt="{{ featured|t:'name' }}"
-               decoding="async" loading="lazy">
-        {% endwith %}
-      </a>
+    {% if slides|length > 1 %}
+      <div class="wrap slides__controls" data-slides-controls hidden>
+        {% comment %} The dots are buttons, not decoration: they are how somebody on a
+           laptop with no touchpad gesture reaches slide three. {% endcomment %}
+        <div class="slides__dots" role="tablist"
+             aria-label="{% trans 'Slaydlar' %}" data-slides-dots>
+          {% for slide in slides %}
+            <button type="button" class="slides__dot" role="tab"
+                    data-slides-dot="{{ forloop.counter0 }}"
+                    aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+              <span class="sr-only">{{ forloop.counter }}</span>
+            </button>
+          {% endfor %}
+        </div>
+
+        {% comment %} Required, not optional. The slides advance on their own, and
+           anything that moves by itself for longer than five seconds has to
+           be stoppable (WCAG 2.2.2). Pausing on hover and on focus is not
+           enough on its own: it leaves out everyone who is neither hovering
+           nor tabbing through. {% endcomment %}
+        {# Both words are rendered here rather than built in the script: the #}
+        {# button's name changes when it is pressed, and a string the script #}
+        {# assembles is a string gettext never sees (§17 #80). #}
+        <button type="button" class="slides__pause" data-slides-pause
+                aria-pressed="false"
+                data-pause-label="{% trans 'Toʻxtatish' %}"
+                data-play-label="{% trans 'Davom ettirish' %}">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-pause"></use></svg>
+          <span class="sr-only" data-slides-pause-label>{% trans "Toʻxtatish" %}</span>
+        </button>
+      </div>
     {% endif %}
+  </section>
+{% else %}
+  {% comment %} No slides yet. The page still needs its heading, and it should not open
+     with a blank band where a picture is meant to be. {% endcomment %}
+  <section class="section">
+    <div class="wrap">
+      <h1 class="h1">{% trans "Grafik futbolkalar" %}</h1>
+    </div>
+  </section>
+{% endif %}
+
+<section class="section section--tight home__cta">
+  <div class="wrap row row--wrap">
+    <a class="btn btn--primary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+    <a class="btn btn--secondary btn--lg" href="{% url 'contact' %}">{% trans "Oʻz dizayningiz" %}</a>
   </div>
 </section>
 
@@ -95,4 +173,12 @@
     <a class="link" href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+  {% comment %} Only when there is a carousel to drive. The page without slides has
+     nothing for this to do, and it is the only page that loads it. {% endcomment %}
+  {% if slides|length > 1 %}
+    <script src="{% static 'js/slides.js' %}" defer></script>
+  {% endif %}
 {% endblock %}
