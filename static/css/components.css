@@ -95,6 +95,19 @@
 .field__error { color: var(--c-danger); font-size: var(--fs-sm); }
 .field__hint  { color: var(--c-fg-muted); font-size: var(--fs-sm); }
 
+/* The required mark. One character, in the colour the form already uses to
+   mean "this needs your attention", against a label that is small, uppercase
+   and muted — so it reads without a legend beside every field. It is bumped
+   off the baseline rather than set as a superscript: `vertical-align: super`
+   shifts the line box and would push a marked label a pixel above its
+   unmarked neighbours, which is visible in a column of fields.
+
+   It is always `aria-hidden` in the markup. A screen reader is told a field
+   is required by `required` or `aria-required`; without hiding it, the
+   listener hears the label, then "star", then "required". */
+.req { color: var(--c-danger); font-weight: var(--fw-semibold);
+  position: relative; top: -0.15em; }
+
 .check { display: flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
 .check input { appearance: none; width: 22px; height: 22px; flex: none; margin-top: 1px;
   background: var(--c-surface); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);

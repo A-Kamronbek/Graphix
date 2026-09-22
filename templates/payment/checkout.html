@@ -41,20 +41,26 @@
           data-districts="{{ districts_json }}">
       {% csrf_token %}
 
+      <p class="small muted">
+        {% blocktrans trimmed with star='<span class="req" aria-hidden="true">*</span>'|safe %}
+          {{ star }} bilan belgilangan maydonlarni toʻldirish shart.
+        {% endblocktrans %}
+      </p>
+
       <section class="panel stack">
         <h2 class="h3">{% trans "Aloqa" %}</h2>
         {# Who the parcel is addressed to, which is often not the account #}
         {# holder. It is kept on the order; for a long time it was asked for #}
         {# and dropped. #}
         <div class="field">
-          <label class="label" for="id_name">{% trans "Qabul qiluvchining ism-familiyasi" %}</label>
+          <label class="label" for="id_name">{% trans "Qabul qiluvchining ism-familiyasi" %} <span class="req" aria-hidden="true">*</span></label>
           <input class="input" type="text" name="name" id="id_name" required
                  maxlength="{{ recipient_name_max }}"
                  autocomplete="name" value="{{ form_data.name|default:'' }}">
           <small class="field__hint">{% trans "Joʻnatma shu ismga yuboriladi." %}</small>
         </div>
         <div class="field">
-          <label class="label" for="id_phone">{% trans "Telefon" %}</label>
+          <label class="label" for="id_phone">{% trans "Telefon" %} <span class="req" aria-hidden="true">*</span></label>
           <input class="input" type="tel" name="phone" id="id_phone" required
                  autocomplete="tel" placeholder="+998 ..." value="{{ form_data.phone|default:'' }}">
           <small class="field__hint">{% trans "Kuryer shu raqamga qoʻngʻiroq qiladi." %}</small>
@@ -81,13 +87,14 @@
         {# ------------------------------------------- where, for both methods #}
         <div class="stack" data-location-fields>
           <div class="field">
-            <label class="label" for="id_region">{% trans "Viloyat" %}</label>
+            <label class="label" for="id_region">{% trans "Viloyat" %} <span class="req" aria-hidden="true">*</span></label>
             {# A plain select with JavaScript off; checkout.js replaces it with #}
             {# a drawer that can group Tumanlar and Shaharlar and search a long #}
             {# list, neither of which a native select can do (§17 #87). #}
             {# data-prefix is what lets the page say "that index is not in this #}
             {# region" before the round trip. The server checks it again. #}
             <select class="select" name="region" id="id_region" data-region
+                    aria-required="true"
                     data-title="{% trans 'Viloyat' %}">
               <option value="">{% trans "Tanlang" %}</option>
               {% for r in regions %}
@@ -101,10 +108,11 @@
           </div>
 
           <div class="field">
-            <label class="label" for="id_district">{% trans "Tuman yoki shahar" %}</label>
+            <label class="label" for="id_district">{% trans "Tuman yoki shahar" %} <span class="req" aria-hidden="true">*</span></label>
             {# Every string this field's drawer can show is passed in, because a #}
             {# heading the page prints is copy and copy is translated (§17 #80). #}
             <select class="select" name="district" id="id_district" data-district
+                    aria-required="true"
                     data-title="{% trans 'Tuman yoki shahar' %}"
                     data-placeholder="{% trans 'Tanlang' %}"
                     data-group-districts="{% trans 'Tumanlar' %}"
@@ -126,7 +134,7 @@
         {# ------------------------------------------------- Uzpost branch #}
         <div class="stack" data-branch-fields>
           <div class="field">
-            <label class="label" for="id_postal_index">{% trans "Pochta indeksi" %}</label>
+            <label class="label" for="id_postal_index">{% trans "Pochta indeksi" %} <span class="req" aria-hidden="true">*</span></label>
             <input class="input num" type="text" name="postal_index" id="id_postal_index"
                    inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
                    autocomplete="postal-code" placeholder="100011"
@@ -191,7 +199,7 @@
           <input type="hidden" name="longitude" value="{{ form_data.longitude|default:'' }}" data-longitude>
 
           <div class="field">
-            <label class="label" for="id_address">{% trans "Koʻcha va uy" %}</label>
+            <label class="label" for="id_address">{% trans "Koʻcha va uy" %} <span class="req" aria-hidden="true">*</span></label>
             <textarea class="textarea" name="address" id="id_address" data-address
                       autocomplete="street-address"
                       placeholder="{% trans 'Koʻcha, uy, xonadon' %}">{{ form_data.address|default:'' }}</textarea>

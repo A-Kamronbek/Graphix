@@ -31,6 +31,11 @@
   var noteField = $('[data-location-note-field]');
   var indexInput = $('[data-postal-index]');
   var indexHint = $('[data-postal-hint]');
+  /* Up here with the other field handles rather than down in the map section
+   * where it used to live: `syncBranch` reads it, and leaning on `var`
+   * hoisting plus the order the file happens to run in is not a thing to
+   * leave for the next person to discover. */
+  var addressInput = $('[data-address]');
 
   /* ------------------------------------------------- which half is showing */
 
@@ -48,7 +53,21 @@
     if (locationFields) locationFields.hidden = !choice;
     if (branchFields) branchFields.hidden = !choice || !branch;
     if (homeFields) homeFields.hidden = !choice || branch;
+    /* The index and the street address are each required by one method and
+     * refused by the other, so which of them is required is only knowable
+     * once a method is chosen — and with the script blocked, neither is, on
+     * its own. That is why this is set here rather than in the markup: the
+     * star beside the label is static and travels with its half of the form,
+     * the promise made to a screen reader is not. */
+    requireWhen(indexInput, !!choice && branch);
+    requireWhen(addressInput, !!choice && !branch);
     syncTotals(choice);
+  }
+
+  function requireWhen(field, required) {
+    if (!field) return;
+    if (required) field.setAttribute('aria-required', 'true');
+    else field.removeAttribute('aria-required');
   }
 
   /* The summary follows the choice immediately. The server recomputes it from
@@ -513,7 +532,6 @@
   var sourceInput = $('[data-address-source]');
   var latInput = $('[data-latitude]');
   var lngInput = $('[data-longitude]');
-  var addressInput = $('[data-address]');
   var mapBlock = $('[data-map]');
   var mapError = mapBlock && $('[data-map-error]', mapBlock);
 

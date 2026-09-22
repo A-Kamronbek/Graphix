@@ -14,16 +14,23 @@ Both tables arrive seeded — S/M/L/XL from the product migrations, `click` and
 `cash` from `payment/0015` — so these tests name their own rows and count
 deltas rather than totals. Asserting a total here would be asserting the seed,
 which is somebody else's test.
+
+Item 2, the checkout's required-field marks, is at the bottom. It is the same
+idea from the other end: a mark is a promise about what the server will do,
+so the tests check it against the server rather than counting stars.
 """
+import re
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import translation
 
-from payment.models import PaymentOption
+from cart.models import Cart, CartItem
+from payment.models import Order, PaymentOption
 from product.models import Size, SizeChartRow
 
 from .test_phase4 import make_product
-from .test_phase6 import make_user
+from .test_phase6 import make_regions, make_user
 from .test_phase7 import make_staff
 
 
@@ -261,3 +268,137 @@ class SettingsScreenTests(TestCase):
         response = self.client.get(reverse('panel_settings'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse('panel_size_new'))
+
+
+class RequiredFieldMarksTests(TestCase):
+    """The checkout says which fields it will refuse to do without.
+
+    A mark on a field the server does not require is a lie, and a field the
+    server requires with no mark is the complaint that started this. So the
+    marks are not just counted here: each one is checked against the server
+    by removing that field from an otherwise valid order and watching the
+    order fail to appear.
+    """
+    #: What `Order.clean` and the checkout view between them insist on.
+    REQUIRED = {'name', 'phone', 'region', 'district', 'postal_index', 'address'}
+    #: Asked for, never insisted on. `location_note` is the Boshqa escape.
+    OPTIONAL = {'notes', 'location_note'}
+
+    def setUp(self):
+        self.geo = make_regions()
+        self.user = make_user('xaridor', '+998901260001')
+        self.product, self.variant = make_product('Nishon', stock=5)
+        self.client.force_login(self.user)
+        self.cart = Cart.objects.create(user=self.user, status=True)
+        CartItem.objects.create(cart=self.cart, variant=self.variant,
+                                quantity=1, price_stat=self.variant.price)
+
+    def page(self):
+        return self.client.get(reverse('checkout')).content.decode()
+
+    def marked(self, html):
+        """The `for` of every label carrying the required mark."""
+        return {m.group(1) for m in re.finditer(
+            r'<label[^>]*\bfor="id_([a-z_]+)"[^>]*>(?:(?!</label>).)*'
+            r'class="req"', html, re.S)}
+
+    def test_every_required_field_is_marked(self):
+        self.assertEqual(self.marked(self.page()), self.REQUIRED)
+
+    def test_no_optional_field_is_marked(self):
+        marked = self.marked(self.page())
+        self.assertEqual(marked & self.OPTIONAL, set())
+
+    def test_the_page_says_once_what_the_mark_means(self):
+        """A star nobody has explained is decoration."""
+        html = self.page()
+        self.assertIn('bilan belgilangan', html)
+        self.assertEqual(html.count('bilan belgilangan'), 1)
+
+    def test_the_legend_is_translated_and_keeps_its_mark(self):
+        """§17 #255: assert the rendered page, not the catalogue.
+
+        The mark is a blocktrans placeholder rather than part of the msgid, so
+        this also checks the placeholder survived translation — a Russian
+        sentence that lost `%(star)s` would explain a symbol it no longer
+        shows.
+        """
+        for lang, phrase in (('ru', 'обязательны для заполнения'),
+                             ('en', 'are required')):
+            with translation.override(lang):
+                url = reverse('checkout')
+            html = self.client.get(url).content.decode()
+            with self.subTest(lang=lang):
+                self.assertIn(phrase, html)
+                self.assertRegex(
+                    html, re.escape('<span class="req" aria-hidden="true">*'
+                                    '</span>'))
+
+    def test_the_mark_is_hidden_from_a_screen_reader(self):
+        """It hears "required" from the attribute, not "star" from the text."""
+        html = self.page()
+        stars = re.findall(r'<span[^>]*class="req"[^>]*>', html)
+        self.assertTrue(stars)
+        for span in stars:
+            with self.subTest(span=span):
+                self.assertIn('aria-hidden="true"', span)
+
+    def test_the_two_selects_say_they_are_required(self):
+        """Both methods need them, and neither can carry a native `required`."""
+        html = self.page()
+        for field in ('region', 'district'):
+            with self.subTest(field=field):
+                self.assertRegex(
+                    html, r'<select[^>]*id="id_%s"[^>]*aria-required="true"'
+                          % field)
+
+    # The two halves of the form. Each marked field belongs to one of them.
+    BRANCH = {'delivery_option': 'uzpost_office', 'postal_index': '100011'}
+    HOME = {'delivery_option': 'uzpost_door', 'address': 'Amir Temur koʻchasi 1',
+            'address_source': 'manual'}
+
+    def payload(self, half, drop=None):
+        """A complete order for one delivery method, less ``drop``."""
+        data = {'name': 'Qabul Qiluvchi', 'phone': '+998 90 126 00 01',
+                'region': self.geo['tashkent'].pk,
+                'district': self.geo['chilonzor'].pk,
+                'payment_method': 'click', 'notes': ''}
+        data.update(half)
+        data.pop(drop, None)
+        return data
+
+    def placed(self):
+        return Order.objects.filter(cart=self.cart).exists()
+
+    def test_a_complete_branch_order_is_accepted(self):
+        """Guards the test below from passing because everything is refused."""
+        self.client.post(reverse('checkout'), self.payload(self.BRANCH))
+        self.assertTrue(self.placed())
+
+    def test_a_complete_home_order_is_accepted(self):
+        self.client.post(reverse('checkout'), self.payload(self.HOME))
+        self.assertTrue(self.placed())
+
+    def test_dropping_any_marked_field_stops_the_order(self):
+        """Every star is a promise the server keeps.
+
+        All of these are refused, so the cart is never consumed and one cart
+        serves the whole loop.
+        """
+        halves = {'name': self.BRANCH, 'phone': self.BRANCH,
+                  'region': self.BRANCH, 'district': self.BRANCH,
+                  'postal_index': self.BRANCH, 'address': self.HOME}
+        self.assertEqual(set(halves), self.REQUIRED)
+        for field, half in halves.items():
+            with self.subTest(field=field):
+                self.client.post(reverse('checkout'),
+                                 self.payload(half, drop=field))
+                self.assertFalse(self.placed(),
+                                 '%s is marked required but the order went '
+                                 'through without it' % field)
+
+    def test_dropping_an_unmarked_field_does_not(self):
+        """And every field without one is genuinely optional."""
+        self.client.post(reverse('checkout'),
+                         self.payload(self.HOME, drop='notes'))
+        self.assertTrue(self.placed())
