@@ -868,3 +868,55 @@ class PaymeAndOctoTests(TestCase):
         self.assertIsNotNone(group)
         self.assertIn('aria-required="true"', group.group(0))
         self.assertIn('aria-labelledby="pay-heading"', group.group(0))
+
+
+class PaymentSwitchTests(TestCase):
+    """Phase 14's Definition of Done, in its own words.
+
+    "All four payment methods appear when switched on and are refused
+    server-side when off." Both halves, because they are different mechanisms:
+    one is what the template renders, the other is what the view accepts, and
+    a method could pass either while failing the other.
+    """
+
+    def setUp(self):
+        self.geo = make_regions()
+        self.user = make_user('tolovchi', '+998901310001')
+        self.product, self.variant = make_product('Usul', stock=5)
+        self.client.force_login(self.user)
+        self.cart = Cart.objects.create(user=self.user, status=True)
+        CartItem.objects.create(cart=self.cart, variant=self.variant,
+                                quantity=1, price_stat=self.variant.price)
+
+    def order_with(self, method):
+        return self.client.post(reverse('checkout'), {
+            'name': 'Qabul Qiluvchi', 'phone': '+998 90 131 00 01',
+            'region': self.geo['tashkent'].pk,
+            'district': self.geo['chilonzor'].pk,
+            'delivery_option': 'uzpost_office', 'postal_index': '100011',
+            'payment_method': method, 'notes': '',
+        })
+
+    def test_every_method_appears_once_it_is_switched_on(self):
+        PaymentOption.objects.all().update(is_active=True)
+        html = self.client.get(reverse('checkout')).content.decode()
+        for code in ('click', 'payme', 'octo', 'cash'):
+            with self.subTest(code=code):
+                self.assertIn('value="%s"' % code, html)
+
+    def test_a_method_that_is_off_is_refused_by_the_server(self):
+        """Not merely absent from the page: absent is only the template."""
+        PaymentOption.objects.filter(code='click').update(is_active=False)
+        self.order_with('click')
+        self.assertFalse(Order.objects.filter(cart=self.cart).exists())
+
+    def test_a_method_that_is_on_is_accepted(self):
+        """Guards the test above from passing because everything is refused."""
+        PaymentOption.objects.filter(code='click').update(is_active=True)
+        self.order_with('click')
+        self.assertTrue(Order.objects.filter(cart=self.cart).exists())
+
+    def test_a_code_no_row_offers_is_refused(self):
+        """A POSTed method the shop has never heard of (§17 #94, amended)."""
+        self.order_with('bitcoin')
+        self.assertFalse(Order.objects.filter(cart=self.cart).exists())
