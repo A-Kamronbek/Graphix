@@ -35,6 +35,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
+    # tolov's payment tables, and it sits HERE, above our own apps, on
+    # purpose: `payment/admin.py` unregisters tolov's transaction admin, and
+    # admin autodiscovery walks this list in order — below `payment` the
+    # unregister runs before the register and quietly does nothing (§17 #263).
+    #
+    # It registers under the app label `django`, because its AppConfig sets no
+    # `label` and Django derives one from the last component of
+    # `tolov.integrations.django`. That is ugly — migrations print as
+    # `django.0001_initial`, which reads like a core Django migration and is
+    # not one — and it has to stay: the package's own second migration names
+    # `('django', '0001_initial')` as a dependency, so relabelling the app
+    # makes its migration graph unresolvable (§17 #261).
+    'tolov.integrations.django',
     'core',
     'payment',
     'product',
@@ -45,7 +58,6 @@ INSTALLED_APPS = [
     'panel',
     'colorfield',
     'rest_framework',
-    'click_up',
 ]
 
 MIDDLEWARE = [
@@ -181,14 +193,31 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# --- click ---
-# click_up validates each payment callback's amount against the account model's
-# amount field below (Order.total_price, stored in whole so'm).
+# --- payments (tolov) ---
+# One dict, because that is the shape tolov reads (§17 #253).
+#
+# There is no AMOUNT_FIELD here and that is not an omission: tolov hardcodes
+# `getattr(account, "amount", 0)` when it checks a callback's amount against
+# the order, where click-pkg took the field name from a setting. `Order.amount`
+# is a property returning `total_price` for exactly this, and the alternative
+# — ONE_TIME_PAYMENT False — is not an alternative: it drops the amount
+# check to "greater than zero", which would take 1 000 so'm for a 400 000
+# so'm order (§17 #262).
 CLICK_SERVICE_ID = os.environ["CLICK_SERVICE_ID"]
 CLICK_MERCHANT_ID = os.environ["CLICK_MERCHANT_ID"]
 CLICK_SECRET_KEY = os.environ["CLICK_SECRET_KEY"]
-CLICK_ACCOUNT_MODEL = "payment.models.Order"
-CLICK_AMOUNT_FIELD = "total_price"
+
+TOLOV = {
+    "CLICK": {
+        "SERVICE_ID": CLICK_SERVICE_ID,
+        "MERCHANT_ID": CLICK_MERCHANT_ID,
+        "SECRET_KEY": CLICK_SECRET_KEY,
+        "ACCOUNT_MODEL": "payment.models.Order",
+        "ACCOUNT_FIELD": "id",
+        "ONE_TIME_PAYMENT": True,
+        "COMMISSION_PERCENT": 0.0,
+    },
+}
 
 # --- eskiz SMS ---
 # ESKIZ_FROM defaults to Eskiz's test sender (4546); set the approved sender in prod.

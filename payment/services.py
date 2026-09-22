@@ -10,8 +10,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import F, Value
 from django.db.models.functions import Greatest
 from django.conf import settings
-from click_up import ClickUp
-from click_up.models import ClickTransaction
+from tolov import ClickGateway
 
 from cart.models import Cart
 from core import telegram
@@ -144,9 +143,9 @@ def generate_click_paylink(order, return_url):
     ``amount`` is passed in so'm (UZS); ``total_price`` is already whole so'm, so
     no tiyin conversion is needed here.
     """
-    click_up = ClickUp(service_id=settings.CLICK_SERVICE_ID,
-                       merchant_id=settings.CLICK_MERCHANT_ID)
-    return click_up.initializer.generate_pay_link(
+    gateway = ClickGateway(service_id=settings.CLICK_SERVICE_ID,
+                           merchant_id=settings.CLICK_MERCHANT_ID)
+    return gateway.create_payment(
         id=order.id,
         amount=order.total_price,
         return_url=return_url,
@@ -168,15 +167,18 @@ def _move_stock(order, sign):
         )
 
 
-def apply_successful_payment(click_trans_id):
-    """Mark the order PAID for a completed Click transaction (idempotent).
+def apply_successful_payment(order):
+    """Mark ``order`` PAID (idempotent). The only place an order becomes paid.
 
-    The status check is what makes it idempotent: Click can replay a callback, and
-    stock must only come down once. Local name ``click_txn`` rather than
-    ``transaction`` so ``django.db.transaction`` stays reachable here.
+    The status check is what makes it idempotent: a gateway can replay a
+    callback, and stock must only come down once.
+
+    Takes the order rather than a gateway's transaction id. It used to take a
+    Click transaction id and look the order up through click-pkg's own table,
+    which made this function know about one gateway; resolving the order is
+    the webhook's job now, and this stays the single place the status moves
+    (§17 #253).
     """
-    click_txn = ClickTransaction.objects.get(transaction_id=click_trans_id)
-    order = Order.objects.get(id=click_txn.account_id)
     if order.status != Order.Status.PAID:
         with transaction.atomic():
             _move_stock(order, -1)
@@ -189,18 +191,21 @@ def apply_successful_payment(click_trans_id):
             telegram.notify_paid_order(order)
 
 
-def apply_cancelled_payment(click_trans_id):
-    """Mark the order CANCELLED for a cancelled Click transaction.
+def apply_cancelled_payment(order):
+    """Mark ``order`` CANCELLED unless it is already paid or cancelled.
 
     Leaves orders that are already paid or cancelled untouched — so no stock
     moves here: an order that never reached PAID never took any.
+
+    The old version re-read click-pkg's transaction row and acted only if its
+    state was CANCELLED. That guard is not lost: tolov calls its
+    ``cancelled_payment`` hook only for a cancellation, so the call itself is
+    the signal, and the status check below is what stops a replay undoing a
+    paid order.
     """
-    click_txn = ClickTransaction.objects.get(transaction_id=click_trans_id)
-    if click_txn.state == ClickTransaction.CANCELLED:
-        order = Order.objects.get(id=click_txn.account_id)
-        if order.status not in (Order.Status.PAID, Order.Status.CANCELLED):
-            order.status = Order.Status.CANCELLED
-            order.save(update_fields=['status', 'updated_at'])
+    if order.status not in (Order.Status.PAID, Order.Status.CANCELLED):
+        order.status = Order.Status.CANCELLED
+        order.save(update_fields=['status', 'updated_at'])
 
 
 def cancel_order(order):

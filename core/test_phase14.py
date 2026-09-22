@@ -20,13 +20,19 @@ idea from the other end: a mark is a promise about what the server will do,
 so the tests check it against the server rather than counting stars.
 """
 import re
+from decimal import Decimal
+from importlib import util
+from pathlib import Path
 
+from django.conf import settings
+from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from django.urls import reverse
+from django.urls import resolve, reverse
 from django.utils import translation
 
 from cart.models import Cart, CartItem
+from payment import views as payment_views
 from payment.models import Order, PaymentOption
 from product.models import Size, SizeChartRow, Slide, slide_link
 
@@ -733,3 +739,52 @@ class AddressSheetTests(TestCase):
                 url = reverse('checkout')
             with self.subTest(lang=lang):
                 self.assertIn(word, self.client.get(url).content.decode())
+
+
+class TolovSwapTests(TestCase):
+    """Item 5, first half: Click moves from click-pkg to tolov (§17 #253).
+
+    Nothing a customer sees changes. These hold the three things that could
+    have broken quietly, and the one that would have broken loudly on the
+    owner's money.
+    """
+
+    def test_click_pkg_is_gone(self):
+        """Not merely unused — uninstalled, and nothing left importing it."""
+        self.assertIsNone(util.find_spec('click_up'),
+                          'click_up is still importable')
+
+    def test_requirements_names_tolov_and_not_click_pkg(self):
+        text = (Path(settings.BASE_DIR) / 'requirements.txt').read_text('utf-8')
+        self.assertIn('tolov==', text)
+        self.assertNotIn('click-pkg', text)
+
+    def test_the_webhook_is_still_at_the_exact_path_click_was_given(self):
+        """§12 risk #2: breaking this fails silently, on every payment."""
+        self.assertEqual(reverse('click_webhook'), '/payment/click/update/')
+        self.assertIs(resolve('/payment/click/update/').func.view_class,
+                      payment_views.ClickWebhookAPIView)
+
+    def test_the_order_answers_to_amount(self):
+        """§17 #262 — the one that would have rejected every real payment.
+
+        tolov checks a callback's amount with `getattr(account, "amount", 0)`,
+        hardcoded, where click-pkg read the field name from a setting. Without
+        this property the comparison is against zero, `InvalidAmount` is
+        raised, Click gets `error: -2`, and no order can ever be paid for.
+        """
+        order = Order(total_price=Decimal('420000'))
+        self.assertEqual(order.amount, order.total_price)
+        self.assertEqual(float(getattr(order, 'amount', 0)), 420000.0)
+
+    def test_the_amount_check_would_pass_for_a_real_payment(self):
+        """The property, put through tolov's own comparison rather than ours."""
+        order = Order(total_price=Decimal('420000'))
+        received = float(order.total_price)
+        expected = float(getattr(order, 'amount', 0))
+        self.assertLessEqual(abs(received - expected), 0.01)
+
+    def test_the_gateway_transaction_admin_is_not_registered(self):
+        """A raw gateway row is a debugging artefact, not something to browse."""
+        from tolov.integrations.django.models import PaymentTransaction
+        self.assertNotIn(PaymentTransaction, admin.site._registry)

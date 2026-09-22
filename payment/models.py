@@ -368,6 +368,23 @@ class Order(models.Model):
         if errors:
             raise ValidationError(errors)
 
+    @property
+    def amount(self):
+        """What this order costs, under the name tolov looks for.
+
+        Not a column and not a second source of truth — `total_price` is the
+        number, in whole so'm, and this is an alias.
+
+        It exists because tolov checks a payment callback's amount with
+        ``getattr(account, "amount", 0)``, hardcoded, where click-pkg read the
+        field name from a setting. Without this the check compares a real
+        payment against **zero** and raises `InvalidAmount`, which answers
+        Click with `error: -2` and means no order can ever be paid for
+        (§17 #262). A property rather than a rename because `total_price` is
+        what the rest of the shop, the panel and the Telegram message all say.
+        """
+        return self.total_price
+
     def location_text(self):
         """This order's frozen destination text. See :func:`location_text`."""
         return location_text(self.region if self.region_id else None,

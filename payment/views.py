@@ -1,5 +1,6 @@
 """Checkout, Click payment start/webhook, and order views."""
 import json
+import logging
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
@@ -12,13 +13,15 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils import translation
 from django.utils.translation import gettext as _
-from click_up.views import ClickWebhook
+from tolov.integrations.django.webhooks import ClickWebhook
 
 from core.i18n import tfield
 from .models import (DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX)
 from user.models import phone_regex
 from . import services
+
+logger = logging.getLogger(__name__)
 
 
 # ---------- presentation helper ----------
@@ -313,12 +316,42 @@ def payment_start(request, order_id):
 
 
 class ClickWebhookAPIView(ClickWebhook):
-    """Single Click callback endpoint; click_up routes Prepare/Complete internally."""
-    def successfully_payment(self, params):
-        services.apply_successful_payment(params.click_trans_id)
+    """Single Click callback endpoint; tolov routes Prepare/Complete internally.
 
-    def cancelled_payment(self, params):
-        services.apply_cancelled_payment(params.click_trans_id)
+    Mounted by us, at the path Click was given, which is why moving off
+    click-pkg did not mean telling Click anything (§17 #253). The path is
+    asserted by a test, because breaking it fails silently (§12 risk #2).
+
+    tolov hands the hook its own `PaymentTransaction`, whose ``account_id`` is
+    the id we passed when the pay link was made — so resolving the order is
+    one lookup here, and `apply_successful_payment` stays the only place an
+    order's status moves.
+    """
+
+    def successfully_payment(self, params, transaction):
+        order = self._order(transaction)
+        if order is not None:
+            services.apply_successful_payment(order)
+
+    def cancelled_payment(self, params, transaction):
+        order = self._order(transaction)
+        if order is not None:
+            services.apply_cancelled_payment(order)
+
+    @staticmethod
+    def _order(transaction):
+        """The order this transaction is for, or None with a line in the log.
+
+        A callback naming an order that is not there is not an exception worth
+        raising: Click would see a 500 and retry it forever. It is logged and
+        answered, which is what every other external call on this site does
+        (§4, the `core/sms.py` pattern).
+        """
+        order = Order.objects.filter(pk=transaction.account_id).first()
+        if order is None:
+            logger.error('payment callback for an order that does not exist: %s',
+                         transaction.account_id)
+        return order
 
 
 # ---------- viewing an order ----------
