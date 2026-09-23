@@ -120,7 +120,7 @@
           {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
           {% for t in selected_tags %}<input type="hidden" name="tag" value="{{ t }}">{% endfor %}
           <label class="sr-only" for="gx-sort">{% trans "Tartiblash" %}</label>
-          <select class="select" id="gx-sort" name="sort" onchange="this.form.submit()">
+          <select class="select" id="gx-sort" name="sort" data-autosubmit>
             <option value="new" {% if sort == 'new' %}selected{% endif %}>{% trans "Yangilari" %}</option>
             <option value="popular" {% if sort == 'popular' %}selected{% endif %}>{% trans "Ommabop" %}</option>
             <option value="rating" {% if sort == 'rating' %}selected{% endif %}>{% trans "Reyting boʻyicha" %}</option>

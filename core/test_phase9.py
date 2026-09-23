@@ -309,10 +309,17 @@ class ImageTagTests(TempMedia, TestCase):
         self.assertNotIn('srcset="', html)
 
     def test_the_fallback_drops_the_source_set_with_the_source(self):
-        """A browser with `srcset` ignores `src`, so setting that alone shows nothing."""
+        """A browser with `srcset` ignores `src`, so setting that alone shows nothing.
+
+        This read the inline `onerror=` until Phase 10 moved the behaviour into
+        `main.js` for the CSP (§17 #269). The rule is unchanged and so is the
+        test's point; only the place that clears `srcset` has moved, and
+        `core.test_phase10.PhotoFallbackTests` asserts it is still done.
+        """
         image = with_photo(self.product)
         html = image_tags.photo_attrs(image, 'card')
-        self.assertIn("removeAttribute('srcset')", html)
+        self.assertIn('data-fallback="', html)
+        self.assertNotIn('onerror', html)
 
     def test_the_viewer_is_offered_the_full_width_file(self):
         image = with_photo(self.product, 2000, 2500)
@@ -621,8 +628,12 @@ class StructuredDataTests(TempMedia, TestCase):
         html = self.client.get(url).content.decode()
         self.assertEqual(html.count('application/ld+json'), 1,
                          'two blocks is the same thing said twice')
-        found = re.search(r'<script type="application/ld\+json">(.*?)</script>',
-                          html, re.S)
+        found = re.search(
+            # `[^>]*` because the block carries a CSP nonce since Phase 10.
+            # Pinning the opening tag exactly read a perfectly good page as
+            # having no structured data at all (§17 #269).
+            r'<script type="application/ld\+json"[^>]*>(.*?)</script>',
+            html, re.S)
         self.assertIsNotNone(found, 'no structured data on %s' % url)
         return json.loads(found.group(1))['@graph']
 

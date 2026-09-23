@@ -382,7 +382,59 @@
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   };
 
+  /* ------------------------------------------- broken photographs */
+  /* A stored photograph whose file has gone - a database restored against an
+   * older media folder, a half-copied deploy - used to be caught by an inline
+   * `onerror=` written by `photo_attrs`. The Content-Security-Policy in Phase
+   * 10 forbids inline handlers, and a nonce does not cover them, so the
+   * attribute would have stopped running on every image on the site with
+   * nothing to say so (§17 #239). The tag now emits `data-fallback` and this
+   * does the work.
+   *
+   * Two halves, and both are needed. The listener is registered here at the
+   * top of the file rather than on DOMContentLoaded because `error` does not
+   * bubble - hence capture - and because an image can fail while the page is
+   * still parsing. The sweep afterwards catches the ones that already failed
+   * before this file ran: `complete` with a zero `naturalWidth` is a load
+   * that finished and produced nothing. */
+  function useFallback(img) {
+    var fallback = img.getAttribute('data-fallback');
+    if (!fallback || img.getAttribute('data-fallback-used')) { return; }
+    img.setAttribute('data-fallback-used', '1');
+    img.removeAttribute('srcset');
+    img.src = fallback;
+  }
+
+  document.addEventListener('error', function (event) {
+    var img = event.target;
+    if (img && img.tagName === 'IMG') { useFallback(img); }
+  }, true);
+
+  function sweepBrokenImages() {
+    $$('img[data-fallback]').forEach(function (img) {
+      if (img.complete && img.naturalWidth === 0) { useFallback(img); }
+    });
+  }
+
+  /* ------------------------------------------------ submit-on-change */
+  /* The cart's quantity field and the shop's sort menu submit their form as
+   * soon as they change. That was `onchange="this.form.submit()"` on each -
+   * inline code, so the CSP forbids it. `form.submit()` rather than
+   * `requestSubmit()` on purpose: it is what the attribute did, and it skips
+   * the submit handlers, which is the behaviour these two forms have always
+   * had (§4, preserve existing behaviour). */
+  function initAutoSubmit() {
+    document.addEventListener('change', function (event) {
+      var el = event.target;
+      if (el && el.hasAttribute && el.hasAttribute('data-autosubmit') && el.form) {
+        el.form.submit();
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    sweepBrokenImages();
+    initAutoSubmit();
     initDrawer();
     initSearchToggle();
     initSteppers();

@@ -62,6 +62,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Second, so the nonce exists before anything can render a template and
+    # the header is written last on the way out. It skips non-HTML replies,
+    # so the gateways' webhook responses are untouched (§17 #269).
+    'core.middleware.ContentSecurityPolicyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # Must sit after SessionMiddleware (it reads the language from the session)
     # and before CommonMiddleware (which appends slashes using the active URLconf).

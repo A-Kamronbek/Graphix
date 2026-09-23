@@ -88,7 +88,10 @@
 
   {# Everything this page has to say to a search engine, in one @graph: two #}
   {# Product nodes on one page is one product described twice. #}
-  {% if jsonld %}<script type="application/ld+json">{{ jsonld }}</script>{% endif %}
+  {# The only inline script on the site, and the reason the policy carries a #}
+  {# nonce at all: without one, allowing this block would mean allowing every #}
+  {# inline script, including an injected one (§17 #269). #}
+  {% if jsonld %}<script type="application/ld+json" nonce="{{ request.csp_nonce }}">{{ jsonld }}</script>{% endif %}
 
   {% block extra_head %}{% endblock %}
 </head>

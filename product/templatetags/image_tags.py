@@ -82,9 +82,14 @@ def photo_attrs(photo, where='card'):
     # a half-copied deploy - and an empty frame says nothing. `srcset` has to go
     # with it: a browser that has one ignores `src` entirely, so setting the
     # source alone would leave the broken picture on the screen.
-    parts.append(
-        "onerror=\"this.onerror=null;this.removeAttribute('srcset');this.src='%s'\""
-        % conditional_escape(placeholder))
+    #
+    # This was an inline `onerror=` until Phase 10. A Content-Security-Policy
+    # nonce covers an inline <script> and does NOT cover an inline event
+    # handler, so with `script-src` locked down the attribute would simply
+    # stop running - on every photograph on the site, silently (§17 #239).
+    # `main.js` listens for the error instead; the attribute now only carries
+    # the address, which is data rather than code.
+    parts.append(_attr('data-fallback', placeholder))
     return mark_safe(' '.join(parts))
 
 
