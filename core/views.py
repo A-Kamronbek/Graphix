@@ -4,7 +4,7 @@ handlers."""
 from urllib.parse import urlsplit
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from panel.auth import staff_only
 from django.http import Http404, HttpResponse
 from django.template.loader import select_template
 from django.utils import translation
@@ -266,13 +266,21 @@ STYLE_ICONS = [
 ]
 
 
-@staff_member_required
+@staff_only
 def style_guide(request):
     """Render every component in every state — the design-system reference.
 
     Staff-only and ``noindex``. Standalone rather than extending ``base.html``,
     because it renders every component in every state — including ones no
     storefront page uses — so it stays a reference as the pages change.
+
+    Guarded by the panel's `staff_only`, not Django's `staff_member_required`.
+    This page predates the panel by five phases and kept the decorator
+    `panel/auth.py` was later written to replace: it sent a signed-in customer
+    who found `/boshqaruv/style/` to the **admin login form**, advertising
+    /admin/ and inviting a password attempt, where every other page under that
+    prefix answers 403. `panel.auth` imports nothing from any app, so this
+    costs no dependency worth having (§17 #268).
     """
     return render(request, 'boshqaruv/style.html', {
         'swatches': STYLE_SWATCHES,
