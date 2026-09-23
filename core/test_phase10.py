@@ -310,3 +310,250 @@ class MapsPolicyTests(TestCase):
             if 'js/map.js' in p.read_text(encoding='utf-8'))
         self.assertEqual(including, ['payment/checkout.html'],
                          'templates loading map.js: %s' % including)
+
+
+# ---------------------------------------------------------------------------
+# Hardening items 4 and 5: authentication, ownership and CSRF on the endpoints
+# that change something.
+#
+# The smoke matrix asks every URL what it answers to a GET. That is the wrong
+# question for a write endpoint: a GET is 405 whoever sends it, and 405 says
+# nothing about whether an anonymous POST would have gone through. These ask
+# with the method the endpoint actually accepts.
+#
+# The tables come from `test_smoke` on purpose. An endpoint added there is
+# covered here the same day, and one that exists in neither fails the smoke
+# matrix's own coverage test.
+# ---------------------------------------------------------------------------
+from .test_smoke import PANEL, WRITE_ONLY  # noqa: E402
+
+
+class AnonymousWriteTests(TestCase):
+    """No write endpoint may act for a visitor who is not signed in."""
+
+    #: The four that anonymous visitors are *supposed* to reach. The cart
+    #: belongs to the session before it belongs to an account, and the
+    #: password-reset steps run for somebody who by definition cannot sign in.
+    PUBLIC = {'cart_add', 'cart_update', 'cart_remove',
+              'password_reset_resend', 'password_reset_expire',
+              'logout', 'set_language'}
+
+    def setUp(self):
+        from .test_phase4 import make_product
+        from .test_phase6 import make_user
+        from .test_phase12 import make_order
+        self.owner = make_user('egasi', '+998901600001')
+        self.product, self.variant = make_product('Himoya', stock=4)
+        self.order = make_order(self.owner, self.variant, status='paying')
+
+    def tokens(self):
+        return {'slug': self.product.slug, 'product_pk': self.product.pk,
+                'item_pk': 1, 'order_pk': self.order.pk,
+                'paying_pk': self.order.pk, 'order_no': self.order.order_no,
+                'review_pk': 1, 'msg_pk': 1, 'tag_pk': 1, 'kind': 'tag'}
+
+    def urls(self, pages):
+        toks = self.tokens()
+        for page in pages:
+            if page.name in self.PUBLIC:
+                continue
+            kwargs = {k: toks[v] for k, v in page.kwargs.items()}
+            with translation.override('uz'):
+                yield page.name, reverse(page.name, kwargs=kwargs or None)
+
+    def test_an_anonymous_post_is_refused_everywhere(self):
+        """Refused means redirected to the login page or answered 401/403 -
+        never 200, and never the 302-to-somewhere-useful that means it worked.
+        """
+        for name, url in self.urls(WRITE_ONLY + PANEL):
+            with self.subTest(name=name):
+                response = self.client.post(url, {})
+                if response.status_code in (301, 302):
+                    self.assertIn(
+                        '/login/', response.headers.get('Location', ''),
+                        '%s redirected an anonymous POST somewhere other than '
+                        'the login page' % name)
+                else:
+                    self.assertIn(
+                        response.status_code, (401, 403, 405),
+                        '%s answered an anonymous POST with %s'
+                        % (name, response.status_code))
+
+
+class NonStaffWriteTests(TestCase):
+    """A signed-in customer must not reach a panel write endpoint.
+
+    Separate from the anonymous case because the failure is different: the
+    anonymous visitor is sent to a login page, and this one has already
+    logged in. 403 is the only correct answer, and it is the guard in
+    `panel/auth.py` that gives it.
+    """
+
+    def setUp(self):
+        from .test_phase4 import make_product
+        from .test_phase6 import make_user
+        from .test_phase12 import make_order
+        self.user = make_user('mijoz', '+998901600002')
+        self.product, self.variant = make_product('Panel', stock=2)
+        self.order = make_order(self.user, self.variant, status='paying')
+        self.client.force_login(self.user)
+
+    def test_every_panel_write_answers_403(self):
+        toks = {'slug': self.product.slug, 'order_no': self.order.order_no,
+                'review_pk': 1, 'msg_pk': 1, 'tag_pk': 1, 'kind': 'tag'}
+        for page in PANEL:
+            kwargs = {k: toks[v] for k, v in page.kwargs.items()}
+            with self.subTest(name=page.name):
+                with translation.override('uz'):
+                    url = reverse(page.name, kwargs=kwargs or None)
+                self.assertEqual(
+                    self.client.post(url, {}).status_code, 403,
+                    '%s let a signed-in customer POST' % page.name)
+
+
+class WrongOwnerWriteTests(TestCase):
+    """Signed in is not the same as being the customer whose order it is."""
+
+    def setUp(self):
+        from .test_phase4 import make_product
+        from .test_phase6 import make_user
+        from .test_phase12 import make_order
+        self.owner = make_user('egasi', '+998901600003')
+        self.other = make_user('boshqa', '+998901600004')
+        self.product, self.variant = make_product('Egalik', stock=2)
+        self.paying = make_order(self.owner, self.variant, status='paying')
+        self.done = make_order(self.owner, self.variant, status='done')
+        self.client.force_login(self.other)
+
+    def post(self, name, **kwargs):
+        with translation.override('uz'):
+            url = reverse(name, kwargs=kwargs)
+        return self.client.post(url, {})
+
+    def test_another_customers_order_cannot_be_cancelled(self):
+        self.assertEqual(self.post('order_cancel', pk=self.paying.pk)
+                         .status_code, 404)
+        self.paying.refresh_from_db()
+        self.assertEqual(self.paying.status, 'paying')
+
+    def test_another_customers_payment_cannot_be_started(self):
+        self.assertEqual(self.post('payment_start',
+                                   order_id=self.paying.pk).status_code, 404)
+
+    def test_another_customers_order_cannot_be_reviewed(self):
+        from product.models import Review
+        before = Review.objects.count()
+        self.assertEqual(self.post('review_create',
+                                   order_id=self.done.pk).status_code, 404)
+        self.assertEqual(Review.objects.count(), before)
+
+
+class CsrfTests(TestCase):
+    """CSRF is middleware, so it is easy to assume rather than check.
+
+    Django's test client exempts itself by default, which means the whole
+    suite runs with CSRF switched off and nothing would notice a view
+    decorated `@csrf_exempt` by mistake. `enforce_csrf_checks` turns it back
+    on for these.
+    """
+
+    def setUp(self):
+        from django.test import Client
+        from .test_phase4 import make_product
+        from .test_phase6 import make_user
+        from .test_phase12 import make_order
+        self.user = make_user('mijoz', '+998901600005')
+        self.product, self.variant = make_product('Token', stock=2)
+        self.order = make_order(self.user, self.variant, status='paying')
+        self.client = Client(enforce_csrf_checks=True)
+        self.client.force_login(self.user)
+
+    def test_a_post_without_a_token_is_refused(self):
+        with translation.override('uz'):
+            targets = [
+                reverse('order_cancel', kwargs={'pk': self.order.pk}),
+                reverse('payment_start', kwargs={'order_id': self.order.pk}),
+                reverse('product_like', kwargs={'slug': self.product.slug}),
+                reverse('cart_add', kwargs={'product_id': self.product.pk}),
+            ]
+        for url in targets:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.post(url, {}).status_code, 403)
+
+    def test_the_payment_webhooks_are_exempt(self):
+        """A gateway has no CSRF token, so the callback must be exempt.
+
+        This failed when it was written. The three views subclassed tolov's
+        `...django.webhooks` handlers, which are plain `View`s; the
+        `csrf_exempt` versions live in `...django.views` and are what a
+        urlconf is meant to mount. Every callback would have been answered
+        403 in production, and no order could ever have been marked paid.
+        Django's test client disables CSRF by default, which is why every
+        earlier webhook test passed (§17 #270).
+        """
+        for name in ('click_webhook', 'payme_webhook', 'octo_webhook'):
+            with self.subTest(name=name):
+                response = self.client.post(reverse(name), {})
+                self.assertNotEqual(
+                    response.status_code, 403,
+                    '%s was refused for CSRF; a gateway has no token' % name)
+
+    def test_the_views_are_marked_exempt_and_not_merely_tolerated(self):
+        """The assertion above passes for the wrong reason if a view starts
+        answering 403 of its own accord, so read the flag as well.
+        """
+        from payment import views
+        for name, cls in (('click', views.ClickWebhookAPIView),
+                          ('payme', views.PaymeWebhookAPIView),
+                          ('octo', views.OctoWebhookAPIView)):
+            with self.subTest(name=name):
+                self.assertTrue(getattr(cls.as_view(), 'csrf_exempt', False),
+                                '%s webhook is not csrf_exempt' % name)
+
+
+class WebhookSignatureTests(TestCase):
+    """Item 6: a callback nobody signed is not a payment.
+
+    The webhooks are CSRF-exempt, so the signature is the only thing standing
+    between an unsigned POST and an order marked paid.
+    """
+
+    def test_an_unsigned_click_callback_is_refused(self):
+        response = self.client.post(reverse('click_webhook'), {
+            'click_trans_id': '1', 'merchant_trans_id': '1', 'amount': '1',
+            'action': '0', 'sign_string': 'nonsense', 'sign_time': '0',
+            'service_id': '1', 'error': '0',
+        })
+        self.assertIn('error', response.content.decode().lower())
+        self.assertNotIn('"error": 0', response.content.decode())
+
+    def test_an_empty_callback_does_not_mark_anything_paid(self):
+        from payment.models import Order
+        paid_before = Order.objects.filter(status=Order.Status.PAID).count()
+        for name in ('click_webhook', 'payme_webhook', 'octo_webhook'):
+            self.client.post(reverse(name), {})
+        self.assertEqual(
+            Order.objects.filter(status=Order.Status.PAID).count(),
+            paid_before)
+
+
+class ErrorPageTests(TestCase):
+    """Item 9: what an error page gives away with DEBUG off.
+
+    The suite runs with DEBUG False already, so these read the real pages.
+    """
+
+    def test_a_missing_page_gives_nothing_away(self):
+        html = self.client.get('/uz/no-such-page/').content.decode()
+        for leak in ('Traceback', 'DJANGO_SETTINGS_MODULE', 'SECRET_KEY',
+                     'site-packages', 'Request Method', 'BASE_DIR'):
+            with self.subTest(leak=leak):
+                self.assertNotIn(leak, html)
+
+    def test_the_error_pages_are_the_sites_own(self):
+        """Django's default 404 is a white page in English. These are ours,
+        which means they are translated and carry the site's navigation.
+        """
+        response = self.client.get('/uz/no-such-page/')
+        self.assertEqual(response.status_code, 404)
+        self.assertIn('GRAPHIX', response.content.decode())
