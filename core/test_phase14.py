@@ -45,6 +45,18 @@ from .test_phase7 import make_staff
 from .test_phase7b import photo
 
 
+def tolov_with(test_mode):
+    """A copy of TOLOV with Octo's test mode set either way.
+
+    The dict is built once at import, so overriding DEBUG does not move it -
+    which is the point of §17 #267: the setting is the single answer to
+    "is this a test payment", rather than DEBUG being read twice and the two
+    halves being free to disagree.
+    """
+    octo = dict(settings.TOLOV['OCTO_BANK'], TEST_MODE=test_mode)
+    return dict(settings.TOLOV, OCTO_BANK=octo)
+
+
 def card_for(html, code):
     """The one payment card for this method, isolated from its neighbours.
 
@@ -1050,18 +1062,61 @@ class GatewayRefusalTests(TestCase):
                     self.octo_order(), 'https://graphix.uz/')
         self.assertEqual(link, 'https://secure.octo.uz/pay/abc')
 
-    def test_octo_links_are_built_in_test_mode_while_DEBUG(self):
+    def test_the_link_carries_the_test_flag_from_the_one_setting(self):
         """`is_test_mode` becomes the `test` flag in Octo's request body, and
-        that flag is what decides whether real money moves. It must track
-        DEBUG, the same as TOLOV['OCTO_BANK']['TEST_MODE'] on the callback side.
+        that flag decides whether real money moves. It reads the same setting
+        the webhook reads, so a link built as a test payment cannot meet a
+        callback expecting a live one (§17 #267).
+        """
+        for mode in (True, False):
+            with self.subTest(test_mode=mode):
+                with override_settings(OCTO_SHOP_ID='123',
+                                       OCTO_SECRET='s3cret',
+                                       OCTO_UNIQUE_KEY='uniq',
+                                       TOLOV=tolov_with(mode)):
+                    with mock.patch('payment.services.OctoGateway') as gateway:
+                        gateway.return_value.create_payment.return_value = 'x'
+                        payment_services.generate_paylink(
+                            self.octo_order(), 'https://graphix.uz/')
+                self.assertIs(gateway.call_args.kwargs['is_test_mode'], mode)
+
+    def test_the_unique_key_is_optional_in_test_mode(self):
+        """It is what Kamronbek is testing with today, and tolov allows it."""
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret',
+                               OCTO_UNIQUE_KEY='', TOLOV=tolov_with(True)):
+            self.assertTrue(
+                payment_services.method_is_configured(Order.PaymentMethod.OCTO))
+
+    def test_the_unique_key_is_required_once_test_mode_is_off(self):
+        """Shop id and secret are enough to *take* a payment and not enough to
+        *confirm* one — the worst shape a payment integration can be in.
         """
         with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret',
-                               DEBUG=True):
+                               OCTO_UNIQUE_KEY='', TOLOV=tolov_with(False)):
+            self.assertFalse(
+                payment_services.method_is_configured(Order.PaymentMethod.OCTO))
+
+    def test_a_live_octo_without_the_key_never_reaches_the_gateway(self):
+        """So a customer cannot start a payment whose callback will raise."""
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret',
+                               OCTO_UNIQUE_KEY='', TOLOV=tolov_with(False)):
             with mock.patch('payment.services.OctoGateway') as gateway:
-                gateway.return_value.create_payment.return_value = 'https://x/'
-                payment_services.generate_paylink(
-                    self.octo_order(), 'https://graphix.uz/')
-        self.assertIs(gateway.call_args.kwargs['is_test_mode'], True)
+                with self.assertRaises(
+                        payment_services.PaymentMethodUnavailable):
+                    payment_services.generate_paylink(
+                        self.octo_order(), 'https://graphix.uz/')
+        gateway.assert_not_called()
+
+    def test_tolov_still_refuses_the_webhook_without_the_unique_key(self):
+        """The reason the rule above exists, asserted against the library.
+
+        If a tolov upgrade ever drops the requirement, our rule becomes
+        over-strict and this says so rather than leaving a method switched
+        off for a reason that stopped being true.
+        """
+        with override_settings(OCTO_UNIQUE_KEY='', TOLOV=tolov_with(False)):
+            with self.assertRaises(ValueError):
+                payment_views.OctoWebhookAPIView()
 
     # ------------------------------------------------ through tolov's own client
 

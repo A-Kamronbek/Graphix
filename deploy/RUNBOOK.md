@@ -417,7 +417,9 @@ site deletes one. Without this timer that sentence is false.
 
 ---
 
-## 17. Click
+## 17. Click, Payme and Octo
+
+### 17.1 Click
 
 **[Kamronbek]** — in the Click merchant cabinet.
 
@@ -439,6 +441,37 @@ sudo journalctl -u graphix --since '10 min ago' | grep -i click
 
 This is the highest-risk step in the project. A wrong webhook URL fails
 silently: the customer pays, Click is happy, and the order sits unpaid forever.
+
+### 17.2 Payme and Octo
+
+**[Kamronbek]** — both ship **switched off** in Boshqaruv > Toʻlov usullari,
+and stay off until their keys are in. While a method is switched on the
+checkout offers it, whether or not it is configured.
+
+| Gateway | Register this webhook | `.env` keys |
+|---|---|---|
+| Payme | `https://graphix.uz/payment/payme/update/` | `PAYME_ID`, `PAYME_KEY` |
+| Octo | `https://graphix.uz/payment/octo/update/` | `OCTO_SHOP_ID`, `OCTO_SECRET`, `OCTO_UNIQUE_KEY` |
+
+Unprefixed, exactly as written, for the same reason Click's is: a gateway is
+given one address and posts to it forever, and a `/uz/` in front of it is a
+404 the gateway reports as your fault.
+
+Then, for each: restart, switch the method on in the panel, confirm it reads
+**Sozlangan** rather than Sozlanmagan, and buy something real for 1 000 soʻm.
+The three things to confirm afterwards are Click's three, with the gateway's
+name in the `journalctl` grep.
+
+**`OCTO_UNIQUE_KEY` is not optional in production.** Octo issues it
+separately from the shop id and the secret, and it is what signs the
+callback. With `DEBUG` on the site runs Octo in test mode, signatures are not
+verified and a blank key is fine — which is how the integration was tested.
+With `DEBUG` off and the key missing, tolov **refuses to construct the Octo
+callback at all**, so the endpoint raises on every call: the customer pays and
+the order never flips to `paid`. The site will not let that happen — Octo
+reads as unconfigured in production without the key, so no Octo payment can
+start — but the symptom on the panel is a method that will not switch into
+service, and this is the reason (§17 #267).
 
 ---
 

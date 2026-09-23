@@ -201,6 +201,29 @@ GATEWAY_CREDENTIALS = {
     Order.PaymentMethod.OCTO: ('OCTO_SHOP_ID', 'OCTO_SECRET'),
 }
 
+#: What a method additionally needs once it is handling real money. Octo signs
+#: its callbacks `sha1(unique_key + payment_uuid + status)`, and tolov refuses
+#: to construct the webhook at all without the key unless test mode is on —
+#: so with it missing in production a customer could pay and the callback
+#: would raise before it ever reached us. Shop id and secret are enough to
+#: *take* a payment and not enough to *confirm* one, which is the worst shape
+#: a payment integration can be in (§17 #267).
+LIVE_ONLY_CREDENTIALS = {
+    Order.PaymentMethod.OCTO: ('OCTO_UNIQUE_KEY',),
+}
+
+
+def octo_test_mode():
+    """Whether Octo is in test mode, read from the dict tolov itself reads.
+
+    `TOLOV['OCTO_BANK']['TEST_MODE']` is what the webhook consults. Reading
+    `DEBUG` separately here would be a second answer to the same question,
+    and the two halves disagreeing is how a link built as a test payment
+    meets a webhook expecting a live one. One place, so the day there is a
+    staging server (§18 #46) only the setting changes.
+    """
+    return bool(settings.TOLOV.get('OCTO_BANK', {}).get('TEST_MODE', False))
+
 
 def method_is_configured(method):
     """Whether the shop holds the credentials this method needs.
@@ -216,6 +239,10 @@ def method_is_configured(method):
     names = GATEWAY_CREDENTIALS.get(method)
     if not names:
         return False
+    if method != Order.PaymentMethod.OCTO or not octo_test_mode():
+        # Test mode is the only state in which the live-only keys are
+        # genuinely optional, and it is tolov that decides that, not us.
+        names = names + LIVE_ONLY_CREDENTIALS.get(method, ())
     return all(str(getattr(settings, name, '') or '').strip() for name in names)
 
 
@@ -250,12 +277,12 @@ def _build_paylink(order, return_url, method):
     # `is_test_mode` is passed for one reason: it becomes the `test` flag in
     # Octo's request body, and that flag decides whether real money moves.
     # Left off, every link built on a developer's laptop is a live payment.
-    # It reads DEBUG, which is what TOLOV['OCTO_BANK']['TEST_MODE'] already
-    # does for the callback side — the two halves have to agree (§17 #266).
+    # It comes from the same setting the webhook reads, so the two halves of
+    # one payment cannot disagree about which kind it is (§17 #266, #267).
     gateway = OctoGateway(
         octo_shop_id=int(settings.OCTO_SHOP_ID or 0),
         octo_secret=settings.OCTO_SECRET,
-        is_test_mode=settings.DEBUG)
+        is_test_mode=octo_test_mode())
     return gateway.create_payment(
         id=order.id, amount=order.total_price, return_url=return_url)
 
