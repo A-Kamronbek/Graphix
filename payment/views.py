@@ -324,6 +324,15 @@ def payment_start(request, order_id):
         # rather than redirected at a gateway that will show a broken page.
         messages.info(request, _("Bu toʻlov usuli uchun onlayn toʻlov yoʻq."))
         return redirect('order_status', pk=order.id)
+    except services.PaymentGatewayError:
+        # Reachable and said no, or not reachable at all. A different message
+        # from the one above on purpose: this order is still PAYING and the
+        # method will probably work in an hour, so telling the customer it has
+        # no online payment would send them away from one that does.
+        messages.error(request, _("Toʻlov tizimi hozir javob bermayapti. "
+                                  "Iltimos, birozdan soʻng qayta urinib "
+                                  "koʻring."))
+        return redirect('order_status', pk=order.id)
     return redirect(paylink)
 
 

@@ -339,11 +339,24 @@
          data-ref-url="{% url 'panel_reference_inline' kind='payment' pk=way.pk %}">
       <div class="row row--between">
         <strong>{{ way.code }}</strong>
-        <label class="switch">
-          <input type="checkbox" data-ref-field="is_active"
-                 {% if way.is_active %}checked{% endif %}>
-          <span>{% trans "Yoqilgan" %}</span>
-        </label>
+        <div class="row">
+          {% comment %}
+            Not a switch and not editable: it reports whether this method's
+            credentials are in the environment. The switch above says what the
+            owner wants offered; this says whether the shop can take the money.
+            Octo was switched on with none and the checkout broke (§17 #266).
+          {% endcomment %}
+          {% if way.configured %}
+            <span class="badge badge--success">{% trans "Sozlangan" %}</span>
+          {% else %}
+            <span class="badge badge--warning">{% trans "Sozlanmagan" %}</span>
+          {% endif %}
+          <label class="switch">
+            <input type="checkbox" data-ref-field="is_active"
+                   {% if way.is_active %}checked{% endif %}>
+            <span>{% trans "Yoqilgan" %}</span>
+          </label>
+        </div>
       </div>
       <div class="row--fields">
         <label class="field">

@@ -35,6 +35,7 @@ from core.models import Msg
 from payment.models import (DeliveryOption, District, Order, PaymentOption,
                             Region)
 from product import images as image_pipeline
+from payment import services as payment_services
 from product import services as product_services
 from product.models import (Category, PrintMethod, Product, Review, Size,
                             SizeChart, Slide, Tag, TagKind, Variant,
@@ -682,6 +683,26 @@ def message_read(request, pk):
 
 # --------------------------------------------------------------- reference
 
+def _payment_rows():
+    """Payment methods, each carrying whether its credentials actually exist.
+
+    The switch in the panel says whether the owner *wants* a method offered.
+    This says whether the shop can take money with it, and the answer lives
+    in the environment, where the panel cannot see it. They are different
+    questions and they disagree more often than you would think: Octo
+    switched on with no OCTO_SHOP_ID sent a customer to a broken checkout and
+    said nothing anywhere (§17 #266).
+
+    Read-only — the owner can still switch on whatever he likes, because a
+    credential set in .env after the last restart is a real case and locking
+    the switch would make it unexplainable.
+    """
+    rows = list(PaymentOption.objects.all())
+    for row in rows:
+        row.configured = payment_services.method_is_configured(row.code)
+    return rows
+
+
 @staff_only
 def settings_screen(request):
     """Delivery, payment methods, sizes, tags and size charts: the rarely edited rows.
@@ -693,7 +714,7 @@ def settings_screen(request):
     return render(request, 'boshqaruv/settings.html', {
         'screen': 'settings',
         'tiers': DeliveryOption.objects.all(),
-        'payments': PaymentOption.objects.all(),
+        'payments': _payment_rows(),
         'sizes': Size.objects.all(),
         'tags': Tag.objects.select_related('kind'),
         'charts': SizeChart.objects.all(),

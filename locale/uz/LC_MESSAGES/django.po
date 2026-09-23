@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 15:00+0500\n"
+"POT-Creation-Date: 2026-09-23 14:53+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -246,13 +246,13 @@ msgstr "“%(field)s” juda uzun — koʻpi bilan %(n)d ta belgi."
 #: .\templates\boshqaruv\settings.html:185
 #: .\templates\boshqaruv\settings.html:234
 #: .\templates\boshqaruv\settings.html:255
-#: .\templates\boshqaruv\settings.html:352
-#: .\templates\boshqaruv\settings.html:357
-#: .\templates\boshqaruv\settings.html:362
+#: .\templates\boshqaruv\settings.html:366
+#: .\templates\boshqaruv\settings.html:371
+#: .\templates\boshqaruv\settings.html:376
 msgid "Nomi"
 msgstr "Nomi"
 
-#: .\panel\catalogue.py:149 .\panel\views.py:764 .\panel\views.py:803
+#: .\panel\catalogue.py:149 .\panel\views.py:785 .\panel\views.py:824
 msgid "Nomi kerak."
 msgstr "Nomi kerak."
 
@@ -306,11 +306,11 @@ msgstr "Notoʻgʻri son."
 msgid "«%(name)s» nomi bu roʻyxatda allaqachon bor."
 msgstr "«%(name)s» nomi bu roʻyxatda allaqachon bor."
 
-#: .\panel\reference.py:239 .\panel\views.py:797
+#: .\panel\reference.py:239 .\panel\views.py:818
 msgid "Notoʻgʻri jadval."
 msgstr "Notoʻgʻri jadval."
 
-#: .\panel\reference.py:242 .\panel\views.py:539
+#: .\panel\reference.py:242 .\panel\views.py:540
 msgid "Notoʻgʻri maydon."
 msgstr "Notoʻgʻri maydon."
 
@@ -382,86 +382,86 @@ msgstr "“{name}” — rasm sifatida oʻqib boʻlmadi."
 msgid "“{name}” oʻchirilsinmi?"
 msgstr "“{name}” oʻchirilsinmi?"
 
-#: .\panel\views.py:251
+#: .\panel\views.py:252
 msgid "Sanadan"
 msgstr "Sanadan"
 
-#: .\panel\views.py:252
+#: .\panel\views.py:253
 msgid "Sanagacha"
 msgstr "Sanagacha"
 
-#: .\panel\views.py:307 .\panel\views.py:309
+#: .\panel\views.py:308 .\panel\views.py:310
 msgid "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
 msgstr "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
 
-#: .\panel\views.py:316 .\panel\views.py:317
+#: .\panel\views.py:317 .\panel\views.py:318
 msgid "Notoʻgʻri holat."
 msgstr "Notoʻgʻri holat."
 
-#: .\panel\views.py:330
+#: .\panel\views.py:331
 #, python-format
 msgid "%(no)s — holat yangilandi."
 msgstr "%(no)s — holat yangilandi."
 
-#: .\panel\views.py:439 .\product\views.py:227
+#: .\panel\views.py:440 .\product\views.py:227
 #: .\templates\product\_card.html:51 .\templates\product\item.html:160
 msgid "Saqlandi."
 msgstr "Saqlandi."
 
-#: .\panel\views.py:528
+#: .\panel\views.py:529
 msgid "Faqat raqam kiriting."
 msgstr "Faqat raqam kiriting."
 
-#: .\panel\views.py:568
+#: .\panel\views.py:569
 msgid "Notoʻgʻri amal."
 msgstr "Notoʻgʻri amal."
 
-#: .\panel\views.py:621
+#: .\panel\views.py:622
 msgid "Notoʻgʻri qaror."
 msgstr "Notoʻgʻri qaror."
 
-#: .\panel\views.py:639 .\templates\boshqaruv\reviews.html:58
+#: .\panel\views.py:640 .\templates\boshqaruv\reviews.html:58
 #, python-format
 msgid "%(avg)s — %(n)s ta"
 msgstr "%(avg)s — %(n)s ta"
 
-#: .\panel\views.py:780
+#: .\panel\views.py:801
 msgid "Teg qoʻshildi."
 msgstr "Teg qoʻshildi."
 
-#: .\panel\views.py:793
+#: .\panel\views.py:814
 msgid "Teg turi qoʻshildi."
 msgstr "Teg turi qoʻshildi."
 
-#: .\panel\views.py:794
+#: .\panel\views.py:815
 msgid "Bosma usuli qoʻshildi."
 msgstr "Bosma usuli qoʻshildi."
 
-#: .\panel\views.py:795
+#: .\panel\views.py:816
 msgid "Turkum qoʻshildi."
 msgstr "Turkum qoʻshildi."
 
-#: .\panel\views.py:833
+#: .\panel\views.py:854
 msgid "Oʻlcham kerak."
 msgstr ""
 
-#: .\panel\views.py:844
+#: .\panel\views.py:865
 msgid "Oʻlcham qoʻshildi."
 msgstr ""
 
-#: .\panel\views.py:896
+#: .\panel\views.py:917
 msgid "Rasm va tavsif kerak."
 msgstr ""
 
-#: .\panel\views.py:923
+#: .\panel\views.py:944
 msgid "Slayd qoʻshildi."
 msgstr ""
 
-#: .\panel\views.py:934
+#: .\panel\views.py:955
 msgid "Nomi va rasm kerak."
 msgstr "Nomi va rasm kerak."
 
-#: .\panel\views.py:945
+#: .\panel\views.py:966
 msgid "Jadval qoʻshildi."
 msgstr "Jadval qoʻshildi."
 
@@ -585,12 +585,18 @@ msgstr ""
 msgid "Bu toʻlov usuli uchun onlayn toʻlov yoʻq."
 msgstr ""
 
-#: .\payment\views.py:430
+#: .\payment\views.py:332
+msgid ""
+"Toʻlov tizimi hozir javob bermayapti. Iltimos, birozdan soʻng qayta urinib "
+"koʻring."
+msgstr "Toʻlov tizimi hozir javob bermayapti. Iltimos, birozdan soʻng qayta urinib koʻring."
+
+#: .\payment\views.py:439
 #, python-format
 msgid "%(no)s raqamli buyurtma bekor qilindi."
 msgstr "%(no)s raqamli buyurtma bekor qilindi."
 
-#: .\payment\views.py:433
+#: .\payment\views.py:442
 msgid "Buyurtmani bekor qilib boʻlmadi."
 msgstr ""
 
@@ -986,9 +992,9 @@ msgstr ""
 msgid "Indeks"
 msgstr "Indeks"
 
-#: .\templates\boshqaruv\order.html:66 .\templates\boshqaruv\settings.html:369
-#: .\templates\boshqaruv\settings.html:374
-#: .\templates\boshqaruv\settings.html:379
+#: .\templates\boshqaruv\order.html:66 .\templates\boshqaruv\settings.html:383
+#: .\templates\boshqaruv\settings.html:388
+#: .\templates\boshqaruv\settings.html:393
 #: .\templates\payment\checkout.html:231
 #: .\templates\payment\order_detail.html:100
 msgid "Izoh"
@@ -1343,7 +1349,7 @@ msgid "Toʻlov usullari"
 msgstr ""
 
 #: .\templates\boshqaruv\settings.html:50
-#: .\templates\boshqaruv\settings.html:347 .\templates\boshqaruv\slides.html:58
+#: .\templates\boshqaruv\settings.html:360 .\templates\boshqaruv\slides.html:58
 msgid "Yoqilgan"
 msgstr "Yoqilgan"
 
@@ -1363,7 +1369,7 @@ msgstr ""
 #: .\templates\boshqaruv\settings.html:207
 #: .\templates\boshqaruv\settings.html:246
 #: .\templates\boshqaruv\settings.html:307
-#: .\templates\boshqaruv\settings.html:386
+#: .\templates\boshqaruv\settings.html:400
 #: .\templates\boshqaruv\slides.html:100
 msgid "Hozircha yoʻq."
 msgstr "Hozircha yoʻq."
@@ -1440,6 +1446,14 @@ msgid ""
 "Toʻlov sahifasida qaysi usullar koʻrinishi shu yerdan yoqiladi va "
 "oʻchiriladi."
 msgstr ""
+
+#: .\templates\boshqaruv\settings.html:353
+msgid "Sozlangan"
+msgstr "Sozlangan"
+
+#: .\templates\boshqaruv\settings.html:355
+msgid "Sozlanmagan"
+msgstr "Sozlanmagan"
 
 #: .\templates\boshqaruv\slides.html:32
 #, python-format

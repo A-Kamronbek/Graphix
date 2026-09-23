@@ -9,7 +9,13 @@ Four methods since Phase 14 — Click, Payme, Octo and cash — and the gateway
 part of that is only two functions deep: `generate_paylink` knows which client
 builds which link, and `apply_successful_payment` knows none of them, because
 the webhook resolves the order before calling it.
+
+`generate_paylink` is also the only place that knows a gateway can refuse.
+Click and Payme build their links locally, so for two phases nothing went
+over the wire at this moment; Octo does call out, and a gateway that answers
+badly must cost a retry, never a 500 (§17 #266).
 """
+import logging
 from decimal import Decimal
 
 from django.db import IntegrityError, transaction
@@ -22,6 +28,10 @@ from cart.models import Cart
 from core import telegram
 from product.models import Variant
 from .models import Order, location_text
+
+#: Module logger, because every external call on this site logs through one
+#: and returns rather than raising (§4, the `core/sms.py` pattern).
+logger = logging.getLogger(__name__)
 
 
 class EmptyCart(Exception):
@@ -166,22 +176,60 @@ class PaymentMethodUnavailable(Exception):
     is configured wrong" — both end in the customer being sent somewhere, and
     silently redirecting to a blank page is how the first bug in a payment
     flow hides.
+
+    Permanent, as far as this customer is concerned: retrying in a minute
+    changes nothing. :class:`PaymentGatewayError` is the other kind.
     """
 
 
-def generate_paylink(order, return_url):
-    """The hosted-payment link for whichever method the order was placed with.
+class PaymentGatewayError(Exception):
+    """Raised when a gateway was asked for a pay link and did not give one.
 
-    One place that knows which gateway builds which link, so `payment_start`
-    does not grow a branch per method (§9 Phase 14 item 5). Cash has no link
-    at all and says so rather than returning something falsy.
+    A refused request, a network failure, or a reply with no link in it. The
+    customer is told something different from the case above — try again
+    shortly, rather than this method has no online payment — because the
+    order is still PAYING and the method will very likely work in an hour.
+    """
+
+
+#: Which settings each online method needs before it can build a pay link.
+#: Cash is absent on purpose: it needs nothing, has no online step, and
+#: `generate_paylink` never reaches a gateway for it.
+GATEWAY_CREDENTIALS = {
+    Order.PaymentMethod.CLICK: ('CLICK_SERVICE_ID', 'CLICK_MERCHANT_ID'),
+    Order.PaymentMethod.PAYME: ('PAYME_ID', 'PAYME_KEY'),
+    Order.PaymentMethod.OCTO: ('OCTO_SHOP_ID', 'OCTO_SECRET'),
+}
+
+
+def method_is_configured(method):
+    """Whether the shop holds the credentials this method needs.
+
+    Cash is configured by definition; a method not in the table is not.
+
+    One function rather than a check wherever somebody wants the answer,
+    because two answers that drift apart is exactly how a method comes to
+    look ready in the panel and fail at the checkout (§17 #266).
+    """
+    if method == Order.PaymentMethod.CASH:
+        return True
+    names = GATEWAY_CREDENTIALS.get(method)
+    if not names:
+        return False
+    return all(str(getattr(settings, name, '') or '').strip() for name in names)
+
+
+def _build_paylink(order, return_url, method):
+    """Ask this method's gateway for a link, raising whatever the gateway raises.
+
+    Split out so the error handling in `generate_paylink` reads as one thing:
+    everything in here is somebody else's library, and none of it can be
+    trusted to fail politely.
 
     Each gateway is constructed per call rather than held at module level: the
-    credentials come from settings, a blank one is a method the owner has not
-    switched on yet, and a module-level client would read them once at import
-    and cache the blank.
+    credentials come from settings, and a module-level client would read them
+    once at import and cache whatever was there then.
     """
-    method = order.payment_method
     if method == Order.PaymentMethod.CLICK:
         return generate_click_paylink(order, return_url)
 
@@ -194,18 +242,70 @@ def generate_paylink(order, return_url):
             id=order.id, amount=int(order.total_price) * 100,
             return_url=return_url)
 
-    if method == Order.PaymentMethod.OCTO:
-        # `octo_shop_id` is typed int. The setting comes from the environment
-        # as text and is blank until the owner has one, so it is coerced here
-        # rather than at import — `int("")` raises, and a missing key must not
-        # stop the site booting (§17 #264).
-        gateway = OctoGateway(
-            octo_shop_id=int(settings.OCTO_SHOP_ID or 0),
-            octo_secret=settings.OCTO_SECRET)
-        return gateway.create_payment(
-            id=order.id, amount=order.total_price, return_url=return_url)
+    # `octo_shop_id` is typed int. The setting comes from the environment as
+    # text and is blank until the owner has one, so it is coerced here rather
+    # than at import — `int("")` raises, and a missing key must not stop the
+    # site booting (§17 #264).
+    #
+    # `is_test_mode` is passed for one reason: it becomes the `test` flag in
+    # Octo's request body, and that flag decides whether real money moves.
+    # Left off, every link built on a developer's laptop is a live payment.
+    # It reads DEBUG, which is what TOLOV['OCTO_BANK']['TEST_MODE'] already
+    # does for the callback side — the two halves have to agree (§17 #266).
+    gateway = OctoGateway(
+        octo_shop_id=int(settings.OCTO_SHOP_ID or 0),
+        octo_secret=settings.OCTO_SECRET,
+        is_test_mode=settings.DEBUG)
+    return gateway.create_payment(
+        id=order.id, amount=order.total_price, return_url=return_url)
 
-    raise PaymentMethodUnavailable(method)
+
+def generate_paylink(order, return_url):
+    """The hosted-payment link for whichever method the order was placed with.
+
+    One place that knows which gateway builds which link, so `payment_start`
+    does not grow a branch per method (§9 Phase 14 item 5), and one place
+    that knows a gateway can say no. Three outcomes, and the caller has to
+    tell them apart: a link, PaymentMethodUnavailable (cash, or nothing
+    configured — permanent), or PaymentGatewayError (asked and refused —
+    worth retrying).
+
+    §4's rule that an external call never breaks a request applies here as
+    much as it does to SMS. It did not used to be needed: Click and Payme
+    build their links locally. Octo calls out, and tolov reads its reply as
+    `response["data"]["octo_pay_url"]` while Octo answers *every* error with
+    `"data": null` — so before this, a wrong shop id 500'd the checkout
+    rather than degrading it (§17 #266).
+    """
+    method = order.payment_method
+    if method not in GATEWAY_CREDENTIALS:
+        # Cash, and anything else with no online step.
+        raise PaymentMethodUnavailable(method)
+
+    if not method_is_configured(method):
+        # Asked before calling out, not after. Octo answers a blank shop id
+        # with an error rather than a link, and a round-trip to be told what
+        # settings could have said is a round-trip the customer waits for.
+        logger.error('Order %s names %s, which has no credentials configured.',
+                     order.pk, method)
+        raise PaymentMethodUnavailable(method)
+
+    try:
+        paylink = _build_paylink(order, return_url, method)
+    except Exception:
+        # Everything, deliberately — the `core/sms.py` pattern (§4). A
+        # gateway having a bad day costs one checkout a retry, not a 500.
+        logger.exception('Pay link for order %s failed at %s.', order.pk, method)
+        raise PaymentGatewayError(method)
+
+    if not paylink:
+        # tolov returns '' when it understood the reply but found no link in
+        # it. `redirect('')` is a bug of its own, so it stops here.
+        logger.error('%s returned an empty pay link for order %s.',
+                     method, order.pk)
+        raise PaymentGatewayError(method)
+
+    return paylink
 
 
 def _move_stock(order, sign):

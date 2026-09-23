@@ -23,11 +23,12 @@ import re
 from decimal import Decimal
 from importlib import util
 from pathlib import Path
+from unittest import mock
 
 from django.conf import settings
 from django.contrib import admin
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import resolve, reverse
 from django.utils import translation
 
@@ -42,6 +43,21 @@ from .test_phase4 import make_product
 from .test_phase6 import make_regions, make_user
 from .test_phase7 import make_staff
 from .test_phase7b import photo
+
+
+def card_for(html, code):
+    """The one payment card for this method, isolated from its neighbours.
+
+    Asserting a badge against the whole page would pass whichever card
+    carried it. The cards are siblings and each opens with the same marker,
+    so splitting on it is enough; the tail is cut at the end of the section
+    so the last card does not swallow the rest of the document.
+    """
+    for chunk in html.split('data-ref="payment"')[1:]:
+        chunk = chunk.split('</section>')[0]
+        if '<strong>%s</strong>' % code in chunk:
+            return chunk
+    raise AssertionError('no payment card for %r' % code)
 
 
 class SizeReferenceTests(TestCase):
@@ -920,3 +936,292 @@ class PaymentSwitchTests(TestCase):
         """A POSTed method the shop has never heard of (§17 #94, amended)."""
         self.order_with('bitcoin')
         self.assertFalse(Order.objects.filter(cart=self.cart).exists())
+
+
+#: Octo's answer to a request it will not honour. Verbatim shape, from a real
+#: call with a blank shop id: `data` is present and null, which is why
+#: tolov's ``response.get("data", {})`` hands ``None`` to ``.get`` (§17 #266).
+OCTO_REFUSAL = {
+    'error': 2,
+    'errMessage': '0 identifikatorli doʻkon topilmadi',
+    'data': None,
+}
+
+
+class GatewayRefusalTests(TestCase):
+    """A gateway that says no must cost a retry, not a 500 (§17 #266).
+
+    The bug these cover was tolov's, but the hole was ours: `generate_paylink`
+    let a library exception through to the view, and §4 has said since Phase
+    2 that an external call never breaks a request. It never showed because
+    Click and Payme build their links locally — Octo is the first gateway
+    that goes over the wire to make one.
+
+    Nothing here touches the network: the gateway is replaced, and the one
+    test that exercises tolov's real client feeds it Octo's own reply.
+    """
+
+    def octo_order(self):
+        """An unsaved order naming Octo. Nothing here needs it in the table."""
+        return Order(pk=4242, payment_method=Order.PaymentMethod.OCTO,
+                     total_price=Decimal('400000'))
+
+    # ---------------------------------------------------- configured or not
+
+    def test_cash_needs_no_credentials(self):
+        self.assertTrue(
+            payment_services.method_is_configured(Order.PaymentMethod.CASH))
+
+    def test_a_method_with_blank_credentials_is_not_configured(self):
+        """Payme and Octo ship blank, and that is the state under test."""
+        with override_settings(OCTO_SHOP_ID='', OCTO_SECRET=''):
+            self.assertFalse(
+                payment_services.method_is_configured(Order.PaymentMethod.OCTO))
+
+    def test_whitespace_is_not_a_credential(self):
+        """A key someone pasted as a space is blank, not configured."""
+        with override_settings(OCTO_SHOP_ID='  ', OCTO_SECRET='  '):
+            self.assertFalse(
+                payment_services.method_is_configured(Order.PaymentMethod.OCTO))
+
+    def test_half_a_pair_is_not_configured(self):
+        """Shop id without the secret cannot sign anything."""
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET=''):
+            self.assertFalse(
+                payment_services.method_is_configured(Order.PaymentMethod.OCTO))
+
+    def test_both_halves_present_is_configured(self):
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            self.assertTrue(
+                payment_services.method_is_configured(Order.PaymentMethod.OCTO))
+
+    def test_click_is_configured_because_its_credentials_are_required(self):
+        """CLICK_* are read with os.environ[...], so a blank one never boots."""
+        self.assertTrue(
+            payment_services.method_is_configured(Order.PaymentMethod.CLICK))
+
+    def test_a_method_nobody_has_heard_of_is_not_configured(self):
+        self.assertFalse(payment_services.method_is_configured('bitcoin'))
+
+    # ------------------------------------------------- what generate_paylink does
+
+    def test_blank_credentials_never_reach_the_gateway(self):
+        """The whole point of asking settings first: no round-trip to be told
+        what the environment could have said, and no live call from a laptop.
+        """
+        with override_settings(OCTO_SHOP_ID='', OCTO_SECRET=''):
+            with mock.patch('payment.services.OctoGateway') as gateway:
+                with self.assertRaises(
+                        payment_services.PaymentMethodUnavailable):
+                    payment_services.generate_paylink(
+                        self.octo_order(), 'https://graphix.uz/')
+        gateway.assert_not_called()
+
+    def test_a_refusing_gateway_raises_the_retryable_error(self):
+        """Not AttributeError, and not PaymentMethodUnavailable: this one is
+        worth trying again, and the customer is told so.
+        """
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            with mock.patch('payment.services.OctoGateway') as gateway:
+                gateway.return_value.create_payment.side_effect = (
+                    AttributeError("'NoneType' object has no attribute 'get'"))
+                with self.assertRaises(payment_services.PaymentGatewayError):
+                    payment_services.generate_paylink(
+                        self.octo_order(), 'https://graphix.uz/')
+
+    def test_an_empty_pay_link_is_a_failure_not_a_redirect(self):
+        """tolov returns '' when it understood the reply and found no link.
+        `redirect('')` is its own bug, so it must not get that far.
+        """
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            with mock.patch('payment.services.OctoGateway') as gateway:
+                gateway.return_value.create_payment.return_value = ''
+                with self.assertRaises(payment_services.PaymentGatewayError):
+                    payment_services.generate_paylink(
+                        self.octo_order(), 'https://graphix.uz/')
+
+    def test_a_working_gateway_still_returns_its_link(self):
+        """Guards every test above from passing because nothing works."""
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            with mock.patch('payment.services.OctoGateway') as gateway:
+                gateway.return_value.create_payment.return_value = (
+                    'https://secure.octo.uz/pay/abc')
+                link = payment_services.generate_paylink(
+                    self.octo_order(), 'https://graphix.uz/')
+        self.assertEqual(link, 'https://secure.octo.uz/pay/abc')
+
+    def test_octo_links_are_built_in_test_mode_while_DEBUG(self):
+        """`is_test_mode` becomes the `test` flag in Octo's request body, and
+        that flag is what decides whether real money moves. It must track
+        DEBUG, the same as TOLOV['OCTO_BANK']['TEST_MODE'] on the callback side.
+        """
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret',
+                               DEBUG=True):
+            with mock.patch('payment.services.OctoGateway') as gateway:
+                gateway.return_value.create_payment.return_value = 'https://x/'
+                payment_services.generate_paylink(
+                    self.octo_order(), 'https://graphix.uz/')
+        self.assertIs(gateway.call_args.kwargs['is_test_mode'], True)
+
+    # ------------------------------------------------ through tolov's own client
+
+    def test_octos_real_refusal_does_not_escape_as_AttributeError(self):
+        """The regression, end to end through the library that caused it.
+
+        Only the HTTP call is replaced, with the body Octo actually sent. The
+        rest is tolov's code doing `response.get("data", {}).get(...)` on a
+        reply whose `data` is null — which is an AttributeError, 500, and a
+        customer looking at a yellow Django page.
+        """
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            with mock.patch('tolov.core.http.HttpClient.post',
+                            return_value=OCTO_REFUSAL):
+                with self.assertRaises(payment_services.PaymentGatewayError):
+                    payment_services.generate_paylink(
+                        self.octo_order(), 'https://graphix.uz/')
+
+
+class GatewayRefusalViewTests(TestCase):
+    """What the customer sees when a gateway will not make a link (§17 #266).
+
+    Two outcomes that must not be confused: nothing configured is permanent
+    and says so, a refusal is temporary and says try again. Both leave the
+    order PAYING, because in both cases it may yet be paid for.
+    """
+
+    def setUp(self):
+        self.user = make_user('tolovchi', '+998901320001')
+        self.product, self.variant = make_product('Usul', stock=3)
+        self.client.force_login(self.user)
+        self.cart = Cart.objects.create(user=self.user, status=False)
+        CartItem.objects.create(cart=self.cart, variant=self.variant,
+                                quantity=1, price_stat=self.variant.price)
+        self.order = Order.objects.create(
+            user=self.user, cart=self.cart, phone='+998901320001',
+            notes='', payment_method=Order.PaymentMethod.OCTO,
+            total_price=Decimal('400000'), status=Order.Status.PAYING)
+
+    def start(self):
+        return self.client.post(
+            reverse('payment_start', args=[self.order.id]), follow=True)
+
+    def test_a_refusing_gateway_does_not_500(self):
+        """The bug as the owner met it: a yellow page at /uz/payment/45/start/."""
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            with mock.patch('tolov.core.http.HttpClient.post',
+                            return_value=OCTO_REFUSAL):
+                response = self.start()
+        self.assertEqual(response.status_code, 200)
+
+    def test_a_refusing_gateway_tells_the_customer_to_try_again(self):
+        """Asserted on the rendered page, not the catalogue (§17 #255)."""
+        with translation.override('uz'):
+            with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+                with mock.patch('tolov.core.http.HttpClient.post',
+                                return_value=OCTO_REFUSAL):
+                    html = self.start().content.decode()
+        self.assertIn('qayta urinib koʻring', html)
+
+    def test_a_refusing_gateway_leaves_the_order_payable(self):
+        """It is going to work in an hour. Cancelling it here would be wrong."""
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            with mock.patch('tolov.core.http.HttpClient.post',
+                            return_value=OCTO_REFUSAL):
+                self.start()
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.Status.PAYING)
+
+
+    def test_the_retry_message_is_translated(self):
+        """msgmerge matched it onto the rate-limit message — "Too many
+        attempts" — which blames the customer for a gateway's bad day.
+        """
+        for lang, expected in (
+                ('ru', 'платёжная '
+                       'система'),
+                # The apostrophe arrives as `&#x27;`, so match around it.
+                ('en', 'responding right now')):
+            with self.subTest(lang=lang):
+                with translation.override(lang):
+                    with override_settings(OCTO_SHOP_ID='123',
+                                           OCTO_SECRET='s3cret'):
+                        with mock.patch('tolov.core.http.HttpClient.post',
+                                        return_value=OCTO_REFUSAL):
+                            html = self.start().content.decode()
+                self.assertIn(expected.lower(), html.lower())
+
+    def test_an_unconfigured_method_does_not_500_either(self):
+        """The state the shop is actually in today: Octo on, credentials blank."""
+        with override_settings(OCTO_SHOP_ID='', OCTO_SECRET=''):
+            response = self.start()
+        self.assertEqual(response.status_code, 200)
+
+    def test_an_unconfigured_method_gets_the_other_message(self):
+        """Permanent, so it must not read as "try again in a minute"."""
+        with translation.override('uz'):
+            with override_settings(OCTO_SHOP_ID='', OCTO_SECRET=''):
+                html = self.start().content.decode()
+        self.assertIn('onlayn toʻlov yoʻq', html)
+        self.assertNotIn('qayta urinib koʻring', html)
+
+
+class PaymentConfiguredBadgeTests(TestCase):
+    """Boshqaruv says whether a switched-on method can actually take money.
+
+    The switch and the credentials answer different questions, and until now
+    only one of them was visible anywhere. Read-only on purpose: the owner can
+    still switch on whatever he likes, because credentials added to .env after
+    the last restart are a real case (§17 #266).
+    """
+
+    def setUp(self):
+        self.staff = make_staff('boshqaruvchi', '+998901330001')
+        self.client.force_login(self.staff)
+
+    def screen(self):
+        with translation.override('uz'):
+            return self.client.get(reverse('panel_settings')).content.decode()
+
+    def test_a_method_with_no_credentials_is_marked_unconfigured(self):
+        with override_settings(OCTO_SHOP_ID='', OCTO_SECRET=''):
+            html = self.screen()
+        card = card_for(html, 'octo')
+        self.assertIn('Sozlanmagan', card)
+
+    def test_the_same_method_is_marked_configured_once_it_has_them(self):
+        """Guards the test above from passing because the badge never says ok."""
+        with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret'):
+            html = self.screen()
+        card = card_for(html, 'octo')
+        self.assertIn('Sozlangan', card)
+        self.assertNotIn('Sozlanmagan', card)
+
+    def test_cash_is_always_configured(self):
+        """It needs nothing, so telling the owner to configure it is a lie."""
+        card = card_for(self.screen(), 'cash')
+        self.assertIn('Sozlangan', card)
+        self.assertNotIn('Sozlanmagan', card)
+
+
+    def test_the_badge_is_translated(self):
+        """msgmerge offered "Оплачен" / "Paid" for "Sozlangan", which would
+        have told the owner his payment method was paid for (§17 #255). The
+        catalogue is not the thing to assert — the rendered screen is.
+        """
+        for lang, ok, missing in (('ru', 'Настроен',
+                                   'Не настроен'),
+                                  ('en', 'Configured', 'Not configured')):
+            with self.subTest(lang=lang):
+                with translation.override(lang):
+                    with override_settings(OCTO_SHOP_ID='', OCTO_SECRET=''):
+                        off = self.client.get(reverse('panel_settings'))
+                    with override_settings(OCTO_SHOP_ID='1', OCTO_SECRET='k'):
+                        on = self.client.get(reverse('panel_settings'))
+                self.assertIn(missing, card_for(off.content.decode(), 'octo'))
+                self.assertIn(ok, card_for(on.content.decode(), 'octo'))
+
+    def test_the_switch_is_still_editable(self):
+        """The badge reports; it must not have quietly become a second gate."""
+        card = card_for(self.screen(), 'octo')
+        self.assertIn('data-ref-field="is_active"', card)
+        self.assertNotIn('disabled', card)
