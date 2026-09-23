@@ -851,13 +851,9 @@ class TelegramDeliveryTests(TestCase):
     """
 
     def _pay(self, order):
-        """Put a successful Click transaction through, the way the callback does."""
-        from click_up.models import ClickTransaction
+        """Pay for ``order`` the way the webhook does, through the service."""
         from payment import services as payment_services
-        txn = ClickTransaction.objects.create(
-            transaction_id='click-telegram-%d' % order.pk, account_id=order.pk,
-            amount=order.total_price, state=ClickTransaction.SUCCESSFULLY)
-        payment_services.apply_successful_payment(txn.transaction_id)
+        payment_services.apply_successful_payment(order)
 
     def setUp(self):
         from payment.models import DeliveryOption

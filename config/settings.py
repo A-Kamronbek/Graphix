@@ -35,6 +35,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
+    # tolov's payment tables, and it sits HERE, above our own apps, on
+    # purpose: `payment/admin.py` unregisters tolov's transaction admin, and
+    # admin autodiscovery walks this list in order — below `payment` the
+    # unregister runs before the register and quietly does nothing (§17 #263).
+    #
+    # It registers under the app label `django`, because its AppConfig sets no
+    # `label` and Django derives one from the last component of
+    # `tolov.integrations.django`. That is ugly — migrations print as
+    # `django.0001_initial`, which reads like a core Django migration and is
+    # not one — and it has to stay: the package's own second migration names
+    # `('django', '0001_initial')` as a dependency, so relabelling the app
+    # makes its migration graph unresolvable (§17 #261).
+    'tolov.integrations.django',
     'core',
     'payment',
     'product',
@@ -45,7 +58,6 @@ INSTALLED_APPS = [
     'panel',
     'colorfield',
     'rest_framework',
-    'click_up',
 ]
 
 MIDDLEWARE = [
@@ -181,14 +193,74 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# --- click ---
-# click_up validates each payment callback's amount against the account model's
-# amount field below (Order.total_price, stored in whole so'm).
+# --- payments (tolov) ---
+# One dict, because that is the shape tolov reads (§17 #253).
+#
+# There is no AMOUNT_FIELD here and that is not an omission: tolov hardcodes
+# `getattr(account, "amount", 0)` when it checks a callback's amount against
+# the order, where click-pkg took the field name from a setting. `Order.amount`
+# is a property returning `total_price` for exactly this, and the alternative
+# — ONE_TIME_PAYMENT False — is not an alternative: it drops the amount
+# check to "greater than zero", which would take 1 000 so'm for a 400 000
+# so'm order (§17 #262).
 CLICK_SERVICE_ID = os.environ["CLICK_SERVICE_ID"]
 CLICK_MERCHANT_ID = os.environ["CLICK_MERCHANT_ID"]
 CLICK_SECRET_KEY = os.environ["CLICK_SECRET_KEY"]
-CLICK_ACCOUNT_MODEL = "payment.models.Order"
-CLICK_AMOUNT_FIELD = "total_price"
+
+# Payme and Octo ship BLANK, and the feature is built around that, the same way
+# the Maps key is (§17 #93): with no credentials the `PaymentOption` row stays
+# switched off, the method is not offered at checkout and is refused
+# server-side if one is POSTed anyway. `os.environ.get`, not `os.environ`:
+# a missing key must not stop the site booting (§17 #264).
+PAYME_ID = os.environ.get("PAYME_ID", "")
+PAYME_KEY = os.environ.get("PAYME_KEY", "")
+OCTO_SHOP_ID = os.environ.get("OCTO_SHOP_ID", "")
+OCTO_SECRET = os.environ.get("OCTO_SECRET", "")
+OCTO_UNIQUE_KEY = os.environ.get("OCTO_UNIQUE_KEY", "")
+
+TOLOV = {
+    "CLICK": {
+        "SERVICE_ID": CLICK_SERVICE_ID,
+        "MERCHANT_ID": CLICK_MERCHANT_ID,
+        "SECRET_KEY": CLICK_SECRET_KEY,
+        "ACCOUNT_MODEL": "payment.models.Order",
+        "ACCOUNT_FIELD": "id",
+        "ONE_TIME_PAYMENT": True,
+        "COMMISSION_PERCENT": 0.0,
+    },
+    # Payme and Octo both take the field name from a setting, so they are
+    # told `total_price` outright. Click cannot be told (§17 #262) and reads
+    # `Order.amount`, which is the same number under the name it insists on.
+    # Payme quotes tiyin and tolov multiplies by 100 on our behalf; Click and
+    # Octo quote soʻm and it does not.
+    "PAYME": {
+        "PAYME_ID": PAYME_ID,
+        "PAYME_KEY": PAYME_KEY,
+        "ACCOUNT_MODEL": "payment.models.Order",
+        # `order_id`, not `id`, and the two ends have to agree: this name is
+        # the key inside Payme's `account` object AND what the webhook looks
+        # the order up by, with tolov special-casing `order_id` to mean the
+        # model's `id`. It is also the default `create_payment` builds the
+        # link with, so leaving both at the library's own pairing is the
+        # tested path — and `order_id` is what a Payme merchant cabinet is
+        # normally configured with anyway.
+        "ACCOUNT_FIELD": "order_id",
+        "AMOUNT_FIELD": "total_price",
+        "ONE_TIME_PAYMENT": True,
+    },
+    "OCTO_BANK": {
+        # int, not text: tolov types this one. Blank until the owner has a
+        # shop id, and `int("")` raises, so the coercion tolerates empty.
+        "OCTO_SHOP_ID": int(OCTO_SHOP_ID or 0),
+        "OCTO_SECRET": OCTO_SECRET,
+        "OCTO_UNIQUE_KEY": OCTO_UNIQUE_KEY,
+        "ACCOUNT_MODEL": "payment.models.Order",
+        "ACCOUNT_FIELD": "id",
+        "AMOUNT_FIELD": "total_price",
+        "ONE_TIME_PAYMENT": True,
+        "TEST_MODE": DEBUG,
+    },
+}
 
 # --- eskiz SMS ---
 # ESKIZ_FROM defaults to Eskiz's test sender (4546); set the approved sender in prod.

@@ -8,6 +8,7 @@ blank. Keeping Uzbek in the base column means every existing row stays valid
 with no backfill (plan §7, §17 #8).
 """
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -557,6 +558,67 @@ class Review(models.Model):
                 name='review_rating_between_1_and_5',
             ),
         ]
+
+
+def slide_link(value):
+    """A slide may point at a page on this site, or at an http(s) address.
+
+    Nothing else, and this is not fussiness. The owner types this into a box
+    in the panel and the value lands in an `href` on the busiest page of the
+    site: `javascript:` there is a script injection with a human talked into
+    performing it, and a protocol-relative `//host/path` is an off-site link
+    that reads like an internal one. Neither has a use in a promotional card.
+
+    Blank is allowed. A slide that announces something without linking
+    anywhere is a real slide, and demanding a link would only produce a
+    fake one.
+    """
+    if not value:
+        return
+    if value.startswith('/') and not value.startswith('//'):
+        return
+    if value.startswith('http://') or value.startswith('https://'):
+        return
+    raise ValidationError(
+        _('Havola «/» bilan yoki https:// bilan boshlanishi kerak.'))
+
+
+class Slide(Photograph):
+    """A promotional card at the top of the home page, managed from the panel.
+
+    It replaces the hero (§17 #251). The owner wanted what every marketplace
+    here leads with — a row of tappable cards he changes himself — rather
+    than a headline only a deploy can edit.
+
+    On :class:`Photograph` rather than a bare `ImageField`, so a slide gets
+    WebP renditions and stored pixel dimensions like every other picture on
+    the site (§17 #230). Those stored dimensions are also what holds the
+    carousel's box before the file arrives, and the home page is measured on
+    a CLS of zero.
+
+    ``alt`` is the one thing the owner writes beyond uploading a file and
+    pasting a link, and it is not optional. A slide is an image inside a
+    link, and a link whose only content is an image has no accessible name at
+    all — axe-core calls it `link-name`, and Phase 9 shipped with zero
+    violations over ten pages. Russian and English may be blank and fall back
+    to the Uzbek, the same as every other translated row.
+    """
+    picture = models.ImageField(upload_to='slides/')
+    #: Where tapping the card goes. See :func:`slide_link`.
+    link = models.CharField(max_length=200, blank=True, default='',
+                            validators=[slide_link])
+    alt = models.CharField(max_length=120, help_text="Oʻzbekcha — asosiy matn")
+    alt_ru = models.CharField(max_length=120, blank=True, default='')
+    alt_en = models.CharField(max_length=120, blank=True, default='')
+    is_active = models.BooleanField(default=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        state = 'yoqilgan' if self.is_active else 'oʻchirilgan'
+        return self.alt + ' (' + state + ')'
+
+    class Meta:
+        ordering = ['sort_order', 'id']
 
 
 class ReviewImage(Photograph):

@@ -12,7 +12,6 @@ rules, which are what actually decides where a parcel goes — are in
 """
 from decimal import Decimal
 
-from click_up.models import ClickTransaction
 from django.test import TestCase
 from django.urls import reverse
 
@@ -211,15 +210,11 @@ class StockMovementTests(TestCase):
             user=self.user, cart=cart, phone='+998 90 333 44 55',
             address='Toshkent', total_price=variant.price * qty,
         )
-        txn = ClickTransaction.objects.create(
-            transaction_id='click-test-1', account_id=order.id,
-            amount=order.total_price, state=ClickTransaction.SUCCESSFULLY,
-        )
-        return order, variant, txn
+        return order, variant
 
     def test_payment_decrements_stock(self):
-        order, variant, txn = self._paid_order_setup(stock=10, qty=3)
-        payment_services.apply_successful_payment(txn.transaction_id)
+        order, variant = self._paid_order_setup(stock=10, qty=3)
+        payment_services.apply_successful_payment(order)
         variant.refresh_from_db()
         order.refresh_from_db()
         self.assertEqual(variant.stock, 7)
@@ -227,22 +222,23 @@ class StockMovementTests(TestCase):
 
     def test_a_replayed_callback_does_not_decrement_twice(self):
         """Click can deliver the same callback more than once."""
-        _, variant, txn = self._paid_order_setup(stock=10, qty=3)
-        payment_services.apply_successful_payment(txn.transaction_id)
-        payment_services.apply_successful_payment(txn.transaction_id)
+        _, variant = self._paid_order_setup(stock=10, qty=3)
+        order = Order.objects.get()
+        payment_services.apply_successful_payment(order)
+        payment_services.apply_successful_payment(order)
         variant.refresh_from_db()
         self.assertEqual(variant.stock, 7)
 
     def test_stock_never_goes_negative(self):
         """The owner may have lowered stock by hand after the order was placed."""
-        _, variant, txn = self._paid_order_setup(stock=1, qty=5)
-        payment_services.apply_successful_payment(txn.transaction_id)
+        _, variant = self._paid_order_setup(stock=1, qty=5)
+        payment_services.apply_successful_payment(Order.objects.get())
         variant.refresh_from_db()
         self.assertEqual(variant.stock, 0)
 
     def test_cancelling_a_paid_order_restores_stock(self):
-        order, variant, txn = self._paid_order_setup(stock=10, qty=3)
-        payment_services.apply_successful_payment(txn.transaction_id)
+        order, variant = self._paid_order_setup(stock=10, qty=3)
+        payment_services.apply_successful_payment(order)
         order.refresh_from_db()
 
         self.assertTrue(payment_services.cancel_paid_order(order))
@@ -253,14 +249,14 @@ class StockMovementTests(TestCase):
 
     def test_cancelling_an_unpaid_order_leaves_stock_alone(self):
         """An order that never reached PAID never took any stock."""
-        order, variant, _ = self._paid_order_setup(stock=10, qty=3)
+        order, variant = self._paid_order_setup(stock=10, qty=3)
         self.assertTrue(payment_services.cancel_order(order))
         variant.refresh_from_db()
         self.assertEqual(variant.stock, 10)
 
     def test_cancel_paid_order_refuses_an_unpaid_order(self):
         """Guards the storefront path: a customer must not cancel a paid order here."""
-        order, _, _ = self._paid_order_setup()
+        order, _ = self._paid_order_setup()
         self.assertFalse(payment_services.cancel_paid_order(order))
 
 

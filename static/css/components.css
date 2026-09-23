@@ -95,6 +95,19 @@
 .field__error { color: var(--c-danger); font-size: var(--fs-sm); }
 .field__hint  { color: var(--c-fg-muted); font-size: var(--fs-sm); }
 
+/* The required mark. One character, in the colour the form already uses to
+   mean "this needs your attention", against a label that is small, uppercase
+   and muted — so it reads without a legend beside every field. It is bumped
+   off the baseline rather than set as a superscript: `vertical-align: super`
+   shifts the line box and would push a marked label a pixel above its
+   unmarked neighbours, which is visible in a column of fields.
+
+   It is always `aria-hidden` in the markup. A screen reader is told a field
+   is required by `required` or `aria-required`; without hiding it, the
+   listener hears the label, then "star", then "required". */
+.req { color: var(--c-danger); font-weight: var(--fw-semibold);
+  position: relative; top: -0.15em; }
+
 .check { display: flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
 .check input { appearance: none; width: 22px; height: 22px; flex: none; margin-top: 1px;
   background: var(--c-surface); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
@@ -468,6 +481,31 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
     border: 1px solid var(--c-line-strong); }
 }
 
+/* The line the dropped pin resolves to, under the map, and the way back into
+   the fields it summarises (§17 #252). A button and not a link: it opens a
+   sheet on this page, it does not go anywhere. Full width and 44 px tall
+   because it is the only way to reach four fields — a chevron on the right,
+   the way every row that opens something on this site is drawn. */
+.addr { display: flex; align-items: center; gap: var(--s-3);
+  width: 100%; min-height: 44px; padding: var(--s-3) var(--s-4);
+  text-align: start; color: var(--c-fg);
+  background: var(--c-surface); border: 1px solid var(--c-line-control);
+  border-radius: var(--r-md); cursor: pointer;
+  transition: border-color var(--t-fast); }
+.addr:hover { border-color: var(--c-fg-subtle); }
+.addr[hidden] { display: none; }
+.addr__body { display: flex; flex-direction: column; gap: var(--s-1);
+  min-width: 0; margin-right: auto; }
+/* Wraps rather than truncates. An address cut off mid-street is exactly the
+   thing somebody opened this row to check. */
+.addr__text { overflow-wrap: anywhere; }
+.addr .i { flex: none; color: var(--c-fg-muted); }
+
+/* The sheet is `.picker-drawer`, the component the region and district
+   already open (§17 #87) — one bottom sheet on this page, not two that drift
+   apart. Only its body differs: real fields rather than a list of choices. */
+.addr-sheet__body { overflow-y: auto; }
+
 /* The map, on the home half of checkout only. It is never rendered when the
    API key is blank, so there is no grey box to explain (§17 #93). */
 .map { display: flex; flex-direction: column; gap: var(--s-3); }
@@ -639,8 +677,10 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
   .foot li a { display: inline-flex; align-items: center; min-height: 44px; }
 
   /* Two stacked calls to action that differ by ten pixels look like a mistake
-     rather than a choice. Full width makes the pair deliberate. */
-  .home__hero .btn { flex: 1 0 100%; }
+     rather than a choice. Full width makes the pair deliberate. This moved
+     off `.home__hero` with the hero itself (§17 #251); the pair is the same
+     pair, now sitting under the slides. */
+  .home__cta .btn { flex: 1 0 100%; }
 
   /* Tag chips keep their pill proportions - a 44 px chip looks like a button -
      and grow their hit area with a pseudo-element instead. */

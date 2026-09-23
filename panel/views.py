@@ -29,14 +29,17 @@ from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from django.db.models import ExpressionWrapper, Prefetch
+from django.db.models import ExpressionWrapper, Max, Prefetch
 
 from core.models import Msg
-from payment.models import DeliveryOption, District, Order, Region
+from payment.models import (DeliveryOption, District, Order, PaymentOption,
+                            Region)
 from product import images as image_pipeline
+from payment import services as payment_services
 from product import services as product_services
 from product.models import (Category, PrintMethod, Product, Review, Size,
-                            SizeChart, Tag, TagKind, Variant)
+                            SizeChart, Slide, Tag, TagKind, Variant,
+                            slide_link)
 
 from . import catalogue, reference
 from .auth import staff_only
@@ -680,9 +683,29 @@ def message_read(request, pk):
 
 # --------------------------------------------------------------- reference
 
+def _payment_rows():
+    """Payment methods, each carrying whether its credentials actually exist.
+
+    The switch in the panel says whether the owner *wants* a method offered.
+    This says whether the shop can take money with it, and the answer lives
+    in the environment, where the panel cannot see it. They are different
+    questions and they disagree more often than you would think: Octo
+    switched on with no OCTO_SHOP_ID sent a customer to a broken checkout and
+    said nothing anywhere (§17 #266).
+
+    Read-only — the owner can still switch on whatever he likes, because a
+    credential set in .env after the last restart is a real case and locking
+    the switch would make it unexplainable.
+    """
+    rows = list(PaymentOption.objects.all())
+    for row in rows:
+        row.configured = payment_services.method_is_configured(row.code)
+    return rows
+
+
 @staff_only
 def settings_screen(request):
-    """Delivery tiers, tags and size charts: the rows that are edited rarely.
+    """Delivery, payment methods, sizes, tags and size charts: the rarely edited rows.
 
     One screen rather than three, because three nav items for things touched
     twice a year is three things to scroll past every day. Regions get their
@@ -691,6 +714,8 @@ def settings_screen(request):
     return render(request, 'boshqaruv/settings.html', {
         'screen': 'settings',
         'tiers': DeliveryOption.objects.all(),
+        'payments': _payment_rows(),
+        'sizes': Size.objects.all(),
         'tags': Tag.objects.select_related('kind'),
         'charts': SizeChart.objects.all(),
         'kinds': TagKind.objects.all(),
@@ -816,6 +841,33 @@ def lookup_new(request, kind):
 
 @staff_only
 @require_POST
+def size_new(request):
+    """Add a size. One field, no slug, no translations — "M" is "M".
+
+    Its own endpoint rather than a fourth entry in :func:`lookup_new`, which is
+    built for tables whose row is a name in three languages with a slug. A size
+    is none of those, and teaching that function a fourth shape would cost more
+    than this does.
+    """
+    name = (request.POST.get('size') or '').strip()
+    if not name:
+        messages.error(request, _('Oʻlcham kerak.'))
+        return redirect('panel_settings')
+
+    limit = Size._meta.get_field('size').max_length
+    try:
+        reference.refuse_duplicate('size', name[:limit])
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_settings')
+
+    Size.objects.create(size=name[:limit])
+    messages.success(request, _('Oʻlcham qoʻshildi.'))
+    return redirect('panel_settings')
+
+
+@staff_only
+@require_POST
 def reference_delete(request, kind, pk):
     """Remove one reference row, when nothing is holding on to it."""
     try:
@@ -823,6 +875,74 @@ def reference_delete(request, kind, pk):
     except ValidationError as exc:
         return JsonResponse({'ok': False, 'error': exc.messages[0]}, status=400)
     return JsonResponse({'ok': True, 'name': name})
+
+
+@staff_only
+def slides_screen(request):
+    """The home page's promotional cards, newest arrangement first.
+
+    Its own screen rather than a ninth section on Sozlamalar: that screen is
+    for rows somebody changes two or three times a year, and a promotion
+    changes with the season (§17 #251).
+
+    Inactive slides are listed with the rest rather than hidden. A slide the
+    owner switched off last month is the one he is most likely to switch back
+    on, and a list that omits it reads as though it was deleted.
+    """
+    return render(request, 'boshqaruv/slides.html', {
+        'screen': 'slides',
+        'slides': Slide.objects.all(),
+        'live': Slide.objects.filter(is_active=True).count(),
+    })
+
+
+@staff_only
+@require_POST
+def slide_new(request):
+    """Upload a slide: a picture, an optional link, and a description.
+
+    The picture goes through the same pipeline as a product photograph and a
+    customer's review photo — re-encoded, stripped of EXIF, and capped — so
+    an upload here cannot be a decompression bomb or a file with a camera's
+    GPS coordinates in it. The renditions are built by the signal after the
+    row commits, the same as every other photograph.
+
+    ``alt`` is required here and not merely by the model, so the owner gets a
+    sentence rather than a 500 from a NOT NULL: a slide is an image inside a
+    link, and without it the card has no accessible name at all.
+    """
+    alt = (request.POST.get('alt') or '').strip()
+    upload = request.FILES.get('picture')
+    if not alt or not upload:
+        messages.error(request, _('Rasm va tavsif kerak.'))
+        return redirect('panel_slides')
+
+    link = (request.POST.get('link') or '').strip()
+    try:
+        slide_link(link)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_slides')
+
+    try:
+        clean = image_pipeline.sanitise(upload, name_hint='slide',
+                                        max_edge=image_pipeline.PRODUCT_MAX_EDGE)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_slides')
+
+    limit = Slide._meta.get_field('alt').max_length
+    # Last in the running order, not first: a new slide should not silently
+    # take over the top of the home page before anybody has looked at it.
+    last = Slide.objects.aggregate(top=Max('sort_order'))['top']
+    Slide.objects.create(
+        picture=clean, alt=alt[:limit], link=link,
+        alt_ru=(request.POST.get('alt_ru') or '').strip()[:limit],
+        alt_en=(request.POST.get('alt_en') or '').strip()[:limit],
+        sort_order=(last or 0) + 1,
+    )
+    messages.success(request, _('Slayd qoʻshildi.'))
+    return redirect('panel_slides')
 
 
 @staff_only

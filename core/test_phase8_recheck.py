@@ -279,14 +279,10 @@ class RelayedEventTests(TestCase):
 
     def test_the_paid_event_is_the_one_a_real_payment_sends(self):
         """The service, not the helper: the callback is what fires this."""
-        from click_up.models import ClickTransaction
         from payment import services as payment_services
         order = self._checkout()
-        txn = ClickTransaction.objects.create(
-            transaction_id='click-relay-%d' % order.pk, account_id=order.pk,
-            amount=order.total_price, state=ClickTransaction.SUCCESSFULLY)
         body, _ = self.relayed(
-            lambda: payment_services.apply_successful_payment(txn.transaction_id))
+            lambda: payment_services.apply_successful_payment(order))
         self.assertEqual(body['event'], 'order.paid')
         self.assertEqual(body['data']['order']['status'], 'paid')
 

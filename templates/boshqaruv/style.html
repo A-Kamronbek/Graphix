@@ -140,9 +140,12 @@
       <div class="sg__box" style="flex:1 1 300px">
         <p class="sg__cap">Text, select, textarea</p>
         <div class="stack">
+          {# The required mark. aria-hidden every time it is used: the field #}
+          {# says it is required through `required`/`aria-required`, and a #}
+          {# screen reader that also reads the span says "star". #}
           <div class="field">
-            <label class="label" for="f1">Ism</label>
-            <input class="input" id="f1" placeholder="Ismingiz">
+            <label class="label" for="f1">Ism <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" id="f1" placeholder="Ismingiz" required>
           </div>
           <div class="field field--error">
             <label class="label" for="f2">Telefon</label>

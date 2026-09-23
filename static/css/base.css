@@ -146,6 +146,7 @@ address { font-style: normal; }
 .row--wrap  { flex-wrap: wrap; }
 
 .section    { padding-block: var(--s-7); }
+.section--tight { padding-block: var(--s-4); }
 
 .rule { border: 0; border-top: 1px solid var(--c-line); margin: 0; }
 

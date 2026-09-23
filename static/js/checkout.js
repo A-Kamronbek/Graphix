@@ -31,6 +31,11 @@
   var noteField = $('[data-location-note-field]');
   var indexInput = $('[data-postal-index]');
   var indexHint = $('[data-postal-hint]');
+  /* Up here with the other field handles rather than down in the map section
+   * where it used to live: `syncBranch` reads it, and leaning on `var`
+   * hoisting plus the order the file happens to run in is not a thing to
+   * leave for the next person to discover. */
+  var addressInput = $('[data-address]');
 
   /* ------------------------------------------------- which half is showing */
 
@@ -48,7 +53,24 @@
     if (locationFields) locationFields.hidden = !choice;
     if (branchFields) branchFields.hidden = !choice || !branch;
     if (homeFields) homeFields.hidden = !choice || branch;
+    /* The index and the street address are each required by one method and
+     * refused by the other, so which of them is required is only knowable
+     * once a method is chosen — and with the script blocked, neither is, on
+     * its own. That is why this is set here rather than in the markup: the
+     * star beside the label is static and travels with its half of the form,
+     * the promise made to a screen reader is not. */
+    requireWhen(indexInput, !!choice && branch);
+    requireWhen(addressInput, !!choice && !branch);
+    /* The sheet belongs to home delivery alone, so switching to the post
+     * office has to hand the region and district back to the page. */
+    syncAddressLayout();
     syncTotals(choice);
+  }
+
+  function requireWhen(field, required) {
+    if (!field) return;
+    if (required) field.setAttribute('aria-required', 'true');
+    else field.removeAttribute('aria-required');
   }
 
   /* The summary follows the choice immediately. The server recomputes it from
@@ -513,8 +535,12 @@
   var sourceInput = $('[data-address-source]');
   var latInput = $('[data-latitude]');
   var lngInput = $('[data-longitude]');
-  var addressInput = $('[data-address]');
   var mapBlock = $('[data-map]');
+  var sheet = $('[data-address-sheet]');
+  var sheetBody = $('[data-address-sheet-body]');
+  var summary = $('[data-address-summary]');
+  var summaryText = $('[data-address-text]');
+  var sheetRelease = null;
   var mapError = mapBlock && $('[data-map-error]', mapBlock);
 
   function setSource(source) {
@@ -531,6 +557,103 @@
     } else {
       loadMap();
     }
+    syncAddressLayout();
+  }
+
+  /* --------------------------------------------------------- the sheet */
+  /* With the map chosen the page carries the map and nothing else about where
+   * the parcel goes; the address the pin resolved to shows as one line, and
+   * tapping it opens a sheet holding the fields (§17 #252). The owner asked
+   * for this after seeing Yandex Go do it.
+   *
+   * The fields are MOVED rather than duplicated. Two elements called `region`
+   * is two values posted under one name, and nothing on the server would say
+   * which was meant. It is also what keeps the no-script promise: with the
+   * script blocked nothing moves and every field renders where it always did.
+   */
+
+  /* Where each field lives when it is not in the sheet. Recorded once, before
+   * anything has moved, because "put it back" needs somewhere to put it. */
+  var homes = [];
+
+  /* Named `fieldOf`, not `field`: `requireWhen` already takes a parameter
+   * called `field`, and one of those shadowing the other is the kind of thing
+   * that reads fine and behaves oddly. */
+  function fieldOf(control) {
+    /* The `.field` wrapper, so the label travels with its control. */
+    return control && control.closest ? control.closest('.field') : null;
+  }
+
+  /* Document order, and that is load-bearing: these four are adjacent
+   * siblings, so a node's `next` may be another node that is also in the
+   * sheet. Putting them back last-first means each one's anchor is already
+   * home by the time it is needed. */
+  function rememberHomes() {
+    [fieldOf(regionSelect), fieldOf(districtSelect), noteField,
+     fieldOf(addressInput)].forEach(function (node) {
+      if (node && node.parentNode) {
+        homes.push({ node: node, parent: node.parentNode, next: node.nextSibling });
+      }
+    });
+  }
+
+  /* Only home delivery, and only with the map chosen. A branch order still
+   * needs its region and district on the page: `homeFields` is hidden for it
+   * but `locationFields` is not, and fields left in a sheet nobody can open
+   * would be a form that cannot be completed. */
+  function usingSheet() {
+    var choice = chosenDelivery();
+    var branch = !!choice && choice.dataset.branch === '1';
+    return !!(choice && !branch && sheet && sheetBody && summary
+              && sourceInput && sourceInput.value === 'map');
+  }
+
+  function syncAddressLayout() {
+    if (!sheet || !sheetBody || !summary) return;
+    var inSheet = usingSheet();
+    if (inSheet) {
+      homes.forEach(function (home) { sheetBody.appendChild(home.node); });
+    } else {
+      closeSheet();
+      homes.slice().reverse().forEach(function (home) {
+        home.parent.insertBefore(home.node, home.next);
+      });
+    }
+    summary.hidden = !inSheet;
+    describeAddress();
+  }
+
+  function chosen(select) {
+    if (!select || select.selectedIndex < 0 || !select.value) return '';
+    return (select.options[select.selectedIndex].textContent || '').trim();
+  }
+
+  function describeAddress() {
+    if (!summaryText || !summary) return;
+    var parts = [chosen(regionSelect), chosen(districtSelect),
+                 addressInput ? addressInput.value.trim() : ''];
+    parts = parts.filter(Boolean);
+    summaryText.textContent = parts.length
+      ? parts.join(', ')
+      : (summary.dataset.empty || '');
+  }
+
+  function openSheet() {
+    if (!sheet || sheet.hidden === false) return;
+    sheet.hidden = false;
+    if (GX.lockScroll) GX.lockScroll(true);
+    if (GX.trapFocus) sheetRelease = GX.trapFocus(sheet);
+    var first = sheet.querySelector('input, select, textarea, button');
+    if (first) first.focus();
+  }
+
+  function closeSheet() {
+    if (!sheet || sheet.hidden) return;
+    sheet.hidden = true;
+    if (sheetRelease) { sheetRelease(); sheetRelease = null; }
+    if (GX.lockScroll) GX.lockScroll(false);
+    describeAddress();
+    if (summary && !summary.hidden) summary.focus();
   }
 
   /* The provider is fetched on the first tap of "Xaritadan" and never before
@@ -616,8 +739,17 @@
        * fields now, and repeating them here is how an address ends up saying
        * "Toshkent, Toshkent, Chilonzor, Chilonzor". */
       var street = [parts.route, parts.street_number].filter(Boolean).join(' ');
+      var before = addressInput.value;
       if (street) addressInput.value = street;
       else if (text && !addressInput.value.trim()) addressInput.value = text;
+      /* Setting `.value` fires nothing, and the two selects above already
+       * dispatch for exactly this reason. Without it the summary line under
+       * the map would show the region and the district and not the street —
+       * the one part the customer dropped a pin to get — and the draft would
+       * not carry it either. */
+      if (addressInput.value !== before) {
+        addressInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
     }
   }
 
@@ -653,6 +785,30 @@
     }) }];
   });
   drawerise(districtSelect, districtSelect && districtSelect.dataset.title, districtGroups);
+
+  /* Before the first `syncBranch`, which is the first thing that can move a
+   * field: homes recorded after a move would record the sheet as home. */
+  rememberHomes();
+  if (summary) summary.addEventListener('click', openSheet);
+  $$('[data-address-sheet-close]').forEach(function (el) {
+    el.addEventListener('click', closeSheet);
+  });
+  if (sheet) {
+    sheet.addEventListener('click', function (e) {
+      if (e.target === sheet) closeSheet();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeSheet();
+    });
+  }
+  /* The line under the map is a summary of three fields, so it follows all
+   * three — including the pin, which writes into them and fires `change`. */
+  [regionSelect, districtSelect, addressInput].forEach(function (el) {
+    if (!el) return;
+    el.addEventListener('change', describeAddress);
+    el.addEventListener('input', describeAddress);
+  });
+
   syncBranch();
   validateIndex();
   if (noteField && districtSelect) noteField.hidden = chosenDistrictKind() !== 'other';

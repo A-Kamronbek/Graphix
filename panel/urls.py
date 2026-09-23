@@ -42,11 +42,19 @@ urlpatterns = [
     path('boshqaruv/xabarlar/<int:pk>/oqildi/', views.message_read,
          name='panel_message_read'),
 
+    # The home page's promotional cards. Not reference data — a promotion
+    # changes with the season — so its own screen and its own tab (§17 #251).
+    path('boshqaruv/slaydlar/', views.slides_screen, name='panel_slides'),
+    path('boshqaruv/slaydlar/yangi/', views.slide_new, name='panel_slide_new'),
+
     # Reference data: rows somebody changes two or three times a year, so that
     # none of it needs a deploy.
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),
     path('boshqaruv/sozlamalar/teg/', views.tag_new, name='panel_tag_new'),
     path('boshqaruv/sozlamalar/jadval/', views.chart_new, name='panel_chart_new'),
+    # A size is one field with no slug and no translations, so it gets its own
+    # route rather than a fourth shape inside the one below.
+    path('boshqaruv/sozlamalar/olcham/', views.size_new, name='panel_size_new'),
     # Tag kinds, print methods and categories: three tables of the same shape,
     # so one route with the table in the path rather than three near-copies.
     path('boshqaruv/sozlamalar/yangi/<str:kind>/', views.lookup_new,

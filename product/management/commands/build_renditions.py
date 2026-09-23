@@ -12,7 +12,7 @@ counted and skipped, never cleared.
 """
 from django.core.management.base import BaseCommand
 
-from product.models import ImageP, ReviewImage, SizeChart
+from product.models import ImageP, ReviewImage, SizeChart, Slide
 from product.signals import build_renditions, measure_image
 
 
@@ -27,9 +27,16 @@ class Command(BaseCommand):
             help='re-encode photographs that already have their renditions')
 
     def handle(self, *args, **options):
-        """Walk both photograph tables, then measure the size charts."""
+        """Walk the photograph tables, then measure the size charts.
+
+        `Slide` is here so that `--force` can rebuild the home page's cards
+        after a rendition width changes. Slides are newer than Phase 9 and so
+        never need the backfill this command was written for, but a table
+        left out of a loop like this one is a table nobody notices is missing
+        until the widths move.
+        """
         force = options['force']
-        for model in (ImageP, ReviewImage):
+        for model in (ImageP, ReviewImage, Slide):
             done = skipped = failed = 0
             for row in model.objects.all().iterator():
                 if not row.has_photo:

@@ -417,7 +417,9 @@ site deletes one. Without this timer that sentence is false.
 
 ---
 
-## 17. Click
+## 17. Click, Payme and Octo
+
+### 17.1 Click
 
 **[Kamronbek]** — in the Click merchant cabinet.
 
@@ -439,6 +441,37 @@ sudo journalctl -u graphix --since '10 min ago' | grep -i click
 
 This is the highest-risk step in the project. A wrong webhook URL fails
 silently: the customer pays, Click is happy, and the order sits unpaid forever.
+
+### 17.2 Payme and Octo
+
+**[Kamronbek]** — both ship **switched off** in Boshqaruv > Toʻlov usullari,
+and stay off until their keys are in. While a method is switched on the
+checkout offers it, whether or not it is configured.
+
+| Gateway | Register this webhook | `.env` keys |
+|---|---|---|
+| Payme | `https://graphix.uz/payment/payme/update/` | `PAYME_ID`, `PAYME_KEY` |
+| Octo | `https://graphix.uz/payment/octo/update/` | `OCTO_SHOP_ID`, `OCTO_SECRET`, `OCTO_UNIQUE_KEY` |
+
+Unprefixed, exactly as written, for the same reason Click's is: a gateway is
+given one address and posts to it forever, and a `/uz/` in front of it is a
+404 the gateway reports as your fault.
+
+Then, for each: restart, switch the method on in the panel, confirm it reads
+**Sozlangan** rather than Sozlanmagan, and buy something real for 1 000 soʻm.
+The three things to confirm afterwards are Click's three, with the gateway's
+name in the `journalctl` grep.
+
+**`OCTO_UNIQUE_KEY` is not optional in production.** Octo issues it
+separately from the shop id and the secret, and it is what signs the
+callback. With `DEBUG` on the site runs Octo in test mode, signatures are not
+verified and a blank key is fine — which is how the integration was tested.
+With `DEBUG` off and the key missing, tolov **refuses to construct the Octo
+callback at all**, so the endpoint raises on every call: the customer pays and
+the order never flips to `paid`. The site will not let that happen — Octo
+reads as unconfigured in production without the key, so no Octo payment can
+start — but the symptom on the panel is a method that will not switch into
+service, and this is the reason (§17 #267).
 
 ---
 
@@ -475,6 +508,77 @@ silently: the customer pays, Click is happy, and the order sits unpaid forever.
   `https://graphix.uz/payment/click/update/`. The second one matters more: the
   home page going down is visible within minutes, the webhook going down is
   invisible until someone asks where their order is.
+
+---
+
+## 20. Shipping an update
+
+Everything above stands a server up once. This is the other thing, and it was
+missing until Phase 14 went looking for it: the site is already running, a
+branch has been merged, and the machine has to catch up.
+
+Run these **in this order**. The order is the whole point — `migrate`
+imports the application, so a dependency the new code needs has to be on disk
+before it runs, and a template the new code renders has to be collected after.
+
+```bash
+# 1. A dump first, every time. The standing rule, and an update is exactly
+#    when a migration is about to touch tables that have real orders in them.
+sudo -u graphix /srv/graphix/deploy/backup.sh
+
+cd /srv/graphix
+sudo -u graphix git fetch --all
+sudo -u graphix git checkout main && sudo -u graphix git pull
+
+# 2. Dependencies BEFORE migrate. This is the step that gets skipped, because
+#    most updates do not need it and nothing reminds you when one does.
+sudo -u graphix .venv/bin/pip install -r requirements.txt
+
+# 3. Schema, then the compiled catalogues, then the static files.
+sudo -u graphix .venv/bin/python manage.py migrate
+sudo -u graphix .venv/bin/python manage.py compilemessages --ignore .venv
+sudo -u graphix .venv/bin/python manage.py collectstatic --noinput
+sudo -u graphix .venv/bin/python manage.py check --deploy
+
+# 4. Only now.
+sudo systemctl restart graphix
+sleep 2
+curl -sS -o /dev/null -w '%{http_code}\n' https://graphix.uz/
+curl -sS -o /dev/null -w '%{http_code}\n' https://graphix.uz/payment/click/update/
+```
+
+**`compilemessages` is not optional.** The `.mo` files are gitignored, so a
+pull brings the `.po` files and none of the compiled catalogues. Skip it and
+every string added since the last deploy renders Uzbek to a Russian visitor,
+silently — there is no error, the page just quietly stops being trilingual.
+
+**`pip install` does not remove anything.** A package dropped from
+`requirements.txt` stays in the venv until it is uninstalled by hand. That is
+usually harmless; it is not harmless when the old package and the new one both
+register a Django app or both claim a URL. Phase 14 is exactly that case:
+
+```bash
+sudo -u graphix .venv/bin/pip uninstall -y click-pkg
+```
+
+**If something is wrong after the restart**, the dump from step 1 is the way
+back, and `deploy/restore-check.sh` is what proves a dump is restorable before
+you need it to be.
+
+---
+
+### Why this section exists
+
+A developer hit `relation "product_slide" does not exist` on a 500 page, on
+the machine where the code was written, because the branch added a migration
+and nothing had applied it. `runserver` does print an unapplied-migration
+warning, and it scrolls past. On a server there is no warning at all: the
+first thing that happens is a visitor gets the error page.
+
+Phase 14 also changes a dependency (`tolov` in, `click-pkg` out) and adds
+translated strings, so it needs all three of the steps above that a routine
+update does not. That is the argument for writing the order down rather than
+remembering it.
 
 ---
 

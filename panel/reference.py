@@ -1,20 +1,22 @@
 """Editing the small reference tables from the panel.
 
-Regions, districts, delivery tiers, tags, tag kinds, print methods, categories
-and size charts are rows somebody changes two or three times a year: a district
-gets renamed, a delivery price moves, a new collection tag appears. The screens
-exist so that none of those needs a deploy (§9 Phase 7 items 5–8).
+Regions, districts, delivery tiers, payment methods, sizes, tags, tag kinds,
+print methods, categories and size charts are rows somebody changes two or
+three times a year: a district gets renamed, a delivery price moves, a new
+collection tag appears, cash is switched on. The screens exist so that none of
+those needs a deploy (§9 Phase 7 items 5–8, §9 Phase 14 items 3 and 5).
 
 Every one of them is "a list of rows, a few fields editable in place", so
-rather than eight bespoke endpoints there is one — and the thing that makes one
+rather than ten bespoke endpoints there is one — and the thing that makes one
 endpoint safe is the table below. A field that is not named there cannot be
 written, whatever arrives in the POST. Without it, an endpoint that takes a
 model, a field and a value is a way to set *anything* on *any* row, which is a
 hole large enough to change a price to zero through.
 
-Deleting is a second, shorter allowlist. Regions, districts and delivery tiers
-are missing from it deliberately: an order points at all three, and the history
-of where a parcel went is not something a tidy-up should be able to remove.
+Deleting is a second, shorter allowlist. Regions, districts, delivery tiers and
+payment methods are missing from it deliberately: an order points at all four,
+and how a parcel was sent and paid for is not something a tidy-up should be
+able to remove.
 """
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
@@ -22,8 +24,9 @@ from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError
 from django.utils.translation import gettext as _
 
-from payment.models import DeliveryOption, District, Region
-from product.models import (Category, PrintMethod, SizeChart, Tag, TagKind)
+from payment.models import DeliveryOption, District, PaymentOption, Region
+from product.models import (Category, PrintMethod, Size, SizeChart, Slide,
+                            Tag, TagKind, slide_link)
 
 #: What each screen is allowed to change, and how to read the value. Nothing
 #: else on any of these models is reachable from the panel.
@@ -60,13 +63,59 @@ EDITABLE = {
     'chart': (SizeChart, {
         'name': 'text', 'note': 'text', 'note_ru': 'text', 'note_en': 'text',
     }),
+    # One field, and it is the axis of every product's price-and-stock grid:
+    # renaming a size here renames it on every product at once, which is the
+    # point of its being a row. Adding one is a new column in that grid.
+    'size': (Size, {
+        'size': 'text',
+    }),
+    # How a customer may pay. `code` is deliberately absent: it is what the
+    # checkout matches on and what a webhook arrives quoting, so a typo in it
+    # would take a payment method off the site with no error anywhere. The
+    # switch is `is_active`, which is the whole reason these are rows (§17 #99).
+    'payment': (PaymentOption, {
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text',
+        'note': 'text', 'note_ru': 'text', 'note_en': 'text',
+        'is_active': 'bool', 'sort_order': 'count',
+    }),
+    # A home-page card. `picture` is absent for the same reason a size
+    # chart's is: it is a file, set when the slide is created and changed by
+    # creating another. `link` gets its own reader rather than 'text' —
+    # `set_field` writes with `update_fields` and never runs a model
+    # validator, so 'text' here would let `javascript:` through the one box
+    # on the panel whose value becomes an `href` on the home page.
+    'slide': (Slide, {
+        'alt': 'text', 'alt_ru': 'text', 'alt_en': 'text',
+        'link': 'link', 'is_active': 'bool', 'sort_order': 'count',
+    }),
 }
+
+#: Where a row keeps the name a reader would call it by, when that is not a
+#: field called ``name``. A size is called "M" and keeps it in ``size``; two
+#: sizes called M, or one called nothing, are exactly as bad as they would be
+#: for a tag, and both checks below would have missed them.
+#:
+#: A slide's is ``alt``, and that entry is doing real work: `alt` is the only
+#: accessible name a slide has, so blanking it turns a card into an unlabelled
+#: link. It is deliberately absent from :data:`UNIQUE_NAMES` — two slides may
+#: honestly describe the same thing, and there is nothing to disambiguate.
+NAME_FIELD = {'size': 'size', 'slide': 'alt'}
 
 #: What may be removed, and what it costs. Everything here is either unlinked
 #: on delete (a tag comes off its products, a chart and a category fall back to
 #: null) or protected by the database (a kind or a method that is in use).
 #: Anything an order points at is absent on purpose.
-DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart'}
+#: `size` is here because the database already refuses the dangerous case:
+#: `Variant.size` and `SizeChartRow.size` are both PROTECT, so a size any
+#: product sells cannot be removed and the panel says so. `payment` is NOT
+#: here - an order records the method it was paid by as text, and deleting
+#: the row would leave old orders quoting a method the shop can no longer
+#: explain. Switching it off is what the switch is for.
+#: `slide` is here because a promotion that has run its course should go, and
+#: nothing points at one — it is content, not a record of anything. Its file
+#: and its renditions go with it, through the same `post_delete` receiver
+#: every other photograph uses.
+DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size', 'slide'}
 
 
 def _money(raw):
@@ -114,6 +163,20 @@ def _tagkind(raw):
     return kind
 
 
+def _link(raw):
+    """A slide's destination, checked by the model's own validator.
+
+    Through :func:`~product.models.slide_link` rather than repeating its rule,
+    because two copies of "what counts as a safe href" is one copy that will
+    be relaxed later without the other noticing. `set_field` saves with
+    ``update_fields``, which runs no validators at all, so this reader is the
+    only thing standing between the panel's box and the home page's `href`.
+    """
+    value = str(raw).strip()
+    slide_link(value)
+    return value
+
+
 def _count(raw):
     """A whole number of items, never negative. Blank counts as zero."""
     try:
@@ -125,7 +188,7 @@ def _count(raw):
 #: The lists whose rows must not share a name (§18 #31, §17 #229). A tag is
 #: compared only with the tags of its own kind - "Qora" may be a colour and a
 #: collection - and the other three with their whole table.
-UNIQUE_NAMES = {'tag', 'tagkind', 'method', 'category'}
+UNIQUE_NAMES = {'tag', 'tagkind', 'method', 'category', 'size', 'payment'}
 
 
 def refuse_duplicate(table, name, tag_kind=None, exclude_pk=None):
@@ -140,7 +203,8 @@ def refuse_duplicate(table, name, tag_kind=None, exclude_pk=None):
     if table not in UNIQUE_NAMES:
         return
     model = EDITABLE[table][0]
-    rows = model.objects.filter(name__iexact=str(name).strip())
+    field = NAME_FIELD.get(table, 'name')
+    rows = model.objects.filter(**{field + '__iexact': str(name).strip()})
     if table == 'tag':
         rows = rows.filter(kind=tag_kind)
     if exclude_pk is not None:
@@ -148,7 +212,8 @@ def refuse_duplicate(table, name, tag_kind=None, exclude_pk=None):
     twin = rows.first()
     if twin is not None:
         raise ValidationError(
-            _('«%(name)s» nomi bu roʻyxatda allaqachon bor.') % {'name': twin.name})
+            _('«%(name)s» nomi bu roʻyxatda allaqachon bor.')
+            % {'name': getattr(twin, field)})
 
 
 READERS = {
@@ -158,6 +223,7 @@ READERS = {
     'prefix': _prefix,
     'count': _count,
     'tagkind': _tagkind,
+    'link': _link,
 }
 
 
@@ -185,7 +251,7 @@ def set_field(kind, pk, field, raw):
     # is what the site renders — a size chart whose name was cleared put an
     # empty <h2> on the public size-guide page. Russian and English may be
     # blank; this one may not.
-    if field == 'name' and not value:
+    if field == NAME_FIELD.get(kind, 'name') and not value:
         raise ValidationError(_('Nomi boʻsh boʻlishi mumkin emas.'))
 
     # A name longer than its column is a validation problem, and it was being
@@ -200,7 +266,7 @@ def set_field(kind, pk, field, raw):
 
     # A rename, or a tag moved to another kind, must not produce the twin the
     # create form refuses (§17 #229).
-    if field == 'name':
+    if field == NAME_FIELD.get(kind, 'name'):
         refuse_duplicate(kind, value, tag_kind=getattr(row, 'kind', None),
                          exclude_pk=row.pk)
     elif kind == 'tag' and field == 'kind':
@@ -228,7 +294,7 @@ def delete_row(kind, pk):
     if row is None:
         raise ValidationError(_('Topilmadi.'))
 
-    name = getattr(row, 'name', str(row))
+    name = getattr(row, NAME_FIELD.get(kind, 'name'), None) or str(row)
     # The file goes with the row; nothing else will ever read it again.
     picture = getattr(row, 'image', None)
     try:

@@ -1,5 +1,6 @@
 """Checkout, Click payment start/webhook, and order views."""
 import json
+import logging
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
@@ -12,13 +13,16 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils import translation
 from django.utils.translation import gettext as _
-from click_up.views import ClickWebhook
+from tolov.integrations.django.webhooks import (ClickWebhook, OctoWebhook,
+                                                PaymeWebhook)
 
 from core.i18n import tfield
 from .models import (DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX)
 from user.models import phone_regex
 from . import services
+
+logger = logging.getLogger(__name__)
 
 
 # ---------- presentation helper ----------
@@ -299,7 +303,11 @@ def payment(request, order_id):
 @login_required
 @require_POST
 def payment_start(request, order_id):
-    """Generate a Click pay link and redirect to it (only while still PAYING)."""
+    """Generate the pay link for this order's method and redirect to it.
+
+    Only while the order is still PAYING. Which gateway builds the link is
+    `services.generate_paylink`'s business, not this view's.
+    """
     order = get_object_or_404(Order, pk=order_id, user=request.user)
 
     if order.status != Order.Status.PAYING:
@@ -308,17 +316,88 @@ def payment_start(request, order_id):
         return redirect('order_status', pk=order.id)
 
     return_url = request.build_absolute_uri(reverse('order_detail', args=[order.id]))
-    paylink = services.generate_click_paylink(order, return_url)
+    try:
+        paylink = services.generate_paylink(order, return_url)
+    except services.PaymentMethodUnavailable:
+        # Cash has no online step, and a method whose credentials are blank
+        # cannot make a link either. Both end here, and both are told plainly
+        # rather than redirected at a gateway that will show a broken page.
+        messages.info(request, _("Bu toʻlov usuli uchun onlayn toʻlov yoʻq."))
+        return redirect('order_status', pk=order.id)
+    except services.PaymentGatewayError:
+        # Reachable and said no, or not reachable at all. A different message
+        # from the one above on purpose: this order is still PAYING and the
+        # method will probably work in an hour, so telling the customer it has
+        # no online payment would send them away from one that does.
+        messages.error(request, _("Toʻlov tizimi hozir javob bermayapti. "
+                                  "Iltimos, birozdan soʻng qayta urinib "
+                                  "koʻring."))
+        return redirect('order_status', pk=order.id)
     return redirect(paylink)
 
 
-class ClickWebhookAPIView(ClickWebhook):
-    """Single Click callback endpoint; click_up routes Prepare/Complete internally."""
-    def successfully_payment(self, params):
-        services.apply_successful_payment(params.click_trans_id)
+class PaidByWebhook:
+    """What every gateway's callback does with a successful payment.
 
-    def cancelled_payment(self, params):
-        services.apply_cancelled_payment(params.click_trans_id)
+    A mixin rather than three copies, because the three hooks differ only in
+    which base class they sit on. tolov hands each one its own
+    `PaymentTransaction`, whose ``account_id`` is the id we passed when the
+    pay link was made — so resolving the order is one lookup, and
+    `apply_successful_payment` stays the only place an order's status moves,
+    knowing nothing about which gateway called it (§17 #253).
+    """
+
+    def successfully_payment(self, params, transaction):
+        order = self._order(transaction)
+        if order is not None:
+            services.apply_successful_payment(order)
+
+    def cancelled_payment(self, params, transaction):
+        order = self._order(transaction)
+        if order is not None:
+            services.apply_cancelled_payment(order)
+
+    @classmethod
+    def _order(cls, transaction):
+        """The order this transaction is for, or None with a line in the log.
+
+        A callback naming an order that is not there is not an exception worth
+        raising: the gateway would see a 500 and retry it forever. It is
+        logged and answered, which is what every other external call on this
+        site does (§4, the `core/sms.py` pattern).
+        """
+        order = Order.objects.filter(pk=transaction.account_id).first()
+        if order is None:
+            logger.error('%s callback for an order that does not exist: %s',
+                         cls.__name__, transaction.account_id)
+        return order
+
+
+class ClickWebhookAPIView(PaidByWebhook, ClickWebhook):
+    """Single Click callback endpoint; tolov routes Prepare/Complete internally.
+
+    Mounted by us, at the path Click was given, which is why moving off
+    click-pkg did not mean telling Click anything (§17 #253). The path is
+    asserted by a test, because breaking it fails silently (§12 risk #2).
+    """
+
+
+class PaymeWebhookAPIView(PaidByWebhook, PaymeWebhook):
+    """Payme's JSON-RPC callback endpoint.
+
+    Payme quotes tiyin; tolov multiplies `total_price` by 100 before comparing,
+    so the amount check needs nothing from us beyond `AMOUNT_FIELD`.
+    """
+
+
+class OctoWebhookAPIView(PaidByWebhook, OctoWebhook):
+    """Octo's notification endpoint.
+
+    Octo signs its callbacks `sha1(unique_key + payment_uuid + status)`, which
+    tolov verifies from `OCTO_UNIQUE_KEY` — so that setting is not optional
+    decoration: without it a forged notification is indistinguishable from a
+    real one.
+    """
 
 
 # ---------- viewing an order ----------

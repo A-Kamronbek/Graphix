@@ -8,13 +8,16 @@ Phase 7.
 from django.contrib import admin
 from django.contrib.admin.sites import NotRegistered
 from django.utils.html import format_html_join
-from click_up.models import ClickTransaction
+from tolov.integrations.django.models import PaymentTransaction
 from .models import DeliveryOption, District, Order, PaymentOption, Region
 
 
-# Hide click_up's default ClickTransaction admin; raw transactions aren't exposed.
+# Hide tolov's own transaction admin, as click-pkg's was hidden before it: a raw
+# gateway transaction is a debugging artefact, and the order it belongs to is
+# the thing the owner works with. It is still in the database, and still
+# reachable from a shell when something needs explaining.
 try:
-    admin.site.unregister(ClickTransaction)
+    admin.site.unregister(PaymentTransaction)
 except NotRegistered:
     pass
 
