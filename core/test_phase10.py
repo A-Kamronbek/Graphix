@@ -557,3 +557,109 @@ class ErrorPageTests(TestCase):
         response = self.client.get('/uz/no-such-page/')
         self.assertEqual(response.status_code, 404)
         self.assertIn('GRAPHIX', response.content.decode())
+
+
+class ThrowawayMediaTests(TestCase):
+    """Backlog #42: a test run must not write into the developer's media/.
+
+    The fix is one line in the runner rather than a mixin on each test class,
+    because a mixin has to be remembered by whoever writes the next test that
+    saves a file and forgetting it is invisible.
+    """
+
+    def test_the_run_is_not_pointed_at_the_real_media_folder(self):
+        from django.conf import settings as live
+        self.assertNotEqual(
+            Path(live.MEDIA_ROOT).resolve(), (ROOT / 'media').resolve(),
+            'the suite is writing into the real media folder')
+
+    def test_the_throwaway_folder_is_a_temporary_one(self):
+        from django.conf import settings as live
+        self.assertIn('gx-test-media-', str(live.MEDIA_ROOT))
+
+    def test_saving_a_photograph_lands_in_it(self):
+        from django.conf import settings as live
+        from product.models import ImageP
+        from .test_phase4 import make_product
+        from .test_backlog import jpeg
+        product, _variant = make_product('Vaqtinchalik', stock=1)
+        image = ImageP.objects.create(product=product, picture=jpeg(), order=0)
+        self.assertTrue(
+            Path(image.picture.path).resolve().is_relative_to(
+                Path(live.MEDIA_ROOT).resolve()),
+            'the file landed outside the throwaway folder: %s'
+            % image.picture.path)
+
+
+class ReplacedPictureTests(TestCase):
+    """Backlog #41: replacing a picture on a row that stays deletes the old file.
+
+    The delete receivers fire on a deleted row. A replacement keeps the row,
+    so nothing fired and the old file stayed on disk forever. Only the Django
+    admin can do this; the panel adds and removes photographs rather than
+    swapping one in place.
+    """
+
+    def setUp(self):
+        from product.models import ImageP
+        from .test_phase4 import make_product
+        from .test_backlog import jpeg
+        self.product, _variant = make_product('Almashtirish', stock=1)
+        self.image = ImageP.objects.create(product=self.product,
+                                           picture=jpeg(), order=0)
+        self.image.refresh_from_db()
+        self.old = self.image.picture.path
+        self.assertTrue(Path(self.old).exists())
+
+    def test_the_replaced_file_is_removed(self):
+        """`forget_file` waits for the commit, so the callbacks have to be run
+        for the test to see anything. That is also the behaviour worth having:
+        a replacement rolled back must not have deleted the old file.
+        """
+        from .test_backlog import jpeg
+        self.image.picture = jpeg()
+        with self.captureOnCommitCallbacks(execute=True):
+            self.image.save()
+        self.assertFalse(Path(self.old).exists(),
+                         'the replaced file is still on disk')
+
+    def test_a_rolled_back_replacement_keeps_the_old_file(self):
+        """The delete is queued on commit, so a save that never commits must
+        leave the file the row still points at.
+        """
+        from .test_backlog import jpeg
+        self.image.picture = jpeg()
+        with self.captureOnCommitCallbacks(execute=False):
+            self.image.save()
+        self.assertTrue(Path(self.old).exists())
+
+    def test_the_new_file_survives(self):
+        """The guard against a fix that deletes the wrong one."""
+        from .test_backlog import jpeg
+        self.image.picture = jpeg()
+        with self.captureOnCommitCallbacks(execute=True):
+            self.image.save()
+        self.image.refresh_from_db()
+        self.assertTrue(Path(self.image.picture.path).exists())
+
+    def test_saving_without_changing_the_picture_keeps_it(self):
+        """`build_renditions` re-saves the row on commit. If that counted as a
+        replacement, every upload would delete its own photograph.
+        """
+        self.image.order = 3
+        with self.captureOnCommitCallbacks(execute=True):
+            self.image.save()
+        self.assertTrue(Path(self.old).exists())
+
+    def test_a_file_another_row_still_uses_is_kept(self):
+        """`forget_file` checks before deleting, and this is why."""
+        from product.models import ImageP
+        from .test_backlog import jpeg
+        shared = ImageP.objects.create(product=self.product, order=1)
+        ImageP.objects.filter(pk=shared.pk).update(
+            picture=self.image.picture.name)
+        self.image.picture = jpeg()
+        with self.captureOnCommitCallbacks(execute=True):
+            self.image.save()
+        self.assertTrue(Path(self.old).exists(),
+                        'a file another row still names was deleted')

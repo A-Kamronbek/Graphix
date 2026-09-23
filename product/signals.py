@@ -36,7 +36,7 @@ not delete is logged and left.
 import logging
 
 from django.db import transaction
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from core import telegram
@@ -215,3 +215,39 @@ def photo_file_goes_with_its_row(sender, instance, using=None, **kwargs):
 def chart_file_goes_with_its_row(sender, instance, using=None, **kwargs):
     """A deleted size chart takes its picture with it."""
     forget_file(instance.image, using)
+
+
+@receiver(pre_save, sender=ImageP, dispatch_uid='product_photo_replaced')
+@receiver(pre_save, sender=ReviewImage, dispatch_uid='review_photo_replaced')
+@receiver(pre_save, sender=Slide, dispatch_uid='slide_replaced')
+@receiver(pre_save, sender=SizeChart, dispatch_uid='size_chart_replaced')
+def replaced_file_goes_too(sender, instance, using=None, raw=False, **kwargs):
+    """Replacing a picture on a row that stays deletes the file it replaced.
+
+    The delete receivers above fire on a deleted *row*. Replacing the picture
+    on a row that survives fires neither, so the old file stayed on disk with
+    nothing pointing at it (§18 #41). Only the Django admin can do this: the
+    panel adds and removes photographs, it does not swap one in place.
+
+    The comparison is against the database rather than against the instance,
+    because the instance already holds the new name by the time this runs. The
+    deletion itself goes through `forget_file`, so it waits for the commit and
+    still checks that no other row names the same file.
+    """
+    if raw or not instance.pk:
+        return
+    column = dict(FILE_COLUMNS).get(sender)
+    if column is None:
+        return
+    stored = sender._base_manager.using(using).filter(pk=instance.pk).first()
+    if stored is None:
+        return
+
+    previous = getattr(stored, column)
+    current = getattr(instance, column, None)
+    if not previous or previous.name == (current.name if current else ''):
+        return
+
+    derived = ([name for _width, name in stored.sources()]
+               if hasattr(stored, 'sources') else ())
+    forget_file(previous, using, derived=derived)
