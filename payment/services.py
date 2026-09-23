@@ -5,15 +5,14 @@ whichever method the order names, applies payment-status changes from the
 gateways' webhook callbacks, and moves stock as orders are paid for or
 cancelled.
 
-Four methods since Phase 14 — Click, Payme, Octo and cash — and the gateway
-part of that is only two functions deep: `generate_paylink` knows which client
-builds which link, and `apply_successful_payment` knows none of them, because
-the webhook resolves the order before calling it.
+Four payment methods: Click, Payme, Octo and cash. Only two functions know
+about gateways at all. `generate_paylink` picks the client and is the one
+place that handles a gateway refusing; `apply_successful_payment` knows none
+of them, because the webhook resolves the order before calling it.
 
-`generate_paylink` is also the only place that knows a gateway can refuse.
-Click and Payme build their links locally, so for two phases nothing went
-over the wire at this moment; Octo does call out, and a gateway that answers
-badly must cost a retry, never a 500 (§17 #266).
+Click and Payme build their pay links locally. Octo calls out over HTTP, so a
+gateway having a bad day has to cost the customer a retry rather than a 500
+(§17 #266).
 """
 import logging
 from decimal import Decimal

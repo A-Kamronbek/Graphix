@@ -1,22 +1,19 @@
 """Editing the small reference tables from the panel.
 
 Regions, districts, delivery tiers, payment methods, sizes, tags, tag kinds,
-print methods, categories and size charts are rows somebody changes two or
-three times a year: a district gets renamed, a delivery price moves, a new
-collection tag appears, cash is switched on. The screens exist so that none of
-those needs a deploy (§9 Phase 7 items 5–8, §9 Phase 14 items 3 and 5).
+print methods, categories and size charts all change a few times a year: a
+district is renamed, a delivery price moves, a new collection tag appears.
+These screens mean none of that needs a deploy.
 
-Every one of them is "a list of rows, a few fields editable in place", so
-rather than ten bespoke endpoints there is one — and the thing that makes one
-endpoint safe is the table below. A field that is not named there cannot be
-written, whatever arrives in the POST. Without it, an endpoint that takes a
-model, a field and a value is a way to set *anything* on *any* row, which is a
-hole large enough to change a price to zero through.
+They all have the same shape, so there is one endpoint rather than ten. What
+makes a single endpoint safe is the EDITABLE table below: a field not named
+there cannot be written, whatever arrives in the POST. Without it, an endpoint
+taking a model, a field and a value can set anything on any row, including a
+price.
 
-Deleting is a second, shorter allowlist. Regions, districts, delivery tiers and
-payment methods are missing from it deliberately: an order points at all four,
-and how a parcel was sent and paid for is not something a tidy-up should be
-able to remove.
+DELETABLE is a second, shorter allowlist. Regions, districts, delivery tiers
+and payment methods are left out of it: orders point at all four, and how a
+parcel was sent and paid for should survive a tidy-up.
 """
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 

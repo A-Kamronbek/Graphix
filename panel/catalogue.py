@@ -1,13 +1,11 @@
 """Creating and editing a product from the panel.
 
-This is the screen the plan calls the most important one in the phase, because
-the owner adds every product himself, from a phone, with photographs. So the
-work lives here rather than in a view: four things have to change together —
-the product row, its translations, its photographs and its size/stock grid —
-and a half-saved product is a product that is live on the storefront with no
-price on one size.
+The owner adds every product from a phone, with photographs. Four things have
+to change together: the product row, its translations, its photographs and its
+size/stock grid. A half-saved product is one that is live on the storefront
+with no price on a size, so the work lives here rather than in a view.
 
-Three things are deliberately hidden from the owner and handled here:
+Three things are hidden from the owner and handled here:
 
 * **colour.** Every design ships in one colourway, so the storefront renders no
   picker (§17 #23) and neither does the panel. Every variant gets

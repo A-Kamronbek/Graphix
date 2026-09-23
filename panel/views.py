@@ -1,17 +1,15 @@
-"""The staff panel: what the owner does every day, from a phone.
+"""The staff panel: the screens the shop is run from, designed for a phone.
 
-Phase 7a is three screens — a dashboard, a list of orders and one order — and
-the rule that shapes all three is that the owner is standing up, holding a
-parcel, with one hand free. So: numbers that are links to the screen that acts
-on them, a status control on the list itself rather than two taps away, and a
-detail page whose first job is to make a phone number tappable.
+Laid out for one-handed use while holding a parcel. Dashboard numbers link
+straight to the screen that acts on them, the order list carries its own
+status control rather than hiding it a tap away, and the order page puts a
+tappable phone number first.
 
-The panel assumes JavaScript. It is the one part of
-the project that does — the storefront still works without it — and the reason
-is that inline saving, drag-to-reorder and client-side image checks are what
-make this usable on a phone, and a staff tool runs on a known device. The
-status control degrades anyway: it is a real form with a real submit button
-that `panel.js` upgrades, because that cost nothing.
+The panel is the one part of the project that assumes JavaScript; the
+storefront does not. Inline saving, drag-to-reorder and client-side image
+checks are what make it usable on a phone, and a staff tool runs on a known
+device. The status control degrades anyway: it is a real form with a real
+submit button that `panel.js` upgrades.
 """
 import re
 from datetime import datetime, timedelta
