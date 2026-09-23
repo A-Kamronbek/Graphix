@@ -1,6 +1,6 @@
 """Drop ``fit`` from products and size charts, and ``order`` from the lookups.
 
-Two of Kamronbek's decisions, in one migration because they touch one app and
+Two decisions, in one migration because they touch one app and
 neither writes a row.
 
 **Qolip (``fit``) is gone** (§17 #172). It was two fixed values, regular and

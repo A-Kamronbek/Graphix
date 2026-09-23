@@ -2,7 +2,7 @@
 
 Why this exists as a command rather than a script: the same eight products are
 what every screenshot, every breakpoint sweep and every interaction check in
-`docs/design/phase5/` is measured against, and until now they only existed
+the screenshots are measured against, and until now they only existed
 inside a throwaway test database that `.git/render_all.py` built and destroyed.
 A developer opening the site saw whatever scratch rows happened to be there
 instead - which is how a real layout defect sat on the product page for days
@@ -16,7 +16,7 @@ points at it. It leaves alone the things that are not catalogue: user accounts
 (so nobody is locked out of their own dev site), delivery and payment options,
 regions and districts, and contact messages.
 
-The photographs live in `docs/design/demo-catalogue/` because `media/` is
+The photographs live in `data/demo-catalogue/` because `media/` is
 gitignored, and are copied into place when they are missing - so this works on a
 fresh clone with no further setup.
 
@@ -208,10 +208,10 @@ class Command(BaseCommand):
         """Copy any missing photograph out of the tracked folder into media.
 
         `media/` is gitignored, so on a fresh clone the photographs only exist
-        under `docs/design/demo-catalogue/`. Copying rather than symlinking keeps
+        under `data/demo-catalogue/`. Copying rather than symlinking keeps
         this working on Windows without developer mode.
         """
-        source = settings.BASE_DIR / 'docs' / 'design' / 'demo-catalogue'
+        source = settings.BASE_DIR / 'data' / 'demo-catalogue'
         target = settings.MEDIA_ROOT / 'products'
         target.mkdir(parents=True, exist_ok=True)
 

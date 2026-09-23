@@ -1081,7 +1081,7 @@ class GatewayRefusalTests(TestCase):
                 self.assertIs(gateway.call_args.kwargs['is_test_mode'], mode)
 
     def test_the_unique_key_is_optional_in_test_mode(self):
-        """It is what Kamronbek is testing with today, and tolov allows it."""
+        """It is what the integration is tested with today, and tolov allows it."""
         with override_settings(OCTO_SHOP_ID='123', OCTO_SECRET='s3cret',
                                OCTO_UNIQUE_KEY='', TOLOV=tolov_with(True)):
             self.assertTrue(

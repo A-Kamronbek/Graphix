@@ -28,7 +28,7 @@ from django.utils.translation import gettext_lazy as _
 
 #: The seller as registered. GRAPHIX is the name the shop uses everywhere; the
 #: registered name is what makes the public offer say who it is from, which the
-#: E-commerce Law requires of an offer. Kamronbek's call (§17 #184): name,
+#: E-commerce Law requires of an offer. Name,
 #: address and contacts only - no tax number and no bank details on a public
 #: page. The address is printed in one place, the terms' seller section: the
 #: E-commerce Law (art. 16) wants a postal address in the offer, and nowhere
@@ -56,8 +56,8 @@ SELLER = {
 }
 
 #: So'm kept when a parcel comes back to us uncollected or refused; the rest of
-#: the payment is refunded by the admin. Kamronbek, answering §19 Q11 on
-#: 2026-09-15 - "can be changed later", which is what a new version is for.
+#: the payment is refunded by the admin. Set on 2026-09-15 and changeable
+#: later, which is what a new document version is for.
 UNCOLLECTED_FEE = 15_000
 
 #: Days to return money once the reason for a refund exists: the parcel is back
@@ -80,7 +80,7 @@ DEFECT_REPLACE_DAYS = 7
 TRANSIT_DAYS = (1, 6)
 
 #: How long a branch holds a parcel for collection, in months. Parcels go as
-#: ordinary parcels (Kamronbek, §19 Q29), which the Postal Service Rules hold
+#: ordinary parcels, which the Postal Service Rules hold
 #: for one month (¶190; Bir Qadam's is 14 days, §17 #186). Kept in months, the
 #: Rules' own unit: "30 days" would promise two days that February does not
 #: have (§17 #210).

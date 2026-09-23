@@ -6,7 +6,7 @@ parcel, with one hand free. So: numbers that are links to the screen that acts
 on them, a status control on the list itself rather than two taps away, and a
 detail page whose first job is to make a phone number tappable.
 
-The panel assumes JavaScript (Kamronbek's decision, §17). It is the one part of
+The panel assumes JavaScript. It is the one part of
 the project that does — the storefront still works without it — and the reason
 is that inline saving, drag-to-reorder and client-side image checks are what
 make this usable on a phone, and a staff tool runs on a known device. The

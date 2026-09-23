@@ -12,8 +12,8 @@ Split deliberately in two:
 
 * **Prefixed** — every human-facing page, wrapped in ``i18n_patterns``. **All
   three languages carry a prefix**: Uzbek at ``/uz/``, Russian at ``/ru/``,
-  English at ``/en/``. Uzbek was unprefixed until 2026-09-14; Kamronbek's
-  decision to prefix it too is §17 #121, and the reason is that an unprefixed
+  English at ``/en/``. Uzbek was unprefixed until 2026-09-14 and now carries
+  a prefix like the others (§17 #121). An unprefixed
   default is a special case Django keeps having to work around — it forces the
   default language on every unprefixed path, which is what broke the language
   switcher (§17 #115). An old unprefixed URL still works: it 404s inside

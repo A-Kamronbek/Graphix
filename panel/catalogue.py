@@ -39,7 +39,7 @@ MAX_IMAGES = 8
 #: spec strip already prints the fabric, the weight and the print method from
 #: their own fields, so the template does not ask for them a second time - a
 #: fact written twice is a fact that will disagree with itself (§17 #111).
-#: The brackets are what the owner replaces; docs/content/product-copy.md
+#: The brackets are what the owner replaces; data/product-copy.md
 #: explains each part (§17 #197).
 DESCRIPTION_TEMPLATE = (
     _('Dizayn: [nima tasvirlangan va nimadan ilhomlangan — bir-ikki gap]'),

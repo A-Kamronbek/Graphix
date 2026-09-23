@@ -1,4 +1,4 @@
-"""Four more corrections Kamronbek found by using the settings screen.
+"""Four more corrections found by using the settings screen.
 
 Three of them take something away, which is the kind of change a test suite is
 worst at holding: nothing fails when a field quietly comes back.

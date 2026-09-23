@@ -21,7 +21,7 @@ different ways:
 
 The backlog items this phase closes (§18 #14, #22, #24, #27, #31, #34) are
 tested beside the work they belong to rather than in a file of their own, and
-so are Kamronbek's two answers: a product needs a tag (§19 Q35) and a staff
+so are two settled questions: a product needs a tag (§19 Q35) and a staff
 account is verified from the Django admin (§19 Q34).
 """
 import io
@@ -962,7 +962,7 @@ class LazyMapTests(TestCase):
                 self.assertIn(phrase, html)
 
 
-# ============================== 6. Kamronbek's answers: Q35, #31 and Q34
+# ============================== 6. Settled questions: Q35, #31 and Q34
 
 class TagRequiredTests(TestCase):
     """A product needs at least one tag (§19 Q35, §17 #228).
@@ -1130,7 +1130,7 @@ class StaffVerificationTests(TestCase):
 class SellerAddressTests(TestCase):
     """The postal address is printed in one place only (§17 #226).
 
-    Kamronbek's instruction: the contact card carries the name, the phone, the
+    The contact card carries the name, the phone, the
     Telegram handle and the email, and nothing else. The address stays in the
     terms because the E-commerce Law wants a postal address in a public offer
     (art. 16), and the privacy policy points there rather than repeating it.

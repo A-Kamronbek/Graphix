@@ -1,4 +1,4 @@
-"""Kamronbek's fifth pass over the panel and the account screens.
+"""The fifth pass over the panel and the account screens.
 
 Five changes, and only one of them is logic:
 
@@ -80,7 +80,7 @@ class AuthLayoutTests(TestCase):
 
 
 class DashboardWordingTests(TestCase):
-    """Hisobot, and the three tiles Kamronbek renamed."""
+    """Hisobot, and the three tiles that were renamed."""
 
     def setUp(self):
         self.client.force_login(make_staff('hisobot', '+998901280002'))
@@ -135,7 +135,7 @@ class RunningLowTests(TestCase):
         Product.objects.filter(pk=self.product.pk).update(is_active=False)
         self.assertEqual(Variant.objects.running_low().count(), 0)
 
-    def test_kamronbeks_own_example(self):
+    def test_the_reported_example(self):
         """S 0 on sale, M 2 on sale, L 10 on sale, XL 1 off sale -> S and M only."""
         product, small = make_product('Namuna', stock=0)
         medium = sized(product, 'M-namuna', 2)
