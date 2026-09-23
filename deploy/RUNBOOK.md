@@ -517,6 +517,20 @@ Everything above stands a server up once. This is the other thing, and it was
 missing until Phase 14 went looking for it: the site is already running, a
 branch has been merged, and the machine has to catch up.
 
+> **Before this works at all: `/srv/graphix` must be a git checkout, and as of
+> 2026-09-23 it is not.** There is no `.git` directory in it — §14 above says
+> `git clone`, and what actually happened was a copy, so the deployed tree has
+> no remote, no branch and no history. Every `git` line below fails with
+> *fatal: not a git repository*, and the server has been stuck on the
+> 2026-09-19 code since.
+>
+> The repository is private, so the fix is a read-only **deploy key**: one is
+> already generated at `/srv/graphix/.ssh/id_ed25519` with an `ssh config`
+> beside it, and its public half needs adding to GitHub under Settings →
+> Deploy keys. `deploy/KAMRONBEK-STEPS.md` step 1 has the key and the exact
+> steps. Confirm with `sudo -u graphix ssh -T git@github.com` before running
+> anything below.
+
 Run these **in this order**. The order is the whole point — `migrate`
 imports the application, so a dependency the new code needs has to be on disk
 before it runs, and a template the new code renders has to be collected after.
