@@ -663,3 +663,135 @@ class ReplacedPictureTests(TestCase):
             self.image.save()
         self.assertTrue(Path(self.old).exists(),
                         'a file another row still names was deleted')
+
+
+# ---------------------------------------------------------------------------
+# Backlog #32 - which wording of the documents a customer agreed to.
+#
+# Both documents were versioned and the consent was already asked for. What
+# was missing was the pair, so a dispute about what somebody agreed to could
+# be answered only with whatever the site happened to say that week.
+# ---------------------------------------------------------------------------
+from core import legal  # noqa: E402
+
+
+class ConsentRecordTests(TestCase):
+    """Signup stamps the account, checkout stamps the order, and neither
+    stamps a consent that was not actually given.
+    """
+
+    def setUp(self):
+        from .test_phase4 import make_product
+        from .test_phase6 import make_regions, make_user
+        self.geo = make_regions()
+        self.terms = legal.current_version('terms')
+        self.privacy = legal.current_version('privacy')
+        self.user = make_user('rozi', '+998901290055')
+        _product, self.variant = make_product('Rozilik', stock=5)
+        self.cart = self._cart()
+
+    def _cart(self):
+        from cart.models import Cart, CartItem
+        cart = Cart.objects.create(user=self.user, status=True)
+        CartItem.objects.create(cart=cart, variant=self.variant, quantity=1,
+                                price_stat=self.variant.price)
+        return cart
+
+    def _signup(self, **extra):
+        """Register through the page, with the SMS patched out (§17 #196)."""
+        from unittest import mock
+        from user.models import User
+        data = {'username': 'roziuser', 'first_name': 'Rozi',
+                'phone': '+998901119955',
+                'password1': 'parol12345', 'password2': 'parol12345'}
+        data.update(extra)
+        with mock.patch('user.otp.send_sms', return_value=True):
+            self.client.post(reverse('signup'), data)
+        return User.objects.filter(username=data['username']).first()
+
+    def test_signing_up_records_both_versions(self):
+        user = self._signup(agree='on')
+        self.assertIsNotNone(user, 'the signup did not go through')
+        self.assertEqual(user.terms_version, self.terms)
+        self.assertEqual(user.privacy_version, self.privacy)
+
+    def test_a_signup_without_the_box_records_nothing(self):
+        """The browser refuses the form without the box. A request that gets
+        past the browser still registers, exactly as it did before - it must
+        simply not leave behind a consent nobody gave (§18 #47).
+        """
+        user = self._signup()
+        self.assertIsNotNone(user, 'the signup itself must behave as before')
+        self.assertEqual(user.terms_version, '')
+        self.assertEqual(user.privacy_version, '')
+
+    def test_the_box_is_named_so_the_server_can_see_it(self):
+        """An unnamed checkbox posts nothing at all, which is how the consent
+        went unrecorded for eight phases. The assertion is on the name.
+        """
+        page = self.client.get(reverse('signup')).content.decode()
+        self.assertRegex(page, r'<input type="checkbox" name="agree"[^>]*required')
+
+    def _checkout(self, cart=None):
+        from payment.models import Order
+        cart = cart or self.cart
+        self.client.force_login(self.user)
+        self.client.post(reverse('checkout'), {
+            'name': 'Dilnoza Karimova', 'phone': '+998 90 129 00 55',
+            'delivery_option': 'uzpost_office',
+            'region': self.geo['tashkent'].pk,
+            'district': self.geo['chilonzor'].pk,
+            'postal_index': '100011',
+            'payment_method': 'click', 'notes': '',
+        })
+        return Order.objects.get(cart=cart)
+
+    def test_placing_an_order_records_both_versions(self):
+        """The checkout says pressing the button accepts both documents, so
+        the order carries both numbers whether or not the account does.
+        """
+        order = self._checkout()
+        self.assertEqual(order.terms_version, self.terms)
+        self.assertEqual(order.privacy_version, self.privacy)
+
+    def test_an_amendment_does_not_rewrite_an_order_already_placed(self):
+        """The whole point of storing it rather than looking it up later.
+
+        A new order records the new wording; the one placed under the old
+        wording keeps the old one, the way `location_snapshot` keeps a
+        district that has since been renamed.
+        """
+        from datetime import date
+        from unittest import mock
+        from payment import services
+        placed = self._checkout()
+        amended = dict(legal.VERSIONS)
+        amended['terms'] = (legal.Version('2.0', date(2027, 1, 1), 'Amended'),
+                            ) + amended['terms']
+        with mock.patch.object(legal, 'VERSIONS', amended):
+            later = services.create_order_from_cart(
+                self.user, self._cart(), phone='+998 90 129 00 55',
+                address='Amir Temur 1', notes='', payment_method='click')
+        placed.refresh_from_db()
+        self.assertEqual(placed.terms_version, self.terms)
+        self.assertEqual(later.terms_version, '2.0')
+        self.assertEqual(later.privacy_version, self.privacy)
+
+    def test_both_models_carry_a_column_for_every_consent_document(self):
+        """`accepted_versions` keys by field name, so a document added to
+        `CONSENT_DOCUMENTS` without its two columns fails here rather than at
+        somebody's checkout.
+        """
+        from payment.models import Order
+        from user.models import User
+        for model in (User, Order):
+            names = {field.name for field in model._meta.get_fields()}
+            for column in legal.accepted_versions():
+                self.assertIn(column, names,
+                              '%s has no %s column' % (model.__name__, column))
+
+    def test_the_recorded_number_is_the_one_the_document_page_shows(self):
+        """Two readings of the same fact would eventually disagree."""
+        page = self.client.get(reverse('terms')).content.decode()
+        self.assertIn(self.terms, page)
+        self.assertEqual(self.terms, legal.document('terms')['version'].number)

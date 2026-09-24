@@ -144,6 +144,29 @@ TITLES = {
 }
 
 
+#: The documents a customer is asked to agree to. The signup box names both,
+#: and the checkout says that pressing the button accepts both - so they are
+#: given as a pair and recorded as a pair. A record naming one of them
+#: answers half of the question a dispute asks (§17 #272).
+CONSENT_DOCUMENTS = ('terms', 'privacy')
+
+
+def current_version(key):
+    """The number of the wording of document ``key`` in force right now."""
+    return VERSIONS[key][0].number
+
+
+def accepted_versions():
+    """What to stamp on a row whose owner has just agreed to the documents.
+
+    Keyed by the model field each number belongs in, so a caller writes
+    ``Model(**accepted_versions())`` and cannot pair a number with the wrong
+    document. Both models name their columns the same way for that reason,
+    and a test holds them to it.
+    """
+    return {'%s_version' % key: current_version(key) for key in CONSENT_DOCUMENTS}
+
+
 def document(key):
     """The current version of document ``key`` and its whole history."""
     history = VERSIONS[key]

@@ -24,7 +24,7 @@ from django.conf import settings
 from tolov import ClickGateway, OctoGateway, PaymeGateway
 
 from cart.models import Cart
-from core import telegram
+from core import legal, telegram
 from product.models import Variant
 from .models import Order, location_text
 
@@ -91,6 +91,11 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
     ``recipient_name`` is who the parcel is addressed to. It is only stored:
     it takes no part in the lock or the total, and a caller that does not
     pass it gets a blank, as every order did before it existed.
+
+    The version of the terms and of the privacy policy in force at this moment
+    is stamped onto the order as well. The checkout says that pressing the
+    button accepts both, and this is the only place an order is made from a
+    checkout, so a caller cannot forget it (§17 #272).
     """
     with transaction.atomic():
         # Lock the cart row for the duration of the transaction.
@@ -140,6 +145,10 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
             address_source=address_source,
             latitude=latitude,
             longitude=longitude,
+            # Both consent columns, from the one lookup the signup form also
+            # uses - so a third document added later is recorded on orders
+            # without anybody having to remember this call.
+            **legal.accepted_versions(),
         )
         locked_cart.status = False
         locked_cart.save(update_fields=['status'])

@@ -56,6 +56,17 @@ class User(AbstractUser):
     )
     phone_verified = models.BooleanField(default=False)
 
+    # Which wording of the two documents this account holder agreed to when
+    # they registered; ``date_joined`` is when, so there is no second column
+    # saying the same thing. The signup page has always required the box and
+    # named both documents, but the numbers went nowhere - so the answer to
+    # "what did this customer agree to" was whatever the site happened to say
+    # that week (§17 #272). Blank on accounts made before this was recorded,
+    # and on a POST that reached the view without the box: a gap is worth more
+    # than a number nobody actually agreed to.
+    terms_version = models.CharField(max_length=10, blank=True, default='')
+    privacy_version = models.CharField(max_length=10, blank=True, default='')
+
     def save(self, *args, **kwargs):
         """Normalise the phone number before every save.
 
