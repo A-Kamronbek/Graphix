@@ -795,3 +795,112 @@ class ConsentRecordTests(TestCase):
         page = self.client.get(reverse('terms')).content.decode()
         self.assertIn(self.terms, page)
         self.assertEqual(self.terms, legal.document('terms')['version'].number)
+
+
+# ---------------------------------------------------------------------------
+# The two hardening items that were covered by something adjacent rather than
+# by themselves: item 1 (`check --deploy`) and item 6's second half (a replayed
+# callback).
+# ---------------------------------------------------------------------------
+from django.test import SimpleTestCase  # noqa: E402
+
+
+class DeployCheckTests(SimpleTestCase):
+    """Item 1: `manage.py check --deploy` run, rather than approximated.
+
+    `test_phase1b.DeploymentSettingsTests` reads the settings **file**, and has
+    to: the production block sits inside `if not DEBUG:`, which settings.py
+    evaluates while DEBUG is still whatever `.env` says, so an in-process
+    assertion reads the development value however correct the file is. What
+    that covers is a line being deleted.
+
+    This runs the real command in a subprocess with `DEBUG=False` in the
+    environment — `load_dotenv` does not override a variable that is already
+    set — which is the only way to see what the server sees: a setting
+    overridden further down the file, a warning nobody has read since Phase 1b,
+    or a check a later Django adds.
+    """
+
+    def test_the_deploy_check_reports_nothing(self):
+        import os
+        import subprocess
+        import sys
+        from pathlib import Path
+        run = subprocess.run(
+            [sys.executable, 'manage.py', 'check', '--deploy'],
+            cwd=str(Path(settings.BASE_DIR)),
+            env=dict(os.environ, DEBUG='False', PYTHONIOENCODING='utf-8'),
+            capture_output=True, text=True, encoding='utf-8')
+        output = (run.stdout or '') + (run.stderr or '')
+        self.assertEqual(run.returncode, 0, output)
+        # `check` exits 0 for warnings, so the exit code alone says little.
+        self.assertIn('no issues', output, output)
+
+
+class WebhookReplayTests(TestCase):
+    """Item 6, the half the signature does not cover: a callback delivered
+    twice must do nothing the second time.
+
+    Called at the mixin rather than through a signed POST. tolov owns the
+    signature and its own transaction table; what is ours is the hook that
+    resolves the order and the service that moves the status, and the hook is
+    exactly where a replay arrives in our code. `WebhookSignatureTests` stands
+    at the other door.
+
+    `apply_successful_payment` has been asserted idempotent since Phase 4
+    (§9 `payment`), but only by calling it directly — which says nothing
+    about the notification, and an owner told twice about one order goes
+    looking for a parcel that is not there.
+    """
+
+    class FakeTransaction:
+        """All the mixin reads off tolov's `PaymentTransaction`: the id we gave
+        the gateway when the pay link was made.
+        """
+
+        def __init__(self, account_id):
+            self.account_id = account_id
+
+    def setUp(self):
+        from .test_phase4 import make_product
+        from .test_phase6 import make_user
+        from .test_phase12 import make_order
+        self.user = make_user('takror', '+998901600077')
+        _product, self.variant = make_product('Takror', stock=10)
+        self.order = make_order(self.user, self.variant, status='paying')
+
+    def _deliver(self, times):
+        """Deliver the same successful callback ``times`` times."""
+        from unittest import mock
+        from payment.views import ClickWebhookAPIView
+        view = ClickWebhookAPIView()
+        callback = self.FakeTransaction(self.order.pk)
+        with mock.patch('core.telegram.send', return_value=True) as send:
+            with self.captureOnCommitCallbacks(execute=True):
+                for _ in range(times):
+                    view.successfully_payment({}, callback)
+        return send
+
+    def test_one_delivery_pays_the_order_and_tells_the_owner(self):
+        """The control: without it, a broken replay test passes for nothing."""
+        from payment.models import Order
+        send = self._deliver(1)
+        self.variant.refresh_from_db()
+        self.order.refresh_from_db()
+        self.assertEqual(self.variant.stock, 9)
+        self.assertEqual(self.order.status, Order.Status.PAID)
+        self.assertEqual(send.call_count, 1)
+
+    def test_a_second_delivery_moves_no_stock_and_sends_no_message(self):
+        send = self._deliver(2)
+        self.variant.refresh_from_db()
+        self.assertEqual(self.variant.stock, 9, 'stock came down twice')
+        self.assertEqual(send.call_count, 1,
+                         'the owner was told twice about one order')
+
+    def test_a_callback_naming_an_order_that_is_gone_is_logged_not_raised(self):
+        """A gateway retries a 500 forever, so an unknown id is answered."""
+        from payment.views import ClickWebhookAPIView
+        with self.assertLogs('payment.views', level='ERROR'):
+            ClickWebhookAPIView().successfully_payment(
+                {}, self.FakeTransaction(9_999_999))
