@@ -34,6 +34,12 @@ venv/
 .DS_Store
 Thumbs.db
 
+# --- database dumps ---
+# Real customer rows. Never in the repository, whatever the extension.
+/backups/
+*.dump
+*.sql
+
 # --- working notes and design scratch ---
 # Kept on disk, out of the repository. The plan and the runbooks are working
 # documents rather than part of the product, and the design folder is what
