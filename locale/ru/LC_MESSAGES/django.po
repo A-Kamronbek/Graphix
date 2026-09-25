@@ -753,11 +753,10 @@ msgstr "Ошибка на нашей стороне. Подождите немн
 
 #: .\templates\base.html:21 .\templates\base.html:52
 msgid ""
-"Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab "
-"yetkazib berish."
+"Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib "
+"berish."
 msgstr ""
-"Магазин футболок с принтами. Премиальное качество, 100+ дизайнов, доставка "
-"по Узбекистану."
+"Магазин футболок с принтами. Премиальное качество, доставка по Узбекистану."
 
 #: .\templates\base.html:51
 msgid "grafik futbolkalar"

@@ -751,8 +751,8 @@ msgstr ""
 
 #: .\templates\base.html:21 .\templates\base.html:52
 msgid ""
-"Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab "
-"yetkazib berish."
+"Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib "
+"berish."
 msgstr ""
 
 #: .\templates\base.html:51
