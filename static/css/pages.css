@@ -352,7 +352,18 @@
 .slides__arrow--prev { left: var(--s-4); }
 .slides__arrow--next { right: var(--s-4); }
 
-.slides__controls {
+/* The dots and the pause button do nothing without the script, so a browser
+   that will not run one must not be shown them - and a browser that will must
+   be shown them *from the first paint*, not when the script gets round to it.
+   The row used to ship with `hidden` and `slides.js` removed it, which added
+   its height to the page after paint and pushed every band below the carousel
+   down: a measured CLS of 0.053 on the home page against a budget of zero,
+   while the shop measured 0.000 (§17 #276).
+
+   `html.js` is set by one line in the head, so the row's height is decided
+   before anything is painted. Nothing here is revealed by script. */
+.slides__controls { display: none; }
+html.js .slides__controls {
   display: flex; align-items: center; justify-content: center;
   gap: var(--s-4);
   padding-block: var(--s-3);

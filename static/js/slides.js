@@ -119,7 +119,10 @@
     next.hidden = false;
     next.addEventListener('click', function () { show(current() + 1, true); });
   }
-  if (controls) controls.hidden = false;
+  /* The controls row is no longer revealed here. CSS shows it whenever the
+   * document carries `html.js`, which the head sets before the first paint,
+   * so its height is never added to a page somebody is already reading
+   * (§17 #276). `controls` is still read above, for the pause wiring. */
 
   dots.forEach(function (dot) {
     dot.addEventListener('click', function () {

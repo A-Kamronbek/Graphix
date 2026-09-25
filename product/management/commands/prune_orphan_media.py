@@ -43,19 +43,30 @@ class Command(BaseCommand):
                     names.add(str(value).replace('\\', '/'))
         return names
 
-    def renditions_of(self, names):
-        """The WebP renditions built beside each referenced picture.
+    def derived(self):
+        """Every rendition the site can actually serve, as its row records it.
 
-        ``build_renditions`` writes ``name-400.webp`` and friends next to the
-        original. They belong to a live row even though no column names them,
-        so they are not orphans.
+        Read from each row's ``renditions`` column, never derived from the
+        original's name - because the name is not derivable. Renditions sit in
+        a ``w/`` subfolder (``images.RENDITION_DIR``) and their widths come
+        from the source, which is never upscaled: a 360 px picture has one
+        rendition at 360, not three at 400, 800 and 1600.
+
+        Guessing it cost every rendition on a developer's machine. The guessed
+        names matched nothing, so ``--delete`` counted all 36 as orphans and
+        removed them; no page broke, because the fallback script swaps in the
+        placeholder when an image 404s - which is a layout shift, and is how
+        the CLS measurement found this a day later (§17 #276).
+
+        A row whose file was replaced records renditions of a file it no
+        longer holds. ``sources()`` returns nothing for it, so those really
+        are orphans and are meant to go.
         """
-        extra = set()
-        for name in names:
-            stem = name.rsplit('.', 1)[0]
-            extra.update('%s-%d.webp' % (stem, width)
-                         for width in (400, 800, 1600))
-        return extra
+        names = set()
+        for model, _column in FILE_COLUMNS:
+            for row in model.objects.all():
+                names.update(name for _width, name in row.sources())
+        return names
 
     def handle(self, *args, **options):
         root = Path(settings.MEDIA_ROOT)
@@ -64,7 +75,7 @@ class Command(BaseCommand):
             return
 
         keep = self.referenced()
-        keep |= self.renditions_of(keep)
+        keep |= self.derived()
 
         orphans, kept, freed = [], 0, 0
         for path in sorted(root.rglob('*')):

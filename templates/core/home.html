@@ -66,7 +66,11 @@
     </div>
 
     {% if slides|length > 1 %}
-      <div class="wrap slides__controls" data-slides-controls hidden>
+      {% comment %} No `hidden`: the row is hidden by CSS unless the document
+         carries `html.js`, which the head sets before anything is painted, so
+         its height is in the layout from the first frame. Revealing it from
+         the script cost a measured CLS of 0.053 (§17 #276). {% endcomment %}
+      <div class="wrap slides__controls" data-slides-controls>
         {% comment %} The dots are buttons, not decoration: they are how somebody on a
            laptop with no touchpad gesture reaches slide three. {% endcomment %}
         <div class="slides__dots" role="tablist"

@@ -980,3 +980,117 @@ class DemoSlidesTests(TestCase):
         page = self.client.get(reverse('home')).content.decode()
         self.assertIn('slides__track', page)
         self.assertIn(slides[0].alt, page)
+
+
+class PruneKeepsWhatTheSiteServesTests(TestCase):
+    """`prune_orphan_media` must never delete a file a page asks for.
+
+    It did. `renditions_of` guessed the rendition names from the original's
+    name - `<stem>-400.webp` and friends, in the same folder - and both halves
+    of that guess are wrong: renditions live in a `w/` subfolder and their
+    widths come from the source, which is never upscaled. So the guessed names
+    matched nothing, every rendition counted as an orphan, and `--delete`
+    removed all 36 on the developer's machine.
+
+    **Nothing broke, which is why it needed measuring to find.** The fallback
+    script swaps in the placeholder when an image 404s, so the pages rendered;
+    the swap is a layout shift, and the home page's CLS measurement came back
+    0.053 against a budget of zero (§17 #276).
+
+    The assertion is the property, not the naming scheme: a file the site
+    would serve is not an orphan.
+    """
+
+    def setUp(self):
+        from product.models import ImageP
+        from .test_phase4 import make_product
+        from .test_backlog import jpeg
+        self.product, _variant = make_product('Saqlanadi', stock=1)
+        with self.captureOnCommitCallbacks(execute=True):
+            self.image = ImageP.objects.create(product=self.product,
+                                               picture=jpeg(), order=0)
+        self.image.refresh_from_db()
+
+    @staticmethod
+    def keep_set():
+        """What the command would spare, without touching a single file.
+
+        The decision rather than the deletion: the whole run shares one
+        throwaway `MEDIA_ROOT`, so earlier tests leave their own files in it
+        and an orphan *count* says nothing repeatable. What went wrong was the
+        set, and the set is what this reads.
+        """
+        from product.management.commands.prune_orphan_media import Command
+        command = Command()
+        return command.referenced() | command.derived()
+
+    def test_every_rendition_a_row_serves_is_kept(self):
+        served = [name for _width, name in self.image.sources()]
+        self.assertTrue(served, 'no renditions were built, so nothing is proved')
+        keep = self.keep_set()
+        for name in served:
+            self.assertIn(name, keep, '%s is what the page asks for' % name)
+        self.assertIn(self.image.picture.name.replace('\\', '/'), keep)
+
+    def test_a_name_no_row_records_is_not_kept(self):
+        """The guard must not have been bought by sparing everything."""
+        self.assertNotIn('products/w/nobody-800.webp', self.keep_set())
+
+
+class NothingInFlowIsRevealedByScriptTests(TestCase):
+    """The carousel's controls take their space at the first paint.
+
+    The home page measured a CLS of 0.053 against a budget of zero, while the
+    shop measured 0.000 - so it was not the fonts and not the header, it was
+    something the home page alone had. The controls row shipped with `hidden`
+    and `slides.js` removed it, which put the dots and the pause button into
+    the layout *after* the page had been painted and pushed every band below
+    the carousel down (§17 #276).
+
+    The row still must not appear for somebody whose browser will not run the
+    script, because it does nothing for them. So the head marks the document
+    script-capable before anything is painted and the CSS keys off that. What
+    is asserted here is that mechanism, in all three of the places it needs to
+    hold, plus the one thing that would silently switch it off: the inline
+    script needs a nonce the policy actually names, or the browser refuses it,
+    `html.js` is never set, and the row disappears for everyone.
+    """
+
+    def head_script(self, html):
+        """The nonce on the `html.js` line, or None if it is not there."""
+        head = html.split('</head>')[0]
+        found = re.search(
+            r'<script nonce="([^"]*)">document\.documentElement\.className',
+            head)
+        return found.group(1) if found else None
+
+    def test_the_head_marks_the_document_before_anything_is_painted(self):
+        response = self.client.get(reverse('home'))
+        nonce = self.head_script(response.content.decode())
+        self.assertIsNotNone(
+            nonce, 'nothing in the head sets html.js, so the CSS cannot key off it')
+        self.assertTrue(nonce, 'the nonce rendered empty; CSP will refuse the script')
+
+    def test_the_policy_names_the_nonce_it_is_given(self):
+        """A nonce the header does not carry is a script that never runs."""
+        response = self.client.get(reverse('home'))
+        nonce = self.head_script(response.content.decode())
+        self.assertIn("'nonce-%s'" % nonce, response['Content-Security-Policy'])
+
+    def test_the_controls_row_is_not_hidden_in_the_markup(self):
+        source = (TEMPLATES / 'core' / 'home.html').read_text(encoding='utf-8')
+        marker = source[source.index('data-slides-controls'):]
+        self.assertNotIn('hidden', marker[:marker.index('>')],
+                         'the row is revealed by script again')
+
+    def test_the_stylesheet_reserves_the_row_only_for_a_scripted_document(self):
+        css = (STATIC / 'css' / 'pages.css').read_text(encoding='utf-8')
+        self.assertIn('.slides__controls { display: none; }', css)
+        self.assertIn('html.js .slides__controls', css)
+
+    def test_the_script_no_longer_reveals_the_row(self):
+        """Belt and braces: with the CSS doing it, the old line would be a
+        second mechanism for the same thing, and the one that shifts.
+        """
+        script = (STATIC / 'js' / 'slides.js').read_text(encoding='utf-8')
+        self.assertNotIn('controls.hidden = false', script)
