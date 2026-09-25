@@ -10,11 +10,12 @@ without anyone noticing: nobody was looking at a page that had four photographs
 and four sizes on it.
 
 **This deletes catalogue data.** Products, their images and variants, the
-categories, the sizes, and everything that hangs off them - carts, cart lines
-and orders - go, because a variant cannot be deleted while an order line still
-points at it. It leaves alone the things that are not catalogue: user accounts
-(so nobody is locked out of their own dev site), delivery and payment options,
-regions and districts, and contact messages.
+categories, the sizes, the home page's slide cards, and everything that hangs
+off them - carts, cart lines and orders - go, because a variant cannot be
+deleted while an order line still points at it. It leaves alone the things
+that are not catalogue: user accounts (so nobody is locked out of their own
+dev site), delivery and payment options, regions and districts, and contact
+messages.
 
 The photographs live in `data/demo-catalogue/` because `media/` is
 gitignored, and are copied into place when they are missing - so this works on a
@@ -28,6 +29,7 @@ is a sentence that should never be able to reach production by accident.
 """
 import shutil
 from decimal import Decimal
+from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -46,6 +48,36 @@ CATALOGUE = [
 ]
 
 SIZES = ('S', 'M', 'L', 'XL')
+
+# slug, link, and the alt in the three languages.
+#
+# The home page renders the no-slides branch when this table is empty, which
+# is what every developer's machine showed until these existed - so the
+# carousel could not be looked at, and its CLS could not be measured at all
+# (§9 Phase 9, measured rather than asserted). The pictures are drawn by
+# `docs/design/slides/build.py`; the words on them are Uzbek, because a slide
+# is one file for all three languages and the alt is what carries the meaning
+# across (§17 #275).
+#
+# The links carry **no language prefix**, and that is the point: every page on
+# this site sits under one (`/uz/`, `/ru/`, `/en/`), a slide holds one link for
+# all three, and `LocaleMiddleware` redirects an unprefixed path to the
+# visitor's own language. `/uz/shop/` in this column would drop a Russian
+# customer into an Uzbek page. Worth knowing before the owner types one.
+SLIDES = [
+    ('yangi', '/shop/',
+     'Yangi dizaynlar: butun kolleksiyani koʻring',
+     'Новые дизайны: посмотреть коллекцию',
+     'New designs: see the collection'),
+    ('yetkazib-berish', '/yetkazib-berish/',
+     'Oʻzbekiston boʻylab yetkazib berish, 1–6 kun',
+     'Доставка по Узбекистану, 1–6 дней',
+     'Delivery across Uzbekistan, 1–6 days'),
+    ('olcham', '/olcham-jadvali/',
+     'Oʻlcham jadvali: oʻlchamni toʻgʻri tanlang',
+     'Таблица размеров: выберите свой размер',
+     'Size guide: find your size'),
+]
 
 DESCRIPTION = (
     'Qalin paxta, yuvilgandan keyin shaklini saqlaydi. '
@@ -78,8 +110,8 @@ class Command(BaseCommand):
         from product import size_charts
         from product.models import (Category, ImageP, PrintMethod, Product,
                                     ProductLike, Review, ReviewImage, Size,
-                                    SizeChart, SizeChartRow, Tag, Variant,
-                                    default_colour)
+                                    SizeChart, SizeChartRow, Slide, Tag,
+                                    Variant, default_colour)
 
         db = settings.DATABASES['default']
         host = (db.get('HOST') or '').strip()
@@ -92,7 +124,7 @@ class Command(BaseCommand):
         copied = self._place_images()
         if copied:
             self.stdout.write('copied %d photograph(s) into %s'
-                              % (copied, settings.MEDIA_ROOT / 'products'))
+                              % (copied, settings.MEDIA_ROOT))
 
         counts = {
             'products': Product.objects.count(),
@@ -101,6 +133,7 @@ class Command(BaseCommand):
             'sizes': Size.objects.count(),
             'carts': Cart.objects.count(),
             'orders': Order.objects.count(),
+            'slides': Slide.objects.count(),
         }
         self.stdout.write('database: %s on %s' % (db['NAME'], host or 'local socket'))
         self.stdout.write('about to delete: ' + ', '.join(
@@ -122,6 +155,13 @@ class Command(BaseCommand):
             ReviewImage.objects.all().delete()
             Review.objects.all().delete()
             ImageP.objects.all().delete()
+            # The cards go with the catalogue: they advertise it, and one of
+            # them points at a page the catalogue defines. Their files are not
+            # lost with them — the delete receiver checks after the commit
+            # whether any row still names the file, and by then the new rows
+            # do (§17 #220), which is the same path the product photographs
+            # have taken since this command existed.
+            Slide.objects.all().delete()
             Variant.objects.all().delete()
             Product.objects.all().delete()
             # The CHARTS survive; only their rows go, because the rows point at
@@ -190,9 +230,17 @@ class Command(BaseCommand):
                         stock=0 if (slug == 'rampage' and size.size == 'S') else 12,
                     )
 
+            for order, (slug, link, uz, ru, en) in enumerate(SLIDES, start=1):
+                Slide.objects.create(
+                    picture='slides/slide-%s.jpg' % slug,
+                    link=link, alt=uz, alt_ru=ru, alt_en=en,
+                    is_active=True, sort_order=order,
+                )
+
         self.stdout.write(self.style.SUCCESS(
-            'seeded %d products, %d variants, %d sizes, 1 category'
-            % (Product.objects.count(), Variant.objects.count(), Size.objects.count())))
+            'seeded %d products, %d variants, %d sizes, %d slides, 1 category'
+            % (Product.objects.count(), Variant.objects.count(),
+               Size.objects.count(), Slide.objects.count())))
         self.stdout.write('tags reused: %s' % ', '.join(
             Tag.objects.order_by('slug').values_list('slug', flat=True)))
 
@@ -202,6 +250,7 @@ class Command(BaseCommand):
         """Every file the catalogue refers to, relative to MEDIA_ROOT."""
         names = ['products/hero-%d.jpg' % n for n in range(1, 5)]
         names += ['products/%s.jpg' % row[0] for row in CATALOGUE if row[0] != 'rampage']
+        names += ['slides/slide-%s.jpg' % row[0] for row in SLIDES]
         return names
 
     def _place_images(self):
@@ -212,12 +261,19 @@ class Command(BaseCommand):
         this working on Windows without developer mode.
         """
         source = settings.BASE_DIR / 'data' / 'demo-catalogue'
-        target = settings.MEDIA_ROOT / 'products'
-        target.mkdir(parents=True, exist_ok=True)
+        # `Path(...)` rather than the setting as it stands: the test runner
+        # replaces MEDIA_ROOT with a throwaway directory as a plain string
+        # (§17 #271), and `str / str` is a TypeError. Nothing had called this
+        # command from a test until the slides needed one, so it had never
+        # come up.
+        media = Path(settings.MEDIA_ROOT)
 
         copied, missing = 0, []
         for name in self.image_names():
-            dest = settings.MEDIA_ROOT / name
+            dest = media / name
+            # Per file, not once: the slides live in their own folder, and a
+            # fresh clone has neither of them.
+            dest.parent.mkdir(parents=True, exist_ok=True)
             if dest.exists():
                 continue
             src = source / dest.name

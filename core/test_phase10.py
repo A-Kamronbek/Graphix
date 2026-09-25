@@ -904,3 +904,79 @@ class WebhookReplayTests(TestCase):
         with self.assertLogs('payment.views', level='ERROR'):
             ClickWebhookAPIView().successfully_payment(
                 {}, self.FakeTransaction(9_999_999))
+
+
+class DemoSlidesTests(TestCase):
+    """The home carousel needs slides to exist before it can be measured.
+
+    Phase 9's rule is that CLS is measured rather than asserted (§17 #236),
+    and the home carousel's measurement was carried into this phase. It could
+    not be taken: `seed_demo_catalogue` created no `Slide` rows, so every
+    developer's home page rendered the no-slides branch and there was no
+    carousel on screen at all. The cards are drawn by
+    `docs/design/slides/build.py` and seeded here (§17 #275).
+    """
+
+    def test_every_picture_the_seeder_names_is_in_the_repository(self):
+        """`media/` is gitignored, so a card added to the table without its
+        artwork committed fails on a fresh clone with a copy error, at the
+        moment somebody resets their catalogue. This says so first, and needs
+        no database.
+        """
+        from product.management.commands import seed_demo_catalogue as seeder
+        source = Path(settings.BASE_DIR) / 'data' / 'demo-catalogue'
+        missing = [name for name in seeder.Command.image_names()
+                   if not (source / Path(name).name).exists()]
+        self.assertEqual(missing, [], 'not committed: %s' % missing)
+
+    def test_every_slide_links_somewhere_the_site_actually_serves(self):
+        """A demo card pointing at a renamed path is a 404 on the busiest page
+        of the site.
+
+        Fetched rather than resolved, and that is the whole lesson: every page
+        here sits under a language prefix, so a slide's link is stored without
+        one and `LocaleMiddleware` sends each visitor to their own language.
+        `resolve('/shop/')` therefore raises on a link that is correct, which
+        is exactly what this test did when it was first written.
+        """
+        from product.management.commands.seed_demo_catalogue import SLIDES
+        for slug, link, _uz, _ru, _en in SLIDES:
+            with self.subTest(slide=slug):
+                response = self.client.get(link, follow=True)
+                self.assertEqual(
+                    response.status_code, 200,
+                    '%s points at %s, which answers %s'
+                    % (slug, link, response.status_code))
+                self.assertTrue(
+                    response.redirect_chain,
+                    '%s is stored with a language prefix; it must not be'
+                    % slug)
+
+    def test_seeding_puts_a_carousel_on_the_home_page(self):
+        """The end the fixture exists for: the home page renders slide cards
+        rather than the branch it takes when there are none.
+
+        The commit callbacks are run, because the picture's pixel size is
+        filled by a signal that waits for the commit - and those stored
+        dimensions are exactly what holds the carousel's box before the file
+        arrives. A slide with no dimensions measures a CLS that is not the
+        site's.
+        """
+        from django.core.management import call_command
+        from product.models import Slide
+        with self.captureOnCommitCallbacks(execute=True):
+            call_command('seed_demo_catalogue', noinput=True, verbosity=0)
+
+        slides = list(Slide.objects.filter(is_active=True))
+        self.assertEqual(len(slides), 3)
+        for slide in slides:
+            with self.subTest(slide=slide.alt):
+                self.assertTrue(slide.alt_ru and slide.alt_en,
+                                'a slide with no translated alt')
+                self.assertTrue(slide.has_photo)
+                self.assertTrue(slide.width and slide.height,
+                                'no stored pixel size, so the box cannot be held')
+
+        page = self.client.get(reverse('home')).content.decode()
+        self.assertIn('slides__track', page)
+        self.assertIn(slides[0].alt, page)
