@@ -65,3 +65,12 @@ Thumbs.db
 
 # pip leaves this inside the checkout on the server.
 .cache/
+
+# The service account's home directory IS the checkout on the server, so its
+# dotfiles land in the worktree. These two are secrets - the database password
+# and the deploy key - and untracked is not the same as ignored: one `git add
+# -A` on that box would have committed both. Nothing of the kind is tracked.
+.db_password
+.ssh/
+.netrc
+.pgpass
