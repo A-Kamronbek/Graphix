@@ -3,7 +3,7 @@
 Phase 1b. Read `docs/PLAN.md` §9 Phase 1b first; this is how, not what or why.
 
 Every command runs on the server unless it says otherwise. Steps marked
-**[Kamronbek]** cannot be done for you: they need a password, a secret, a card,
+**[Manual]** cannot be done for you: they need a password, a secret, a card,
 or an account only you can sign into.
 
 ---
@@ -16,8 +16,8 @@ than one bought last week. Confirm in the OVH panel which instance is the
 Warsaw VPS from 2026-09-12. Installing GRAPHIX on the wrong machine is cheap to
 avoid now and expensive to unpick once the domain points at it.
 
-- [ ] **[Kamronbek]** Q36 answered — the target is confirmed
-- [ ] **[Kamronbek]** your public key is in `~/.ssh/authorized_keys` on it
+- [ ] **[Manual]** Q36 answered — the target is confirmed
+- [ ] **[Manual]** your public key is in `~/.ssh/authorized_keys` on it
 - [ ] `ssh <user>@<host> whoami` answers without a password prompt
 
 **The box already runs another site.** Nothing in this runbook edits, disables
@@ -130,7 +130,7 @@ the package the first cache read raises, which means the first page.
 
 ## 6. The database
 
-**[Kamronbek]** — you type the password; it never passes through the chat.
+**[Manual]** — you type the password; it never passes through the chat.
 
 ```bash
 sudo -u postgres createuser --pwprompt graphix
@@ -153,7 +153,7 @@ sudo -u graphix chmod 600 /srv/graphix/.env
 sudo -u graphix nano /srv/graphix/.env
 ```
 
-**[Kamronbek]** — fill it in. The values that must change from the example:
+**[Manual]** — fill it in. The values that must change from the example:
 
 | Key | Value |
 |---|---|
@@ -194,7 +194,7 @@ lists anything, stop and read it rather than continuing.
 
 ## 9. The owner's staff account
 
-**[Kamronbek]**
+**[Manual]**
 
 ```bash
 cd /srv/graphix
@@ -285,7 +285,7 @@ systemctl is-active valleymade.service
 
 ## 12. DNS
 
-**[Kamronbek]** — at Eskiz, which hosts the zone (`ns1/ns2.eskiz.uz`).
+**[Manual]** — at Eskiz, which hosts the zone (`ns1/ns2.eskiz.uz`).
 graphix.uz currently resolves to `45.138.159.4`; it needs to be the server.
 
 | Record | Name | Value |
@@ -377,7 +377,13 @@ EOF
 sudo -u graphix chmod 600 /srv/graphix-backups/backup.env
 ```
 
-**[Kamronbek]** — decide where the off-server copy goes and put it in that
+**Local only, by the owner's decision (plan §17 #282).** `backup.env` carries
+`BACKUP_LOCAL_ONLY=1` instead of a destination, and every run says in the
+journal what a copy on the same disk does not protect against. Everything
+below still applies the day a destination is added: set `BACKUP_REMOTE` and
+remove the waiver.
+
+**[Manual]** — decide where the off-server copy goes and put it in that
 file as `user@host:/path`. It has to be a different machine; the tapcon VPS,
 a home machine that is usually on, or object storage over rsync all qualify.
 Then give the `graphix` user an SSH key and put its public half on the
@@ -421,7 +427,7 @@ site deletes one. Without this timer that sentence is false.
 
 ### 17.1 Click
 
-**[Kamronbek]** — in the Click merchant cabinet.
+**[Manual]** — in the Click merchant cabinet.
 
 1. Register the webhook as `https://graphix.uz/payment/click/update/`.
 2. Put `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID` and `CLICK_SECRET_KEY` in
@@ -444,7 +450,7 @@ silently: the customer pays, Click is happy, and the order sits unpaid forever.
 
 ### 17.2 Payme and Octo
 
-**[Kamronbek]** — both ship **switched off** in Boshqaruv > Toʻlov usullari,
+**[Manual]** — both ship **switched off** in Boshqaruv > Toʻlov usullari,
 and stay off until their keys are in. While a method is switched on the
 checkout offers it, whether or not it is configured.
 
@@ -477,7 +483,7 @@ service, and this is the reason (§17 #267).
 
 ## 18. Eskiz, Telegram, Maps
 
-**[Kamronbek]**
+**[Manual]**
 
 - `ESKIZ_EMAIL`, `ESKIZ_PASSWORD`, `ESKIZ_FROM=GRAPHIX`. Sign up on the live
   site with a real number and confirm the SMS arrives branded GRAPHIX. The
@@ -500,7 +506,7 @@ service, and this is the reason (§17 #267).
 
 ## 19. Search Console and monitoring
 
-**[Kamronbek]**
+**[Manual]**
 
 - Search Console: add `graphix.uz`, verify, submit `https://graphix.uz/sitemap.xml`.
   No Change of Address — there is no old property to move from (§17 #35).
@@ -517,19 +523,10 @@ Everything above stands a server up once. This is the other thing, and it was
 missing until Phase 14 went looking for it: the site is already running, a
 branch has been merged, and the machine has to catch up.
 
-> **Before this works at all: `/srv/graphix` must be a git checkout, and as of
-> 2026-09-23 it is not.** There is no `.git` directory in it — §14 above says
-> `git clone`, and what actually happened was a copy, so the deployed tree has
-> no remote, no branch and no history. Every `git` line below fails with
-> *fatal: not a git repository*, and the server has been stuck on the
-> 2026-09-19 code since.
->
-> The repository is private, so the fix is a read-only **deploy key**: one is
-> already generated at `/srv/graphix/.ssh/id_ed25519` with an `ssh config`
-> beside it, and its public half needs adding to GitHub under Settings →
-> Deploy keys. `deploy/KAMRONBEK-STEPS.md` step 1 has the key and the exact
-> steps. Confirm with `sudo -u graphix ssh -T git@github.com` before running
-> anything below.
+`/srv/graphix` is a git checkout of `main`, tracking `origin/main` (plan
+§17 #277), and reads GitHub with its own read-only deploy key. If
+`git status` there prints anything at all, read it before pulling: the tree
+is clean when nothing is wrong (plan §17 #288).
 
 Run these **in this order**. The order is the whole point — `migrate`
 imports the application, so a dependency the new code needs has to be on disk
@@ -538,7 +535,8 @@ before it runs, and a template the new code renders has to be collected after.
 ```bash
 # 1. A dump first, every time. The standing rule, and an update is exactly
 #    when a migration is about to touch tables that have real orders in them.
-sudo -u graphix /srv/graphix/deploy/backup.sh
+sudo systemctl start graphix-backup.service
+sudo journalctl -u graphix-backup.service -n 3 --no-pager -o cat   # ends: done
 
 cd /srv/graphix
 sudo -u graphix git fetch --all
@@ -576,7 +574,7 @@ sudo -u graphix .venv/bin/pip uninstall -y click-pkg
 ```
 
 **If something is wrong after the restart**, the dump from step 1 is the way
-back, and `deploy/restore-check.sh` is what proves a dump is restorable before
+back, and `deploy/bin/restore-check.sh` is what proves a dump is restorable before
 you need it to be.
 
 ---
@@ -600,10 +598,10 @@ remembering it.
 
 - [ ] graphix.uz serves over HTTPS
 - [ ] a real Click payment completes and the order flips to `paid`
-- [ ] an OTP SMS arrives branded GRAPHIX
+- [ ] an OTP SMS arrives branded GRAPHIX — *waived: the sender stays `4546` (plan §18 #50)*
 - [ ] the OG image renders when the link is pasted into Telegram
 - [ ] Redis is live and the rate limiter counts correctly across workers
-- [ ] `restore-check.sh` exits 0 against an off-server copy
+- [ ] `restore-check.sh` exits 0 — *against the local copy, by the owner's decision (plan §17 #282)*
 
 Then record it: §15 tracker, §16 session log, and any decision that came out of
 the day in §17. An out-of-date plan makes the next chat worse.
