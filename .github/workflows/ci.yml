@@ -52,7 +52,9 @@ jobs:
     env:
       # None of these are secrets. There is no .env in CI and settings.py falls
       # through to the environment, so this block IS the configuration.
-      SECRET_KEY: ci-only-never-used-to-sign-anything-real
+      # Long enough for check --deploy: security.W009 wants 50 characters
+      # and some variety, and the suite asserts that check reports nothing.
+      SECRET_KEY: ci-only-never-used-to-sign-anything-real-0123456789abcdef
       DEBUG: 'True'
       ALLOWED_HOSTS: 127.0.0.1,localhost
       DB_NAME: graphix
