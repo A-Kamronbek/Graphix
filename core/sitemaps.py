@@ -48,7 +48,10 @@ class ProductSitemap(Sitemap):
         return Product.objects.filter(is_active=True, variants__available=True).distinct()
 
     def lastmod(self, obj):
-        return obj.created_at
+        # `updated_at`, not `created_at`: a crawler that is told a page was
+        # last modified on the day it was created has no reason to come back
+        # when the owner rewrites its description or replaces its photographs.
+        return obj.updated_at
 
     def location(self, obj):
         return reverse('item', kwargs={'slug': obj.slug})

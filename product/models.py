@@ -261,6 +261,15 @@ class Product(models.Model):
     # default sort, the home page's newest row, and the fallback for the
     # popularity and rating sorts (§9 Phase 9 item 8).
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    # Why a second timestamp: the sitemap's <lastmod> is the only thing that
+    # tells a crawler a product page is worth fetching again, and `created_at`
+    # never moves - an edited description or a replaced photograph would never
+    # be re-read. `auto_now` fires on save(), which is what the panel's editor
+    # calls. The denormalised counters below are written with queryset
+    # .update() and F() expressions, which bypass save(), so a like or a new
+    # review does not pass for an edit. That is the behaviour we want: lastmod
+    # should mean the owner changed the page, not that somebody tapped a heart.
+    updated_at = models.DateTimeField(auto_now=True)
     description = models.TextField(null=True, blank=True)
     description_ru = models.TextField(blank=True, default='')
     description_en = models.TextField(blank=True, default='')

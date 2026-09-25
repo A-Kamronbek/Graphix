@@ -743,6 +743,42 @@ class SitemapTests(TestCase):
         self.assertTrue(has_size_guide())
         self.assertIn('size_guide', sitemaps.StaticViewSitemap().items())
 
+    def test_lastmod_follows_an_edit_rather_than_the_creation_date(self):
+        """A crawler comes back only if <lastmod> has moved.
+
+        It read `created_at`, so the sitemap promised that every product page
+        was last touched on the day it was made, however often the owner
+        rewrote it. Nothing about the page said so, which is why this is a
+        test rather than a look.
+        """
+        from core.sitemaps import ProductSitemap
+        product, _ = tagged('Tahrirlangan', stock=1)
+        before = ProductSitemap().lastmod(product)
+        self.assertEqual(before, product.updated_at)
+
+        product.description = 'Qayta yozilgan matn'
+        product.save()
+        product.refresh_from_db()
+
+        self.assertGreater(ProductSitemap().lastmod(product), before)
+
+    def test_a_like_is_not_an_edit(self):
+        """The counters are written with queryset .update(), which skips save().
+
+        That is what keeps `auto_now` honest: a heart or a new review changes
+        a number on the page, not the page, and a sitemap that claimed
+        otherwise would be asking for a recrawl on every tap.
+        """
+        from core.sitemaps import ProductSitemap
+        product, _ = tagged('Yurakcha', stock=1)
+        before = ProductSitemap().lastmod(product)
+
+        Product.objects.filter(pk=product.pk).update(likes_count=1)
+        product.refresh_from_db()
+
+        self.assertEqual(product.likes_count, 1)
+        self.assertEqual(ProductSitemap().lastmod(product), before)
+
     def test_the_old_item_url_still_leads_to_the_product(self):
         """Item 13: links to /item/<pk>/ predate the slug URLs."""
         product, _ = tagged('Eski havola', stock=1)
