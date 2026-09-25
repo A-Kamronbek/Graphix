@@ -134,6 +134,41 @@ class ReportedError(Exception):
     """An exception from a worker, carried as the text of its traceback."""
 
 
+class ReportedSubTest:
+    """A failed subtest carried as its description, because the real one cannot.
+
+    ``RemoteTestResult.addSubTest`` appends the live ``unittest.case._SubTest``
+    to the events the worker sends home. It holds the test case, which holds
+    its ``Client``, which holds the middleware chain Django assembles out of
+    local functions - and a local function does not pickle. Django does check,
+    with ``check_subtest_picklable``, and the check passes: the chain is built
+    later, by a request in a subtest that runs after this one, so the object
+    that was picklable when it failed is not picklable when the pool finally
+    sends the batch.
+
+    What happens then is the worst version of a test failure. The pool raises
+    ``MaybeEncodingError``, every result that worker collected is lost, and the
+    run reports an exit code with no test named. CI failed that way ten times
+    (§17 #289) before anyone could see that one Octo assertion was behind it.
+
+    The parent reads two things off a subtest - ``str()`` and
+    ``shortDescription()`` - so those are what this carries, and it holds no
+    reference to anything alive.
+    """
+
+    __slots__ = ('_description', '_doc')
+
+    def __init__(self, subtest):
+        self._description = str(subtest)
+        self._doc = subtest.shortDescription()
+
+    def __str__(self):
+        return self._description
+
+    def shortDescription(self):
+        return self._doc
+
+
 def _portable(err):
     """``err`` (an ``exc_info`` tuple) in a form that survives pickling.
 
@@ -164,7 +199,13 @@ class WorkerResult(StartsInUzbek, RemoteTestResult):
         super().addFailure(test, _portable(err))
 
     def addSubTest(self, test, subtest, err):
-        super().addSubTest(test, subtest, None if err is None else _portable(err))
+        # A passing subtest is not recorded by anyone, so it is handed on as it
+        # came; only a failing one is put on the wire, and only that one needs
+        # to survive the trip.
+        if err is None:
+            super().addSubTest(test, subtest, None)
+        else:
+            super().addSubTest(test, ReportedSubTest(subtest), _portable(err))
 
 
 class WorkerRunner(RemoteTestRunner):
