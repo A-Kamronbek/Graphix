@@ -12,8 +12,13 @@
     <div class="cartpage">
       <div class="stack">
         {% for it in items %}
+          {# A line whose product or size went off sale after it was added keeps #}
+          {# its place so the customer can see it and remove it, but it links #}
+          {# nowhere - the product's page is a 404 by then - and the checkout #}
+          {# turns the cart away until it is gone (§17 #294). #}
+          {% with on_sale=it.variant.is_on_sale %}
           <article class="cartline">
-            <a class="cartline__thumb" href="{% url 'item' it.variant.product.slug %}">
+            <a class="cartline__thumb"{% if on_sale %} href="{% url 'item' it.variant.product.slug %}"{% endif %}>
               {% with it.variant.product.images.all|first as img %}
                 {# The first line is at the top of the page; the rest are not. #}
                 <img {% photo_attrs img 'thumb' %} alt="{{ it.variant.product|t:'name' }}"
@@ -22,8 +27,9 @@
             </a>
 
             <div class="stack stack--sm">
-              <a class="card__name" href="{% url 'item' it.variant.product.slug %}">{{ it.variant.product|t:"name" }}</a>
+              <a class="card__name"{% if on_sale %} href="{% url 'item' it.variant.product.slug %}"{% endif %}>{{ it.variant.product|t:"name" }}</a>
               <span class="small muted">{% trans "Oʻlcham" %}: {{ it.variant.size.size }}</span>
+              {% if not on_sale %}<span class="badge badge--danger cartline__off">{% trans "Sotuvda yoʻq" %}</span>{% endif %}
               <span class="small muted num">{{ it.price_stat|price }} {% trans "soʻm" %}</span>
             </div>
 
@@ -55,6 +61,7 @@
               </form>
             </div>
           </article>
+          {% endwith %}
         {% endfor %}
       </div>
 

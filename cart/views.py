@@ -83,6 +83,10 @@ def cart_add(request, product_id):
         services.add_variant(cart, variant, qty)
     except services.CartError as e:
         messages.error(request, str(e))
+        # Back to the product, unless it has been switched off: its page is a
+        # 404 then, and the shop is somewhere the message can be read.
+        if not product.is_active:
+            return redirect('shop')
         return redirect('item', slug=product.slug)
 
     messages.success(request, _("%(name)s savatga qoʻshildi.")

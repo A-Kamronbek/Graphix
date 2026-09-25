@@ -117,6 +117,10 @@ def resolve_variant(product, colour_id, size_id):
     owner's switch and ``stock`` is the count; both have to agree, so they get
     separate messages — "sold out" and "not for sale" mean different things to a
     customer.
+
+    "Not for sale" covers the whole product being switched off as well as the
+    one size. The product's page already 404s in that state, but a POST does
+    not have to come from the page (§17 #294).
     """
     variant_qs = product.variants.all()
     if colour_id:
@@ -129,7 +133,7 @@ def resolve_variant(product, colour_id, size_id):
         raise CartError(_("Tovar notoʻgʻri tanlangan"))
     variant = matches[0]
 
-    if not variant.available:
+    if not variant.is_on_sale:
         raise CartError(_("Ushbu tovar sotuvda yoʻq"))
     if variant.stock <= 0:
         raise CartError(_("Ushbu oʻlcham tugagan"))

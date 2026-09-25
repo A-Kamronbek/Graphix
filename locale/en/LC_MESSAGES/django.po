@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 01:37+0500\n"
+"POT-Creation-Date: 2026-09-26 02:13+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,24 +18,24 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\cart\services.py:129
+#: .\cart\services.py:133
 msgid "Tovar notoʻgʻri tanlangan"
 msgstr "That selection isn’t valid"
 
-#: .\cart\services.py:133
+#: .\cart\services.py:137
 msgid "Ushbu tovar sotuvda yoʻq"
 msgstr "This item isn’t for sale"
 
-#: .\cart\services.py:135 .\cart\services.py:158 .\cart\services.py:184
+#: .\cart\services.py:139 .\cart\services.py:162 .\cart\services.py:188
 msgid "Ushbu oʻlcham tugagan"
 msgstr "This size is sold out"
 
-#: .\cart\views.py:88
+#: .\cart\views.py:92
 #, python-format
 msgid "%(name)s savatga qoʻshildi."
 msgstr "%(name)s is in your cart."
 
-#: .\cart\views.py:110
+#: .\cart\views.py:114
 msgid "Olib tashlandi."
 msgstr "Removed."
 
@@ -548,56 +548,71 @@ msgstr "Door delivery does not take a post office branch."
 msgid "Manzilni kiriting."
 msgstr "Enter an address."
 
-#: .\payment\views.py:186 .\payment\views.py:291
+#: .\payment\views.py:183
+#, python-format
+msgid ""
+"%(names)s endi sotuvda yoʻq. Buyurtma berish uchun uni savatdan olib "
+"tashlang."
+msgid_plural ""
+"%(names)s endi sotuvda yoʻq. Buyurtma berish uchun ularni savatdan olib "
+"tashlang."
+msgstr[0] ""
+"%(names)s is no longer on sale. Remove it from your cart to place the "
+"order."
+msgstr[1] ""
+"%(names)s are no longer on sale. Remove them from your cart to place "
+"the order."
+
+#: .\payment\views.py:201 .\payment\views.py:311
 msgid "Savat boʻsh."
 msgstr "Your cart is empty."
 
-#: .\payment\views.py:245
+#: .\payment\views.py:265
 msgid "Toʻlov usulini tanlang."
 msgstr "Choose a payment method."
 
-#: .\payment\views.py:249
+#: .\payment\views.py:269
 msgid "Yetkazib berish turini tanlang."
 msgstr "Choose a delivery method."
 
-#: .\payment\views.py:253
+#: .\payment\views.py:273
 msgid "Ism va telefon raqamni toʻldiring."
 msgstr "Fill in your name and phone number."
 
-#: .\payment\views.py:259
+#: .\payment\views.py:279
 #, python-format
 msgid "Ism %(n)d belgidan oshmasligi kerak."
 msgstr "The name can be at most %(n)d characters long."
 
-#: .\payment\views.py:288
+#: .\payment\views.py:308
 msgid "Buyurtma allaqachon rasmiylashtirilgan."
 msgstr "This order has already been placed."
 
-#: .\payment\views.py:294
+#: .\payment\views.py:316
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
 msgstr "Order received. Please complete payment."
 
-#: .\payment\views.py:321
+#: .\payment\views.py:343
 msgid "Bu buyurtma uchun toʻlov holati allaqachon oʻzgargan."
 msgstr "The payment status of this order has already changed."
 
-#: .\payment\views.py:332
+#: .\payment\views.py:354
 msgid "Bu toʻlov usuli uchun onlayn toʻlov yoʻq."
 msgstr "This payment method has no online step."
 
-#: .\payment\views.py:339
+#: .\payment\views.py:361
 msgid ""
 "Toʻlov tizimi hozir javob bermayapti. Iltimos, birozdan soʻng qayta urinib "
 "koʻring."
 msgstr ""
 "The payment system isn't responding right now. Please try again in a moment."
 
-#: .\payment\views.py:491
+#: .\payment\views.py:513
 #, python-format
 msgid "%(no)s raqamli buyurtma bekor qilindi."
 msgstr "Order %(no)s has been cancelled."
 
-#: .\payment\views.py:494
+#: .\payment\views.py:516
 msgid "Buyurtmani bekor qilib boʻlmadi."
 msgstr "The order could not be cancelled."
 
@@ -639,19 +654,19 @@ msgstr "Print method"
 msgid "Bosma usullari"
 msgstr "Print methods"
 
-#: .\product\models.py:530
+#: .\product\models.py:538
 msgid "Kutilmoqda"
 msgstr "Pending"
 
-#: .\product\models.py:531
+#: .\product\models.py:539
 msgid "Tasdiqlangan"
 msgstr "Approved"
 
-#: .\product\models.py:532
+#: .\product\models.py:540
 msgid "Rad etilgan"
 msgstr "Rejected"
 
-#: .\product\models.py:592
+#: .\product\models.py:600
 msgid "Havola «/» bilan yoki https:// bilan boshlanishi kerak."
 msgstr "The link must start with «/» or with https://."
 
@@ -730,7 +745,7 @@ msgstr "There’s no such page"
 msgid "Havola eskirgan boʻlishi mumkin. Doʻkondan boshlang."
 msgstr "The link may be out of date. Start from the shop."
 
-#: .\templates\404.html:13 .\templates\cart\cart.html:98
+#: .\templates\404.html:13 .\templates\cart\cart.html:105
 #: .\templates\core\about.html:32 .\templates\core\home.html:123
 #: .\templates\partials\_footer.html:11 .\templates\product\liked.html:28
 #: .\templates\product\shop.html:29 .\templates\product\shop.html:161
@@ -781,8 +796,8 @@ msgstr "Add"
 #: .\templates\boshqaruv\dashboard.html:29
 #: .\templates\boshqaruv\dashboard.html:37 .\templates\boshqaruv\order.html:42
 #: .\templates\boshqaruv\order.html:45 .\templates\boshqaruv\order.html:47
-#: .\templates\cart\cart.html:27 .\templates\cart\cart.html:47
-#: .\templates\cart\cart.html:66 .\templates\cart\cart.html:74
+#: .\templates\cart\cart.html:33 .\templates\cart\cart.html:53
+#: .\templates\cart\cart.html:73 .\templates\cart\cart.html:81
 #: .\templates\partials\_footer.html:44
 #: .\templates\partials\_orders_table.html:22
 #: .\templates\payment\checkout.html:81 .\templates\payment\checkout.html:315
@@ -854,7 +869,7 @@ msgstr "Orders"
 #: .\templates\boshqaruv\base.html:63 .\templates\boshqaruv\order.html:32
 #: .\templates\boshqaruv\product_form.html:26
 #: .\templates\boshqaruv\products.html:3 .\templates\boshqaruv\products.html:14
-#: .\templates\cart\cart.html:65 .\templates\payment\checkout.html:314
+#: .\templates\cart\cart.html:72 .\templates\payment\checkout.html:314
 msgid "Mahsulotlar"
 msgstr "Products"
 
@@ -966,14 +981,14 @@ msgstr "Breadcrumb"
 
 #: .\templates\boshqaruv\order.html:44 .\templates\boshqaruv\order.html:52
 #: .\templates\boshqaruv\orders.html:43 .\templates\boshqaruv\settings.html:31
-#: .\templates\boshqaruv\settings.html:43 .\templates\cart\cart.html:69
+#: .\templates\boshqaruv\settings.html:43 .\templates\cart\cart.html:76
 #: .\templates\partials\_footer.html:33 .\templates\payment\checkout.html:71
 #: .\templates\payment\checkout.html:322
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Delivery"
 
-#: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:73
+#: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:80
 #: .\templates\payment\checkout.html:326
 #: .\templates\payment\order_detail.html:63
 msgid "Jami"
@@ -1240,7 +1255,7 @@ msgstr "A size with no price does not appear on the product page."
 
 #: .\templates\boshqaruv\product_form.html:207
 #: .\templates\boshqaruv\settings.html:295
-#: .\templates\boshqaruv\settings.html:317 .\templates\cart\cart.html:26
+#: .\templates\boshqaruv\settings.html:317 .\templates\cart\cart.html:31
 #: .\templates\core\size_guide.html:49 .\templates\core\size_guide.html:59
 #: .\templates\payment\order_detail.html:33 .\templates\product\item.html:113
 #: .\templates\product\item.html:123 .\templates\product\item.html:276
@@ -1507,29 +1522,33 @@ msgstr ""
 msgid "Savat"
 msgstr "Cart"
 
-#: .\templates\cart\cart.html:35 .\templates\product\item.html:138
+#: .\templates\cart\cart.html:32
+msgid "Sotuvda yoʻq"
+msgstr "Not for sale"
+
+#: .\templates\cart\cart.html:41 .\templates\product\item.html:138
 msgid "Kamaytirish"
 msgstr "Decrease"
 
-#: .\templates\cart\cart.html:40 .\templates\product\item.html:136
+#: .\templates\cart\cart.html:46 .\templates\product\item.html:136
 #: .\templates\product\item.html:143
 msgid "Soni"
 msgstr "Quantity"
 
-#: .\templates\cart\cart.html:41 .\templates\product\item.html:144
+#: .\templates\cart\cart.html:47 .\templates\product\item.html:144
 msgid "Koʻpaytirish"
 msgstr "Increase"
 
-#: .\templates\cart\cart.html:44
+#: .\templates\cart\cart.html:50
 msgid "Yangilash"
 msgstr "Update"
 
-#: .\templates\cart\cart.html:52
+#: .\templates\cart\cart.html:58
 #, python-format
 msgid "%(name)s — olib tashlash"
 msgstr "Remove %(name)s"
 
-#: .\templates\cart\cart.html:62 .\templates\partials\_orders_table.html:7
+#: .\templates\cart\cart.html:69 .\templates\partials\_orders_table.html:7
 #: .\templates\partials\_orders_table.html:17
 #: .\templates\payment\checkout.html:299
 #: .\templates\payment\order_detail.html:3 .\templates\payment\payment.html:11
@@ -1537,28 +1556,28 @@ msgstr "Remove %(name)s"
 msgid "Buyurtma"
 msgstr "Order"
 
-#: .\templates\cart\cart.html:70
+#: .\templates\cart\cart.html:77
 msgid "Keyingi qadamda"
 msgstr "At the next step"
 
-#: .\templates\cart\cart.html:82 .\templates\cart\cart.html:85
+#: .\templates\cart\cart.html:89 .\templates\cart\cart.html:92
 #: .\templates\payment\checkout.html:3 .\templates\payment\checkout.html:37
 msgid "Rasmiylashtirish"
 msgstr "Checkout"
 
-#: .\templates\cart\cart.html:86
+#: .\templates\cart\cart.html:93
 msgid "Buyurtma berish uchun kirish kerak. Savatingiz saqlanib qoladi."
 msgstr "You need an account to order. Your cart is kept."
 
-#: .\templates\cart\cart.html:88
+#: .\templates\cart\cart.html:95
 msgid "Xaridni davom ettirish"
 msgstr "Keep shopping"
 
-#: .\templates\cart\cart.html:96
+#: .\templates\cart\cart.html:103
 msgid "Savat boʻsh"
 msgstr "Your cart is empty"
 
-#: .\templates\cart\cart.html:97
+#: .\templates\cart\cart.html:104
 msgid "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi."
 msgstr "Pick a design you like and it’ll show up here."
 
@@ -2664,8 +2683,7 @@ msgstr "Your current password is incorrect."
 msgid ""
 "Hisob yaratish uchun foydalanish shartlari va maxfiylik siyosatiga rozilik "
 "bering."
-msgstr ""
-"To create an account, accept the terms of use and the privacy policy."
+msgstr "To create an account, accept the terms of use and the privacy policy."
 
 #: .\user\forms.py:127
 msgid "Koʻpi bilan 50 ta belgi. Harflar, raqamlar va _"

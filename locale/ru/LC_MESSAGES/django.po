@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 01:37+0500\n"
+"POT-Creation-Date: 2026-09-26 02:13+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,24 +20,24 @@ msgstr ""
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: .\cart\services.py:129
+#: .\cart\services.py:133
 msgid "Tovar notoʻgʻri tanlangan"
 msgstr "Товар выбран неверно"
 
-#: .\cart\services.py:133
+#: .\cart\services.py:137
 msgid "Ushbu tovar sotuvda yoʻq"
 msgstr "Этот товар не продаётся"
 
-#: .\cart\services.py:135 .\cart\services.py:158 .\cart\services.py:184
+#: .\cart\services.py:139 .\cart\services.py:162 .\cart\services.py:188
 msgid "Ushbu oʻlcham tugagan"
 msgstr "Этот размер закончился"
 
-#: .\cart\views.py:88
+#: .\cart\views.py:92
 #, python-format
 msgid "%(name)s savatga qoʻshildi."
 msgstr "«%(name)s» добавлен в корзину."
 
-#: .\cart\views.py:110
+#: .\cart\views.py:114
 msgid "Olib tashlandi."
 msgstr "Удалено."
 
@@ -551,44 +551,65 @@ msgstr "При доставке до двери отделение почты н
 msgid "Manzilni kiriting."
 msgstr "Укажите адрес."
 
-#: .\payment\views.py:186 .\payment\views.py:291
+#: .\payment\views.py:183
+#, python-format
+msgid ""
+"%(names)s endi sotuvda yoʻq. Buyurtma berish uchun uni savatdan olib "
+"tashlang."
+msgid_plural ""
+"%(names)s endi sotuvda yoʻq. Buyurtma berish uchun ularni savatdan olib "
+"tashlang."
+msgstr[0] ""
+"%(names)s больше не продаётся. Чтобы оформить заказ, удалите его из "
+"корзины."
+msgstr[1] ""
+"%(names)s больше не продаются. Чтобы оформить заказ, удалите их из "
+"корзины."
+msgstr[2] ""
+"%(names)s больше не продаются. Чтобы оформить заказ, удалите их из "
+"корзины."
+msgstr[3] ""
+"%(names)s больше не продаются. Чтобы оформить заказ, удалите их из "
+"корзины."
+
+#: .\payment\views.py:201 .\payment\views.py:311
 msgid "Savat boʻsh."
 msgstr "Корзина пуста."
 
-#: .\payment\views.py:245
+#: .\payment\views.py:265
 msgid "Toʻlov usulini tanlang."
 msgstr "Выберите способ оплаты."
 
-#: .\payment\views.py:249
+#: .\payment\views.py:269
 msgid "Yetkazib berish turini tanlang."
 msgstr "Выберите способ доставки."
 
-#: .\payment\views.py:253
+#: .\payment\views.py:273
 msgid "Ism va telefon raqamni toʻldiring."
 msgstr "Заполните имя и номер телефона."
 
-#: .\payment\views.py:259
+#: .\payment\views.py:279
 #, python-format
 msgid "Ism %(n)d belgidan oshmasligi kerak."
 msgstr "Имя должно быть не длиннее %(n)d символов."
 
-#: .\payment\views.py:288
+#: .\payment\views.py:308
 msgid "Buyurtma allaqachon rasmiylashtirilgan."
 msgstr "Заказ уже оформлен."
 
-#: .\payment\views.py:294
+#: .\payment\views.py:316
 msgid "Buyurtma qabul qilindi. Toʻlovni amalga oshiring."
 msgstr "Заказ принят. Перейдите к оплате."
 
-#: .\payment\views.py:321
+#: .\payment\views.py:343
 msgid "Bu buyurtma uchun toʻlov holati allaqachon oʻzgargan."
 msgstr "Статус оплаты этого заказа уже изменился."
 
-#: .\payment\views.py:332
+#: .\payment\views.py:354
 msgid "Bu toʻlov usuli uchun onlayn toʻlov yoʻq."
 msgstr "Для этого способа оплаты нет онлайн-оплаты."
 
-#: .\payment\views.py:339
+#: .\payment\views.py:361
 msgid ""
 "Toʻlov tizimi hozir javob bermayapti. Iltimos, birozdan soʻng qayta urinib "
 "koʻring."
@@ -596,12 +617,12 @@ msgstr ""
 "Платёжная система сейчас не отвечает. Пожалуйста, попробуйте ещё раз чуть "
 "позже."
 
-#: .\payment\views.py:491
+#: .\payment\views.py:513
 #, python-format
 msgid "%(no)s raqamli buyurtma bekor qilindi."
 msgstr "Заказ %(no)s отменён."
 
-#: .\payment\views.py:494
+#: .\payment\views.py:516
 msgid "Buyurtmani bekor qilib boʻlmadi."
 msgstr "Не удалось отменить заказ."
 
@@ -643,19 +664,19 @@ msgstr "Способ печати"
 msgid "Bosma usullari"
 msgstr "Способы печати"
 
-#: .\product\models.py:530
+#: .\product\models.py:538
 msgid "Kutilmoqda"
 msgstr "На модерации"
 
-#: .\product\models.py:531
+#: .\product\models.py:539
 msgid "Tasdiqlangan"
 msgstr "Одобрен"
 
-#: .\product\models.py:532
+#: .\product\models.py:540
 msgid "Rad etilgan"
 msgstr "Отклонён"
 
-#: .\product\models.py:592
+#: .\product\models.py:600
 msgid "Havola «/» bilan yoki https:// bilan boshlanishi kerak."
 msgstr "Ссылка должна начинаться с «/» или с https://."
 
@@ -733,7 +754,7 @@ msgstr "Такой страницы нет"
 msgid "Havola eskirgan boʻlishi mumkin. Doʻkondan boshlang."
 msgstr "Ссылка могла устареть. Начните с магазина."
 
-#: .\templates\404.html:13 .\templates\cart\cart.html:98
+#: .\templates\404.html:13 .\templates\cart\cart.html:105
 #: .\templates\core\about.html:32 .\templates\core\home.html:123
 #: .\templates\partials\_footer.html:11 .\templates\product\liked.html:28
 #: .\templates\product\shop.html:29 .\templates\product\shop.html:161
@@ -785,8 +806,8 @@ msgstr "Добавить"
 #: .\templates\boshqaruv\dashboard.html:29
 #: .\templates\boshqaruv\dashboard.html:37 .\templates\boshqaruv\order.html:42
 #: .\templates\boshqaruv\order.html:45 .\templates\boshqaruv\order.html:47
-#: .\templates\cart\cart.html:27 .\templates\cart\cart.html:47
-#: .\templates\cart\cart.html:66 .\templates\cart\cart.html:74
+#: .\templates\cart\cart.html:33 .\templates\cart\cart.html:53
+#: .\templates\cart\cart.html:73 .\templates\cart\cart.html:81
 #: .\templates\partials\_footer.html:44
 #: .\templates\partials\_orders_table.html:22
 #: .\templates\payment\checkout.html:81 .\templates\payment\checkout.html:315
@@ -858,7 +879,7 @@ msgstr "Заказы"
 #: .\templates\boshqaruv\base.html:63 .\templates\boshqaruv\order.html:32
 #: .\templates\boshqaruv\product_form.html:26
 #: .\templates\boshqaruv\products.html:3 .\templates\boshqaruv\products.html:14
-#: .\templates\cart\cart.html:65 .\templates\payment\checkout.html:314
+#: .\templates\cart\cart.html:72 .\templates\payment\checkout.html:314
 msgid "Mahsulotlar"
 msgstr "Товары"
 
@@ -970,14 +991,14 @@ msgstr "Навигация"
 
 #: .\templates\boshqaruv\order.html:44 .\templates\boshqaruv\order.html:52
 #: .\templates\boshqaruv\orders.html:43 .\templates\boshqaruv\settings.html:31
-#: .\templates\boshqaruv\settings.html:43 .\templates\cart\cart.html:69
+#: .\templates\boshqaruv\settings.html:43 .\templates\cart\cart.html:76
 #: .\templates\partials\_footer.html:33 .\templates\payment\checkout.html:71
 #: .\templates\payment\checkout.html:322
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Доставка"
 
-#: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:73
+#: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:80
 #: .\templates\payment\checkout.html:326
 #: .\templates\payment\order_detail.html:63
 msgid "Jami"
@@ -1246,7 +1267,7 @@ msgstr "Размер без цены на странице товара не п�
 
 #: .\templates\boshqaruv\product_form.html:207
 #: .\templates\boshqaruv\settings.html:295
-#: .\templates\boshqaruv\settings.html:317 .\templates\cart\cart.html:26
+#: .\templates\boshqaruv\settings.html:317 .\templates\cart\cart.html:31
 #: .\templates\core\size_guide.html:49 .\templates\core\size_guide.html:59
 #: .\templates\payment\order_detail.html:33 .\templates\product\item.html:113
 #: .\templates\product\item.html:123 .\templates\product\item.html:276
@@ -1518,29 +1539,33 @@ msgstr ""
 msgid "Savat"
 msgstr "Корзина"
 
-#: .\templates\cart\cart.html:35 .\templates\product\item.html:138
+#: .\templates\cart\cart.html:32
+msgid "Sotuvda yoʻq"
+msgstr "Не продаётся"
+
+#: .\templates\cart\cart.html:41 .\templates\product\item.html:138
 msgid "Kamaytirish"
 msgstr "Уменьшить"
 
-#: .\templates\cart\cart.html:40 .\templates\product\item.html:136
+#: .\templates\cart\cart.html:46 .\templates\product\item.html:136
 #: .\templates\product\item.html:143
 msgid "Soni"
 msgstr "Количество"
 
-#: .\templates\cart\cart.html:41 .\templates\product\item.html:144
+#: .\templates\cart\cart.html:47 .\templates\product\item.html:144
 msgid "Koʻpaytirish"
 msgstr "Увеличить"
 
-#: .\templates\cart\cart.html:44
+#: .\templates\cart\cart.html:50
 msgid "Yangilash"
 msgstr "Обновить"
 
-#: .\templates\cart\cart.html:52
+#: .\templates\cart\cart.html:58
 #, python-format
 msgid "%(name)s — olib tashlash"
 msgstr "Удалить %(name)s"
 
-#: .\templates\cart\cart.html:62 .\templates\partials\_orders_table.html:7
+#: .\templates\cart\cart.html:69 .\templates\partials\_orders_table.html:7
 #: .\templates\partials\_orders_table.html:17
 #: .\templates\payment\checkout.html:299
 #: .\templates\payment\order_detail.html:3 .\templates\payment\payment.html:11
@@ -1548,28 +1573,28 @@ msgstr "Удалить %(name)s"
 msgid "Buyurtma"
 msgstr "Заказ"
 
-#: .\templates\cart\cart.html:70
+#: .\templates\cart\cart.html:77
 msgid "Keyingi qadamda"
 msgstr "На следующем шаге"
 
-#: .\templates\cart\cart.html:82 .\templates\cart\cart.html:85
+#: .\templates\cart\cart.html:89 .\templates\cart\cart.html:92
 #: .\templates\payment\checkout.html:3 .\templates\payment\checkout.html:37
 msgid "Rasmiylashtirish"
 msgstr "Оформить заказ"
 
-#: .\templates\cart\cart.html:86
+#: .\templates\cart\cart.html:93
 msgid "Buyurtma berish uchun kirish kerak. Savatingiz saqlanib qoladi."
 msgstr "Чтобы оформить заказ, нужно войти. Корзина сохранится."
 
-#: .\templates\cart\cart.html:88
+#: .\templates\cart\cart.html:95
 msgid "Xaridni davom ettirish"
 msgstr "Продолжить покупки"
 
-#: .\templates\cart\cart.html:96
+#: .\templates\cart\cart.html:103
 msgid "Savat boʻsh"
 msgstr "Корзина пуста"
 
-#: .\templates\cart\cart.html:97
+#: .\templates\cart\cart.html:104
 msgid "Yoqqan dizaynni tanlang — u shu yerda paydo boʻladi."
 msgstr "Выберите понравившийся дизайн — он появится здесь."
 

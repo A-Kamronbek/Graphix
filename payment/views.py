@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.decorators import classonlymethod
 from django.views.decorators.http import require_POST
 from django.utils import translation
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, ngettext
 # `...django.views`, not `...django.webhooks`. The two modules hold the
 # same handlers; only these are wrapped in `csrf_exempt`, and a payment
 # gateway has no CSRF token to send (§17 #270).
@@ -171,6 +171,21 @@ def _decimal(raw):
     return value if -180 <= value <= 180 else None
 
 
+def _refuse_off_sale(request, lines):
+    """Send the customer back to the cart, naming what can no longer be bought.
+
+    Named by product, once each: two sizes of one withdrawn design are one
+    thing to remove as far as the customer is concerned. The cart marks the
+    same lines, so the message and the page point at the same rows (§17 #294).
+    """
+    names = list(dict.fromkeys(tfield(line.variant.product, 'name') for line in lines))
+    messages.error(request, ngettext(
+        "%(names)s endi sotuvda yoʻq. Buyurtma berish uchun uni savatdan olib tashlang.",
+        "%(names)s endi sotuvda yoʻq. Buyurtma berish uchun ularni savatdan olib tashlang.",
+        len(names)) % {'names': ', '.join(names)})
+    return redirect('cart')
+
+
 @login_required
 def checkout(request):
     """Collect delivery details, validate them, and turn the cart into an Order.
@@ -192,6 +207,11 @@ def checkout(request):
         .prefetch_related('variant__product__images')
     )
     items = _annotate_lines(items_qs)
+    # Before the form rather than after it: a customer should not fill in an
+    # address for a cart that cannot be ordered.
+    off_sale = [it for it in items if not it.variant.is_on_sale]
+    if off_sale:
+        return _refuse_off_sale(request, off_sale)
     subtotal = sum((it.line_total for it in items), Decimal('0'))
     item_count = sum(it.quantity for it in items)
 
@@ -290,6 +310,8 @@ def checkout(request):
     except services.EmptyCart:
         messages.error(request, _("Savat boʻsh."))
         return redirect('cart')
+    except services.OffSaleItems as e:
+        return _refuse_off_sale(request, e.lines)
 
     messages.success(request, _("Buyurtma qabul qilindi. Toʻlovni amalga oshiring."))
     return redirect('payment', order_id=order.id)

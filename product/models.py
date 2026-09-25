@@ -467,6 +467,14 @@ class Variant(models.Model):
         return self.available and self.stock > 0
 
     @property
+    def is_on_sale(self):
+        """``VariantQuerySet.on_sale`` for one row: the size is available and
+        its product is switched on. Stock is a separate question - a size that
+        has sold out is still on sale, and says so with its own message.
+        """
+        return self.available and self.product.is_active
+
+    @property
     def is_running_low(self):
         """Still sellable, but not for many more parcels.
 

@@ -44,6 +44,13 @@ class CartAlreadyCheckedOut(Exception):
         self.existing_order = existing_order
 
 
+class OffSaleItems(Exception):
+    """Raised when the cart holds lines that are no longer on sale; carries them."""
+    def __init__(self, lines):
+        super().__init__("Cart holds lines that are off sale")
+        self.lines = lines
+
+
 def get_open_cart(user):
     """Return the user's open cart, or None."""
     return Cart.objects.filter(user=user, status=True).first()
@@ -79,7 +86,8 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
     *after* the lock from the locked line items, so two concurrent checkouts of
     the same cart can't race into duplicate orders or a stale total. An
     already-closed cart raises CartAlreadyCheckedOut (if an order exists) or
-    EmptyCart.
+    EmptyCart, and a cart holding a line that is no longer on sale raises
+    OffSaleItems before anything is written.
 
     When a ``delivery_option`` is given, its fee is computed from the locked line
     count and replaces ``delivery``. Either way the destination is frozen as text
@@ -114,6 +122,15 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
         locked_lines = locked_cart.cart_items.all()
         if not locked_lines:
             raise EmptyCart()
+        # The checkout view turns such a cart away before the form; this asks
+        # the same question under the lock, so a product switched off in
+        # between is still not sold (§17 #294). A separate query, so the lines
+        # the total is summed from are untouched.
+        off_sale = [line for line in
+                    locked_cart.cart_items.select_related('variant__product')
+                    if not line.variant.is_on_sale]
+        if off_sale:
+            raise OffSaleItems(off_sale)
         if delivery_option is not None:
             # Priced from the locked lines, for the same reason the total is.
             item_count = sum(it.quantity for it in locked_lines)

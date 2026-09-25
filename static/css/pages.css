@@ -427,6 +427,8 @@ html.js .slides__controls {
 .cartline__actions { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center;
   gap: var(--s-3); }
 .cartline__total { margin-left: auto; font-weight: var(--fw-semibold); }
+/* A line that went off sale: the badge sits at its own width in the column. */
+.cartline__off { align-self: flex-start; }
 .cartpage__summary { position: sticky; top: calc(var(--s-8) + var(--s-2)); }
 .cartpage__total dt, .cartpage__total dd { font-size: var(--fs-lg);
   font-weight: var(--fw-semibold); color: var(--c-fg); }
