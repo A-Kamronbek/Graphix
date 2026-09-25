@@ -498,6 +498,32 @@ class CsrfTests(TestCase):
                     response.status_code, 403,
                     '%s was refused for CSRF; a gateway has no token' % name)
 
+    def test_an_unconfigured_gateway_answers_instead_of_raising(self):
+        """A gateway with no credentials must not 500 the callback (§4).
+
+        tolov checks its settings in the view's ``__init__``, which Django
+        calls per request, so a switched-off gateway raised on every callback
+        and Django answered 500. A gateway reads 500 as "try again" and retries
+        for ever. It is also why CI was red for ten runs: CI sets no `OCTO_*`,
+        this machine's `.env` does, and nothing else differed.
+        """
+        from django.test import override_settings
+
+        tolov = {key: dict(value) if isinstance(value, dict) else value
+                 for key, value in settings.TOLOV.items()}
+        tolov.setdefault('OCTO_BANK', {})['OCTO_SHOP_ID'] = ''
+
+        with override_settings(TOLOV=tolov):
+            refused = self.client.post(reverse('octo_webhook'), {})
+            # The 405 has to survive the guard. It is what says the route still
+            # resolves - asserted by the smoke matrix, watched by the uptime
+            # monitor - and a 404 there means the webhook has moved and
+            # payments are failing silently (§12 risk #2).
+            resolves = self.client.get(reverse('octo_webhook'))
+
+        self.assertEqual(refused.status_code, 503)
+        self.assertEqual(resolves.status_code, 405)
+
     def test_the_views_are_marked_exempt_and_not_merely_tolerated(self):
         """The assertion above passes for the wrong reason if a view starts
         answering 403 of its own accord, so read the flag as well.

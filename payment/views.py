@@ -1,15 +1,18 @@
 """Checkout, Click payment start/webhook, and order views."""
+import functools
 import json
 import logging
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
 from django.conf import settings
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.utils.decorators import classonlymethod
 from django.views.decorators.http import require_POST
 from django.utils import translation
 from django.utils.translation import gettext as _
@@ -360,6 +363,51 @@ class PaidByWebhook:
         order = self._order(transaction)
         if order is not None:
             services.apply_cancelled_payment(order)
+
+    @classonlymethod
+    def as_view(cls, **initkwargs):
+        """Answer, rather than raise, when this gateway has no credentials.
+
+        tolov checks its settings in the view's ``__init__``, and Django calls
+        that per request inside the closure ``as_view`` returns. So a gateway
+        that is switched off and unconfigured does not fail at startup where
+        somebody would notice: it raises on the callback, Django answers 500,
+        and the gateway reads 500 as "try again" and retries for ever. §4 says
+        an external integration degrades a feature and never 500s a page, and
+        this is the callback half of that rule.
+
+        It is the construction that is guarded and nothing else. An exception
+        raised while a callback is genuinely being handled still propagates,
+        because that is a real defect, and turning it into a quiet 503 could
+        hide a payment that was taken and never written down.
+
+        The wrapper keeps the view's own attributes - ``csrf_exempt`` among
+        them, which a test reads directly (§17 #270).
+        """
+        view = super().as_view(**initkwargs)
+
+        @functools.wraps(view)
+        def guarded(request, *args, **kwargs):
+            try:
+                cls(**initkwargs)
+            except Exception as exc:
+                # The method check comes off the class, so a GET still gets the
+                # 405 it would get from a configured view. That answer is what
+                # says the route still resolves - the smoke matrix asserts it
+                # and the uptime monitor watches it, because a 404 there means
+                # the webhook has moved and payments are failing in silence.
+                allowed = [m.upper() for m in cls.http_method_names
+                           if hasattr(cls, m)]
+                if request.method not in allowed:
+                    return HttpResponseNotAllowed(allowed)
+                logger.error(
+                    '%s callback refused: this gateway is not configured on '
+                    'this installation (%s: %s)',
+                    cls.__name__, type(exc).__name__, exc)
+                return HttpResponse(status=503)
+            return view(request, *args, **kwargs)
+
+        return guarded
 
     @classmethod
     def _order(cls, transaction):
