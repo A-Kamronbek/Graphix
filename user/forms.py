@@ -87,13 +87,14 @@ class ChangePasswordForm(PasswordChangeForm):
 class SignupForm(UserCreationForm):
     """Registration form; creates the User and triggers phone verification."""
     first_name = forms.CharField(max_length=150, required=False)
-    # Deliberately not required. The browser already refuses the form without
-    # the box, and making the server refuse it too would change what an
-    # existing endpoint does to a request that succeeds today (§18 #47). What
-    # this field is for is the record: the versions are stamped only when the
-    # box actually came back ticked, so the columns never claim a consent
-    # nobody gave.
-    agree = forms.BooleanField(required=False)
+    # Required here as well as in the browser: the `required` attribute is a
+    # convenience, and a POST does not have to come from our page. An account
+    # is only created with the consent the privacy policy says it rests on
+    # (§17 #291, closing §18 #47).
+    agree = forms.BooleanField(error_messages={
+        'required': _("Hisob yaratish uchun foydalanish shartlari va maxfiylik "
+                      "siyosatiga rozilik bering."),
+    })
 
     class Meta:
         model = User

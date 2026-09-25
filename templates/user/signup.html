@@ -70,6 +70,7 @@
             {% endblocktrans %}
           </span>
         </label>
+        {% if form.agree.errors %}<small class="field__error">{{ form.agree.errors|join:" · " }}</small>{% endif %}
 
         <button class="btn btn--primary btn--lg btn--block" type="submit"
                 {% if rate_limited %}disabled{% endif %}>{% trans "Hisob yaratish" %}</button>
