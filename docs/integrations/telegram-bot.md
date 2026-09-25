@@ -8,6 +8,11 @@ each event once, when it happens.
 
 The code is `core/telegram.py`.
 
+**The bot exists** (2026-09-25, §17 #279): repository `graphix-bot`, the
+receiving side of this contract, standard library only, run beside the site on
+the same server at `http://127.0.0.1:8100/graphix/events`. Its `README.md`
+has the server steps. This page remains the contract both sides are held to.
+
 **Changed 2026-09-18 (§17 #237):** there is no `order.created` event any more.
 An order is sent **once, when it has been paid for**, as `order.paid`, and that
 event now carries everything `order.created` used to. An unpaid or cancelled
