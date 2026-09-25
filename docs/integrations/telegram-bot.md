@@ -224,8 +224,8 @@ through the shop's Telegram bot, and that the site's data is stored in Poland
 (Warsaw). So:
 
 - keep this data only as long as the bot needs it, and never share it;
-- if the bot runs anywhere other than the site's server in Warsaw, tell
-  Kamronbek which country — the privacy policy has to name it before launch.
+- if the bot runs anywhere other than the site's server in Warsaw, say which
+  country it runs in — the privacy policy has to name it before launch.
 
 ## Trying it
 

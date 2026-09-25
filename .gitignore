@@ -34,11 +34,25 @@ venv/
 .DS_Store
 Thumbs.db
 
+# --- database dumps ---
+# Real customer rows. Never in the repository, whatever the extension.
+/backups/
+*.dump
+*.sql
+
+# --- working notes and design scratch ---
+# Kept on disk, out of the repository. The plan and the runbooks are working
+# documents rather than part of the product, and the design folder is what
+# Phase 2 was decided from - neither is useful to anyone cloning this.
+/docs/PLAN.md
+/docs/PROJECT_INSTRUCTIONS.md
+/docs/brand/
+/docs/design/
+/deploy/RUNBOOK.md
+/deploy/NEXT-STEPS.md
+
 # --- screenshots ---
-# Pictures of the site, taken by `.git/shoot_site.py` and by the drive scripts.
-# They are output, not source: regenerating them is one command, and a dozen
-# megabytes of PNG in the history is a dozen megabytes forever.
-docs/design/phase5/
-docs/design/phase7-*/
+# Output, not source: regenerating them is one command, and a dozen megabytes
+# of PNG in the history is a dozen megabytes forever.
 /pictures/
 /graphix-screenshots.zip

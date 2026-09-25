@@ -291,6 +291,16 @@ class Order(models.Model):
                                       choices=[('map', _('Xaritadan')),
                                                ('manual', _('Qoʻlda kiritilgan'))])
 
+    # Which wording the customer accepted by placing this order;
+    # ``created_at`` is when. The checkout says in so many words that pressing
+    # the button accepts both documents, and an order is where a dispute
+    # starts, so the pair is frozen onto the row for the same reason
+    # ``location_snapshot`` is: amending a document a year later must not be
+    # able to rewrite what was agreed (§17 #272). Blank on orders placed
+    # before this was recorded.
+    terms_version = models.CharField(max_length=10, blank=True, default='')
+    privacy_version = models.CharField(max_length=10, blank=True, default='')
+
     def __str__(self):
         return f"Order {self.order_no or self.id} | {self.user.username} | {self.get_status_display()}"
 

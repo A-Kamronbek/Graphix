@@ -1,12 +1,9 @@
 # Contributing
+# Contributing
 
-These are the rules the codebase is already written to. They come from
-[`docs/PLAN.md`](docs/PLAN.md) §4, which stays the authority — this file is
-here so a reader finds them without opening a four-hundred-kilobyte plan.
-
-**Read [`docs/PLAN.md`](docs/PLAN.md) before changing anything.** It holds the
-locked decisions and the reasoning behind them, and re-litigating a settled
-question is how a project this size starts contradicting itself.
+These are the rules the codebase is already written to. Most of them exist
+because something went wrong once; the comment next to the code usually says
+what.
 
 ---
 

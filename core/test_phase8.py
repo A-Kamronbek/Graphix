@@ -245,7 +245,7 @@ class RateLimitWindowTests(SimpleTestCase):
 
 
 class SellerDetailsTests(TestCase):
-    """Who the offer is from, and nothing Kamronbek chose to keep off the page."""
+    """Who the offer is from, and nothing that was kept off the page."""
 
     def test_both_documents_name_the_seller_in_every_language(self):
         seller = legal.facts().seller
@@ -257,7 +257,7 @@ class SellerDetailsTests(TestCase):
                         self.assertIn(value, html)
 
     def test_the_postal_address_is_in_the_offer_and_only_there(self):
-        """Kamronbek's call (§17 #226): the E-commerce Law wants an address in
+        """§17 #226: the E-commerce Law wants an address in
         the offer (art. 16); nothing else on the site needs one, and the
         privacy policy links to the terms instead of repeating it."""
         seller = legal.facts().seller

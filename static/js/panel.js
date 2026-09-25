@@ -1,7 +1,7 @@
 /* GRAPHIX staff panel.
  *
- * The panel is the one part of the project allowed to assume JavaScript
- * (Kamronbek's decision, §17) — the storefront still works without it. This
+ * The panel is the one part of the project allowed to assume JavaScript;
+ * the storefront still works without it. This
  * file is small anyway, because the thing it upgrades was built as a real form
  * first: with the script the status saves in place and the row's badge
  * changes; without it the form posts and the page reloads, and the parcel

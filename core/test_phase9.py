@@ -21,7 +21,7 @@ different ways:
 
 The backlog items this phase closes (§18 #14, #22, #24, #27, #31, #34) are
 tested beside the work they belong to rather than in a file of their own, and
-so are Kamronbek's two answers: a product needs a tag (§19 Q35) and a staff
+so are two settled questions: a product needs a tag (§19 Q35) and a staff
 account is verified from the Django admin (§19 Q34).
 """
 import io
@@ -309,10 +309,17 @@ class ImageTagTests(TempMedia, TestCase):
         self.assertNotIn('srcset="', html)
 
     def test_the_fallback_drops_the_source_set_with_the_source(self):
-        """A browser with `srcset` ignores `src`, so setting that alone shows nothing."""
+        """A browser with `srcset` ignores `src`, so setting that alone shows nothing.
+
+        This read the inline `onerror=` until Phase 10 moved the behaviour into
+        `main.js` for the CSP (§17 #269). The rule is unchanged and so is the
+        test's point; only the place that clears `srcset` has moved, and
+        `core.test_phase10.PhotoFallbackTests` asserts it is still done.
+        """
         image = with_photo(self.product)
         html = image_tags.photo_attrs(image, 'card')
-        self.assertIn("removeAttribute('srcset')", html)
+        self.assertIn('data-fallback="', html)
+        self.assertNotIn('onerror', html)
 
     def test_the_viewer_is_offered_the_full_width_file(self):
         image = with_photo(self.product, 2000, 2500)
@@ -621,8 +628,12 @@ class StructuredDataTests(TempMedia, TestCase):
         html = self.client.get(url).content.decode()
         self.assertEqual(html.count('application/ld+json'), 1,
                          'two blocks is the same thing said twice')
-        found = re.search(r'<script type="application/ld\+json">(.*?)</script>',
-                          html, re.S)
+        found = re.search(
+            # `[^>]*` because the block carries a CSP nonce since Phase 10.
+            # Pinning the opening tag exactly read a perfectly good page as
+            # having no structured data at all (§17 #269).
+            r'<script type="application/ld\+json"[^>]*>(.*?)</script>',
+            html, re.S)
         self.assertIsNotNone(found, 'no structured data on %s' % url)
         return json.loads(found.group(1))['@graph']
 
@@ -951,7 +962,7 @@ class LazyMapTests(TestCase):
                 self.assertIn(phrase, html)
 
 
-# ============================== 6. Kamronbek's answers: Q35, #31 and Q34
+# ============================== 6. Settled questions: Q35, #31 and Q34
 
 class TagRequiredTests(TestCase):
     """A product needs at least one tag (§19 Q35, §17 #228).
@@ -1119,7 +1130,7 @@ class StaffVerificationTests(TestCase):
 class SellerAddressTests(TestCase):
     """The postal address is printed in one place only (§17 #226).
 
-    Kamronbek's instruction: the contact card carries the name, the phone, the
+    The contact card carries the name, the phone, the
     Telegram handle and the email, and nothing else. The address stays in the
     terms because the E-commerce Law wants a postal address in a public offer
     (art. 16), and the privacy policy points there rather than repeating it.

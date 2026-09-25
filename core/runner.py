@@ -29,7 +29,10 @@ secret are pasted into ``.env``, a test that creates an order would send it to
 the shop's staff (§17 #207). The run blanks every notification setting first;
 a test that needs one sets it itself.
 """
+import atexit
 import os
+import shutil
+import tempfile
 import traceback
 import unittest
 
@@ -37,6 +40,29 @@ from django.conf import settings
 from django.test.runner import (DiscoverRunner, ParallelTestSuite,
                                 RemoteTestResult, RemoteTestRunner)
 from django.utils import translation
+
+
+def use_throwaway_media():
+    """Send every upload a test makes to a temporary folder.
+
+    Tests save real files through real storage, and MEDIA_ROOT is the
+    developer's own `media/`, so a run used to leave its photographs there:
+    over a thousand of them by the time anyone counted, mixed in with the
+    demo catalogue's real pictures.
+
+    Done here rather than with a mixin per test class, which was the earlier
+    plan. A mixin has to be remembered by whoever writes the next test that
+    saves a file, and the symptom of forgetting is invisible. Setting it once
+    for the run cannot be forgotten and covers tests that do not exist yet.
+    The folder is removed when the run ends.
+
+    It matters more since a deleted row deletes its file: a test that deletes
+    a product must never be pointed at the folder holding real photographs.
+    """
+    folder = tempfile.mkdtemp(prefix='gx-test-media-')
+    settings.MEDIA_ROOT = folder
+    atexit.register(shutil.rmtree, folder, ignore_errors=True)
+    return folder
 
 
 #: Settings that reach a live outside service - the shop's Telegram.
@@ -152,6 +178,18 @@ class WorkerSuite(ParallelTestSuite):
 
     runner_class = WorkerRunner
 
+    #: Runs inside each worker, before Django is set up there.
+    #:
+    #: Only Django calls it, and only when the start method is spawn or
+    #: forkserver - which is Windows. A forked worker inherits the parent's
+    #: memory and already has the throwaway MEDIA_ROOT that
+    #: `Runner.setup_test_environment` set; a spawned one is a fresh
+    #: interpreter that has never seen it, and would write into the
+    #: developer's real `media/`. The serial path and the forked path were
+    #: both green while `--parallel` on Windows was still leaking, which is
+    #: the reason this is a separate hook and not an oversight.
+    process_setup = use_throwaway_media
+
 
 class Runner(DiscoverRunner):
     """``TEST_RUNNER``: Django's runner with the three fixes above.
@@ -165,6 +203,7 @@ class Runner(DiscoverRunner):
 
     def setup_test_environment(self, **kwargs):
         go_offline()
+        use_throwaway_media()
         super().setup_test_environment(**kwargs)
 
     def get_resultclass(self):

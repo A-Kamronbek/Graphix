@@ -58,7 +58,8 @@
         </div>
 
         <label class="check">
-          <input type="checkbox" required>
+          <input type="checkbox" name="agree" required
+                 {% if form.agree.value %}checked{% endif %}>
           <span class="small">
             {# Both documents, and consent to processing in so many words: the #}
             {# personal data law asks for consent, and this box is where it is #}

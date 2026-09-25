@@ -143,13 +143,20 @@ fi
 
 # One real row, end to end. Row counts prove the shape restored; this proves the
 # bytes did. The live database is read and nothing else.
+#
+# The column is `total_price`. It read `total` until 2026-09-23, and the error
+# was invisible for four days because this branch only runs once an order
+# exists - on 2026-09-19 there were none, the `else` below ran, and the script
+# printed "restore verified" having skipped the one assertion that reads a
+# real value out of a restored dump. Same shape as §17 #248: a check that
+# passed because the thing it checks was not there.
 order_no=$("${PSQL[@]}" --dbname="$SCRATCH" --command="
     SELECT order_no FROM payment_order ORDER BY id DESC LIMIT 1;" | head -1)
 if [ -n "$order_no" ]; then
     restored=$("${PSQL[@]}" --dbname="$SCRATCH" --command="
-        SELECT total FROM payment_order WHERE order_no = '$order_no';" | head -1)
+        SELECT total_price FROM payment_order WHERE order_no = '$order_no';" | head -1)
     live=$("${PSQL[@]}" --dbname="$DB_NAME" --command="
-        SELECT total FROM payment_order WHERE order_no = '$order_no';" | head -1)
+        SELECT total_price FROM payment_order WHERE order_no = '$order_no';" | head -1)
     if [ "$live" = "$restored" ]; then
         log "spot check: order $order_no restored with total $restored"
     else

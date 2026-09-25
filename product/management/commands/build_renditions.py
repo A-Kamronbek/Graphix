@@ -26,6 +26,23 @@ class Command(BaseCommand):
             '--force', action='store_true',
             help='re-encode photographs that already have their renditions')
 
+    @staticmethod
+    def intact(row):
+        """Whether every rendition the row records is still in storage.
+
+        The ``renditions`` column is a record of what was written once, not
+        proof that it is still there. A file can go missing to a bad sync, to
+        a restore that brought the database back without ``media/``, or to a
+        pruning command whose idea of the names was wrong - which is how all
+        36 of them went on a developer's machine (§17 #276). Asking the
+        storage is what makes "only what is missing" mean the files rather
+        than the column, and what lets this command be the repair tool the
+        situation calls for instead of reporting "already done" over a
+        folder with nothing in it.
+        """
+        storage = row.photo_file.storage
+        return all(storage.exists(name) for _width, name in row.sources())
+
     def handle(self, *args, **options):
         """Walk the photograph tables, then measure the size charts.
 
@@ -42,7 +59,7 @@ class Command(BaseCommand):
                 if not row.has_photo:
                     skipped += 1
                     continue
-                if row.sources() and not force:
+                if row.sources() and self.intact(row) and not force:
                     skipped += 1
                     continue
                 if build_renditions(model, row.pk):

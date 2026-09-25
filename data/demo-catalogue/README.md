@@ -2,7 +2,7 @@
 
 The eight designs that `python manage.py seed_demo_catalogue` puts in the local
 database, and that every screenshot and breakpoint sweep under
-`docs/design/phase5/` is measured against.
+the screenshots are measured against.
 
 They live here rather than in `media/products/` because `media/` is
 gitignored — it is where real uploads go. The seed command copies whichever of

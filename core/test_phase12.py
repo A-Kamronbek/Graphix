@@ -598,7 +598,8 @@ class RichResultTests(TestCase):
             url = self.product.get_absolute_url()
         html = self.client.get(url).content.decode()
         found = re.search(
-            r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+            # `[^>]*`: the block carries a CSP nonce since Phase 10 (§17 #269).
+        r'<script type="application/ld\+json"[^>]*>(.*?)</script>', html, re.S)
         self.assertIsNotNone(found, 'no structured data on a reviewed product')
         # Phase 9 put every node on the page into one `@graph` — the product,
         # its offer and the trail to it — because two script elements is two

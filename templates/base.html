@@ -7,6 +7,13 @@
 {# the shell must not depend on context to be correct (§17 #66). #}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
+  {# Marks the document as script-capable before anything is painted, so a #}
+  {# control that only works with JavaScript can take up its space from the #}
+  {# first frame instead of appearing later and shifting the page under the #}
+  {# reader. The carousel's dots did exactly that, for a measured CLS of #}
+  {# 0.053 (§17 #276). It is inline and first on purpose: an external file #}
+  {# would paint before it arrives, which is the whole problem. #}
+  <script nonce="{{ request.csp_nonce }}">document.documentElement.className += ' js';</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#100E0C">
@@ -88,7 +95,10 @@
 
   {# Everything this page has to say to a search engine, in one @graph: two #}
   {# Product nodes on one page is one product described twice. #}
-  {% if jsonld %}<script type="application/ld+json">{{ jsonld }}</script>{% endif %}
+  {# The only inline script on the site, and the reason the policy carries a #}
+  {# nonce at all: without one, allowing this block would mean allowing every #}
+  {# inline script, including an injected one (§17 #269). #}
+  {% if jsonld %}<script type="application/ld+json" nonce="{{ request.csp_nonce }}">{{ jsonld }}</script>{% endif %}
 
   {% block extra_head %}{% endblock %}
 </head>

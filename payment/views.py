@@ -13,8 +13,12 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils import translation
 from django.utils.translation import gettext as _
-from tolov.integrations.django.webhooks import (ClickWebhook, OctoWebhook,
-                                                PaymeWebhook)
+# `...django.views`, not `...django.webhooks`. The two modules hold the
+# same handlers; only these are wrapped in `csrf_exempt`, and a payment
+# gateway has no CSRF token to send (§17 #270).
+from tolov.integrations.django.views import (BaseClickWebhookView,
+                                             BaseOctoWebhookView,
+                                             BasePaymeWebhookView)
 
 from core.i18n import tfield
 from .models import (DeliveryOption, District, Order, PaymentOption, Region,
@@ -373,7 +377,7 @@ class PaidByWebhook:
         return order
 
 
-class ClickWebhookAPIView(PaidByWebhook, ClickWebhook):
+class ClickWebhookAPIView(PaidByWebhook, BaseClickWebhookView):
     """Single Click callback endpoint; tolov routes Prepare/Complete internally.
 
     Mounted by us, at the path Click was given, which is why moving off
@@ -382,7 +386,7 @@ class ClickWebhookAPIView(PaidByWebhook, ClickWebhook):
     """
 
 
-class PaymeWebhookAPIView(PaidByWebhook, PaymeWebhook):
+class PaymeWebhookAPIView(PaidByWebhook, BasePaymeWebhookView):
     """Payme's JSON-RPC callback endpoint.
 
     Payme quotes tiyin; tolov multiplies `total_price` by 100 before comparing,
@@ -390,7 +394,7 @@ class PaymeWebhookAPIView(PaidByWebhook, PaymeWebhook):
     """
 
 
-class OctoWebhookAPIView(PaidByWebhook, OctoWebhook):
+class OctoWebhookAPIView(PaidByWebhook, BaseOctoWebhookView):
     """Octo's notification endpoint.
 
     Octo signs its callbacks `sha1(unique_key + payment_uuid + status)`, which

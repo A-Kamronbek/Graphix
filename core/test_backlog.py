@@ -1,6 +1,6 @@
 """The backlog cleared before Phase 9 (§18 #8, #23, #28, #29, #33, #38, #39).
 
-Kamronbek's pass before Phase 9 found three things on screens he uses: the
+A pass over the screens before Phase 9 found three things: the
 panel's dates in the browser's American order, a cancelled order named by its
 database id, and Uzbek months written with a capital. Rechecking the backlog
 found five more worth doing now rather than in the phase each was parked in,

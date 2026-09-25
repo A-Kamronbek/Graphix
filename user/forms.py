@@ -5,6 +5,7 @@ from .models import User, phone_regex, normalize_uz_phone
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm, PasswordChangeForm
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from core import legal
 
 
 # Allowed username characters: letters, digits, underscore.
@@ -86,6 +87,13 @@ class ChangePasswordForm(PasswordChangeForm):
 class SignupForm(UserCreationForm):
     """Registration form; creates the User and triggers phone verification."""
     first_name = forms.CharField(max_length=150, required=False)
+    # Deliberately not required. The browser already refuses the form without
+    # the box, and making the server refuse it too would change what an
+    # existing endpoint does to a request that succeeds today (§18 #47). What
+    # this field is for is the record: the versions are stamped only when the
+    # box actually came back ticked, so the columns never claim a consent
+    # nobody gave.
+    agree = forms.BooleanField(required=False)
 
     class Meta:
         model = User
@@ -96,9 +104,17 @@ class SignupForm(UserCreationForm):
     }
 
     def save(self, commit=True):
-        """Save the user, copying the optional first name."""
+        """Save the user, with the optional first name and the consent given.
+
+        The signup page shows the terms and the privacy policy beside the box;
+        which wording each of them had is stamped here, where the box is read,
+        so the record and the thing recorded cannot drift apart (§17 #272).
+        """
         user = super().save(commit=False)
         user.first_name = self.cleaned_data.get('first_name', '')
+        if self.cleaned_data.get('agree'):
+            for field, number in legal.accepted_versions().items():
+                setattr(user, field, number)
         if commit:
             user.save()
         return user

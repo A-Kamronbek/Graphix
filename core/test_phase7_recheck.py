@@ -12,7 +12,7 @@ Two of the findings have no test in this file and cannot have one:
   disabling the select, so the POST carried no `status` at all) — a defect in
   a browser, found by driving one, guarded by `.git/recheck_p7.py`;
 * the panel being unreachable for a staff account whose phone was never
-  verified — raised with Kamronbek rather than changed here, because it is the
+  verified — raised rather than changed here, because it is the
   OTP middleware and §4 says auth is not changed alone.
 """
 from decimal import Decimal

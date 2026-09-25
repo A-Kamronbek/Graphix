@@ -426,3 +426,137 @@ class UserFacingPythonStringTests(SimpleTestCase):
             f"{len(offences)} user-facing string(s) bypass gettext and will render "
             f"Uzbek in every language: {offences}",
         )
+
+
+class CatalogueDriftTests(SimpleTestCase):
+    """The `catalogue_drift` command: its reader, and the rails that stop it
+    leaving somebody's catalogues rewritten.
+
+    The command answers the one question the tests above cannot ask. They
+    read a `.po` against itself - no empty translation, no fuzzy entry, the
+    three languages in step - and all of them pass while a template string
+    quietly stops matching its catalogue entry, because a msgid that is in
+    the source and not in the `.po` is not in the `.po` to be found. gettext
+    falls back to the msgid and a Russian visitor reads Uzbek (§17 #243).
+
+    Answering it means running `makemessages`, which insists on writing to
+    `./locale`, so it is a command and not a test: the suite must not rewrite
+    tracked files. What is tested here is everything about it that can be
+    tested without gettext - the reader, which has been the weak point twice
+    (§17 #198), and the two places it refuses to continue.
+    """
+
+    #: A catalogue with each shape the reader has ever got wrong: a header, a
+    #: wrapped msgid, a fuzzy entry whose flag line carries a second flag, and
+    #: an obsolete entry that is itself wrapped.
+    SAMPLE = '\n'.join([
+        'msgid ""',
+        'msgstr ""',
+        '"Content-Type: text/plain; charset=UTF-8"',
+        '',
+        '#: templates/core/home.html:12',
+        'msgid "Savatga"',
+        'msgstr "V korzinu"',
+        '',
+        '#: templates/core/about.html:4',
+        'msgid ""',
+        '"Bu juda uzun satr, gettext uni bir nechta "',
+        '"qatorga bolib yozadi."',
+        'msgstr "Long one."',
+        '',
+        '#: templates/product/detail.html:30',
+        '#, fuzzy, python-format',
+        'msgid "%(count)s ta sharh"',
+        'msgstr "%(count)s otzyvov"',
+        '',
+        '#~ msgid ""',
+        '#~ "Eskirgan va juda uzun satr, u ham bir nechta "',
+        '#~ "qatorga bolingan."',
+        '#~ msgstr "Obsolete."',
+        '',
+        '#~ msgid "Yoqolgan"',
+        '#~ msgstr "Gone."',
+    ])
+
+    def read_sample(self):
+        """Parse SAMPLE from a real file, the way the command reads one."""
+        import tempfile
+        from pathlib import Path
+        from core.management.commands.catalogue_drift import read_catalogue
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'django.po'
+            path.write_text(self.SAMPLE, encoding='utf-8')
+            return read_catalogue(path)
+
+    def test_the_reader_finds_every_shape_of_entry(self):
+        active, obsolete, fuzzy = self.read_sample()
+        self.assertEqual(active, {
+            'Savatga',
+            'Bu juda uzun satr, gettext uni bir nechta qatorga bolib yozadi.',
+            '%(count)s ta sharh',
+        })
+        self.assertEqual(obsolete, {
+            'Eskirgan va juda uzun satr, u ham bir nechta qatorga bolingan.',
+            'Yoqolgan',
+        })
+
+    def test_the_header_is_not_mistaken_for_an_entry(self):
+        """Its msgid is empty, and so is the first line of every wrapped one."""
+        active, obsolete, _fuzzy = self.read_sample()
+        self.assertNotIn('', active | obsolete)
+
+    def test_a_flag_line_with_a_second_flag_still_reads_as_fuzzy(self):
+        """`#, fuzzy, python-format` is how gettext writes a fuzzy entry that
+        carries a placeholder, and reading the bare form only is how one got
+        past two separate checks before.
+        """
+        _active, _obsolete, fuzzy = self.read_sample()
+        self.assertEqual(fuzzy, {'%(count)s ta sharh'})
+
+    def test_an_obsolete_entry_is_not_counted_as_live(self):
+        """The whole point of the split: an obsolete entry is a record of a
+        string the source stopped producing, not a string to translate.
+        """
+        active, obsolete, _fuzzy = self.read_sample()
+        self.assertFalse(active & obsolete)
+
+    # -- the two rails ------------------------------------------------------
+    @staticmethod
+    def command_with_git(*results):
+        """The command, with its `git` calls answered by ``results`` in turn."""
+        from unittest import mock
+        from core.management.commands.catalogue_drift import Command
+        command = Command()
+        command.git = mock.Mock(
+            side_effect=[mock.Mock(stdout=text) for text in results])
+        return command
+
+    def test_it_refuses_to_start_on_a_dirty_locale_directory(self):
+        """Because the restore afterwards is `git checkout`, which would throw
+        away whatever was already there.
+        """
+        from unittest import mock
+        from django.core.management.base import CommandError
+        command = self.command_with_git(' M locale/ru/LC_MESSAGES/django.po')
+        with mock.patch('core.management.commands.catalogue_drift.call_command'
+                        ) as extract:
+            with self.assertRaises(CommandError) as refused:
+                command.handle()
+        extract.assert_not_called()
+        self.assertIn('locale/', str(refused.exception))
+
+    def test_it_says_so_loudly_when_the_restore_does_not_take(self):
+        """A half-restored catalogue directory is worse than an unanswered
+        question, so the command must not report and move on.
+        """
+        from unittest import mock
+        from django.core.management.base import CommandError
+        # Clean to start, nothing from the checkout, still rewritten after it.
+        command = self.command_with_git('', '', ' M locale/ru/LC_MESSAGES/django.po')
+        with mock.patch('core.management.commands.catalogue_drift.call_command'):
+            with mock.patch(
+                    'core.management.commands.catalogue_drift.read_catalogue',
+                    return_value=(set(), set(), set())):
+                with self.assertRaises(CommandError) as shouted:
+                    command.handle()
+        self.assertIn('git checkout -- locale', str(shouted.exception))

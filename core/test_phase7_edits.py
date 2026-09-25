@@ -1,4 +1,4 @@
-"""The corrections Kamronbek asked for after using the panel himself.
+"""The corrections that came out of using the panel.
 
 Ten of them, and they split into three kinds: two lists that had to stop being
 code (tag kinds and print methods), screens that were missing an action
