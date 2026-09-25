@@ -741,15 +741,46 @@ class ConsentRecordTests(TestCase):
         self.assertEqual(user.terms_version, self.terms)
         self.assertEqual(user.privacy_version, self.privacy)
 
-    def test_a_signup_without_the_box_records_nothing(self):
-        """The browser refuses the form without the box. A request that gets
-        past the browser still registers, exactly as it did before - it must
-        simply not leave behind a consent nobody gave (§18 #47).
+    #: Without the box. Each POST gets its own number: the signup is rate
+    #: limited per phone, and the cache outlives a single test.
+    UNTICKED = {'username': 'belgisiz', 'first_name': 'Rozi',
+                'password1': 'parol12345', 'password2': 'parol12345'}
+
+    def test_a_signup_without_the_box_is_refused(self):
+        """The server refuses what the browser refuses: no account, no code
+        sent, and the form comes back with what was typed in it, so ticking
+        the box is all that is left to do (§17 #291, closing §18 #47).
+
+        This replaces a test asserting the opposite - that such a request
+        still registered, only without a consent on record.
         """
-        user = self._signup()
-        self.assertIsNotNone(user, 'the signup itself must behave as before')
-        self.assertEqual(user.terms_version, '')
-        self.assertEqual(user.privacy_version, '')
+        from unittest import mock
+        from user.models import User
+        with mock.patch('user.otp.send_sms', return_value=True) as sms:
+            response = self.client.post(
+                reverse('signup'), dict(self.UNTICKED, phone='+998901119956'))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username='belgisiz').exists())
+        sms.assert_not_called()
+        self.assertContains(response, 'maxfiylik siyosatiga rozilik bering')
+        self.assertContains(response, 'value="belgisiz"')
+
+    def test_the_refusal_is_written_in_each_language(self):
+        """Read off the page rather than the catalogue: a msgid that drifts by
+        one character leaves a tidy catalogue and an Uzbek sentence on a
+        Russian screen (§17 #255).
+        """
+        expected = {
+            'uz': 'foydalanish shartlari va maxfiylik siyosatiga rozilik bering',
+            'ru': 'примите условия использования и политику конфиденциальности',
+            'en': 'accept the terms of use and the privacy policy',
+        }
+        for n, (language, words) in enumerate(expected.items()):
+            with self.subTest(language=language), translation.override(language):
+                response = self.client.post(
+                    reverse('signup'),
+                    dict(self.UNTICKED, phone='+99890111996%d' % n))
+                self.assertContains(response, words)
 
     def test_the_box_is_named_so_the_server_can_see_it(self):
         """An unnamed checkbox posts nothing at all, which is how the consent
