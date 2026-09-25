@@ -51,7 +51,10 @@ Thumbs.db
 # core.test_backlog asserts the card can still be redrawn.
 !/docs/brand/og-card.html
 /docs/design/
-/deploy/RUNBOOK.md
+# deploy/RUNBOOK.md is TRACKED. It was ignored as a working note and went
+# missing twice over. It holds no credential - only the names of the
+# variables that do - and it is the procedure for updating production,
+# which is the last thing that should live outside the repository.
 /deploy/NEXT-STEPS.md
 
 # --- screenshots ---
@@ -59,3 +62,6 @@ Thumbs.db
 # of PNG in the history is a dozen megabytes forever.
 /pictures/
 /graphix-screenshots.zip
+
+# pip leaves this inside the checkout on the server.
+.cache/

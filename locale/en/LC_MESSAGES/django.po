@@ -751,11 +751,10 @@ msgstr "The fault is on our side. Give it a moment and try again."
 
 #: .\templates\base.html:21 .\templates\base.html:52
 msgid ""
-"Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab "
-"yetkazib berish."
+"Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib "
+"berish."
 msgstr ""
-"Graphic T-shirt shop. Premium quality, 100+ designs, delivery across "
-"Uzbekistan."
+"Graphic T-shirt shop. Premium quality, delivery across Uzbekistan."
 
 #: .\templates\base.html:51
 msgid "grafik futbolkalar"

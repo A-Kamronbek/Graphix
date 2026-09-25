@@ -1,7 +1,7 @@
 {% load static %}{
   "name": "GRAPHIX",
   "short_name": "GRAPHIX",
-  "description": "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish.",
+  "description": "Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib berish.",
   "lang": "uz",
   "start_url": "/uz/",
   "scope": "/",

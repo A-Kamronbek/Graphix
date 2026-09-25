@@ -25,7 +25,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="darkreader-lock">
   <title>{% block title %}{% trans "Bosh sahifa" %}{% endblock %} — GRAPHIX</title>
-  <meta name="description" content="{% block meta_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
+  <meta name="description" content="{% block meta_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
 
   {# A page behind a login, a cart, a form or an error is not a search result. #}
   {# Every one of them overrides this block; `follow` stays on, so the links #}
@@ -55,7 +55,7 @@
   <meta property="og:site_name" content="GRAPHIX">
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
   <meta property="og:title" content="{% block og_title %}GRAPHIX — {% trans "grafik futbolkalar" %}{% endblock %}">
-  <meta property="og:description" content="{% block og_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, 100+ dizayn, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
   <meta property="og:url" content="{{ canonical_url }}">
   <meta property="og:locale" content="{{ og_locale }}">
   {% for other in og_locale_alternates %}<meta property="og:locale:alternate" content="{{ other }}">

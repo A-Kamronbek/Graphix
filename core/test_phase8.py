@@ -78,11 +78,21 @@ class DocumentPageTests(TestCase):
                         self.assertNotIn(token, html)
 
     def test_the_page_states_its_version_and_the_day_it_took_effect(self):
+        """The day is read from ``VERSIONS`` and rendered the way the page does.
+
+        It used to be typed. Phase 11 item 8 sets these dates to the launch day,
+        so that edit would have failed a test about something else on the day
+        with the least room for surprises - and the obvious fix in the moment,
+        editing the literal to match, would have proved only that two literals
+        agree. Going through ``legal_date`` makes the assertion about the page.
+        """
         version = legal.VERSIONS['terms'][0]
         with translation.override('uz'):
+            day = Template('{% load legal_tags %}{{ d|legal_date }}').render(
+                Context({'d': version.effective}))
             html = page(self.client, 'terms', 'uz')
         self.assertIn(f'data-version="{version.number}"', html)
-        self.assertIn(f'Tahrir {version.number} · 2026-yil 15-sentabrdan amalda', html)
+        self.assertIn(f'Tahrir {version.number} · {day}dan amalda', html)
 
     def test_the_history_lists_every_version_of_the_document(self):
         for doc in DOCS:
