@@ -46,7 +46,10 @@ Thumbs.db
 # Phase 2 was decided from - neither is useful to anyone cloning this.
 /docs/PLAN.md
 /docs/PROJECT_INSTRUCTIONS.md
-/docs/brand/
+/docs/brand/*
+# ...but the source of the shipped OG image is not a working note:
+# core.test_backlog asserts the card can still be redrawn.
+!/docs/brand/og-card.html
 /docs/design/
 /deploy/RUNBOOK.md
 /deploy/NEXT-STEPS.md
