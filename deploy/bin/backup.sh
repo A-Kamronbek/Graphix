@@ -15,10 +15,18 @@
 #   4. deletes snapshots older than KEEP_DAYS;
 #   5. copies everything off this machine.
 #
-# Step 5 is not optional. If BACKUP_REMOTE is unset the script exits non-zero
-# and the systemd unit goes red, because a backup that only exists on the
-# server it is backing up survives exactly none of the events worth backing up
-# for, and a job that reports success while doing that is worse than no job.
+# Step 5 is what makes this a backup rather than a second copy. If
+# BACKUP_REMOTE is unset the script exits non-zero and the systemd unit goes
+# red, because a backup that only exists on the server it is backing up
+# survives exactly none of the events worth backing up for, and a job that
+# reports success while doing that is worse than no job.
+#
+# That refusal can be waived, and only deliberately. BACKUP_LOCAL_ONLY=1 in
+# the config file says somebody chose local-only with their eyes open. The run
+# then succeeds and prints, every night, exactly what it is not protecting
+# against. A missing BACKUP_REMOTE with no waiver still fails, so a typo, a
+# deleted line or a half-finished edit cannot quietly switch the off-server
+# copy off and look like a decision.
 #
 # Run by graphix-backup.timer. Safe to run by hand at any time.
 
@@ -141,11 +149,25 @@ find "$MEDIA_OUT" -maxdepth 1 -mindepth 1 -type d -mtime "+$KEEP_DAYS" \
      -exec rm -rf {} +
 
 # ------------------------------------------------------------ off-server
+# Unset destination: fail, unless the waiver is set. Keeping the waiver in a
+# variable of its own is the whole point - "empty means local" would make an
+# accident indistinguishable from a decision.
 if [ -z "${BACKUP_REMOTE:-}" ]; then
-    die "BACKUP_REMOTE is not set in $CONFIG - nothing has left this machine.
+    if [ "${BACKUP_LOCAL_ONLY:-}" != "1" ]; then
+        die "BACKUP_REMOTE is not set in $CONFIG - nothing has left this machine.
      Everything above succeeded and is on local disk, which protects you from
      a bad migration and from nothing else. Set BACKUP_REMOTE to an rsync
-     destination (user@host:/path) and re-run."
+     destination (user@host:/path) and re-run, or set BACKUP_LOCAL_ONLY=1 in
+     that file to say local-only is the intended arrangement."
+    fi
+    log "LOCAL ONLY - nothing has left this machine (BACKUP_LOCAL_ONLY=1)."
+    log "  Protects against: a bad migration, a mistaken DELETE, a bad deploy."
+    log "  Does not protect against: disk failure, the VPS being deleted or"
+    log "  suspended, a provider incident, ransomware, or a wrong command run"
+    log "  as root. The photographs under media/ cannot be regenerated."
+    log "  Set BACKUP_REMOTE in $CONFIG to change that."
+    log "done"
+    exit 0
 fi
 
 log "copying to $BACKUP_REMOTE"
