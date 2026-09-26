@@ -207,13 +207,14 @@
       {# Rendered from the DeliveryOption rows rather than written as copy: the #}
       {# prices are configurable precisely so a change is not a deploy, and two #}
       {# pages quietly stating an old figure is how that promise breaks (§18 #18). #}
+      {# The delivery time under each name comes from the same row (§17 #301). #}
       {% if delivery_options %}
         <dl class="spec">
           {% for opt in delivery_options %}
             <div class="spec__row">
               <dt>
                 <svg class="i i--sm" aria-hidden="true"><use href="#i-{% if opt.requires_branch %}box{% else %}truck{% endif %}"></use></svg>
-                {{ opt|t:"name" }}
+                <span>{{ opt|t:"name" }}{% if opt.days_label %}<span class="spec__sub">{{ opt.days_label }}</span>{% endif %}</span>
               </dt>
               <dd class="num">{{ opt.price|price }} {% trans "soʻm" %}</dd>
             </div>

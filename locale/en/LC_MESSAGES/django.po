@@ -2093,21 +2093,6 @@ msgstr ""
 msgid "Majburiy emas"
 msgstr "Optional"
 
-#: .\templates\payment\checkout.html:240
-#, python-format
-msgid ""
-"Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
-"yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
-msgid_plural ""
-"Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
-"yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
-msgstr[0] ""
-"Uzpost delivers anywhere in the country within %(span)s day. Door delivery "
-"can take one more day for the courier."
-msgstr[1] ""
-"Uzpost delivers anywhere in the country within %(span)s days. Door delivery "
-"can take one more day for the courier."
-
 #: .\templates\payment\checkout.html:280
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr "No payment method is available right now. Please get in touch."
@@ -2762,6 +2747,30 @@ msgstr "Too many attempts. Please start again."
 #: .\user\views.py:410
 msgid "Parol yangilandi. Endi kirishingiz mumkin."
 msgstr "Your password has been updated. You can sign in now."
+
+#: .\payment\models.py:73
+#, python-format
+msgid "%(span)s kun"
+msgid_plural "%(span)s kun"
+msgstr[0] "%(span)s day"
+msgstr[1] "%(span)s days"
+
+#: .\templates\boshqaruv\settings.html:44
+msgid ""
+"Yetkazish muddati — kunlarda. Mahsulot sahifasida, rasmiylashtirishda va "
+"yetkazib berish sahifasida narx yonida koʻrsatiladi; eng koʻp kun 0 boʻlsa, "
+"muddat koʻrsatilmaydi."
+msgstr ""
+"Delivery time in days. Shown next to the price on the product page, at "
+"checkout and on the delivery page; if the most is 0, no time is shown."
+
+#: .\templates\boshqaruv\settings.html:68
+msgid "Eng kam kun"
+msgstr "Fewest days"
+
+#: .\templates\boshqaruv\settings.html:73
+msgid "Eng koʻp kun"
+msgstr "Most days"
 
 #, fuzzy, python-format
 #~| msgid "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."

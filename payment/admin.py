@@ -31,9 +31,10 @@ class DeliveryOptionAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'requires_branch')
     search_fields = ('code', 'name', 'name_ru', 'name_en')
     fieldsets = (
-        (None, {'fields': ('code', 'price', 'free_from_items',
+        (None, {'fields': ('code', 'price', 'free_from_items', 'days_min', 'days_max',
                            'requires_branch', 'is_active', 'sort_order'),
-                'description': "free_from_items = 0 boʻlsa, bepul yetkazish yoʻq."}),
+                'description': "free_from_items = 0 boʻlsa, bepul yetkazish yoʻq. "
+                               "days_max = 0 boʻlsa, muddat koʻrsatilmaydi."}),
         ('Oʻzbekcha', {'fields': ('name', 'note')}),
         ('Русский', {'fields': ('name_ru', 'note_ru')}),
         ('English', {'fields': ('name_en', 'note_en')}),

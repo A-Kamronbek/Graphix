@@ -2108,27 +2108,6 @@ msgstr ""
 msgid "Majburiy emas"
 msgstr "Необязательно"
 
-#: .\templates\payment\checkout.html:240
-#, python-format
-msgid ""
-"Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
-"yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
-msgid_plural ""
-"Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
-"yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
-msgstr[0] ""
-"«Узбекистон почтаси» доставляет отправления по стране за %(span)s день. При "
-"доставке до двери курьеру может потребоваться ещё один день."
-msgstr[1] ""
-"«Узбекистон почтаси» доставляет отправления по стране за %(span)s дня. При "
-"доставке до двери курьеру может потребоваться ещё один день."
-msgstr[2] ""
-"«Узбекистон почтаси» доставляет отправления по стране за %(span)s дней. При "
-"доставке до двери курьеру может потребоваться ещё один день."
-msgstr[3] ""
-"«Узбекистон почтаси» доставляет отправления по стране за %(span)s дня. При "
-"доставке до двери курьеру может потребоваться ещё один день."
-
 #: .\templates\payment\checkout.html:280
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr "Способы оплаты сейчас недоступны. Пожалуйста, свяжитесь с нами."
@@ -2799,6 +2778,32 @@ msgstr "Слишком много попыток. Пожалуйста, начн
 #: .\user\views.py:410
 msgid "Parol yangilandi. Endi kirishingiz mumkin."
 msgstr "Пароль обновлён. Теперь вы можете войти."
+
+#: .\payment\models.py:73
+#, python-format
+msgid "%(span)s kun"
+msgid_plural "%(span)s kun"
+msgstr[0] "%(span)s день"
+msgstr[1] "%(span)s дня"
+msgstr[2] "%(span)s дней"
+msgstr[3] "%(span)s дня"
+
+#: .\templates\boshqaruv\settings.html:44
+msgid ""
+"Yetkazish muddati — kunlarda. Mahsulot sahifasida, rasmiylashtirishda va "
+"yetkazib berish sahifasida narx yonida koʻrsatiladi; eng koʻp kun 0 boʻlsa, "
+"muddat koʻrsatilmaydi."
+msgstr ""
+"Срок доставки в днях. Показывается рядом с ценой на странице товара, при "
+"оформлении и на странице доставки; если максимум — 0, срок не показывается."
+
+#: .\templates\boshqaruv\settings.html:68
+msgid "Eng kam kun"
+msgstr "Минимум дней"
+
+#: .\templates\boshqaruv\settings.html:73
+msgid "Eng koʻp kun"
+msgstr "Максимум дней"
 
 #, fuzzy, python-format
 #~| msgid "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."

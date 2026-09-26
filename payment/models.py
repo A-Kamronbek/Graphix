@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, ngettext
 from cart.models import Cart
 from user.models import phone_regex, normalize_uz_phone  # reuse same validator + normalizer as User.phone
 
@@ -35,6 +35,12 @@ class DeliveryOption(models.Model):
     note_en = models.TextField(blank=True, default='')
     price = models.DecimalField(max_digits=15, decimal_places=0)
     free_from_items = models.PositiveSmallIntegerField(default=0)
+    #: How long delivery usually takes, in days - shown beside the price on
+    #: the product page, at checkout and on the delivery page. On the row,
+    #: like the price, so the owner changes it in the panel rather than in
+    #: a deploy. ``days_max`` of 0 means no time is stated (§17 #301).
+    days_min = models.PositiveSmallIntegerField(default=0)
+    days_max = models.PositiveSmallIntegerField(default=0)
     # Region + district + a typed postal index, not a street address. Named for
     # what the customer supplies rather than for a table, because there is no
     # branch table any more (§17 #84).
@@ -50,6 +56,21 @@ class DeliveryOption(models.Model):
         if self.free_from_items and item_count >= self.free_from_items:
             return 0
         return self.price
+
+    @property
+    def days_label(self):
+        """How long it usually takes - "1–2 kun" - in the reader's language, or ''.
+
+        Counted on the upper figure, which is the number a range agrees with
+        in Russian: 1–2 дня, 1–6 дней. The range is joined so it never breaks
+        at the dash, like every period on the legal pages (§17 #204).
+        """
+        if not self.days_max:
+            return ''
+        from core.templatetags.legal_tags import legal_range
+        low = self.days_min if 0 < self.days_min < self.days_max else self.days_max
+        span = str(low) if low == self.days_max else legal_range(low, self.days_max)
+        return ngettext('%(span)s kun', '%(span)s kun', self.days_max) % {'span': span}
 
     class Meta:
         ordering = ['sort_order', 'code']

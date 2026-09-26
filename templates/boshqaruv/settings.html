@@ -41,6 +41,7 @@
 
 <section class="pnl__section" id="yetkazish">
   <h2>{% trans "Yetkazib berish" %}</h2>
+  <p class="field__hint">{% trans "Yetkazish muddati — kunlarda. Mahsulot sahifasida, rasmiylashtirishda va yetkazib berish sahifasida narx yonida koʻrsatiladi; eng koʻp kun 0 boʻlsa, muddat koʻrsatilmaydi." %}</p>
   {% for tier in tiers %}
     <div class="panel-card stack stack--sm" data-ref="delivery" data-id="{{ tier.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='delivery' pk=tier.pk %}">
       <div class="row row--between">
@@ -60,6 +61,18 @@
           <span class="label">{% trans "Bepul (dona)" %}</span>
           <input class="input num" type="number" inputmode="numeric" min="0" step="1"
                  value="{{ tier.free_from_items }}" data-ref-field="free_from_items">
+        </label>
+      </div>
+      <div class="row">
+        <label class="field field--num">
+          <span class="label">{% trans "Eng kam kun" %}</span>
+          <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+                 value="{{ tier.days_min }}" data-ref-field="days_min">
+        </label>
+        <label class="field field--num">
+          <span class="label">{% trans "Eng koʻp kun" %}</span>
+          <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+                 value="{{ tier.days_max }}" data-ref-field="days_max">
         </label>
       </div>
       <div class="row--fields">
