@@ -47,6 +47,13 @@ from .services import PANEL_CHOICES, PANEL_SETTABLE, UnknownStatus, set_status
 #: thumb-scrolls on a phone.
 PER_PAGE = 20
 
+#: The statuses of an order the shop was paid for and kept - a sale. The
+#: dashboard's report tiles count these and nothing else. `paying` is out
+#: because nobody has paid; `cancelled` is out whether or not money moved
+#: first, because a cancelled order is not takings (§17 #297).
+SOLD = (Order.Status.PAID, Order.Status.PROCESSING,
+        Order.Status.ON_THE_WAY, Order.Status.DONE)
+
 
 def _int(raw, default=0):
     """Parse a number out of a POST field, or fall back. Never raises.
@@ -117,10 +124,11 @@ def dashboard(request):
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week = today - timedelta(days=today.weekday())
 
-    # `paying` is excluded from both counts and from revenue: an order nobody
-    # has paid for is not a sale, and counting it makes every number flattering
-    # and useless.
-    real = Order.objects.exclude(status=Order.Status.PAYING)
+    # Only sales, in both counts and in revenue: an order nobody has paid for
+    # is not a sale, and neither is a cancelled one. Counting either makes
+    # every number flattering and useless. This used to exclude `paying` alone,
+    # so a cancelled order sat in "Bugungi tushum" as money (§17 #297).
+    real = Order.objects.filter(status__in=SOLD)
 
     def money(qs):
         return qs.aggregate(total=Sum('total_price'))['total'] or 0
