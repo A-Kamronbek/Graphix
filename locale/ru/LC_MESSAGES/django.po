@@ -1523,11 +1523,13 @@ msgstr "Новый слайд"
 
 #: .\templates\boshqaruv\slides.html:110
 msgid ""
-"Muhim narsani rasmning oʻrtasiga joylashtiring — telefonda va noutbukda "
-"kesim har xil boʻladi."
+"Rasmni 16:5 nisbatda tayyorlang (masalan, 2000×625 piksel). Noutbukda u "
+"toʻliq koʻrinadi, telefonda esa faqat oʻrtadagi 16:9 qismi — chetlari "
+"kesiladi. Matn va mahsulotni oʻrtaga joylashtiring."
 msgstr ""
-"Размещайте главное в центре изображения — на телефоне и на ноутбуке "
-"кадрирование разное."
+"Готовьте изображение в пропорции 16:5 (например, 2000×625 пикселей). На "
+"ноутбуке оно видно целиком, на телефоне — только средняя часть 16:9, края "
+"обрезаются. Текст и товар размещайте по центру."
 
 #: .\templates\boshqaruv\slides.html:151
 msgid "Tavsif ekran oʻquvchilari uchun — rasmda nima yozilganini qisqa yozing."

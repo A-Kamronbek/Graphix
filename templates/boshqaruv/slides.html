@@ -103,11 +103,11 @@
 
 <section class="pnl__section">
   <h2>{% trans "Yangi slayd" %}</h2>
-  {# Said here rather than discovered later: the card is wide on a laptop and #}
-  {# taller on a phone, so the same file is cropped two ways and anything #}
-  {# near an edge can be the part that goes. #}
+  {# Said here rather than discovered later: a laptop shows the whole 16:5 #}
+  {# picture, and a phone keeps its full height and shows the middle 16:9, #}
+  {# so anything near the sides is cut there (§17 #300). #}
   <p class="field__hint">
-    {% trans "Muhim narsani rasmning oʻrtasiga joylashtiring — telefonda va noutbukda kesim har xil boʻladi." %}
+    {% trans "Rasmni 16:5 nisbatda tayyorlang (masalan, 2000×625 piksel). Noutbukda u toʻliq koʻrinadi, telefonda esa faqat oʻrtadagi 16:9 qismi — chetlari kesiladi. Matn va mahsulotni oʻrtaga joylashtiring." %}
   </p>
 
   <form class="panel-card stack stack--sm" method="post"

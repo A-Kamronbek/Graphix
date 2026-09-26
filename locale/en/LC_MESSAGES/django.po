@@ -1506,11 +1506,13 @@ msgstr "New slide"
 
 #: .\templates\boshqaruv\slides.html:110
 msgid ""
-"Muhim narsani rasmning oʻrtasiga joylashtiring — telefonda va noutbukda "
-"kesim har xil boʻladi."
+"Rasmni 16:5 nisbatda tayyorlang (masalan, 2000×625 piksel). Noutbukda u "
+"toʻliq koʻrinadi, telefonda esa faqat oʻrtadagi 16:9 qismi — chetlari "
+"kesiladi. Matn va mahsulotni oʻrtaga joylashtiring."
 msgstr ""
-"Keep anything important near the middle of the image — it is cropped "
-"differently on a phone and on a laptop."
+"Make the picture 16:5 (for example, 2000×625 pixels). A laptop shows all of "
+"it; a phone shows only the middle 16:9 and cuts off the sides. Keep the "
+"words and the product in the centre."
 
 #: .\templates\boshqaruv\slides.html:151
 msgid "Tavsif ekran oʻquvchilari uchun — rasmda nima yozilganini qisqa yozing."

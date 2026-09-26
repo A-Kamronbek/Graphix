@@ -102,12 +102,12 @@
      this value, so the token is the measurement rather than a guess about it. */
   --nav-h: calc(44px + 2 * var(--s-3) + 1px);
 
-  /* The home page's promotional cards. Two shapes, because the card is
-     as wide as the screen either way and one ratio cannot be right for
-     both: below 860 px a tall-ish banner, from 860 px a long strip.
-     The owner is told to keep anything important near the middle, because
-     the same file is cropped both ways (§17 #257). The strip was 1120:300
-     until the owner asked for 16:5 (§17 #299). */
+  /* The home page's promotional cards. The picture is made 16:5, and from
+     860 px the card is 16:5 too, so a laptop shows all of it. Below 860 px
+     the card is 16:9: `object-fit: cover` keeps the picture's full height
+     and cuts its sides, so a phone shows the middle 16:9 of the same file
+     (§17 #299, #300). The panel tells the owner so, and to keep the words
+     in the middle. */
   --ar-slide: 16 / 9;
   --ar-slide-wide: 16 / 5;
   /* Product imagery is 4:5 across the whole catalogue (§8). */
