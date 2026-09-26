@@ -27,6 +27,16 @@ import secrets
 
 from django.urls import Resolver404, resolve
 
+#: Where "Toʻlovga oʻtish" ends up: each gateway's hosted pay page, as a
+#: form-action source. Click and Payme build their links on a fixed host -
+#: tolov's `my.click.uz/services/pay` and `checkout.paycom.uz` - while Octo's
+#: link comes back from its API, so Octo is the one wildcard. A test builds
+#: real Click and Payme links and checks their hosts against the policy the
+#: payment page is served with, and fails if a gateway is added without a
+#: line here (§17 #298).
+PAY_PAGES = ('https://my.click.uz', 'https://checkout.paycom.uz',
+             'https://*.octo.uz')
+
 #: The policy every page gets. Values are lists so the Maps pages can extend
 #: them without either copy drifting from the other.
 BASE_POLICY = {
@@ -49,10 +59,12 @@ BASE_POLICY = {
     'object-src': ["'none'"],
     # Stops an injected <base> rewriting every relative URL on the page.
     'base-uri': ["'self'"],
-    # Every form on the site posts to this origin - checked, not assumed. The
-    # payment gateways are reached by a 302, not a cross-origin POST, so this
-    # does not touch them.
-    'form-action': ["'self'"],
+    # Every form on the site posts to this origin - checked, not assumed. But
+    # the pay button posts to payment_start, which answers with a 302 to the
+    # gateway, and browsers hold every redirect after a form submission to
+    # this directive as well. With 'self' alone the redirect was refused and
+    # a plain click on "Toʻlovga oʻtish" did nothing (§17 #298).
+    'form-action': ["'self'", *PAY_PAGES],
     # The same statement as X-Frame-Options: DENY, in the modern header.
     'frame-ancestors': ["'none'"],
 }
