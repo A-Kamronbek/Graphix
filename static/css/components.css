@@ -193,6 +193,9 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
 .spec__row dt { display: flex; align-items: center; gap: var(--s-2);
   color: var(--c-fg-muted); }
 .spec__row dd { font-weight: var(--fw-semibold); text-align: right; }
+/* A second, smaller line under a label: the delivery time under its name
+   on the product page (§17 #301). Muted, like the label it belongs to. */
+.spec__sub { display: block; font-size: var(--fs-xs); }
 
 /* =========================================================== 7. star rating */
 .stars { display: inline-flex; gap: 2px; color: var(--c-brand); }

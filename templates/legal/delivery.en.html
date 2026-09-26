@@ -1,6 +1,6 @@
 {% load i18n_fields price_format legal_tags %}{% get_legal as legal %}
 {# Delivery and returns - the plain-language page customers read. The Uzbek text is the original (§17 #182). #}
-{# Prices come from the DeliveryOption rows, periods from core/legal.py (§17 #111, #183). #}
+{# Prices and delivery times come from the DeliveryOption rows, the other periods from core/legal.py (§17 #111, #183, #301). #}
 
 <p class="legal__lang" data-precedence>This page is published in Uzbek, Russian and English. If the versions differ, the Uzbek text prevails.</p>
 
@@ -12,7 +12,7 @@
       {% for opt in delivery_options %}
         <div>
           <dt>{{ opt|t:"name" }}</dt>
-          <dd><span class="num">{{ opt.price|price }}&nbsp;soʻm</span>{% if opt.free_from_items %} · free on orders of {{ opt.free_from_items }} item{{ opt.free_from_items|pluralize }} or more{% endif %}</dd>
+          <dd><span class="num">{{ opt.price|price }}&nbsp;soʻm</span>{% if opt.days_label %} · {{ opt.days_label }}{% endif %}{% if opt.free_from_items %} · free on orders of {{ opt.free_from_items }} item{{ opt.free_from_items|pluralize }} or more{% endif %}</dd>
         </div>
       {% endfor %}
     </dl>
@@ -33,7 +33,7 @@
 
 <section class="legal__sec" id="timing">
   <h2>4. How long it takes</h2>
-  <p>Once your payment is confirmed, we pack the order and hand it to Uzpost — you can follow it on the “My orders” page. Uzpost usually delivers anywhere in the country within {{ legal.transit_min|legal_range:legal.transit_max }} day{{ legal.transit_max|pluralize }}; door delivery can take one more day for the courier. In any case your order must arrive no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
+  <p>Once your payment is confirmed, we pack the order and hand it to Uzpost — you can follow it on the “My orders” page. How long each method usually takes is shown above, next to its price. In any case your order must arrive no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
 </section>
 
 <section class="legal__sec" id="uncollected">

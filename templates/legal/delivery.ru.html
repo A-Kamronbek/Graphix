@@ -1,6 +1,6 @@
 {% load i18n_fields price_format legal_tags %}{% get_legal as legal %}
 {# Доставка и возврат — короткое объяснение для покупателя. Основной текст узбекский (§17 #182). #}
-{# Цены берутся из строк DeliveryOption, сроки — из core/legal.py (§17 #111, #183). #}
+{# Цены и сроки доставки берутся из строк DeliveryOption, остальные сроки — из core/legal.py (§17 #111, #183, #301). #}
 
 <p class="legal__lang" data-precedence>Страница опубликована на узбекском, русском и английском языках. При расхождении текстов преимущественную силу имеет текст на узбекском языке.</p>
 
@@ -12,7 +12,7 @@
       {% for opt in delivery_options %}
         <div>
           <dt>{{ opt|t:"name" }}</dt>
-          <dd><span class="num">{{ opt.price|price }}&nbsp;сум</span>{% if opt.free_from_items %} · бесплатно при заказе от {{ opt.free_from_items }} {{ opt.free_from_items|ru_plural:"товара,товаров,товаров" }}{% endif %}</dd>
+          <dd><span class="num">{{ opt.price|price }}&nbsp;сум</span>{% if opt.days_label %} · {{ opt.days_label }}{% endif %}{% if opt.free_from_items %} · бесплатно при заказе от {{ opt.free_from_items }} {{ opt.free_from_items|ru_plural:"товара,товаров,товаров" }}{% endif %}</dd>
         </div>
       {% endfor %}
     </dl>
@@ -33,7 +33,7 @@
 
 <section class="legal__sec" id="timing">
   <h2>4. Сколько ждать</h2>
-  <p>После подтверждения оплаты мы собираем заказ и передаём его Почте — статус видно на странице «Мои заказы». Почта обычно доставляет посылку по стране за {{ legal.transit_min|legal_range:legal.transit_max }} {{ legal.transit_max|ru_plural:"день,дня,дней" }}, при доставке до двери курьеру может понадобиться ещё день. В любом случае заказ должен быть доставлен не позднее {{ legal.delivery_deadline_days }} {{ legal.delivery_deadline_days|ru_plural:"дня,дней,дней" }} после оплаты.</p>
+  <p>После подтверждения оплаты мы собираем заказ и передаём его Почте — статус видно на странице «Мои заказы». Сколько обычно занимает каждый способ, указано выше, рядом с ценой. В любом случае заказ должен быть доставлен не позднее {{ legal.delivery_deadline_days }} {{ legal.delivery_deadline_days|ru_plural:"дня,дней,дней" }} после оплаты.</p>
 </section>
 
 <section class="legal__sec" id="uncollected">

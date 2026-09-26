@@ -40,6 +40,7 @@ EDITABLE = {
         'name': 'text', 'name_ru': 'text', 'name_en': 'text',
         'note': 'text', 'note_ru': 'text', 'note_en': 'text',
         'price': 'money', 'free_from_items': 'count', 'is_active': 'bool',
+        'days_min': 'count', 'days_max': 'count',
     }),
     'tag': (Tag, {
         'name': 'text', 'name_ru': 'text', 'name_en': 'text',

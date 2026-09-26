@@ -2073,18 +2073,6 @@ msgstr ""
 msgid "Majburiy emas"
 msgstr ""
 
-#: .\templates\payment\checkout.html:240
-#, python-format
-msgid ""
-"Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
-"yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
-msgid_plural ""
-"Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
-"yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
-msgstr[0] ""
-"Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab %(span)s kun ichida "
-"yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin."
-
 #: .\templates\payment\checkout.html:280
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr ""
@@ -2734,6 +2722,27 @@ msgstr ""
 
 #: .\user\views.py:410
 msgid "Parol yangilandi. Endi kirishingiz mumkin."
+msgstr ""
+
+#: .\payment\models.py:73
+#, python-format
+msgid "%(span)s kun"
+msgid_plural "%(span)s kun"
+msgstr[0] "%(span)s kun"
+
+#: .\templates\boshqaruv\settings.html:44
+msgid ""
+"Yetkazish muddati — kunlarda. Mahsulot sahifasida, rasmiylashtirishda va "
+"yetkazib berish sahifasida narx yonida koʻrsatiladi; eng koʻp kun 0 boʻlsa, "
+"muddat koʻrsatilmaydi."
+msgstr ""
+
+#: .\templates\boshqaruv\settings.html:68
+msgid "Eng kam kun"
+msgstr ""
+
+#: .\templates\boshqaruv\settings.html:73
+msgid "Eng koʻp kun"
 msgstr ""
 
 #, fuzzy, python-format

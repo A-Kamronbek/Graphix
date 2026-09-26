@@ -79,7 +79,8 @@
                    {% if form_data.delivery_option == opt.code %}checked{% endif %}>
             <span>
               <strong>{{ opt|t:"name" }} — <span class="num">{{ opt.price|price }} {% trans "soʻm" %}</span></strong>
-              <span class="field__hint">{{ opt|t:"note" }}</span>
+              {# The time first, from the row like the price (§17 #301). #}
+              <span class="field__hint">{% if opt.days_label %}{{ opt.days_label }}{% if opt|t:"note" %} · {% endif %}{% endif %}{{ opt|t:"note" }}</span>
             </span>
           </label>
         {% endfor %}
@@ -231,17 +232,6 @@
           <textarea class="textarea" name="notes" id="id_notes"
                     placeholder="{% trans 'Majburiy emas' %}">{{ form_data.notes|default:'' }}</textarea>
         </div>
-
-        {# Timeframes quoted from uz.post, not guessed (§19 Q10), and read from #}
-        {# core/legal.py like the delivery page and the terms (§17 #183). #}
-        {% get_legal as legal %}
-        <p class="small muted">
-          {% blocktrans trimmed count days=legal.transit_max with span=legal.transit_min|legal_range:legal.transit_max %}
-            Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab {{ span }} kun ichida yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin.
-          {% plural %}
-            Oʻzbekiston pochtasi joʻnatmalarni mamlakat boʻylab {{ span }} kun ichida yetkazadi. Eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin.
-          {% endblocktrans %}
-        </p>
       </section>
 
       <section class="panel stack">
