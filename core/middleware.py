@@ -37,7 +37,12 @@ BASE_POLICY = {
     # See the module docstring. 'unsafe-inline' here does not let an attacker
     # run code; it lets them restyle the page, which is a much smaller thing.
     'style-src': ["'self'", "'unsafe-inline'"],
-    'img-src': ["'self'", 'data:'],
+    # blob: because the panel checks a photograph before uploading it: it
+    # opens the picked file through URL.createObjectURL to read its size.
+    # Without blob: the browser refuses that address, and every photograph
+    # failed the check as "not an image" (§17 #296). A blob: address is made by
+    # the page itself from a file the person chose, so it lets nothing in.
+    'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'"],
     'connect-src': ["'self'"],
     # Nothing on this site is a plugin, an applet or an embedded object.
@@ -61,7 +66,9 @@ MAPS_POLICY = {
                    'https://maps.gstatic.com', 'https://*.googleapis.com',
                    'https://*.gstatic.com'],
     'style-src': ['https://fonts.googleapis.com'],
-    'img-src': ['blob:', 'https://*.googleapis.com', 'https://*.gstatic.com',
+    # No blob: here: the base policy has it, and a source listed in both
+    # would be sent twice.
+    'img-src': ['https://*.googleapis.com', 'https://*.gstatic.com',
                 'https://*.google.com', 'https://*.googleusercontent.com',
                 'https://*.ggpht.com'],
     'connect-src': ['blob:', 'data:', 'https://*.googleapis.com',
