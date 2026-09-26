@@ -396,8 +396,10 @@ html.js .slides__controls {
 
 @media (min-width: 860px) {
   .slides { padding-block: var(--s-6) 0; }
-  /* Long on a laptop, the owner's word for it: the same card, letterboxed. */
-  .slides__item { aspect-ratio: 1120 / 300; }
+  /* Long on a laptop, the owner's word for it: the same card, letterboxed.
+     A token, like the phone's ratio above; it used to be written here as
+     1120 / 300 (§17 #299). */
+  .slides__item { aspect-ratio: var(--ar-slide-wide); }
   .slides__arrow { display: flex; }
 }
 
