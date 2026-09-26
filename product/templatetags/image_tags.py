@@ -30,8 +30,12 @@ SIZES = {
     # most, and the page's own width below that.
     'pdp': '(min-width: 660px) 608px, 92vw',
     # A home-page card fills the container: the page's width below the cap,
-    # and 1216 px (1280 less two 32 px gutters) above it.
-    'slide': '(min-width: 1280px) 1216px, 92vw',
+    # and 1216 px (1280 less two 32 px gutters) above it. Below 860 px the
+    # 16:5 picture is drawn at the 16:9 card's full height with its sides
+    # cut, so it is (16/5) / (16/9) = 1.8 times the card's width: 92vw x 1.8
+    # (§17 #300). Stated as 92vw there, a phone fetched a file about half as
+    # wide as the one it draws.
+    'slide': '(min-width: 1280px) 1216px, (min-width: 860px) 92vw, 166vw',
     'rail': '64px',
     'thumb': '84px',
     'review': '72px',

@@ -329,7 +329,13 @@
   background: var(--c-surface);
 }
 .slides__link { display: block; width: 100%; height: 100%; }
-.slides__item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Centred, and said rather than left to the default: below 860 px the
+   16:5 picture is wider than its 16:9 card, and the middle is the part
+   that is kept (§17 #300). */
+.slides__item img {
+  width: 100%; height: 100%; display: block;
+  object-fit: cover; object-position: center;
+}
 
 /* Over the picture on a laptop, where there is room beside the card and a
    pointer to reach them with. Below 860 px they are hidden: a thumb swipes,
@@ -396,9 +402,9 @@ html.js .slides__controls {
 
 @media (min-width: 860px) {
   .slides { padding-block: var(--s-6) 0; }
-  /* Long on a laptop, the owner's word for it: the same card, letterboxed.
-     A token, like the phone's ratio above; it used to be written here as
-     1120 / 300 (§17 #299). */
+  /* Long on a laptop: the whole 16:5 picture, where the 16:9 card below
+     shows its middle at full height (§17 #300). A token, like the phone's
+     ratio above; it used to be written here as 1120 / 300 (§17 #299). */
   .slides__item { aspect-ratio: var(--ar-slide-wide); }
   .slides__arrow { display: flex; }
 }
