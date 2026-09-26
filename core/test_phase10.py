@@ -20,6 +20,7 @@ from django.test import TestCase
 from django.utils import translation
 from django.urls import reverse
 
+from core.middleware import PAY_PAGES
 from product.templatetags import image_tags
 
 ROOT = Path(settings.BASE_DIR)
@@ -227,11 +228,15 @@ class PolicyTests(TestCase):
         self.assertEqual(policy['object-src'], ["'none'"])
         self.assertEqual(policy['frame-ancestors'], ["'none'"])
 
-    def test_form_action_is_self_only(self):
-        """Checked against the templates: every form posts to this origin, and
-        the gateways are reached by a redirect rather than a cross-origin POST.
+    def test_form_action_is_self_and_the_pay_pages(self):
+        """Every form posts to this origin, and the gateways' pay pages are
+        listed too: the pay button's POST is answered with a 302 to the
+        gateway, and browsers hold that redirect to form-action as well.
+        This test once asserted 'self' alone, on the belief that a redirect
+        is not checked, and the pay button did nothing (§17 #298). Pinned
+        exactly, so that widening it is a decision rather than an accident.
         """
-        self.assertEqual(self.policy()['form-action'], ["'self'"])
+        self.assertEqual(self.policy()['form-action'], ["'self'", *PAY_PAGES])
 
     def test_style_src_keeps_unsafe_inline_and_says_why(self):
         """Not an oversight - the rating bar binds its width as a custom
