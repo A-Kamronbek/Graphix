@@ -18,8 +18,7 @@ from core import seo
 from core.i18n import tfield
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
 from . import images, services
-from .models import (Category, Colour, Product, ProductLike, Review, Size, Tag,
-                     TagKind, Variant)
+from .models import Colour, Product, ProductLike, Review, Size, Tag, Variant
 
 
 def annotate_cards(qs, user=None):
@@ -73,6 +72,11 @@ def _listing(request, search_page=False):
     browsable and keeps its page, and the cart is where stock is enforced
     (§17 #56). What does hide a product is ``is_active=False`` — the owner's
     explicit switch.
+
+    The page offers one filter, size (§17 #303). ``category`` and ``tag`` are
+    still read, so a category link from the home page or the footer, or an old
+    tag link, still narrows the list, and "Filtrlarni tozalash" still clears it.
+    Tags are the owner's and the search's, not the shopper's (§17 #304).
     """
     q = request.GET.get('q', '').strip()
     category = request.GET.get('category')
@@ -135,17 +139,9 @@ def _listing(request, search_page=False):
         'paginator': paginator,
         'base_query': base_query,
         'total_count': paginator.count,
-        'categories': Category.objects.all(),
+        # Size is the one filter the page offers (§17 #303): the tag axes and
+        # the category chips were taken off, and so were the queries for them.
         'sizes': Size.objects.all(),
-        # Built from the rows rather than from a fixed list of choices, so an
-        # axis the owner adds appears here on its own (§17, Phase 7 recheck).
-        # An axis with no tags on it yet is left out: an empty filter group is
-        # a heading with nothing under it.
-        'tag_groups': [
-            (kind, list(kind.tags.all()))
-            for kind in TagKind.objects.prefetch_related('tags')
-            if kind.tags.exists()
-        ],
         'selected_category': category,
         'selected_size': size,
         'selected_tags': tags,
@@ -238,7 +234,7 @@ def item(request, slug):
     """Product detail: gallery, variants, a price map for JS, and related items."""
     product = get_object_or_404(
         Product.objects.prefetch_related(
-            'images', 'tags', 'variants__size', 'variants__colour',
+            'images', 'variants__size', 'variants__colour',
             # The chart's rows render in the hidden block the viewer clones, so
             # they are fetched with the product rather than one query per row.
             'size_chart__rows__size', 'category__size_chart__rows__size',

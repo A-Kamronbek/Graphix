@@ -2390,10 +2390,6 @@ msgstr ""
 msgid "Filtrlar"
 msgstr ""
 
-#: .\templates\product\shop.html:68
-msgid "Kategoriya"
-msgstr ""
-
 #: .\templates\product\shop.html:92
 msgid "Filtrlarni tozalash"
 msgstr ""

@@ -313,7 +313,12 @@ class ModerationButtonTests(TestCase):
 
 
 class TagGroupingTests(TestCase):
-    """The product form groups its chips, and the shop reads the same rows."""
+    """The product form groups its chips under their kind.
+
+    The shop used to build its filter groups from the same rows; it offers
+    size alone now and shows no tags (§17 #303, #304), which
+    `core/test_fix_shop_filters_tags.py` holds.
+    """
 
     def setUp(self):
         self.client.force_login(make_staff('chips', '+998901260050'))
@@ -331,13 +336,6 @@ class TagGroupingTests(TestCase):
         loose = [tags for kind, tags in response.context['tag_groups'] if kind is None]
         self.assertEqual(len(loose), 1)
         self.assertEqual(loose[0][0].slug, 'yolgiz')
-
-    def test_the_shop_builds_its_filter_groups_from_the_rows(self):
-        make_product('Filtrlanadi', stock=2)
-        response = self.client.get(reverse('shop'))
-        for kind, tags in response.context['tag_groups']:
-            self.assertTrue(tags, 'an empty group is a heading over nothing')
-            self.assertIsInstance(kind, TagKind)
 
 
 class LanguagePickerTests(TestCase):

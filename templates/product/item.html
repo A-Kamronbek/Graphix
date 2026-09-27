@@ -244,13 +244,9 @@
         </div>
       {% endif %}
 
-      {% if product.tags.exists %}
-        <div class="chips">
-          {% for tag in product.tags.all %}
-            <a href="{% url 'shop' %}?tag={{ tag.slug }}" class="badge">{{ tag|t:"name" }}</a>
-          {% endfor %}
-        </div>
-      {% endif %}
+      {# No tag chips. Tags are the owner's way of sorting the catalogue and #}
+      {# what search and the Phase 13 recommender read; they are not shown to #}
+      {# shoppers (§17 #304). #}
     </div>
   </div>
 

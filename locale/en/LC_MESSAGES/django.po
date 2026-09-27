@@ -2415,10 +2415,6 @@ msgstr "Results for “%(q)s”"
 msgid "Filtrlar"
 msgstr "Filters"
 
-#: .\templates\product\shop.html:68
-msgid "Kategoriya"
-msgstr "Category"
-
 #: .\templates\product\shop.html:92
 msgid "Filtrlarni tozalash"
 msgstr "Clear filters"
