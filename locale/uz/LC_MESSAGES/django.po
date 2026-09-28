@@ -1848,7 +1848,7 @@ msgstr ""
 msgid "Saqlanganlar"
 msgstr ""
 
-#: .\templates\partials\_account_nav.html:13
+#: .\templates\partials\_logout.html:15
 msgid "Chiqish"
 msgstr ""
 

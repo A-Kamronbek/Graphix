@@ -24,6 +24,9 @@
         </div>
       {% endif %}
     </div>
+
+    {# A phone's way out; the laptop's is in the sidebar (§17 #305). #}
+    {% include "partials/_logout.html" with form_class="account__logout account__logout--foot" button_class="btn btn--secondary btn--block" %}
   </div>
 </div>
 {% endblock %}

@@ -6,10 +6,9 @@
   <a href="{% url 'liked' %}" {% if active == 'liked' %}class="is-active" aria-current="page"{% endif %}>{% trans "Saqlanganlar" %}</a>
   <a href="{% url 'account_settings' %}" {% if active == 'settings' %}class="is-active" aria-current="page"{% endif %}>{% trans "Sozlamalar" %}</a>
 
-  <form method="post" action="{% url 'logout' %}" class="account__logout">
-    {% csrf_token %}
-    {# Bordered, not ghost: as a borderless button under a column of plain #}
-    {# links it read as one more link rather than an action. #}
-    <button class="btn btn--secondary btn--block btn--sm" type="submit">{% trans "Chiqish" %}</button>
-  </form>
+  {# Bordered, not ghost: as a borderless button under a column of plain #}
+  {# links it read as one more link rather than an action. The sidebar's #}
+  {# copy is the laptop's; a phone has it at the foot of the page instead, #}
+  {# where the row of tabs has no room for it (§17 #305). #}
+  {% include "partials/_logout.html" with form_class="account__logout" button_class="btn btn--secondary btn--block btn--sm" %}
 </nav>
