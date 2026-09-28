@@ -261,6 +261,7 @@
 .drawer__hd { margin-bottom: var(--s-5); }
 .drawer__lang { margin-top: var(--s-5); }
 .drawer__lang .label { display: block; margin-bottom: var(--s-2); }
+.drawer__logout { margin-top: var(--s-6); }
 
 .foot__link { display: inline-flex; align-items: center; gap: var(--s-2); }
 
@@ -476,7 +477,7 @@ html.js .slides__controls {
 /* Two copies of the sign-out, one per screen (§17 #305). The sidebar's is the
    laptop's. A phone's row of tabs has no room for a button, and hiding it there
    left a phone with no way to sign out at all, so a phone has it at the foot
-   of the page, under what the page is for. */
+   of Kabinet, under what the page is for, and in its menu (§17 #306). */
 .account__logout { display: none; }
 .account__logout--foot { display: block; }
 /* Three links wrap rather than scroll. The strip was scrollable, but with no
