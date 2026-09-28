@@ -619,8 +619,16 @@ class Slide(Photograph):
     all — axe-core calls it `link-name`, and Phase 9 shipped with zero
     violations over ten pages. Russian and English may be blank and fall back
     to the Uzbek, the same as every other translated row.
+
+    **Two pictures** (§17 #302): ``picture`` is the laptop's, 16:5, shown from
+    860 px, and :class:`SlidePhone` holds the phone's, 16:9, shown below it.
+    Either may be missing, not both: whichever the slide has is shown on both
+    screens, and ``object-fit: cover`` cuts it to the card, so a slide with
+    one picture looks exactly as every slide did before there were two.
     """
-    picture = models.ImageField(upload_to='slides/')
+    #: The laptop picture. Optional since the phone picture arrived; the panel
+    #: and the home page both insist on one of the two (§17 #302).
+    picture = models.ImageField(upload_to='slides/', blank=True)
     #: Where tapping the card goes. See :func:`slide_link`.
     link = models.CharField(max_length=200, blank=True, default='',
                             validators=[slide_link])
@@ -634,8 +642,38 @@ class Slide(Photograph):
         state = 'yoqilgan' if self.is_active else 'oʻchirilgan'
         return self.alt + ' (' + state + ')'
 
+    @property
+    def wide_photo(self):
+        """The laptop picture as a photograph row, or None when there is none."""
+        return self if self.has_photo else None
+
+    @property
+    def phone_photo(self):
+        """The phone picture as a photograph row, or None when there is none."""
+        try:
+            phone = self.phone
+        except SlidePhone.DoesNotExist:
+            return None
+        return phone if phone.has_photo else None
+
     class Meta:
         ordering = ['sort_order', 'id']
+
+
+class SlidePhone(Photograph):
+    """A slide's phone picture: 16:9, shown below 860 px (§17 #302).
+
+    A row of its own rather than a second column on :class:`Slide`, because a
+    :class:`Photograph` is one file with one pixel size and one set of
+    renditions, and everything that builds, measures, serves and deletes a
+    photograph is written for exactly that. A second row reuses all of it; a
+    second column would have meant a second copy of each.
+    """
+    slide = models.OneToOneField(Slide, on_delete=models.CASCADE, related_name='phone')
+    picture = models.ImageField(upload_to='slides/phone/')
+
+    def __str__(self):
+        return f"{self.slide_id} · {self.picture.name.split('/')[-1]}"
 
 
 class ReviewImage(Photograph):

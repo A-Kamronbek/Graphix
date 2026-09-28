@@ -139,6 +139,8 @@ PANEL = (
     Page('panel_chart_new', {}, LOGIN, 403, 405),
     Page('panel_size_new', {}, LOGIN, 403, 405),
     Page('panel_slide_new', {}, LOGIN, 403, 405),
+    Page('panel_slide_picture', {'pk': 'slide_pk', 'which': 'which'},
+         LOGIN, 403, 405),
     Page('panel_tag_new', {}, LOGIN, 403, 405),
     Page('panel_reference_inline', {'kind': 'kind', 'pk': 'tag_pk'},
          LOGIN, 403, 405),
@@ -206,6 +208,9 @@ class SmokeMatrix(TestCase):
             'msg_pk': msg.pk,
             'tag_pk': Tag.objects.first().pk if Tag.objects.exists() else 1,
             'kind': 'tag',
+            # A slide need not exist: every answer in the matrix comes before
+            # the view looks one up (§17 #302).
+            'slide_pk': 1, 'which': 'phone',
         }
 
     def url_for(self, page, tokens):

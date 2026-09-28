@@ -1,0 +1,23 @@
+{% load i18n_fields image_tags %}
+{% comment %}
+  One slide's picture (§17 #302). A slide has a laptop picture (16:5, from
+  860 px) and a phone picture (16:9, below it); either may be missing, and the
+  one it has is then shown on both screens, cut to the card by cover.
+
+  Both: a <picture> whose <source> serves the laptop file from 860 px, so a
+  browser downloads the one picture for its own screen and never the other.
+  One: a plain picture of it, with the sizes it is actually drawn at.
+
+  The first slide is the page's largest paint, so it is eager and high
+  priority; the rest are lazy. `photo_attrs` carries the stored width and
+  height, which is what keeps CLS at zero while the file is still arriving.
+
+  Takes `slide` and `first`.
+{% endcomment %}
+{% with wide=slide.wide_photo phone=slide.phone_photo %}
+<picture>
+  {% if wide and phone %}<source media="(min-width: 860px)" {% photo_source wide 'slide-card' %}>{% endif %}
+  <img {% if phone %}{% photo_attrs phone 'slide-card' %}{% else %}{% photo_attrs wide 'slide' %}{% endif %} alt="{{ slide|t:'alt' }}"
+       {% if first %}fetchpriority="high" decoding="async"{% else %}loading="lazy" decoding="async"{% endif %}>
+</picture>
+{% endwith %}

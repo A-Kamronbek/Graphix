@@ -12,7 +12,7 @@ counted and skipped, never cleared.
 """
 from django.core.management.base import BaseCommand
 
-from product.models import ImageP, ReviewImage, SizeChart, Slide
+from product.models import ImageP, ReviewImage, SizeChart, Slide, SlidePhone
 from product.signals import build_renditions, measure_image
 
 
@@ -53,7 +53,7 @@ class Command(BaseCommand):
         until the widths move.
         """
         force = options['force']
-        for model in (ImageP, ReviewImage, Slide):
+        for model in (ImageP, ReviewImage, Slide, SlidePhone):
             done = skipped = failed = 0
             for row in model.objects.all().iterator():
                 if not row.has_photo:

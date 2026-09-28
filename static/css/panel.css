@@ -443,6 +443,13 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 .chart__shot--empty { display: grid; place-items: center; gap: var(--s-2);
   min-height: 120px; color: var(--c-fg-subtle); }
 .chart__shot--empty .small { color: var(--c-fg-muted); }
+/* A slide has two pictures (§17 #302), stacked in the column one chart
+   picture takes, each with its caption and its own upload under it. */
+.chart__shots { display: grid; gap: var(--s-4); }
+.chart__pic { display: grid; gap: var(--s-2); margin: 0; }
+/* Label over button: side by side, the 200 px column broke one of them
+   over lines, and in Russian both. */
+.chart__cap { display: grid; justify-items: start; gap: var(--s-1); }
 @media (min-width: 640px) {
   .chart { grid-template-columns: 200px minmax(0, 1fr) auto; }
   .chart__shot img { max-height: 180px; }

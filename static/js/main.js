@@ -402,6 +402,11 @@
     if (!fallback || img.getAttribute('data-fallback-used')) { return; }
     img.setAttribute('data-fallback-used', '1');
     img.removeAttribute('srcset');
+    // A slide's <picture> offers the laptop file in a <source>, which wins
+    // over the <img> itself, so the sources go too or the broken one stays.
+    if (img.parentNode && img.parentNode.tagName === 'PICTURE') {
+      $$('source', img.parentNode).forEach(function (s) { s.remove(); });
+    }
     img.src = fallback;
   }
 

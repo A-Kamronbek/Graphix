@@ -38,17 +38,13 @@
   {% for slide in slides %}
     <div class="panel-card chart" data-ref="slide" data-id="{{ slide.pk }}"
          data-ref-url="{% url 'panel_reference_inline' kind='slide' pk=slide.pk %}">
-      {% if slide.picture %}
-        <a class="chart__shot" href="{{ slide.picture.url }}" target="_blank" rel="noopener">
-          <img {% photo_attrs slide 'panel' %} alt="{{ slide.alt }}"
-               loading="lazy" decoding="async">
-        </a>
-      {% else %}
-        <span class="chart__shot chart__shot--empty">
-          <svg class="i" aria-hidden="true"><use href="#i-image"></use></svg>
-          <span class="small">{% trans "Rasm yoʻq" %}</span>
-        </span>
-      {% endif %}
+      {# Both pictures, each with its own upload (§17 #302). #}
+      <div class="chart__shots">
+        {% trans "Noutbuk uchun rasm" as wide_label %}
+        {% trans "Telefon uchun rasm" as phone_label %}
+        {% include "boshqaruv/_slide_pic.html" with photo=slide.wide_photo which="wide" label=wide_label %}
+        {% include "boshqaruv/_slide_pic.html" with photo=slide.phone_photo which="phone" label=phone_label %}
+      </div>
 
       <div class="chart__body stack stack--sm">
         <div class="row row--between">
@@ -103,22 +99,33 @@
 
 <section class="pnl__section">
   <h2>{% trans "Yangi slayd" %}</h2>
-  {# Said here rather than discovered later: a laptop shows the whole 16:5 #}
-  {# picture, and a phone keeps its full height and shows the middle 16:9, #}
-  {# so anything near the sides is cut there (§17 #300). #}
+  {# Said here rather than discovered later: two shapes, one picture for #}
+  {# each, and what happens when only one is given - it is shown on both #}
+  {# screens and cut to each (§17 #302). #}
   <p class="field__hint">
-    {% trans "Rasmni 16:5 nisbatda tayyorlang (masalan, 2000×625 piksel). Noutbukda u toʻliq koʻrinadi, telefonda esa faqat oʻrtadagi 16:9 qismi — chetlari kesiladi. Matn va mahsulotni oʻrtaga joylashtiring." %}
+    {% trans "Noutbuk uchun rasm — 16:5 (masalan, 2000×625), telefon uchun — 16:9 (masalan, 1600×900). Faqat bittasini yuklasangiz, u ikkala ekranda koʻrinadi va chetlari kesiladi, shuning uchun muhim narsani oʻrtaga joylashtiring." %}
   </p>
 
   <form class="panel-card stack stack--sm" method="post"
         action="{% url 'panel_slide_new' %}" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="row--fields">
+      {# Neither is required on its own; the server refuses a slide with #}
+      {# neither, in the same sentence as a missing description (§17 #302). #}
       <div class="field field--wide">
-        <span class="label">{% trans "Rasm" %} <span class="req" aria-hidden="true">*</span></span>
+        <span class="label">{% trans "Noutbuk uchun rasm" %} · 16:5</span>
         <span class="field__file">
           <label class="btn btn--secondary" for="slide-picture">{% trans "Rasm tanlash" %}</label>
-          <input class="sr-only" type="file" id="slide-picture" name="picture" required
+          <input class="sr-only" type="file" id="slide-picture" name="picture"
+                 accept="image/jpeg,image/png,image/webp,image/avif" data-file-name>
+          <span class="small muted" data-file-label>{% trans "Tanlanmagan" %}</span>
+        </span>
+      </div>
+      <div class="field field--wide">
+        <span class="label">{% trans "Telefon uchun rasm" %} · 16:9</span>
+        <span class="field__file">
+          <label class="btn btn--secondary" for="slide-phone">{% trans "Rasm tanlash" %}</label>
+          <input class="sr-only" type="file" id="slide-phone" name="phone"
                  accept="image/jpeg,image/png,image/webp,image/avif" data-file-name>
           <span class="small muted" data-file-label>{% trans "Tanlanmagan" %}</span>
         </span>

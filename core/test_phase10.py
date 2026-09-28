@@ -355,7 +355,8 @@ class AnonymousWriteTests(TestCase):
         return {'slug': self.product.slug, 'product_pk': self.product.pk,
                 'item_pk': 1, 'order_pk': self.order.pk,
                 'paying_pk': self.order.pk, 'order_no': self.order.order_no,
-                'review_pk': 1, 'msg_pk': 1, 'tag_pk': 1, 'kind': 'tag'}
+                'review_pk': 1, 'msg_pk': 1, 'tag_pk': 1, 'kind': 'tag',
+                'slide_pk': 1, 'which': 'phone'}
 
     def urls(self, pages):
         toks = self.tokens()
@@ -405,7 +406,8 @@ class NonStaffWriteTests(TestCase):
 
     def test_every_panel_write_answers_403(self):
         toks = {'slug': self.product.slug, 'order_no': self.order.order_no,
-                'review_pk': 1, 'msg_pk': 1, 'tag_pk': 1, 'kind': 'tag'}
+                'review_pk': 1, 'msg_pk': 1, 'tag_pk': 1, 'kind': 'tag',
+                'slide_pk': 1, 'which': 'phone'}
         for page in PANEL:
             kwargs = {k: toks[v] for k, v in page.kwargs.items()}
             with self.subTest(name=page.name):

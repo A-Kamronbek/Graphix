@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from panel.auth import staff_only
 from django.http import Http404, HttpResponse
+from django.db.models import Q
 from django.template.loader import select_template
 from django.utils import translation
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -150,7 +151,12 @@ def home(request):
         # Evaluated here rather than left as a queryset: the template counts
         # them to decide whether the carousel's controls are worth rendering,
         # and a queryset counted and then iterated is two queries.
-        'slides': list(Slide.objects.filter(is_active=True)),
+        # The phone picture comes in the same query, and a slide with neither
+        # picture - which the panel refuses, but the admin could leave - is not
+        # a card at all (§17 #302).
+        'slides': list(Slide.objects.filter(is_active=True)
+                       .select_related('phone')
+                       .exclude(Q(picture='') & Q(phone__isnull=True))),
         'newest': latest,
         # "Siz uchun" is most-liked until Phase 13 replaces it with the real
         # recommender — the plan's own stand-in, not a placeholder.

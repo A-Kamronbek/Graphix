@@ -1445,7 +1445,6 @@ msgid "Yangi jadval"
 msgstr "New chart"
 
 #: .\templates\boshqaruv\settings.html:265
-#: .\templates\boshqaruv\slides.html:118
 msgid "Rasm"
 msgstr "Image"
 
@@ -1503,16 +1502,6 @@ msgstr "Description"
 #: .\templates\boshqaruv\slides.html:105
 msgid "Yangi slayd"
 msgstr "New slide"
-
-#: .\templates\boshqaruv\slides.html:110
-msgid ""
-"Rasmni 16:5 nisbatda tayyorlang (masalan, 2000×625 piksel). Noutbukda u "
-"toʻliq koʻrinadi, telefonda esa faqat oʻrtadagi 16:9 qismi — chetlari "
-"kesiladi. Matn va mahsulotni oʻrtaga joylashtiring."
-msgstr ""
-"Make the picture 16:5 (for example, 2000×625 pixels). A laptop shows all of "
-"it; a phone shows only the middle 16:9 and cuts off the sides. Keep the "
-"words and the product in the centre."
 
 #: .\templates\boshqaruv\slides.html:151
 msgid "Tavsif ekran oʻquvchilari uchun — rasmda nima yozilganini qisqa yozing."
@@ -2767,6 +2756,32 @@ msgstr "Fewest days"
 #: .\templates\boshqaruv\settings.html:73
 msgid "Eng koʻp kun"
 msgstr "Most days"
+
+#: .\templates\boshqaruv\slides.html:106
+msgid ""
+"Noutbuk uchun rasm — 16:5 (masalan, 2000×625), telefon uchun — 16:9 "
+"(masalan, 1600×900). Faqat bittasini yuklasangiz, u ikkala ekranda koʻrinadi "
+"va chetlari kesiladi, shuning uchun muhim narsani oʻrtaga joylashtiring."
+msgstr ""
+"The laptop picture is 16:5 (for example, 2000×625), the phone picture 16:9 "
+"(for example, 1600×900). If you upload only one, it is shown on both screens "
+"with its edges cut off, so keep what matters in the centre."
+
+#: .\templates\boshqaruv\slides.html:43 .\templates\boshqaruv\slides.html:116
+msgid "Noutbuk uchun rasm"
+msgstr "Laptop picture"
+
+#: .\templates\boshqaruv\slides.html:44 .\templates\boshqaruv\slides.html:125
+msgid "Telefon uchun rasm"
+msgstr "Phone picture"
+
+#: .\panel\views.py:991
+msgid "Rasm tanlanmadi."
+msgstr "No picture was chosen."
+
+#: .\panel\views.py:1006
+msgid "Rasm saqlandi."
+msgstr "Picture saved."
 
 #, fuzzy, python-format
 #~| msgid "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."
