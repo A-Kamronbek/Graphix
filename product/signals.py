@@ -41,7 +41,7 @@ from django.dispatch import receiver
 
 from core import telegram
 from . import images
-from .models import ImageP, Review, ReviewImage, SizeChart, Slide
+from .models import ImageP, Review, ReviewImage, SizeChart, Slide, SlidePhone
 from .services import recompute_rating
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 #: stops one row's delete taking a file another row is serving, so an absent
 #: table makes that check answer "nobody is using it" for every file it holds.
 FILE_COLUMNS = ((ImageP, 'picture'), (ReviewImage, 'picture'),
-                (SizeChart, 'image'), (Slide, 'picture'))
+                (SizeChart, 'image'), (Slide, 'picture'), (SlidePhone, 'picture'))
 
 
 @receiver(post_save, sender=Review, dispatch_uid='notify_pending_review')
@@ -172,6 +172,7 @@ def measure_image(model, pk, using=None):
 @receiver(post_save, sender=ImageP, dispatch_uid='product_photo_renditions')
 @receiver(post_save, sender=ReviewImage, dispatch_uid='review_photo_renditions')
 @receiver(post_save, sender=Slide, dispatch_uid='slide_renditions')
+@receiver(post_save, sender=SlidePhone, dispatch_uid='slide_phone_renditions')
 def photo_renditions(sender, instance, using=None, raw=False, **kwargs):
     """Build a photograph's renditions once its row has committed (§9 Phase 9).
 
@@ -205,6 +206,7 @@ def chart_measured(sender, instance, using=None, raw=False, **kwargs):
 @receiver(post_delete, sender=ImageP, dispatch_uid='product_photo_file')
 @receiver(post_delete, sender=ReviewImage, dispatch_uid='review_photo_file')
 @receiver(post_delete, sender=Slide, dispatch_uid='slide_file')
+@receiver(post_delete, sender=SlidePhone, dispatch_uid='slide_phone_file')
 def photo_file_goes_with_its_row(sender, instance, using=None, **kwargs):
     """A deleted photograph takes its file and its renditions with it (§18 #28)."""
     forget_file(instance.picture, using,
@@ -220,6 +222,7 @@ def chart_file_goes_with_its_row(sender, instance, using=None, **kwargs):
 @receiver(pre_save, sender=ImageP, dispatch_uid='product_photo_replaced')
 @receiver(pre_save, sender=ReviewImage, dispatch_uid='review_photo_replaced')
 @receiver(pre_save, sender=Slide, dispatch_uid='slide_replaced')
+@receiver(pre_save, sender=SlidePhone, dispatch_uid='slide_phone_replaced')
 @receiver(pre_save, sender=SizeChart, dispatch_uid='size_chart_replaced')
 def replaced_file_goes_too(sender, instance, using=None, raw=False, **kwargs):
     """Replacing a picture on a row that stays deletes the file it replaced.

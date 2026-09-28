@@ -36,6 +36,11 @@ SIZES = {
     # (§17 #300). Stated as 92vw there, a phone fetched a file about half as
     # wide as the one it draws.
     'slide': '(min-width: 1280px) 1216px, (min-width: 860px) 92vw, 166vw',
+    # A slide picture drawn at the card's own width: the laptop picture in its
+    # <source>, and a phone picture everywhere it is shown - below 860 px it
+    # fills the 16:9 card exactly, and on a laptop with no picture of its own
+    # it is cut top and bottom, never at the sides (§17 #302).
+    'slide-card': '(min-width: 1280px) 1216px, 92vw',
     'rail': '64px',
     'thumb': '84px',
     'review': '72px',
@@ -94,6 +99,28 @@ def photo_attrs(photo, where='card'):
     # `main.js` listens for the error instead; the attribute now only carries
     # the address, which is data rather than code.
     parts.append(_attr('data-fallback', placeholder))
+    return mark_safe(' '.join(parts))
+
+
+@register.simple_tag
+def photo_source(photo, where='card'):
+    """``srcset``, ``sizes``, ``width`` and ``height`` for a ``<source>``.
+
+    For a ``<picture>`` that serves a different photograph above a
+    breakpoint - the home page's slides, whose laptop picture is not their
+    phone picture (§17 #302). A ``<source>`` has no ``src``, so a photograph
+    whose renditions are not built yet is offered as its one stored file
+    rather than as an empty ``srcset``, which the browser would skip.
+    """
+    if photo is None or not getattr(photo, 'has_photo', False):
+        return ''
+    srcset = photo.srcset()
+    parts = [_attr('srcset', srcset or photo.display_url())]
+    if srcset:
+        parts.append(_attr('sizes', SIZES.get(where, where)))
+    if photo.width and photo.height:
+        parts.append(_attr('width', photo.width))
+        parts.append(_attr('height', photo.height))
     return mark_safe(' '.join(parts))
 
 

@@ -18,7 +18,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Count, F, IntegerField, Q, Sum, Value
 from django.db.models.functions import Replace
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -36,7 +36,7 @@ from product import images as image_pipeline
 from payment import services as payment_services
 from product import services as product_services
 from product.models import (Category, PrintMethod, Product, Review, Size,
-                            SizeChart, Slide, Tag, TagKind, Variant,
+                            SizeChart, Slide, SlidePhone, Tag, TagKind, Variant,
                             slide_link)
 
 from . import catalogue, reference
@@ -897,7 +897,7 @@ def slides_screen(request):
     """
     return render(request, 'boshqaruv/slides.html', {
         'screen': 'slides',
-        'slides': Slide.objects.all(),
+        'slides': Slide.objects.select_related('phone'),
         'live': Slide.objects.filter(is_active=True).count(),
     })
 
@@ -905,11 +905,13 @@ def slides_screen(request):
 @staff_only
 @require_POST
 def slide_new(request):
-    """Upload a slide: a picture, an optional link, and a description.
+    """Upload a slide: its pictures, an optional link, and a description.
 
-    The picture goes through the same pipeline as a product photograph and a
-    customer's review photo — re-encoded, stripped of EXIF, and capped — so
-    an upload here cannot be a decompression bomb or a file with a camera's
+    Two pictures, the laptop's (16:5) and the phone's (16:9), and either may
+    be left out but not both: the one given is shown on both screens
+    (§17 #302). Each goes through the same pipeline as a product photograph
+    and a customer's review photo — re-encoded, stripped of EXIF, and capped —
+    so an upload here cannot be a decompression bomb or a file with a camera's
     GPS coordinates in it. The renditions are built by the signal after the
     row commits, the same as every other photograph.
 
@@ -918,8 +920,9 @@ def slide_new(request):
     link, and without it the card has no accessible name at all.
     """
     alt = (request.POST.get('alt') or '').strip()
-    upload = request.FILES.get('picture')
-    if not alt or not upload:
+    wide = request.FILES.get('picture')
+    phone = request.FILES.get('phone')
+    if not alt or not (wide or phone):
         messages.error(request, _('Rasm va tavsif kerak.'))
         return redirect('panel_slides')
 
@@ -930,9 +933,11 @@ def slide_new(request):
         messages.error(request, exc.messages[0])
         return redirect('panel_slides')
 
+    # Both files are cleaned before anything is written, so a refused phone
+    # picture cannot leave behind a slide that has only the laptop's.
     try:
-        clean = image_pipeline.sanitise(upload, name_hint='slide',
-                                        max_edge=image_pipeline.PRODUCT_MAX_EDGE)
+        clean_wide = _slide_file(wide, 'slide') if wide else ''
+        clean_phone = _slide_file(phone, 'slide-telefon') if phone else None
     except ValidationError as exc:
         messages.error(request, exc.messages[0])
         return redirect('panel_slides')
@@ -941,13 +946,64 @@ def slide_new(request):
     # Last in the running order, not first: a new slide should not silently
     # take over the top of the home page before anybody has looked at it.
     last = Slide.objects.aggregate(top=Max('sort_order'))['top']
-    Slide.objects.create(
-        picture=clean, alt=alt[:limit], link=link,
-        alt_ru=(request.POST.get('alt_ru') or '').strip()[:limit],
-        alt_en=(request.POST.get('alt_en') or '').strip()[:limit],
-        sort_order=(last or 0) + 1,
-    )
+    with transaction.atomic():
+        slide = Slide.objects.create(
+            picture=clean_wide, alt=alt[:limit], link=link,
+            alt_ru=(request.POST.get('alt_ru') or '').strip()[:limit],
+            alt_en=(request.POST.get('alt_en') or '').strip()[:limit],
+            sort_order=(last or 0) + 1,
+        )
+        if clean_phone is not None:
+            SlidePhone.objects.create(slide=slide, picture=clean_phone)
     messages.success(request, _('Slayd qoʻshildi.'))
+    return redirect('panel_slides')
+
+
+def _slide_file(upload, name_hint):
+    """An uploaded slide picture, re-encoded like a product photograph.
+
+    Raises ``ValidationError`` in the storefront's own words for anything
+    that is not an image or is too large.
+    """
+    return image_pipeline.sanitise(upload, name_hint=name_hint,
+                                   max_edge=image_pipeline.PRODUCT_MAX_EDGE)
+
+
+#: The two pictures a slide has, by the word in the address (§17 #302).
+SLIDE_PICTURES = ('wide', 'phone')
+
+
+@staff_only
+@require_POST
+def slide_picture(request, pk, which):
+    """Add or replace one of a slide's two pictures.
+
+    So a slide made with one picture can be given the other later without
+    typing its description again in three languages. Replacing goes through
+    the model's save, so the signals remove the old file and its renditions
+    and build the new ones, exactly as for any other photograph.
+    """
+    slide = get_object_or_404(Slide, pk=pk)
+    if which not in SLIDE_PICTURES:
+        raise Http404('no such picture')
+    upload = request.FILES.get('picture')
+    if not upload:
+        messages.error(request, _('Rasm tanlanmadi.'))
+        return redirect('panel_slides')
+    try:
+        clean = _slide_file(upload, 'slide' if which == 'wide' else 'slide-telefon')
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_slides')
+
+    if which == 'wide':
+        slide.picture = clean
+        slide.save(update_fields=['picture'])
+    else:
+        phone = SlidePhone.objects.filter(slide=slide).first() or SlidePhone(slide=slide)
+        phone.picture = clean
+        phone.save()
+    messages.success(request, _('Rasm saqlandi.'))
     return redirect('panel_slides')
 
 

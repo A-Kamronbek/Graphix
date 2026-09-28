@@ -17,7 +17,7 @@ from django.utils.safestring import mark_safe
 from . import images
 from .models import (Category, Colour, ImageP, PrintMethod, Product,
                      ProductLike, Review, ReviewImage, Size, SizeChart,
-                     SizeChartRow, Slide, Tag, TagKind, Variant,
+                     SizeChartRow, Slide, SlidePhone, Tag, TagKind, Variant,
                      default_colour)
 
 
@@ -79,6 +79,20 @@ class ChartImageForm(CleanPhotoForm):
 class SlideForm(CleanPhotoForm):
     """A home-page card: the name and size the panel stores one at."""
     name_hint = 'slide'
+
+
+class SlidePhoneForm(CleanPhotoForm):
+    """A card's phone picture, stored the way the panel stores it (§17 #302)."""
+    name_hint = 'slide-telefon'
+
+
+class SlidePhoneInline(admin.StackedInline):
+    """The phone picture under its slide: one or none (§17 #302)."""
+    model = SlidePhone
+    form = SlidePhoneForm
+    fields = ('picture',)
+    extra = 0
+    max_num = 1
 
 
 class ImagePInline(admin.TabularInline):
@@ -264,6 +278,8 @@ class SlideAdmin(admin.ModelAdmin):
     the list because it is what a slide is called; the picture is the content.
     """
     form = SlideForm
+    inlines = [SlidePhoneInline]
+    list_select_related = ('phone',)
     list_display = ('preview', 'alt', 'link', 'is_active', 'sort_order')
     list_display_links = ('preview', 'alt')
     list_editable = ('is_active', 'sort_order')
@@ -271,7 +287,9 @@ class SlideAdmin(admin.ModelAdmin):
     search_fields = ('alt', 'alt_ru', 'alt_en', 'link')
     fieldsets = (
         (None, {'fields': ('picture', 'link', 'is_active', 'sort_order'),
-                'description': "Havola «/» bilan yoki https:// bilan boshlanadi."}),
+                'description': "Rasm — noutbuk uchun (16:5); telefon uchun rasm (16:9) "
+                               "pastda. Bittasi boʻlsa, ikkala ekranda koʻrinadi. "
+                               "Havola «/» bilan yoki https:// bilan boshlanadi."}),
         ('Oʻzbekcha', {'fields': ('alt',)}),
         ('Русский', {'fields': ('alt_ru',)}),
         ('English', {'fields': ('alt_en',)}),
@@ -279,7 +297,9 @@ class SlideAdmin(admin.ModelAdmin):
 
     @admin.display(description='Rasm')
     def preview(self, obj):
-        return _thumb(obj.picture, size=48)
+        """The laptop picture, or the phone's when that is the one there is."""
+        photo = obj.wide_photo or obj.phone_photo
+        return _thumb(photo.picture if photo else None, size=48)
 
 
 @admin.register(SizeChart)

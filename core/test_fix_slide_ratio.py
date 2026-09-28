@@ -19,9 +19,10 @@ from product.templatetags.image_tags import SIZES
 CSS = Path(settings.BASE_DIR) / 'static' / 'css'
 
 #: The panel's instruction beside the slide upload, as the template writes it.
-HINT = ('Rasmni 16:5 nisbatda tayyorlang (masalan, 2000×625 piksel). Noutbukda u toʻliq '
-        'koʻrinadi, telefonda esa faqat oʻrtadagi 16:9 qismi — chetlari kesiladi. Matn va '
-        'mahsulotni oʻrtaga joylashtiring.')
+#: Two pictures since §17 #302, so it names both shapes.
+HINT = ('Noutbuk uchun rasm — 16:5 (masalan, 2000×625), telefon uchun — 16:9 (masalan, '
+        '1600×900). Faqat bittasini yuklasangiz, u ikkala ekranda koʻrinadi va chetlari '
+        'kesiladi, shuning uchun muhim narsani oʻrtaga joylashtiring.')
 
 
 class SlideRatioTests(SimpleTestCase):
@@ -69,7 +70,7 @@ class SlideDeliveryTests(SimpleTestCase):
                          '(min-width: 1280px) 1216px, (min-width: 860px) 92vw, 166vw')
 
     def test_the_owner_is_told_the_shape_in_each_language(self):
-        for lang, word in (('ru', 'пропорции 16:5'), ('en', 'Make the picture 16:5')):
+        for lang, word in (('ru', 'для ноутбука — 16:5'), ('en', 'The laptop picture is 16:5')):
             with translation.override(lang):
                 self.assertIn(word, translation.gettext(HINT), lang)
 

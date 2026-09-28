@@ -604,6 +604,18 @@ function TELL(message, kind) {
                                                      : SAY('noFile');
   });
 
+  /* A slide's "Rasm tanlash" sends its form as soon as a file is picked
+     (§17 #302): the picker is the whole action there, and a second button to
+     press after it is one more thing to miss. `form.submit()`, as on the
+     storefront's own submit-on-change fields. */
+  document.addEventListener('change', function (e) {
+    var input = e.target;
+    if (input && input.matches && input.matches('input[type=file][data-autosubmit]')
+        && input.files.length && input.form) {
+      input.form.submit();
+    }
+  });
+
   /* ------------------------------------------------------- date fields */
   /* The orders filter takes dates as dd/mm/yyyy text (§18 #38), because a
      native date input draws the browser's own format — mm/dd/yyyy in an

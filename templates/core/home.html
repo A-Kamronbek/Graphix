@@ -34,18 +34,14 @@
           <li class="slides__item" data-slides-item
               aria-roledescription="{% trans 'slayd' %}"
               aria-label="{{ forloop.counter }} / {{ slides|length }}">
+            {# The picture - laptop, phone, or the one it has - is one partial, #}
+            {# so the linked and unlinked cards cannot drift apart (§17 #302). #}
             {% if slide.link %}
               <a class="slides__link" href="{{ slide.link }}">
-                {% comment %} The first slide is the page's largest paint, so it is
-                   eager and high priority; the rest are lazy. `photo_attrs`
-                   carries the stored width and height, which is what keeps
-                   CLS at zero while the file is still arriving. {% endcomment %}
-                <img {% photo_attrs slide 'slide' %} alt="{{ slide|t:'alt' }}"
-                     {% if forloop.first %}fetchpriority="high" decoding="async"{% else %}loading="lazy" decoding="async"{% endif %}>
+                {% include "core/_slide_picture.html" with slide=slide first=forloop.first %}
               </a>
             {% else %}
-              <img {% photo_attrs slide 'slide' %} alt="{{ slide|t:'alt' }}"
-                   {% if forloop.first %}fetchpriority="high" decoding="async"{% else %}loading="lazy" decoding="async"{% endif %}>
+              {% include "core/_slide_picture.html" with slide=slide first=forloop.first %}
             {% endif %}
           </li>
         {% endfor %}

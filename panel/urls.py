@@ -46,6 +46,8 @@ urlpatterns = [
     # changes with the season — so its own screen and its own tab (§17 #251).
     path('boshqaruv/slaydlar/', views.slides_screen, name='panel_slides'),
     path('boshqaruv/slaydlar/yangi/', views.slide_new, name='panel_slide_new'),
+    path('boshqaruv/slaydlar/<int:pk>/rasm/<str:which>/', views.slide_picture,
+         name='panel_slide_picture'),
 
     # Reference data: rows somebody changes two or three times a year, so that
     # none of it needs a deploy.

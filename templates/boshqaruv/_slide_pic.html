@@ -1,0 +1,39 @@
+{% load i18n image_tags %}
+{% comment %}
+  One of a slide's two pictures on the Slaydlar screen (§17 #302): the picture
+  at a size the owner can judge, what it is for, and its own upload - so a
+  slide made with one picture can be given the other later without its
+  description being typed again in three languages.
+
+  Picking a file sends the form (panel.js, `data-autosubmit`); with the script
+  off, the button under <noscript> does it.
+
+  Takes `slide`, `photo` (the row, or None), `which` ('wide' or 'phone') and
+  `label`.
+{% endcomment %}
+<figure class="chart__pic">
+  {% if photo %}
+    <a class="chart__shot" href="{{ photo.picture.url }}" target="_blank" rel="noopener">
+      <img {% photo_attrs photo 'panel' %} alt="{{ slide.alt }} — {{ label }}"
+           loading="lazy" decoding="async">
+    </a>
+  {% else %}
+    <span class="chart__shot chart__shot--empty">
+      <svg class="i" aria-hidden="true"><use href="#i-image"></use></svg>
+      <span class="small">{% trans "Rasm yoʻq" %}</span>
+    </span>
+  {% endif %}
+  <figcaption class="chart__cap">
+    <span class="small muted">{{ label }}</span>
+    <form method="post" action="{% url 'panel_slide_picture' slide.pk which %}"
+          enctype="multipart/form-data">
+      {% csrf_token %}
+      <label class="btn btn--ghost btn--sm">
+        {% trans "Rasm tanlash" %}
+        <input class="sr-only" type="file" name="picture"
+               accept="image/jpeg,image/png,image/webp,image/avif" data-autosubmit>
+      </label>
+      <noscript><button class="btn btn--secondary btn--sm" type="submit">{% trans "Saqlash" %}</button></noscript>
+    </form>
+  </figcaption>
+</figure>
