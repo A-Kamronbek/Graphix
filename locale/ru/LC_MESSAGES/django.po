@@ -1879,7 +1879,7 @@ msgstr "Мои заказы"
 msgid "Saqlanganlar"
 msgstr "Сохранённые"
 
-#: .\templates\partials\_logout.html:15
+#: .\templates\partials\_logout.html:16
 msgid "Chiqish"
 msgstr "Выйти"
 
