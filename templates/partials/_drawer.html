@@ -24,6 +24,9 @@
     {% if user.is_authenticated %}
       <li><a href="{% url 'account' %}">{% trans "Kabinet" %}</a></li>
       <li><a href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a></li>
+      {# The phone's sign-out on every page, under the account it closes #}
+      {# (§17 #305). A form, not a link: logout takes a POST only. #}
+      <li>{% include "partials/_logout.html" with button_class="drawer__action" %}</li>
     {% else %}
       <li><a href="{% url 'login' %}">{% trans "Kirish" %}</a></li>
       <li><a href="{% url 'signup' %}">{% trans "Roʻyxatdan oʻtish" %}</a></li>

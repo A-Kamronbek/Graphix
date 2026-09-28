@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %}
+  Signing out: a POST with its CSRF token, because the logout view accepts
+  nothing else - a link would be a GET, and a GET that changes state is one
+  any page could fire with an <img>.
+
+  One form in three places (§17 #305): the account sidebar on a laptop, the
+  foot of the account pages on a phone, and the phone's menu. It is written
+  once so the three cannot drift apart.
+
+  Takes `button_class`, and `form_class` where the form needs placing.
+{% endcomment %}
+<form method="post" action="{% url 'logout' %}"{% if form_class %} class="{{ form_class }}"{% endif %}>
+  {% csrf_token %}
+  <button class="{{ button_class }}" type="submit">{% trans "Chiqish" %}</button>
+</form>

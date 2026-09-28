@@ -583,6 +583,13 @@ input.stepper__val:disabled { color: var(--c-fg-subtle); }
   margin: calc(var(--s-3) * -1) calc(var(--s-3) * -1) calc(var(--s-3) * -1) 0; }
 .drawer a { display: block; padding: var(--s-3) 0; border-bottom: 1px solid var(--c-line);
   font-size: var(--fs-lg); }
+/* Signing out is a form's button among the links (§17 #305): the same row, so
+   the list stays one list, in the muted colour, so it reads as the one action
+   in it rather than one more place to go. */
+.drawer__action { display: block; width: 100%; text-align: left;
+  padding: var(--s-3) 0; border-bottom: 1px solid var(--c-line);
+  font-size: var(--fs-lg); color: var(--c-fg-muted); }
+.drawer__action:hover { color: var(--c-fg); }
 
 /* No horizontal padding here: the footer's contents are already inside a
    `.wrap`, and setting `--pad-x` on both indented the footer past every other

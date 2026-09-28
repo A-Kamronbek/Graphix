@@ -1863,7 +1863,7 @@ msgstr "My orders"
 msgid "Saqlanganlar"
 msgstr "Saved"
 
-#: .\templates\partials\_account_nav.html:13
+#: .\templates\partials\_logout.html:15
 msgid "Chiqish"
 msgstr "Sign out"
 

@@ -473,7 +473,12 @@ html.js .slides__controls {
   border-bottom: 2px solid transparent; }
 .account__nav a:hover { color: var(--c-fg); }
 .account__nav a.is-active { color: var(--c-fg); border-bottom-color: var(--c-brand); }
+/* Two copies of the sign-out, one per screen (§17 #305). The sidebar's is the
+   laptop's. A phone's row of tabs has no room for a button, and hiding it there
+   left a phone with no way to sign out at all, so a phone has it at the foot
+   of the page, under what the page is for. */
 .account__logout { display: none; }
+.account__logout--foot { display: block; }
 /* Three links wrap rather than scroll. The strip was scrollable, but with no
    affordance it simply looked like a word cut in half at the screen edge. */
 @media (max-width: 560px) {
@@ -488,6 +493,7 @@ html.js .slides__controls {
     border-left: 2px solid transparent; padding-left: var(--s-3); }
   .account__nav a.is-active { border-left-color: var(--c-brand); }
   .account__logout { display: block; margin-top: var(--s-4); }
+  .account__logout--foot { display: none; }
 }
 
 /* ---------------------------------------------------- checkout / summary */
