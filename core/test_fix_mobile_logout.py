@@ -1,11 +1,13 @@
-"""A phone can sign out: from the foot of its menu on every page, and from the foot of Kabinet.
+"""A phone can sign out: from the foot of its menu on every page, and from the foot of Kabinet and Sozlamalar.
 
-Kamronbek's report and calls (§17 #305, #306). Since Phase 5 the only
+Kamronbek's report and calls (§17 #305, #306, #307). Since Phase 5 the only
 sign-out was the account sidebar's button, and the stylesheet hid it below
 860 px, where the sidebar becomes a row of tabs - so a phone had no way to
 sign out at all. The laptop's button is where it was. A phone has a bordered
 button at the bottom of its menu, under the languages, and one at the foot of
-Kabinet; Buyurtmalarim and Sozlamalar do not carry one (#306).
+Kabinet and of Sozlamalar; Buyurtmalarim does not carry one (#306, #307).
+The menu's language switcher runs the full width, like the list and the
+button (#307).
 
 All three are the same form (`partials/_logout.html`): a POST with its CSRF
 token, because the logout view takes nothing else.
@@ -60,7 +62,7 @@ class PhoneMenuTests(TestCase):
 
 
 class AccountPageTests(TestCase):
-    """Kabinet has the sidebar's and the foot's; the other two the sidebar's alone."""
+    """Kabinet and Sozlamalar have the sidebar's and the foot's; Buyurtmalarim the sidebar's."""
 
     def setUp(self):
         self.client.force_login(make_user('kabinetchi', '+998901280103'))
@@ -69,23 +71,26 @@ class AccountPageTests(TestCase):
         html = self.client.get(reverse(name)).content.decode()
         return [form.split('>', 1)[0] for form in signout_forms(html.replace(drawer(html), ''))]
 
-    def test_kabinet_has_both(self):
-        forms = self.forms('account')
-        self.assertEqual(len(forms), 2)
-        self.assertIn('class="account__logout"', forms[0])
-        self.assertIn(FOOT, forms[1])
-
-    def test_orders_and_settings_have_the_sidebar_only(self):
-        for name in ('account_orders', 'account_settings'):
+    def test_kabinet_and_settings_have_both(self):
+        for name in ('account', 'account_settings'):
             with self.subTest(page=name):
                 forms = self.forms(name)
-                self.assertEqual(len(forms), 1)
+                self.assertEqual(len(forms), 2)
                 self.assertIn('class="account__logout"', forms[0])
+                self.assertIn(FOOT, forms[1])
+
+    def test_orders_has_the_sidebar_only(self):
+        forms = self.forms('account_orders')
+        self.assertEqual(len(forms), 1)
+        self.assertIn('class="account__logout"', forms[0])
 
     def test_the_foot_comes_after_the_page(self):
         html = self.client.get(reverse('account')).content.decode()
         self.assertLess(html.index('account__nav'), html.index('account__logout--foot'))
         self.assertLess(html.index('Soʻnggi buyurtmalar'), html.index('account__logout--foot'))
+        html = self.client.get(reverse('account_settings')).content.decode()
+        self.assertLess(html.index(reverse('account_forgot_password')),
+                        html.index('account__logout--foot'))
 
     def test_signing_out_works(self):
         """The buttons post to the view that has always done it."""
@@ -116,6 +121,16 @@ class StylesheetTests(TestCase):
 
     def test_the_menu_button_is_spaced_from_the_languages(self):
         self.assertIn('.drawer__logout { margin-top: var(--s-6); }', self.CSS)
+
+    def test_the_menu_languages_run_the_full_width(self):
+        """Edges in line with the list above and the sign-out below (§17 #307)."""
+        self.assertIn('.drawer__lang .lang { display: flex; }', self.CSS)
+        self.assertIn('.drawer__lang .lang button { flex: 1; }', self.CSS)
+
+    def test_the_header_switcher_is_untouched(self):
+        """Only the menu's copy stretches; the header pill keeps its own size."""
+        self.assertNotIn('.lang--compact { display: flex', self.CSS)
+        self.assertIn('.lang--compact { display: none;', self.COMPONENTS)
 
     def test_the_list_row_style_is_gone(self):
         self.assertNotIn('drawer__action', self.COMPONENTS)

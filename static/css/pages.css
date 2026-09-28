@@ -261,6 +261,11 @@
 .drawer__hd { margin-bottom: var(--s-5); }
 .drawer__lang { margin-top: var(--s-5); }
 .drawer__lang .label { display: block; margin-bottom: var(--s-2); }
+/* Full width, so its edges line up with the list above and the sign-out below
+   (§17 #307). `flex: 1` shares the width equally; a name longer than its share
+   keeps its own width and the others give way. */
+.drawer__lang .lang { display: flex; }
+.drawer__lang .lang button { flex: 1; }
 .drawer__logout { margin-top: var(--s-6); }
 
 .foot__link { display: inline-flex; align-items: center; gap: var(--s-2); }
@@ -477,7 +482,8 @@ html.js .slides__controls {
 /* Two copies of the sign-out, one per screen (§17 #305). The sidebar's is the
    laptop's. A phone's row of tabs has no room for a button, and hiding it there
    left a phone with no way to sign out at all, so a phone has it at the foot
-   of Kabinet, under what the page is for, and in its menu (§17 #306). */
+   of Kabinet and Sozlamalar, under what the page is for, and in its menu
+   (§17 #306, #307). */
 .account__logout { display: none; }
 .account__logout--foot { display: block; }
 /* Three links wrap rather than scroll. The strip was scrollable, but with no
