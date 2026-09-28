@@ -47,33 +47,10 @@
         </button>
       </div>
 
-      {# The kind is a row now, not a choice, so its heading is a translated #}
-      {# field like every other name on the site (§17, Phase 7 recheck). #}
-      {% for kind, tags in tag_groups %}
-        {% if tags %}
-          <div class="filters__group">
-            <span class="label">{{ kind|t:"name" }}</span>
-            <div class="chips">
-              {% for tag in tags %}
-                <button type="submit" name="tag" value="{{ tag.slug }}"
-                        aria-pressed="{% if tag.slug in selected_tags %}true{% else %}false{% endif %}">{{ tag|t:"name" }}</button>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-      {% endfor %}
-
-      {% if categories %}
-        <div class="filters__group">
-          <span class="label">{% trans "Kategoriya" %}</span>
-          <div class="chips">
-            {% for c in categories %}
-              <button type="submit" name="category" value="{{ c.id }}"
-                      aria-pressed="{% if selected_category == c.id|stringformat:'s' %}true{% else %}false{% endif %}">{{ c|t:"name" }}</button>
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
+      {# Size only, the owner's call (§17 #303). The tag axes and the category #}
+      {# chips were here; tags are no longer shown to shoppers at all (§17 #304). #}
+      {# A category or tag already in the address - a link from the home page #}
+      {# or the footer - still narrows the list, and is cleared below. #}
 
       {% if sizes %}
         <div class="filters__group">
