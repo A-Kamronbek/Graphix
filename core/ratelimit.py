@@ -18,10 +18,23 @@ MAX_WINDOW = 60 * 60
 
 
 def client_ip(request):
-    """Best-effort client IP, preferring the first X-Forwarded-For hop (set by nginx)."""
+    """The client's address as nginx saw it: the last X-Forwarded-For hop.
+
+    nginx appends the address of whoever connected to it to whatever
+    X-Forwarded-For the request arrived with, so the last hop is the only one
+    the client did not write. The first hop is the client's own claim, and
+    reading it let anyone step around every IP-keyed limit on the site by
+    sending a new invented address with each request.
+
+    This is right while exactly one proxy stands in front of gunicorn, which
+    is what deploy/nginx/graphix.conf sets up. A second one - a CDN, a load
+    balancer - would make the last hop that proxy's address, and this function
+    is then the thing to change.
+    """
     xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
-    if xff:
-        return xff.split(',')[0].strip()
+    last_hop = xff.split(',')[-1].strip()
+    if last_hop:
+        return last_hop
     return request.META.get('REMOTE_ADDR') or 'unknown'
 
 
