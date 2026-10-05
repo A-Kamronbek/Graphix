@@ -4,7 +4,7 @@ Mirrors :mod:`user.otp` but for the forgotten-password flow: it issues a code,
 tracks expiry/resend/attempts, and additionally remembers which user is being
 reset and whether the code has been verified.
 """
-import random
+import secrets
 from datetime import timedelta
 
 from django.utils import timezone
@@ -79,7 +79,9 @@ def issue_code(request, user):
     Resets the failed-attempt counter so a freshly issued code always starts
     with a clean slate. Returns the generated six-digit code.
     """
-    code = f"{random.randint(0, 999999):06d}"
+    # secrets, not random: this code is all that stands between a stranger
+    # and somebody's account, and random is a predictable generator.
+    code = f"{secrets.randbelow(1000000):06d}"
     request.session['pwreset_code'] = code
     request.session['pwreset_user_id'] = user.id
     request.session['pwreset_last_sent_at'] = timezone.now().isoformat()

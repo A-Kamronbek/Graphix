@@ -4,7 +4,7 @@ A six-digit code is kept in the user's session with an expiry, a resend
 cooldown, and a failed-attempt counter. All timestamps are stored as ISO
 strings so they survive session serialisation.
 """
-import random
+import secrets
 from datetime import timedelta
 
 from django.utils import timezone
@@ -26,7 +26,9 @@ def generate(request, reset_expiry):
 
     Returns the generated six-digit code.
     """
-    code = f"{random.randint(0, 999999):06d}"
+    # secrets, not random: this code is all that stands between a stranger
+    # and somebody's account, and random is a predictable generator.
+    code = f"{secrets.randbelow(1000000):06d}"
     if reset_expiry or 'otp_expires_at' not in request.session:
         expires_at = timezone.now() + timedelta(seconds=TTL_SECONDS)
         request.session['otp_expires_at'] = expires_at.isoformat()
