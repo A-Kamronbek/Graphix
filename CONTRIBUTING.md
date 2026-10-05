@@ -1,5 +1,4 @@
 # Contributing
-# Contributing
 
 These are the rules the codebase is already written to. Most of them exist
 because something went wrong once; the comment next to the code usually says
