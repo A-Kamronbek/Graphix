@@ -78,7 +78,8 @@ so a test run cannot notify the real shop.
   (region, district, street, optional map pin). Row-locked order creation,
   orders numbered `GX-YYMMDD-NNNN`.
 - Four payment methods, each switched on or off from the staff panel: Click,
-  Payme, Octo and cash
+  Payme, Octo and cash. Click is live on graphix.uz; Payme and Octo are built
+  and stay off until their merchant accounts exist
 - Reviews from verified buyers only, moderated, photographs re-encoded to strip
   their metadata
 - A staff panel at `/uz/boshqaruv/` for orders, products, reviews, messages and
