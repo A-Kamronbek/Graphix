@@ -44,9 +44,12 @@ something else:
 
 - the `select_for_update` lock and total computation in
   `payment.services.create_order_from_cart` — add to it, do not restructure it
-- the OTP flows, their rate limits, and phone normalisation in `User.save()`
-- `_cancel_and_delete`, which must never delete a user who has an order or a
-  claimed cart
+- `user/codes.py`, the sign-in code and its limits, and phone normalisation
+  in `User.save()`. The code is the only key to a customer's account
+- no path deletes an account. An account is written only once its number is
+  confirmed, so there is nothing to tidy up, and `Order.user` is `PROTECT`
+- staff sign in with a password at `/admin/login/` and nowhere else: the
+  storefront does not send a staff number a code
 - the Click webhook path, `/payment/click/update/` exactly — unprefixed and
   outside `i18n_patterns`. Breaking it means payments that fail silently
 

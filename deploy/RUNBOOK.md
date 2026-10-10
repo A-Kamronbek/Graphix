@@ -206,6 +206,12 @@ phone as verified**. Until you do, `/boshqaruv/` will not open for it: the
 phone-verification wall applies to staff too, which is §19 Q34 — decided as a
 deploy step rather than a code change (§17 #227). This is that step.
 
+Staff sign in at `/admin/login/` with this username and password, and nowhere
+else. The shop's own sign-in is by SMS code and is for customers; it does not
+send a staff number a code (§17 #309). So the owner can get in while Eskiz is
+down, and a staff account must not be given a username that looks like a phone
+number.
+
 ---
 
 ## 10. The service
@@ -344,24 +350,26 @@ pipeline that will not show up until a real customer pays.
 ## 14. Redis, across workers
 
 The rate limiter is the only thing that notices, and it notices in production
-and not in a test. With `REDIS_URL` set and three workers running:
+and not in a test. It matters more since customers sign in by SMS code: every
+limit on codes is a counter in this cache, and a worker counting on its own
+lets three times as many through. With `REDIS_URL` set and three workers
+running, write a key through the site's own cache and look for it in Redis:
 
 ```bash
 sudo systemctl restart graphix
-for i in $(seq 1 12); do
-  curl -s -o /dev/null -w '%{http_code} ' -X POST https://graphix.uz/uz/login/ \
-       -d 'username=nobody&password=wrong'
-done ; echo
+cd /srv/graphix
+sudo -u graphix .venv/bin/python manage.py shell -c \
+  "from django.core.cache import cache; cache.set('runbook_check', 1, 120); print(cache.get('runbook_check'))"
+redis-cli -n 1 --scan --pattern '*runbook_check*'
 ```
 
-The codes must stop being `200`/`403` and start being the limiter's answer
-partway through the run, and must keep it on a second run. If the limit only
-bites after roughly three times as many attempts, the workers are counting
-separately and `REDIS_URL` did not take.
+The first command must print `1` and the second must print one key. No key
+means the site is keeping its counters in each worker's own memory and
+`REDIS_URL` did not take.
 
-```bash
-redis-cli -n 1 --scan --pattern '*' | head       # keys appearing at all
-```
+If Redis is stopped the site sends no sign-in codes at all, by design: without
+the counters there would be no limit on them. `systemctl status redis-server`
+is the first thing to look at when nobody can sign in.
 
 ---
 
@@ -487,9 +495,12 @@ service, and this is the reason (§17 #267).
 
 - `ESKIZ_EMAIL`, `ESKIZ_PASSWORD`, `ESKIZ_FROM=GRAPHIX`. Sign up on the live
   site with a real number and confirm the SMS arrives branded GRAPHIX. The
-  sender is approved (§19 Q17); **the message bodies changed in Phase 1a and
-  Eskiz moderates bodies too**, so ask them to confirm both, or a rejected body
-  fails silently at signup.
+  sender is approved (§19 Q17). **Eskiz moderates every message body too.**
+  There are two, both in `user/codes.py`: one for signing up and one for
+  signing in. A body Eskiz has not approved is not sent, and the site then
+  tells the customer the code could not be sent. After any change to either
+  text, sign up and sign in once with a real number before telling anyone the
+  site is open.
 - Telegram: either `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`, or
   `TELEGRAM_BOT_WEBHOOK_URL` + `WEBSITE_WEBHOOK_SECRET` if the notifications go
   through your own bot service — the first one set wins. **§19 Q33 is open**:

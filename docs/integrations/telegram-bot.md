@@ -21,6 +21,13 @@ working — it will simply stop receiving `order.created`, and will find the
 order's full details on `order.paid` where before there was only a total.
 `admin_url` now points at the shop's own panel rather than the Django admin.
 
+**Changed 2026-10-11 (§17 #309):** customers sign in by SMS code and have no
+username, so `message.created` no longer carries `username`; the sender is
+identified by `name` and `phone`, as before. There is one new event,
+`signin.ceiling`. A bot that ignores events it does not know keeps working and
+simply does not show that one, so the bot has to be taught it for the owner to
+see it.
+
 ## How it fits together
 
 ```
@@ -143,7 +150,8 @@ Refuse anything that fails with `401` and do nothing with it.
 
 ## The events
 
-Three: a paid order, a contact message, a review waiting for moderation.
+Four: a paid order, a contact message, a review waiting for moderation, and
+the ceiling on sign-in codes being reached.
 
 Amounts are whole so'm, as integers. Dates are ISO 8601 with a time zone.
 `admin_url` links to the staff panel — the order's own screen, or the list the
@@ -196,7 +204,7 @@ notifications are parcels.
 A signed-in customer sent a message through the contact page.
 
 ```json
-{"message": {"id": 7, "name": "Ali Valiyev", "username": "ali",
+{"message": {"id": 7, "name": "Ali Valiyev",
              "phone": "+998 90 123 45 67", "subject": "Oʻlcham haqida",
              "text": "Salom! …",
              "admin_url": "https://graphix.uz/uz/boshqaruv/xabarlar/#xabar-7"}}
@@ -211,6 +219,19 @@ when the review is created — approving or rejecting it sends nothing.
 {"review": {"id": 3, "product": "Mahsulot", "rating": 5, "text": "Zoʻr!",
             "has_photos": true,
             "admin_url": "https://graphix.uz/uz/boshqaruv/sharhlar/#sharh-3"}}
+```
+
+### `signin.ceiling`
+
+The site sent as many sign-in codes in an hour as it is allowed to, and has
+stopped sending them until the hour is over. Until then no customer can sign
+in or sign up. Every code costs an SMS, so this is either a very busy hour or
+somebody running up the bill, and the owner is the one who can tell which.
+Sent at most once an hour. It carries no `admin_url`: there is no screen to
+open.
+
+```json
+{"signin": {"codes_sent": 150, "window_minutes": 60}}
 ```
 
 ## The bot's own commands
