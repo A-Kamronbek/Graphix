@@ -6,8 +6,8 @@ them. These tests read the stylesheets, the templates and the font file as
 shipped. They fail when a second face is named, when a page asks for a second
 font file, or when the file loses a letter the three languages need.
 
-The three old files stay in static/fonts until the owner has agreed the new
-look (plan §9 Phase 17 item 1). Nothing may point at them.
+The three old files are gone from static/fonts. The tag type-playfair-onest is
+the site as it was with them, and reverting Phase 17's merge brings them back.
 """
 import re
 from pathlib import Path
@@ -163,6 +163,10 @@ class FontFileTests(SimpleTestCase):
     def has(self, character):
         """True when the file draws the character as something of its own."""
         return self.drawn(character) != self.blank
+
+    def test_it_is_the_only_font_file(self):
+        """collectstatic publishes whatever is in the folder, used or not."""
+        self.assertEqual([path.name for path in FONT.parent.iterdir()], [FONT.name])
 
     def test_it_is_a_woff2_no_heavier_than_what_it_replaced(self):
         self.assertEqual(FONT.read_bytes()[:4], b'wOF2')
