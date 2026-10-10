@@ -14,6 +14,8 @@ from payment.models import DeliveryOption, Order
 from product.models import Category, Colour, Product, Size, Variant
 from user.models import User
 
+from .test_phase15 import catch_sms, enter_by_code
+
 
 class SmokeTests(TestCase):
     """One test per critical path: home, shop, login, checkout."""
@@ -56,11 +58,8 @@ class SmokeTests(TestCase):
         self.assertIn(self.product, list(response.context['products']))
 
     def test_login_works(self):
-        """Valid credentials authenticate the session and land on the shop."""
-        response = self.client.post(
-            reverse('login'),
-            {'username': 'smokeuser', 'password': self.password},
-        )
+        """The number and the code sent to it sign the customer in, on the shop."""
+        response = enter_by_code(self.client, catch_sms(self), self.user.phone)
         self.assertRedirects(response, reverse('shop'))
         self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
 

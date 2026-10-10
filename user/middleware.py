@@ -1,17 +1,17 @@
-"""Middleware that forces phone verification before the site can be used."""
+"""Middleware that holds a signed-in account to a confirmed phone number."""
 from django.conf import settings
-from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import reverse, NoReverseMatch
-from django.utils import timezone, translation
+from django.utils import translation
 
 
 class PhoneVerificationMiddleware:
-    """Redirect unverified users to OTP entry; delete them if the window lapsed.
+    """Send a signed-in account with an unconfirmed number to the code page.
 
-    Authenticated users whose phone isn't verified are sent to ``verify_phone``
-    for every non-exempt path. If their OTP window has already expired, the
-    half-registered account is removed and they're bounced back to signup.
+    A customer's number is confirmed before their account exists, so the only
+    account this still catches is one made in the Django admin, which is how
+    staff are made (§17 #227). It can reach the admin, where the box can be
+    ticked for it, and the code page, where it can confirm the number itself.
     """
     EXEMPT_URL_NAMES = {'verify_phone', 'resend_otp', 'cancel_verification', 'expire_verification', 'logout'}
 
@@ -52,27 +52,4 @@ class PhoneVerificationMiddleware:
         if any(path.startswith(p) for p in self.EXEMPT_PATH_PREFIXES):
             return self.get_response(request)
 
-        if self._otp_window_expired(request):
-            # Same rule as the view's cancel path, and deliberately the same
-            # function: an unverified account that already holds a claimed cart
-            # or an order is a customer, whose cart a delete would CASCADE away
-            # and whose order makes the delete fail (§12 risk #4, §17 #219).
-            # They are logged out either way and can sign in again to finish
-            # verifying.
-            from .services import delete_if_disposable
-            logout(request)
-            delete_if_disposable(user)
-            return redirect(f"{reverse('signup')}?reason=expired")
-
         return redirect('verify_phone')
-
-    @staticmethod
-    def _otp_window_expired(request):
-        """Return True if the signup OTP window has elapsed."""
-        raw = request.session.get('otp_expires_at')
-        if not raw:
-            return False
-        try:
-            return timezone.now() > timezone.datetime.fromisoformat(raw)
-        except (ValueError, TypeError):
-            return False

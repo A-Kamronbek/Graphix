@@ -204,9 +204,9 @@ class FiguresFollowTheCodeTests(TestCase):
         self.assertEqual(parser.get_default('days'), legal.facts().guest_cart_days)
 
     def test_the_code_window_is_the_one_the_signup_uses(self):
-        from user import otp
-        self.assertEqual(legal.facts().otp_minutes * 60, otp.TTL_SECONDS)
-        self.assertEqual(legal.facts().otp_attempts, otp.MAX_ATTEMPTS)
+        from user import codes
+        self.assertEqual(legal.facts().otp_minutes * 60, codes.TTL_SECONDS)
+        self.assertEqual(legal.facts().otp_attempts, codes.MAX_ATTEMPTS)
 
     def test_the_review_limits_are_the_ones_the_form_enforces(self):
         from product import images, views

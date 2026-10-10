@@ -2442,85 +2442,39 @@ msgstr ""
 msgid "Ismingiz"
 msgstr ""
 
-#: .\templates\user\account_settings.html:31 .\templates\user\login.html:27
-#: .\templates\user\signup.html:25 .\user\forms.py:64
-msgid "Foydalanuvchi nomi"
-msgstr ""
-
-#: .\templates\user\account_settings.html:42
-msgid "Parolni oʻzgartirish"
-msgstr ""
-
-#: .\templates\user\account_settings.html:51 .\user\forms.py:80
-msgid "Joriy parol"
-msgstr ""
-
-#: .\templates\user\account_settings.html:58
-#: .\templates\user\password_reset_set.html:3
-#: .\templates\user\password_reset_set.html:10
-#: .\templates\user\password_reset_set.html:19 .\user\forms.py:49
-#: .\user\forms.py:81
-msgid "Yangi parol"
-msgstr ""
-
-#: .\templates\user\account_settings.html:65
-#: .\templates\user\password_reset_set.html:26 .\templates\user\signup.html:54
-msgid "Parolni takrorlang"
-msgstr ""
-
-#: .\templates\user\account_settings.html:72
-#: .\templates\user\password_reset_set.html:32
-msgid "Parolni saqlash"
-msgstr ""
-
-#: .\templates\user\account_settings.html:84
-msgid "Joriy parolni eslay olmayapman"
-msgstr ""
-
-#: .\templates\user\account_settings.html:87
+#: .\templates\user\account_settings.html:41
+#, python-format
 msgid ""
-"Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga "
-"keladigan kod orqali oʻrnatasiz."
+"Bu raqam orqali kirasiz. Uni oʻzgartirish uchun <a class=\"link\" "
+"href=\"%(contact_url)s\">biz bilan bogʻlaning</a>."
 msgstr ""
-"Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga "
-"keladigan kod orqali oʻrnatasiz."
 
 #: .\templates\user\login.html:17
-msgid "Buyurtmalaringiz va saqlanganlaringiz shu yerda."
+msgid "Telefon raqamingizni kiriting — kirish kodi SMS orqali keladi."
 msgstr ""
 
-#: .\templates\user\login.html:35 .\templates\user\signup.html:47
-msgid "Parol"
+#: .\templates\user\login.html:35
+msgid "Shu raqam bilan roʻyxatdan oʻtish"
 msgstr ""
 
-#: .\templates\user\login.html:36
-msgid "Unutdingizmi?"
+#: .\templates\user\login.html:37
+msgid "Parol bilan kirish"
+msgstr ""
+
+#: .\templates\user\login.html:41 .\templates\user\signup.html:51
+msgid "Kod olish"
 msgstr ""
 
 #: .\templates\user\login.html:51
 msgid "Hisob yoʻqmi?"
 msgstr ""
 
-#: .\templates\user\password_reset_request.html:3
-#: .\templates\user\password_reset_request.html:11
-msgid "Parolni tiklash"
+#: .\templates\user\signup.html:14
+msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
 msgstr ""
 
-#: .\templates\user\password_reset_request.html:12
-msgid "Telefon raqamingizni kiriting — tasdiqlash kodini yuboramiz."
-msgstr ""
-
-#: .\templates\user\password_reset_request.html:30
-msgid "Kodni yuborish"
-msgstr ""
-
-#: .\templates\user\password_reset_request.html:36
-#: .\templates\user\password_reset_set.html:35
-msgid "Kirish sahifasiga qaytish"
-msgstr ""
-
-#: .\templates\user\password_reset_verify.html:3
-msgid "Parolni tiklash — kod"
+#: .\templates\user\signup.html:32
+msgid "Shu raqam bilan kirish"
 msgstr ""
 
 #: .\templates\user\password_reset_verify.html:14
@@ -2545,20 +2499,6 @@ msgstr ""
 msgid "Qayta yuborish"
 msgstr ""
 
-#: .\templates\user\password_reset_verify.html:47
-#: .\templates\user\verify_phone.html:47
-#, python-format
-msgid "Qayta yuborish (%(n)ss)"
-msgstr ""
-
-#: .\templates\user\password_reset_verify.html:50
-msgid "Raqamni qaytadan kiritish"
-msgstr ""
-
-#: .\templates\user\signup.html:14
-msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
-msgstr ""
-
 #: .\templates\user\signup.html:68
 #, python-format
 msgid ""
@@ -2570,28 +2510,24 @@ msgstr ""
 "tanishdim va <a class=\"link\" href=\"%(privacy_url)s\">maxfiylik siyosati</"
 "a>ga muvofiq shaxsga doir maʼlumotlarimga ishlov berilishiga rozilik beraman."
 
-#: .\templates\user\signup.html:76
-msgid "Hisob yaratish"
-msgstr ""
-
 #: .\templates\user\signup.html:83
 msgid "Hisob bormi?"
+msgstr ""
+
+#: .\templates\user\verify_phone.html:3
+msgid "Kirish kodi"
 msgstr ""
 
 #: .\templates\user\verify_phone.html:3
 msgid "Telefon raqamni tasdiqlash"
 msgstr ""
 
+#: .\templates\user\verify_phone.html:13
+msgid "Kodni kiriting"
+msgstr ""
+
 #: .\templates\user\verify_phone.html:11
 msgid "Telefon raqamni tasdiqlang"
-msgstr ""
-
-#: .\user\forms.py:12
-msgid "Harflar, raqamlar va _ mumkin"
-msgstr ""
-
-#: .\user\forms.py:18
-msgid "Foydalanuvchi nomi yoki parol notoʻgʻri."
 msgstr ""
 
 #: .\user\forms.py:19
@@ -2610,24 +2546,8 @@ msgstr ""
 msgid "Telefon raqamni kiriting."
 msgstr ""
 
-#: .\user\forms.py:50 .\user\forms.py:82
-msgid "Yangi parolni qayta kiriting"
-msgstr ""
-
-#: .\user\forms.py:51 .\user\forms.py:84 .\user\forms.py:104
-msgid "Parollar mos kelmadi."
-msgstr ""
-
 #: .\user\forms.py:63
 msgid "Ism"
-msgstr ""
-
-#: .\user\forms.py:72
-msgid "Bu foydalanuvchi nomi band."
-msgstr ""
-
-#: .\user\forms.py:83
-msgid "Joriy parol notoʻgʻri."
 msgstr ""
 
 #: .\user\forms.py:95
@@ -2636,12 +2556,12 @@ msgid ""
 "bering."
 msgstr ""
 
-#: .\user\forms.py:127
-msgid "Koʻpi bilan 50 ta belgi. Harflar, raqamlar va _"
-msgstr ""
-
 #: .\user\forms.py:139
 msgid "Bu raqam roʻyxatdan oʻtgan."
+msgstr ""
+
+#: .\user\views.py:118 .\user\views.py:201
+msgid "Xodim hisobiga parol bilan kiriladi."
 msgstr ""
 
 #: .\user\models.py:18
@@ -2652,6 +2572,10 @@ msgstr ""
 msgid "Ushbu raqam allaqachon roʻyxatdan oʻtgan."
 msgstr ""
 
+#: .\user\models.py:82
+msgid "Xaridor"
+msgstr ""
+
 #: .\user\password_reset.py:22
 msgid "Kod muddati tugadi. Iltimos, qaytadan urinib koʻring."
 msgstr ""
@@ -2660,16 +2584,24 @@ msgstr ""
 msgid "Parol 8 belgidan kam boʻlmasligi kerak."
 msgstr ""
 
+#: .\user\views.py:55
+msgid "Kod yuborilmadi. Birozdan soʻng qayta urinib koʻring."
+msgstr ""
+
+#: .\user\views.py:57
+msgid "Hozir kod yubora olmaymiz. Birozdan soʻng qayta urinib koʻring."
+msgstr ""
+
 #: .\user\views.py:72
 msgid "Xush kelibsiz!"
 msgstr ""
 
-#: .\user\views.py:111
-msgid "Tasdiqlash kodi muddati tugadi. Iltimos, qaytadan roʻyxatdan oʻting."
-msgstr ""
-
 #: .\user\views.py:113
 msgid "Roʻyxatdan oʻtish bekor qilindi."
+msgstr ""
+
+#: .\user\views.py:112
+msgid "Bu raqam roʻyxatdan oʻtmagan."
 msgstr ""
 
 #: .\user\views.py:147 .\user\views.py:341
@@ -2692,24 +2624,8 @@ msgstr ""
 msgid "Maʼlumotlar yangilandi."
 msgstr "Maʼlumotlar yangilandi."
 
-#: .\user\views.py:252
-msgid "Parol yangilandi."
-msgstr ""
-
-#: .\user\views.py:300
-msgid "Ushbu raqam roʻyxatdan oʻtmagan."
-msgstr ""
-
-#: .\user\views.py:304
-msgid "Tasdiqlash kodi yuborildi."
-msgstr ""
-
 #: .\user\views.py:338
 msgid "Juda koʻp urinish. Iltimos, qaytadan urinib koʻring."
-msgstr ""
-
-#: .\user\views.py:410
-msgid "Parol yangilandi. Endi kirishingiz mumkin."
 msgstr ""
 
 #: .\payment\models.py:73
@@ -2755,6 +2671,106 @@ msgstr ""
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr ""
+
+#~ msgid "Foydalanuvchi nomi"
+#~ msgstr ""
+
+#~ msgid "Parolni oʻzgartirish"
+#~ msgstr ""
+
+#~ msgid "Joriy parol"
+#~ msgstr ""
+
+#~ msgid "Yangi parol"
+#~ msgstr ""
+
+#~ msgid "Parolni takrorlang"
+#~ msgstr ""
+
+#~ msgid "Parolni saqlash"
+#~ msgstr ""
+
+#~ msgid "Joriy parolni eslay olmayapman"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga "
+#~ "keladigan kod orqali oʻrnatasiz."
+#~ msgstr ""
+#~ "Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga "
+#~ "keladigan kod orqali oʻrnatasiz."
+
+#~ msgid "Buyurtmalaringiz va saqlanganlaringiz shu yerda."
+#~ msgstr ""
+
+#~ msgid "Parol"
+#~ msgstr ""
+
+#~ msgid "Unutdingizmi?"
+#~ msgstr ""
+
+#~ msgid "Parolni tiklash"
+#~ msgstr ""
+
+#~ msgid "Telefon raqamingizni kiriting — tasdiqlash kodini yuboramiz."
+#~ msgstr ""
+
+#~ msgid "Kodni yuborish"
+#~ msgstr ""
+
+#~ msgid "Kirish sahifasiga qaytish"
+#~ msgstr ""
+
+#~ msgid "Parolni tiklash — kod"
+#~ msgstr ""
+
+#~ msgid "Qayta yuborish (%(n)ss)"
+#~ msgstr ""
+
+#~ msgid "Raqamni qaytadan kiritish"
+#~ msgstr ""
+
+#~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
+#~ msgstr ""
+
+#~ msgid "Hisob yaratish"
+#~ msgstr ""
+
+#~ msgid "Harflar, raqamlar va _ mumkin"
+#~ msgstr ""
+
+#~ msgid "Foydalanuvchi nomi yoki parol notoʻgʻri."
+#~ msgstr ""
+
+#~ msgid "Yangi parolni qayta kiriting"
+#~ msgstr ""
+
+#~ msgid "Parollar mos kelmadi."
+#~ msgstr ""
+
+#~ msgid "Bu foydalanuvchi nomi band."
+#~ msgstr ""
+
+#~ msgid "Joriy parol notoʻgʻri."
+#~ msgstr ""
+
+#~ msgid "Koʻpi bilan 50 ta belgi. Harflar, raqamlar va _"
+#~ msgstr ""
+
+#~ msgid "Tasdiqlash kodi muddati tugadi. Iltimos, qaytadan roʻyxatdan oʻting."
+#~ msgstr ""
+
+#~ msgid "Parol yangilandi."
+#~ msgstr ""
+
+#~ msgid "Ushbu raqam roʻyxatdan oʻtmagan."
+#~ msgstr ""
+
+#~ msgid "Tasdiqlash kodi yuborildi."
+#~ msgstr ""
+
+#~ msgid "Parol yangilandi. Endi kirishingiz mumkin."
+#~ msgstr ""
 
 #, fuzzy, python-format
 #~| msgid "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."

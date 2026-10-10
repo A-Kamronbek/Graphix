@@ -8,6 +8,7 @@ and the recheck itself found that an unverified account could not reach the
 code page in Russian or English. Each class names the decision it holds in
 place (§17 #216-#225).
 """
+import inspect
 import io
 import json
 import re
@@ -38,7 +39,6 @@ from payment.models import Order
 from product import admin as product_admin
 from product import images
 from product.models import ImageP, Product, Review, ReviewImage, SizeChart
-from user.services import delete_if_disposable
 
 from .test_phase4 import make_product
 from .test_phase6 import make_user
@@ -152,12 +152,16 @@ class OrdersOutliveTheirCustomerTests(TestCase):
         self.assertTrue(get_user_model().objects.filter(pk=user.pk).exists())
         self.assertTrue(Order.objects.filter(pk=order.pk).exists())
 
-    def test_an_abandoned_signup_with_an_order_is_still_left_alone(self):
-        """The guard that already stood in front of the delete (§12 risk #4)."""
-        user = make_user('tasdiqsiz', '+998901300015', verified=False)
-        make_order(user, self.variant, status='paying')
-        self.assertFalse(delete_if_disposable(user))
-        self.assertTrue(get_user_model().objects.filter(pk=user.pk).exists())
+    def test_no_code_in_the_site_deletes_an_account(self):
+        """Sign-up used to write its row first and delete it when the code
+        lapsed, behind a guard for rows holding an order (§12 risk #4). An
+        account now waits for the code, so there is nothing to tidy up and
+        the path is gone (§17 #309)."""
+        from user import middleware, services, views
+        for module in (services, views, middleware):
+            source = inspect.getsource(module)
+            with self.subTest(module=module.__name__):
+                self.assertNotIn('.delete(', source)
 
 
 # ------------------------------------------------------------------ #38
@@ -564,7 +568,7 @@ class VerificationInEveryLanguageTests(TestCase):
     def setUp(self):
         self.user = make_user('kodsiz', '+998901300071', verified=False)
         self.client.force_login(self.user)
-        sms = mock.patch('user.otp.send_sms', return_value=True)
+        sms = mock.patch('user.codes.send_sms', return_value=True)
         self.sent = sms.start()
         self.addCleanup(sms.stop)
 

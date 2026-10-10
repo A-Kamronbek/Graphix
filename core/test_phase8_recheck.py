@@ -292,7 +292,9 @@ class RelayedEventTests(TestCase):
         self.assertEqual(body['event'], 'message.created')
         message = body['data']['message']
         self.assertEqual((message['subject'], message['text']), ('Savol', 'Salom'))
-        self.assertEqual(message['username'], 'uzatuvchi')
+        # A customer has no username: theirs is their number, which the
+        # message carries as `phone` (§17 #309).
+        self.assertNotIn('username', message)
 
     def test_a_review_relays(self):
         from product.models import Review

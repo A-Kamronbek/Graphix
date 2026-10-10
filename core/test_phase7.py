@@ -64,13 +64,16 @@ class GuardTests(TestCase):
                 self.assertEqual(self.client.get(url).status_code, 403)
 
     def test_an_anonymous_visitor_is_sent_to_the_login_form(self):
-        """The person this actually happens to is the owner, session expired."""
+        """The person this actually happens to is the owner, session expired.
+
+        The form is the one staff sign in at. The shop's own is by SMS code
+        and is for customers (§17 #309).
+        """
         for url in self.urls():
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 302)
-                self.assertIn(reverse('login'), response.url)
-                self.assertIn('next=', response.url)
+                self.assertTrue(response.url.startswith('/admin/login/?next='), response.url)
 
     def test_staff_get_in(self):
         self.client.force_login(self.staff)

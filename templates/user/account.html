@@ -5,16 +5,15 @@
 
 {% block content %}
 <div class="wrap section stack stack--lg">
-  <h1 class="h1">{{ user.get_full_name|default:user.username }}</h1>
+  <h1 class="h1">{% if user.first_name %}{{ user.first_name }}{% else %}{% trans "Kabinet" %}{% endif %}</h1>
 
   <div class="account">
     {% include "partials/_account_nav.html" with active='home' %}
 
     <div class="stack stack--lg">
       <div class="panel stack stack--sm">
-        <span class="label">{% trans "Hisob" %}</span>
-        <span class="h3">{{ user.username }}</span>
-        <span class="num muted">{{ user.phone|default:"—" }}</span>
+        <span class="label">{% trans "Telefon" %}</span>
+        <span class="h3 num">{{ user.phone }}</span>
       </div>
 
       <div class="stack">

@@ -51,7 +51,7 @@
     </a>
 
     <a href="{% if user.is_authenticated %}{% url 'account' %}{% else %}{% url 'login' %}{% endif %}"
-       class="nav__account" aria-label="{% if user.is_authenticated %}{{ user.username }}{% else %}{% trans 'Kirish' %}{% endif %}">
+       class="nav__account" aria-label="{% if user.is_authenticated %}{% trans 'Kabinet' %}{% else %}{% trans 'Kirish' %}{% endif %}">
       <svg class="i" aria-hidden="true"><use href="#i-user"></use></svg>
     </a>
 

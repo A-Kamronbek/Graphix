@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n %}
-{% block title %}{% trans "Telefon raqamni tasdiqlash" %}{% endblock %}
+{% block title %}{% if purpose == 'signin' %}{% trans "Kirish kodi" %}{% else %}{% trans "Telefon raqamni tasdiqlash" %}{% endif %}{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% block content %}
@@ -8,7 +8,9 @@
   <div class="auth auth--narrow">
     <div class="stack stack--lg">
       <div class="stack stack--sm">
-        <h1 class="h1">{% trans "Telefon raqamni tasdiqlang" %}</h1>
+        {# One page for both doors: signing in asks for the code, signing #}
+        {# up and a staff number being confirmed say what the code is for. #}
+        <h1 class="h1">{% if purpose == 'signin' %}{% trans "Kodni kiriting" %}{% else %}{% trans "Telefon raqamni tasdiqlang" %}{% endif %}</h1>
         <p class="lede">
           {% if phone %}
             {% blocktrans %}Kod {{ phone }} raqamiga yuborildi.{% endblocktrans %}
@@ -17,7 +19,8 @@
           {% endif %}
         </p>
         {% if ttl %}
-          <p class="small muted">
+          {# Shown by auth.js, which is what makes the clock run. #}
+          <p class="small muted" hidden>
             {% trans "Kod amal qilish muddati" %}:
             <span class="num" id="otpTimer" data-ttl="{{ ttl }}">--:--</span>
           </p>
@@ -41,11 +44,9 @@
       <div class="row row--wrap">
         <form method="post" action="{% url 'resend_otp' %}">
           {% csrf_token %}
+          {# auth.js holds the button for the minute and counts it down. #}
           <button class="btn btn--ghost btn--sm" type="submit" id="otpResend"
-                  data-label="{% trans 'Qayta yuborish' %}" data-cooldown="{{ resend_in|default:0 }}"
-                  {% if resend_in or resend_limited %}disabled{% endif %}>
-            {% if resend_in %}{% blocktrans with n=resend_in %}Qayta yuborish ({{ n }}s){% endblocktrans %}{% else %}{% trans "Qayta yuborish" %}{% endif %}
-          </button>
+                  data-label="{% trans 'Qayta yuborish' %}" data-cooldown="{{ resend_in|default:0 }}">{% trans "Qayta yuborish" %}</button>
         </form>
 
         <form method="post" action="{% url 'cancel_verification' %}">
@@ -58,7 +59,7 @@
 </div>
 
 {# Submitted by the countdown when the code expires. The server re-checks the #}
-{# absolute expiry before acting, so an early POST cannot delete a live user. #}
+{# absolute expiry before acting, so an early POST cannot end a live attempt. #}
 <form method="post" action="{% url 'expire_verification' %}" id="otpExpireForm" hidden>
   {% csrf_token %}
 </form>

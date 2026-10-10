@@ -62,7 +62,7 @@
             {% endfor %}
           </span>
           <span class="sr-only">{% blocktrans with n=review.rating %}Baho: {{ n }}{% endblocktrans %}</span>
-          <span class="review__who">{{ review.user.first_name|default:review.user.username }}</span>
+          <span class="review__who">{{ review.user.public_name }}</span>
           {# Every review on this page came from a delivered order — the badge #}
           {# states the rule rather than marking an exception to it. #}
           <span class="badge badge--success">

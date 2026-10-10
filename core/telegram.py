@@ -4,8 +4,9 @@ Structured exactly like :mod:`core.sms`, and for the same reason: module
 logger, catch everything, log, return a boolean, **never raise**. A Telegram
 outage degrades a feature; it must never fail a checkout (§4, §12 risk #17).
 
-There are three events - a paid order, a contact message, a review waiting
-for moderation - and each is sent once, when it happens. An order is notified
+There are four events - a paid order, a contact message, a review waiting
+for moderation, and the hourly ceiling on sign-in codes being reached - and
+each is sent once, when it happens. An order is notified
 when the money arrives and not when it is placed (§17 #237): an abandoned
 checkout and a cancelled payment are not parcels, and the owner should not
 have to work out which of his notifications are.
@@ -278,7 +279,7 @@ def notify_paid_order(order):
     lines.append(f"<b>Toʻlov:</b> {esc(order.get_payment_method_display())}")
 
     # The name on the parcel, which is not always the account's.
-    who = order.recipient_name or order.user.get_full_name() or order.user.username
+    who = order.recipient_name or order.user.get_full_name() or 'Xaridor'
     lines.append(f"\n{esc(who)}"
                  + _phone_line('Telefon', order.phone))
     if order.notes:
@@ -326,11 +327,11 @@ def notify_paid_order(order):
 
 def notify_message(msg):
     """A contact-form message, with the sender's number ready to tap."""
-    name = msg.user.get_full_name() or msg.user.username
+    # A customer has no username to show: theirs is the number below.
+    name = msg.user.get_full_name() or 'Xaridor'
     lines = [
         "✉️ <b>Yangi xabar</b>",
-        f"{esc(name)} "
-        f"(@{esc(msg.user.username)})" + _phone_line('Telefon', msg.phone_num),
+        esc(name) + _phone_line('Telefon', msg.phone_num),
         f"\n<b>Mavzu:</b> {esc(msg.topic)}",
         esc(msg.msg_text),
     ]
@@ -340,7 +341,6 @@ def notify_message(msg):
     notify('\n'.join(lines), event='message.created', data={'message': {
         'id': msg.pk,
         'name': name,
-        'username': msg.user.username,
         'phone': msg.phone_num,
         'subject': msg.topic,
         'text': msg.msg_text,
@@ -372,3 +372,19 @@ def notify_review(review):
         'has_photos': photos,
         'admin_url': link,
     }})
+
+
+def notify_code_ceiling(limit):
+    """The site sent as many sign-in codes in an hour as it may, and has stopped.
+
+    Every code costs an SMS and the code is the only way in, so this is either
+    a very good hour or somebody spending the shop's money, and the owner is
+    the one who can tell which (§12 risk #29).
+    """
+    notify(
+        "⚠️ <b>SMS-kodlar chegarasiga yetildi</b>\n"
+        f"Soʻnggi bir soatda {esc(limit)} ta kod yuborildi. Koʻpi bilan bir soat "
+        "davomida sayt yangi kod yubormaydi: mijozlar kira olmaydi va roʻyxatdan "
+        "oʻta olmaydi.",
+        event='signin.ceiling',
+        data={'signin': {'codes_sent': limit, 'window_minutes': 60}})

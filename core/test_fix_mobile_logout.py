@@ -89,8 +89,7 @@ class AccountPageTests(TestCase):
         self.assertLess(html.index('account__nav'), html.index('account__logout--foot'))
         self.assertLess(html.index('Soʻnggi buyurtmalar'), html.index('account__logout--foot'))
         html = self.client.get(reverse('account_settings')).content.decode()
-        self.assertLess(html.index(reverse('account_forgot_password')),
-                        html.index('account__logout--foot'))
+        self.assertLess(html.index('id="id_first_name"'), html.index('account__logout--foot'))
 
     def test_signing_out_works(self):
         """The buttons post to the view that has always done it."""

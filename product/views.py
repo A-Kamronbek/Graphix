@@ -417,8 +417,7 @@ def _review_nodes(product):
                 '@type': 'Review',
                 'reviewRating': {'@type': 'Rating', 'ratingValue': str(r.rating),
                                  'bestRating': '5', 'worstRating': '1'},
-                'author': {'@type': 'Person', 'name': r.user.get_short_name()
-                           or r.user.username},
+                'author': {'@type': 'Person', 'name': r.user.public_name},
                 'datePublished': r.created_at.date().isoformat(),
                 **({'reviewBody': r.text} if r.text else {}),
             }

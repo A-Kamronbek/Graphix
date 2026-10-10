@@ -6,9 +6,9 @@ the staff use, and it merged nothing: somebody who filled a cart as a guest and
 then signed in there found their account's old cart and none of the new lines.
 
 The merge now hangs off Django's own signed-in signal, so it happens wherever
-``login()`` is called. These tests come in by each door.
+``login()`` is called. These tests come in by each door: a customer by the
+number and the code sent to it, staff by a password at the admin's form.
 """
-from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
@@ -16,12 +16,13 @@ from cart.models import Cart, CartItem
 from user.models import User
 
 from .test_phase4 import make_product
+from .test_phase15 import catch_sms, enter_by_code
 
 PASSWORD = 'parol12345'
 
 
 def account(username, phone, staff=False):
-    """A verified account that can sign in with a password."""
+    """A verified account. Staff sign in with the password; a customer never uses it."""
     user = User.objects.create_user(username=username, password=PASSWORD, phone=phone)
     user.phone_verified = True
     user.is_staff = user.is_superuser = staff
@@ -33,9 +34,7 @@ class AnySignInMergesTheCartTests(TestCase):
     """An account with a cart already; a guest adds something else; then signs in."""
 
     def setUp(self):
-        # Sign-in is rate limited per name, and the counters outlive a test.
-        cache.clear()
-        self.addCleanup(cache.clear)
+        self.inbox = catch_sms(self)
         self.old, self.old_variant = make_product('Eski tanlov', stock=10)
         self.new, self.new_variant = make_product('Yangi tanlov', stock=10)
 
@@ -66,7 +65,9 @@ class AnySignInMergesTheCartTests(TestCase):
         # The checkout is what sends a guest to sign in, with the way back.
         sent = self.client.get(reverse('checkout'))
         self.assertIn(reverse('login'), sent['Location'])
-        self.client.post(sent['Location'], {'username': 'mijoz', 'password': PASSWORD})
+        self.client.post(sent['Location'], {'phone': user.phone})
+        response = self.client.post(reverse('verify_phone'), {'code': self.inbox.code})
+        self.assertRedirects(response, reverse('checkout'), fetch_redirect_response=False)
         self.assertEqual(self.lines(user), {'Eski tanlov': 1, 'Yangi tanlov': 1})
         self.assertFalse(Cart.objects.filter(user__isnull=True).exists())
 
@@ -84,13 +85,13 @@ class AnySignInMergesTheCartTests(TestCase):
         user = account('mijoz', '+998901112203')
         self.cart_of(user)
         self.add_as_guest(self.old_variant, quantity=2)
-        self.client.post(reverse('login'), {'username': 'mijoz', 'password': PASSWORD})
+        enter_by_code(self.client, self.inbox, user.phone)
         self.assertEqual(self.lines(user), {'Eski tanlov': 3})
 
     def test_an_account_with_no_cart_takes_the_guests(self):
         user = account('mijoz', '+998901112204')
         self.add_as_guest(self.new_variant, quantity=2)
-        self.client.post(reverse('login'), {'username': 'mijoz', 'password': PASSWORD})
+        enter_by_code(self.client, self.inbox, user.phone)
         self.assertEqual(self.lines(user), {'Yangi tanlov': 2})
 
     def test_a_sign_in_with_no_guest_session_changes_nothing(self):
@@ -104,6 +105,6 @@ class AnySignInMergesTheCartTests(TestCase):
         user = account('mijoz', '+998901112206')
         self.add_as_guest(self.new_variant)
         stranger = self.client_class()
-        stranger.post(reverse('login'), {'username': 'mijoz', 'password': PASSWORD})
+        enter_by_code(stranger, self.inbox, user.phone)
         self.assertFalse(Cart.objects.filter(user=user).exists())
         self.assertTrue(Cart.objects.filter(user__isnull=True, status=True).exists())

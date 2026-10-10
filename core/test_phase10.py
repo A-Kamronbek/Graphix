@@ -730,28 +730,15 @@ class ConsentRecordTests(TestCase):
                                 price_stat=self.variant.price)
         return cart
 
-    def _signup(self, **extra):
-        """Register through the page, with the SMS patched out (§17 #196)."""
-        from unittest import mock
-        from user.models import User
-        data = {'username': 'roziuser', 'first_name': 'Rozi',
-                'phone': '+998901119955',
-                'password1': 'parol12345', 'password2': 'parol12345'}
-        data.update(extra)
-        with mock.patch('user.otp.send_sms', return_value=True):
-            self.client.post(reverse('signup'), data)
-        return User.objects.filter(username=data['username']).first()
-
     def test_signing_up_records_both_versions(self):
-        user = self._signup(agree='on')
+        """Through both pages, the number and then the code (§17 #196, #309)."""
+        from user.models import User
+        from .test_phase15 import catch_sms, enter_by_code
+        enter_by_code(self.client, catch_sms(self), '+998901119955', door='signup')
+        user = User.objects.filter(phone='+998 90 111 99 55').first()
         self.assertIsNotNone(user, 'the signup did not go through')
         self.assertEqual(user.terms_version, self.terms)
         self.assertEqual(user.privacy_version, self.privacy)
-
-    #: Without the box. Each POST gets its own number: the signup is rate
-    #: limited per phone, and the cache outlives a single test.
-    UNTICKED = {'username': 'belgisiz', 'first_name': 'Rozi',
-                'password1': 'parol12345', 'password2': 'parol12345'}
 
     def test_a_signup_without_the_box_is_refused(self):
         """The server refuses what the browser refuses: no account, no code
@@ -761,16 +748,15 @@ class ConsentRecordTests(TestCase):
         This replaces a test asserting the opposite - that such a request
         still registered, only without a consent on record.
         """
-        from unittest import mock
         from user.models import User
-        with mock.patch('user.otp.send_sms', return_value=True) as sms:
-            response = self.client.post(
-                reverse('signup'), dict(self.UNTICKED, phone='+998901119956'))
+        from .test_phase15 import catch_sms
+        inbox = catch_sms(self)
+        response = self.client.post(reverse('signup'), {'phone': '+998901119956'})
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(User.objects.filter(username='belgisiz').exists())
-        sms.assert_not_called()
+        self.assertFalse(User.objects.filter(phone='+998 90 111 99 56').exists())
+        self.assertEqual(inbox.messages, [])
         self.assertContains(response, 'maxfiylik siyosatiga rozilik bering')
-        self.assertContains(response, 'value="belgisiz"')
+        self.assertContains(response, 'value="+998901119956"')
 
     def test_the_refusal_is_written_in_each_language(self):
         """Read off the page rather than the catalogue: a msgid that drifts by
@@ -784,9 +770,8 @@ class ConsentRecordTests(TestCase):
         }
         for n, (language, words) in enumerate(expected.items()):
             with self.subTest(language=language), translation.override(language):
-                response = self.client.post(
-                    reverse('signup'),
-                    dict(self.UNTICKED, phone='+99890111996%d' % n))
+                response = self.client.post(reverse('signup'),
+                                            {'phone': '+99890111996%d' % n})
                 self.assertContains(response, words)
 
     def test_the_box_is_named_so_the_server_can_see_it(self):

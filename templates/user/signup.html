@@ -4,14 +4,14 @@
 {% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
 {% block content %}
-{# Centred, one column, like the sign-in screen beside it and the OTP step #}
+{# Centred, one column, like the sign-in screen beside it and the code page #}
 {# after it (§17 #177). #}
 <div class="wrap section">
   <div class="auth auth--narrow">
     <div class="stack stack--lg">
       <div class="stack stack--sm">
         <h1 class="h1">{% trans "Roʻyxatdan oʻtish" %}</h1>
-        <p class="lede">{% trans "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak." %}</p>
+        <p class="lede">{% trans "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak." %}</p>
       </div>
 
       {% if notice %}<div class="msg msg--warn" role="status">{{ notice }}</div>{% endif %}
@@ -19,42 +19,17 @@
         <div class="msg msg--err" role="alert">{{ form.non_field_errors|join:" · " }}</div>
       {% endif %}
 
+      {# No action: the form posts to the address it was opened at, which #}
+      {# carries `next` when the visitor came from the checkout. #}
       <form method="post" class="stack" id="signupForm">
         {% csrf_token %}
-        <div class="field {% if form.username.errors %}field--error{% endif %}">
-          <label class="label" for="id_username">{% trans "Foydalanuvchi nomi" %}</label>
-          <input class="input" type="text" name="username" id="id_username" required
-                 autocomplete="username" value="{{ form.username.value|default:'' }}">
-          {% if form.username.errors %}<small class="field__error">{{ form.username.errors|join:" · " }}</small>{% endif %}
-          {% if form.username.help_text %}<small class="field__hint">{{ form.username.help_text }}</small>{% endif %}
-        </div>
-
-        <div class="field {% if form.first_name.errors %}field--error{% endif %}">
-          <label class="label" for="id_first_name">{% trans "Ismingiz" %}</label>
-          <input class="input" type="text" name="first_name" id="id_first_name"
-                 autocomplete="given-name" value="{{ form.first_name.value|default:'' }}">
-          {% if form.first_name.errors %}<small class="field__error">{{ form.first_name.errors|join:" · " }}</small>{% endif %}
-        </div>
-
         <div class="field {% if form.phone.errors %}field--error{% endif %}">
           <label class="label" for="id_phone">{% trans "Telefon" %}</label>
-          <input class="input" type="tel" name="phone" id="id_phone" placeholder="+998 ..."
+          <input class="input" type="tel" name="phone" id="id_phone" placeholder="+998 ..." required autofocus
                  autocomplete="tel" value="{{ form.phone.value|default:'' }}">
           {% if form.phone.errors %}<small class="field__error">{{ form.phone.errors|join:" · " }}</small>{% endif %}
-        </div>
-
-        <div class="field {% if form.password1.errors %}field--error{% endif %}">
-          <label class="label" for="id_password1">{% trans "Parol" %}</label>
-          <input class="input" type="password" name="password1" id="id_password1" required
-                 autocomplete="new-password">
-          {% if form.password1.errors %}<small class="field__error">{{ form.password1.errors|join:" · " }}</small>{% endif %}
-        </div>
-
-        <div class="field {% if form.password2.errors %}field--error{% endif %}">
-          <label class="label" for="id_password2">{% trans "Parolni takrorlang" %}</label>
-          <input class="input" type="password" name="password2" id="id_password2" required
-                 autocomplete="new-password">
-          {% if form.password2.errors %}<small class="field__error">{{ form.password2.errors|join:" · " }}</small>{% endif %}
+          {# A registered number: the way to sign in with it, number kept. #}
+          {% if other_door %}<a class="link small" href="{{ other_door }}">{% trans "Shu raqam bilan kirish" %}</a>{% endif %}
         </div>
 
         <label class="check">
@@ -73,14 +48,14 @@
         {% if form.agree.errors %}<small class="field__error">{{ form.agree.errors|join:" · " }}</small>{% endif %}
 
         <button class="btn btn--primary btn--lg btn--block" type="submit"
-                {% if rate_limited %}disabled{% endif %}>{% trans "Hisob yaratish" %}</button>
+                {% if rate_limited %}disabled{% endif %}>{% trans "Kod olish" %}</button>
         {% if rate_limited %}
           <p class="field__error">{% trans "Juda koʻp urinish. Biroz kuting va qayta urining." %}</p>
         {% endif %}
       </form>
 
       <p class="muted">
-        {% trans "Hisob bormi?" %} <a class="link" href="{% url 'login' %}">{% trans "Kirish" %}</a>
+        {% trans "Hisob bormi?" %} <a class="link" href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% trans "Kirish" %}</a>
       </p>
     </div>
   </div>
