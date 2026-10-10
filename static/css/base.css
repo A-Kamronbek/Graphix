@@ -2,29 +2,16 @@
    Depends on tokens.css. Loads before components.css. */
 
 /* ------------------------------------------------------------------ fonts */
-/* Self-hosted and subset (Latin + Latin Ext + Cyrillic + the modifier letters
-   Uzbek needs). Variable, so one file covers every weight. The old site pulled
-   Inter from rsms.me — a third-party render-blocking request on every page. */
+/* One face for the whole site (§17 #311, #312). Self-hosted, so no page waits
+   on another host and every device draws the same letters, and subset (Latin +
+   Latin Ext + Cyrillic + the modifier letters Uzbek needs). Variable in weight
+   and in optical size: one file covers every weight, and the browser draws
+   large type with the display cut on its own. CONTRIBUTING.md says how the
+   file was cut. */
 @font-face {
-  font-family: "Playfair Display";
-  src: url("../fonts/playfair-display-var.woff2") format("woff2-variations");
-  font-weight: 400 900;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Onest";
-  src: url("../fonts/onest-var.woff2") format("woff2-variations");
+  font-family: "Inter";
+  src: url("../fonts/inter-var.woff2") format("woff2-variations");
   font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-/* Declared but never preloaded: no storefront page uses mono, so the browser
-   only fetches it if a page actually sets it (the admin panel, Phase 7). */
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url("../fonts/ibm-plex-mono-400.woff2") format("woff2");
-  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -125,6 +112,10 @@ address { font-style: normal; }
 
 /* Prices, quantities, measurements — anything that lines up in a column. */
 .num { font-variant-numeric: tabular-nums; }
+
+/* Left alone, the browser sets these in whatever monospace the device has,
+   which is a second face on the page (§17 #311). */
+code, kbd, samp, pre { font-family: var(--f-mono); }
 
 .link {
   color: var(--c-brand);
