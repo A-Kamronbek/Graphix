@@ -19,8 +19,8 @@
           {% endif %}
         </p>
         {% if ttl %}
-          {# Shown by auth.js, which is what makes the clock run. #}
-          <p class="small muted" hidden>
+          {# Shown only when scripts run: auth.js is what moves the clock. #}
+          <p class="small muted otp__timer">
             {% trans "Kod amal qilish muddati" %}:
             <span class="num" id="otpTimer" data-ttl="{{ ttl }}">--:--</span>
           </p>

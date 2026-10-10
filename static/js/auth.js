@@ -1,8 +1,8 @@
 /* Auth-page behaviour: the code cells and the signup draft.
  *
- * The code page works without this script: it has one plain field for the
- * code. This swaps in the six cells and adds the countdown and the resend
- * timer. The DOM contract: [data-otp], .otp, .otp__cell, #id_code, #otpForm,
+ * The code page works with scripts off: it has one plain field for the
+ * code. With them on the stylesheet shows six cells instead, and this makes
+ * them work and runs the countdown and the resend timer. The DOM contract: [data-otp], .otp, .otp__cell, #id_code, #otpForm,
  * #otpTimer[data-ttl], #otpExpireForm, #otpResend[data-cooldown], #signupForm.
  *
  * One thing did change, and it was a bug: the resend button's label was a
@@ -23,10 +23,10 @@
     var form = document.getElementById('otpForm');
     if (!row || !cells.length || !hidden || !form) return;
 
-    /* The swap: the plain field becomes the hidden store the cells write
-     * into, and the cells take its place and its label. */
+    /* The stylesheet has already put the cells where the plain field was.
+     * Here that field becomes the hidden store they write into, and the
+     * label is pointed at the first cell. */
     hidden.type = 'hidden';
-    row.hidden = false;
     var label = wrap.querySelector('label[for="id_code"]');
     if (label) label.htmlFor = cells[0].id;
     if (!cells[0].disabled) cells[0].focus();
@@ -103,8 +103,6 @@
      * cannot end an attempt whose code is still valid. */
     var timerEl = document.getElementById('otpTimer');
     if (timerEl) {
-      /* Hidden until now: without this script the clock would never move. */
-      timerEl.parentNode.hidden = false;
       var left = parseInt(timerEl.dataset.ttl, 10) || 0;
       var fired = false;
       var expireForm = document.getElementById('otpExpireForm');

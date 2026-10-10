@@ -17,6 +17,7 @@ from datetime import timedelta
 from unittest import mock
 
 from django.apps import apps
+from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
@@ -477,15 +478,22 @@ class CodePageTests(CodeCase):
 
     def test_the_page_works_without_its_script(self):
         """One ordinary field named ``code``, in a form that posts to its own
-        address. The six cells are there too, hidden until the script is ready,
-        and nothing the page needs is disabled or hidden waiting for it."""
+        address. The six cells are in the page too, and the stylesheet shows
+        them only once scripts are known to run; nothing the page needs is
+        disabled, hidden or required waiting for a script."""
         self.ask()
         html = self.client.get(reverse('verify_phone')).content.decode()
         self.assertRegex(html, r'<form method="post"[^>]*id="otpForm"')
-        self.assertRegex(html, r'<input class="input otp__plain" type="text" name="code" id="id_code"')
-        self.assertIn('<div class="otp" hidden>', html)
+        field = re.search(r'<input class="input otp__plain"[^>]*>', html).group(0)
+        self.assertIn('type="text" name="code" id="id_code"', field)
+        self.assertNotIn('required', field)
         self.assertNotRegex(html, r'id="otpResend"[^>]*disabled')
+        self.assertNotIn(' hidden>', html.split('id="otpForm"')[1].split('</form>')[0])
         self.assertNotIn(self.inbox.code, html)
+        css = (settings.BASE_DIR / 'static/css/components.css').read_text(encoding='utf-8')
+        for rule in ('.otp { display: none;', 'html.js .otp { display: flex; }',
+                     'html.js .otp__plain { display: none; }'):
+            self.assertIn(rule, css)
 
 
 # -------------------------------------------------------------- the limits

@@ -137,23 +137,29 @@ input.stepper__val:focus:not(:focus-visible) { outline: none; }
 .stepper:focus-within { border-color: var(--c-brand); }
 input.stepper__val:disabled { color: var(--c-fg-subtle); }
 
-/* Six cells share the row and give way on a narrow phone: at a fixed 52px each
-   they made the whole page 10px wider than a 360px screen. `width: 0` is what
-   lets them: an input's own width is otherwise the least the row will take,
-   whatever it is allowed to shrink to. `[hidden]` is restated because the
-   row's own `display` would otherwise show it before the script is ready. */
+/* The code field. One ordinary input until the script is known to run, six
+   cells once it is. Which of the two shows is decided here, off `html.js`,
+   and not by the script: the page is laid out once, before it is painted
+   (§17 #276). The countdown is shown the same way, since only the script
+   moves it.
+
+   The cells share the row and give way on a narrow phone: at a fixed 52px
+   each they made the whole page 10px wider than a 360px screen. `width: 0` is
+   what lets them: an input's own width is otherwise the least the row will
+   take, whatever it is allowed to shrink to. */
 [data-otp] { --otp-w: 52px; --otp-h: 62px; }
-.otp { display: flex; gap: var(--s-2); }
-.otp[hidden] { display: none; }
+.otp { display: none; gap: var(--s-2); }
+html.js .otp { display: flex; }
+html.js .otp__plain { display: none; }
+.otp__timer { display: none; }
+html.js .otp__timer { display: block; }
 .otp input { flex: 1 1 0; width: 0; min-width: 0; max-width: var(--otp-w); height: var(--otp-h);
   padding: 0; text-align: center; font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold); background: var(--c-surface); color: var(--c-fg);
   border: 1px solid var(--c-line-control); border-radius: var(--r-sm); font-variant-numeric: tabular-nums; }
 .otp input:focus { border-color: var(--c-brand); }
 .otp input:focus:not(:focus-visible) { outline: none; }
-/* The one field the page has before the script swaps the cells in, and all it
-   has when the script never runs. As tall as the cells and as wide as six of
-   them, so the swap moves nothing around it. */
+/* As tall as the cells and as wide as six of them. */
 .otp__plain { height: var(--otp-h); max-width: calc(6 * var(--otp-w) + 5 * var(--s-2));
   text-align: center; font-size: var(--fs-2xl); font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-caps); font-variant-numeric: tabular-nums; }
