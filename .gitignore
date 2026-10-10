@@ -50,6 +50,9 @@ Thumbs.db
 # ...but the source of the shipped OG image is not a working note:
 # core.test_backlog asserts the card can still be redrawn.
 !/docs/brand/og-card.html
+# The size chart's source likewise. It was kept as a working note, was lost,
+# and had to be drawn again from the picture; core.test_phase17 holds it now.
+!/docs/brand/size-guide.html
 /docs/design/
 # deploy/RUNBOOK.md is TRACKED. It was ignored as a working note and went
 # missing twice over. It holds no credential - only the names of the

@@ -63,9 +63,12 @@
   --s-6:  32px;  --s-7:  48px;  --s-8:  64px;  --s-9:  96px;  --s-10:128px;
 
   /* ----------------------------------------------------------------- type */
-  --f-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  --f-body:    "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --f-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* One face for every role (§17 #311, #312). The three names stay so a rule
+     still says which role it is setting. The fallbacks are what a device
+     draws until the file arrives, so they are the faces nearest to it. */
+  --f-body:    "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-display: var(--f-body);
+  --f-mono:    var(--f-body);
 
   --fs-xs:   12px; --fs-sm:  14px; --fs-base: 16px; --fs-lg:  18px;
   --fs-xl:   20px; --fs-2xl: 24px; --fs-3xl:  32px; --fs-4xl: 40px;

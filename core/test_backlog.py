@@ -547,7 +547,8 @@ class IconAndShareCardTests(TestCase):
     def test_the_card_has_a_source_in_the_brand_folder(self):
         source = ROOT / 'docs' / 'brand' / 'og-card.html'
         text = source.read_text(encoding='utf-8')
-        self.assertIn('Playfair Display', text)
+        # Set in the face the site serves, from the file the site serves.
+        self.assertIn('static/fonts/inter-var.woff2', text)
         self.assertIn('--window-size=1200,630', text)
         self.assertIn('og-image.png', text)
 

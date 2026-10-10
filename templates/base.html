@@ -82,12 +82,10 @@
   {% endfor %}
   {% if seo_default_url %}<link rel="alternate" hreflang="x-default" href="{{ seo_default_url }}">{% endif %}
 
-  {# Both faces are used above the fold on every page, so both are preloaded. #}
+  {# Every page draws all of its text with this one file, so it is preloaded. #}
   {# Self-hosted and subset - no third-party request blocks the first paint. #}
   <link rel="preload" as="font" type="font/woff2" crossorigin
-        href="{% static 'fonts/playfair-display-var.woff2' %}">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-        href="{% static 'fonts/onest-var.woff2' %}">
+        href="{% static 'fonts/inter-var.woff2' %}">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/components.css' %}">
