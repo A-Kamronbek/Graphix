@@ -1,0 +1,145 @@
+<!doctype html>
+<!--
+  GRAPHIX size chart - the picture the size guide page and the product page
+  show (static/img/size_guide.png, 2400 x 1742).
+
+  The source of that PNG. The owner can replace the picture with one of his own
+  (§17 #69); until he does, this is it, and it is set in the site's own face
+  from the file the site serves (§17 #311), on the site's ground and ink.
+
+  One picture for all three languages, so the labels carry all three. The
+  numbers are the ones in product/size_charts.py, and a test holds the two
+  together. They are provisional until a real garment is measured (§17 #95).
+
+  To regenerate, from the repository root in PowerShell, on one line (any
+  Chromium browser takes the same switches; the paths must be absolute, and the
+  time budget lets the font load before the capture):
+
+    & "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe" --headless
+      --hide-scrollbars --window-size=1200,871 --force-device-scale-factor=2
+      --virtual-time-budget=3000
+      "--screenshot=$PWD\static\img\size_guide.png" "$PWD\docs\brand\size-guide.html"
+-->
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>GRAPHIX size chart</title>
+<style>
+  @font-face { font-family: "Inter"; font-weight: 100 900;
+    src: url("../../static/fonts/inter-var.woff2") format("woff2-variations"); }
+  /* The site's tokens (static/css/tokens.css), copied because this page
+     is rendered outside the site. */
+  :root { --c-bg: #100E0C; --c-surface-2: #211C15; --c-fg: #EFE9DE;
+    --c-fg-muted: #B0A697; --c-fg-hint: #958A79; --c-line: #2C2620;
+    --c-line-strong: #453D31; --c-brand: #C6A44E; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 871px; overflow: hidden;
+    background: var(--c-bg); color: var(--c-fg);
+    font-family: "Inter", sans-serif; font-weight: 500; }
+  .chart { width: 1200px; height: 871px; padding: 0 56px;
+    display: grid; grid-template-rows: 130px 1fr 128px; }
+
+  .chart__head { display: flex; align-items: flex-end; justify-content: space-between;
+    padding-bottom: 26px; border-bottom: 1px solid var(--c-line-strong); }
+  .chart__title { font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: -.02em; }
+  .chart__brand { font-weight: 700; font-size: 20px; line-height: 1; letter-spacing: .10em;
+    color: var(--c-brand); padding-bottom: 6px; }
+
+  .chart__body { display: grid; grid-template-columns: 468px 1fr; padding-top: 36px; }
+
+  .tee { display: block; width: 292px; height: 264px; margin: -16px 0 0 60px; }
+  .tee__cloth { fill: var(--c-surface-2); stroke: var(--c-line-strong); stroke-width: 2.5;
+    stroke-linejoin: round; }
+  .tee__rule { fill: none; stroke: var(--c-brand); stroke-width: 2.5; stroke-dasharray: 9 7; }
+  .tee__tick { fill: none; stroke: var(--c-brand); stroke-width: 2.5; }
+  .tee__letter { fill: var(--c-brand); font-weight: 700; font-size: 25px; }
+
+  .key { display: grid; grid-template-columns: auto auto; justify-content: start;
+    gap: 14px 26px; margin-top: 38px; font-size: 15px; color: var(--c-fg-muted); }
+  .key b { display: inline-block; width: 24px; color: var(--c-brand); font-weight: 700; }
+
+  .cut + .cut { margin-top: 36px; }
+  .cut__name { font-weight: 700; font-size: 24px; line-height: 1; letter-spacing: -.01em;
+    margin-bottom: 18px; }
+  .cut table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .cut th, .cut td { text-align: right; width: 91px; }
+  .cut th:first-child, .cut td:first-child { text-align: left; width: auto; }
+  .cut thead th { font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--c-fg-hint); padding-bottom: 12px; border-bottom: 1px solid var(--c-line-strong); }
+  .cut tbody td { height: 46px; font-size: 16px; font-weight: 600; border-bottom: 1px solid var(--c-line); }
+  .cut tbody td:first-child { font-weight: 700; }
+  .cut tbody tr:last-child td { border-bottom: 0; }
+
+  .chart__foot { border-top: 1px solid var(--c-line-strong); padding-top: 20px;
+    font-size: 14px; line-height: 21px; color: var(--c-fg-hint); }
+</style>
+</head>
+<body>
+  <div class="chart">
+    <div class="chart__head">
+      <h1 class="chart__title">Oʻlcham jadvali</h1>
+      <span class="chart__brand">GRAPHIX</span>
+    </div>
+
+    <div class="chart__body">
+      <div>
+        <!-- A T-shirt laid flat, with the four measurements drawn on it. -->
+        <svg class="tee" viewBox="-6 -30 486 440" aria-hidden="true">
+          <path class="tee__cloth" d="M137 57Q227 110 317 57L451 147L397 230L333 173L350 388Q350 400 338 400H115Q103 400 103 388L120 173L57 230L3 147Z"/>
+          <path class="tee__rule" d="M137 31H317"/>
+          <path class="tee__tick" d="M137 16V40M317 16V40"/>
+          <path class="tee__rule" d="M105 207H349"/>
+          <path class="tee__tick" d="M105 195V216M349 195V216"/>
+          <path class="tee__rule" d="M227 64V400"/>
+          <path class="tee__tick" d="M211 64H237M213 400H237"/>
+          <path class="tee__rule" d="M325 62L428 180"/>
+          <path class="tee__tick" d="M310 74L330 58M410 192L428 178"/>
+          <text class="tee__letter" x="227" y="2" text-anchor="middle">C</text>
+          <text class="tee__letter" x="204" y="196" text-anchor="middle">A</text>
+          <text class="tee__letter" x="246" y="303">B</text>
+          <text class="tee__letter" x="446" y="136">D</text>
+        </svg>
+        <div class="key">
+          <span><b>A</b>Koʻkrak · Грудь · Chest</span>
+          <span><b>B</b>Uzunlik · Длина · Length</span>
+          <span><b>C</b>Yelka · Плечо · Shoulder</span>
+          <span><b>D</b>Yeng · Рукав · Sleeve</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="cut" data-cut="regular">
+          <h2 class="cut__name">Oddiy / Regular</h2>
+          <table>
+            <thead><tr><th>Oʻlcham</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+            <tbody>
+              <tr><td>S</td><td>48</td><td>69</td><td>43</td><td>19</td></tr>
+              <tr><td>M</td><td>51</td><td>71</td><td>46</td><td>20</td></tr>
+              <tr><td>L</td><td>54</td><td>73</td><td>49</td><td>21</td></tr>
+              <tr><td>XL</td><td>57</td><td>75</td><td>52</td><td>22</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cut" data-cut="oversize">
+          <h2 class="cut__name">Oversize</h2>
+          <table>
+            <thead><tr><th>Oʻlcham</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+            <tbody>
+              <tr><td>S</td><td>54</td><td>70</td><td>52</td><td>21</td></tr>
+              <tr><td>M</td><td>57</td><td>72</td><td>55</td><td>22</td></tr>
+              <tr><td>L</td><td>60</td><td>74</td><td>58</td><td>23</td></tr>
+              <tr><td>XL</td><td>63</td><td>76</td><td>61</td><td>24</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart__foot">
+      <p>Oʻlchamlar kiyim tekis yotqizilgan holda, santimetrda olingan · ±1 sm farq boʻlishi mumkin</p>
+      <p>Замеры сняты с изделия на плоскости, в сантиметрах · допуск ±1 см</p>
+      <p>Measured flat, in centimetres · allow ±1 cm</p>
+    </div>
+  </div>
+</body>
+</html>
