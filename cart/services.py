@@ -59,10 +59,11 @@ def get_active_cart(request):
 def merge_guest_cart(session_key, user):
     """Fold a guest cart into ``user``'s open cart. Returns the surviving cart.
 
-    Called immediately after login and after signup. ``session_key`` is the key
-    as it was *before* ``django.contrib.auth.login`` ran: login cycles the
-    session key to prevent fixation, so reading it afterwards finds a key no
-    cart was ever stored against and the guest's items would simply vanish.
+    Called by ``cart.signals`` whenever anyone signs in, by any door.
+    ``session_key`` is the key as it was *before* ``django.contrib.auth.login``
+    ran: login cycles the session key to prevent fixation, so reading it
+    afterwards finds a key no cart was ever stored against and the guest's
+    items would simply vanish.
 
     Both carts are locked for the length of the transaction, because the same
     person may have the shop open in two tabs and submit from both.
