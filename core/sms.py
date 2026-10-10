@@ -1,8 +1,8 @@
 """Eskiz.uz SMS gateway client.
 
 Authenticates against the Eskiz REST API, caches the JWT token, and sends the
-signup / password-reset OTP messages. Failures are logged and swallowed so an
-SMS outage can't 500 a signup.
+sign-in and sign-up codes. Failures are logged and swallowed, so an SMS outage
+is a page saying the code could not be sent and never a 500.
 """
 import logging
 import re
@@ -73,4 +73,10 @@ def send_sms(phone, message):
         return True
     except requests.RequestException as e:
         logger.error("Eskiz SMS request error for %s: %s", _format_phone(phone), e)
+        return False
+    except Exception:
+        # Anything else, such as a reply from Eskiz in a shape it has never
+        # sent before. The code is the only way in to an account, so this must
+        # end as "not sent" and not as a failed page.
+        logger.exception("Eskiz SMS failed unexpectedly for %s", _format_phone(phone))
         return False
