@@ -434,3 +434,12 @@ class Order(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+#: The statuses of an order the shop was paid for and kept: a sale. Stock is
+#: held by these orders and by no others, the dashboard counts these and
+#: nothing else as takings, and a promo code's use belongs to one of them.
+#: `paying` is out because nobody has paid; `cancelled` is out whether or not
+#: money moved first (§17 #57, #297).
+SOLD = (Order.Status.PAID, Order.Status.PROCESSING,
+        Order.Status.ON_THE_WAY, Order.Status.DONE)

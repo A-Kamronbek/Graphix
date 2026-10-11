@@ -31,7 +31,7 @@ from django.db.models import ExpressionWrapper, Max, Prefetch
 
 from core.models import Msg
 from payment.models import (DeliveryOption, District, Order, PaymentOption,
-                            Region)
+                            Region, SOLD)
 from product import images as image_pipeline
 from payment import services as payment_services
 from product import services as product_services
@@ -46,13 +46,6 @@ from .services import PANEL_CHOICES, PANEL_SETTABLE, UnknownStatus, set_status
 #: Orders per page in the list. Twenty fills a laptop screen and is three
 #: thumb-scrolls on a phone.
 PER_PAGE = 20
-
-#: The statuses of an order the shop was paid for and kept - a sale. The
-#: dashboard's report tiles count these and nothing else. `paying` is out
-#: because nobody has paid; `cancelled` is out whether or not money moved
-#: first, because a cancelled order is not takings (§17 #297).
-SOLD = (Order.Status.PAID, Order.Status.PROCESSING,
-        Order.Status.ON_THE_WAY, Order.Status.DONE)
 
 
 def _int(raw, default=0):

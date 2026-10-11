@@ -26,7 +26,7 @@ from tolov import ClickGateway, OctoGateway, PaymeGateway
 from cart.models import Cart
 from core import legal, telegram
 from product.models import Variant
-from .models import Order, location_text
+from .models import Order, SOLD, location_text
 
 #: Module logger, because every external call on this site logs through one
 #: and returns rather than raising (§4, the `core/sms.py` pattern).
@@ -375,11 +375,30 @@ def _move_stock(order, sign):
         )
 
 
+def take_for_sale(order):
+    """Take what a sale holds: the stock of each line of ``order``.
+
+    Called once each time an order crosses from not paid to paid, whoever
+    moves it: the gateway's callback below, or staff changing the status in
+    the panel or the admin. The caller holds the transaction and decides the
+    status; this only moves what belongs to it.
+    """
+    _move_stock(order, -1)
+
+
+def return_from_sale(order):
+    """Give back what :func:`take_for_sale` took, when a sale is undone."""
+    _move_stock(order, +1)
+
+
 def apply_successful_payment(order):
-    """Mark ``order`` PAID (idempotent). The only place an order becomes paid.
+    """Mark ``order`` PAID (idempotent). The only place a payment makes one paid.
 
     The status check is what makes it idempotent: a gateway can replay a
-    callback, and stock must only come down once.
+    callback, and stock must only come down once. It asks whether the order
+    is already a sale, not whether it reads PAID: by the time a callback is
+    replayed staff may have moved the order on to packing, and that order
+    must not be taken from stock again or put back a step.
 
     Takes the order rather than a gateway's transaction id. It used to take a
     Click transaction id and look the order up through click-pkg's own table,
@@ -387,9 +406,9 @@ def apply_successful_payment(order):
     the webhook's job now, and this stays the single place the status moves
     (§17 #253).
     """
-    if order.status != Order.Status.PAID:
+    if order.status not in SOLD:
         with transaction.atomic():
-            _move_stock(order, -1)
+            take_for_sale(order)
             order.status = Order.Status.PAID
             order.save(update_fields=['status', 'updated_at'])
             # Queued inside the transaction and sent after it commits: a
@@ -435,11 +454,15 @@ def cancel_paid_order(order):
     Separate from :func:`cancel_order` on purpose: that one is reachable from the
     storefront, and a customer must not be able to cancel a paid order. Returns
     whether the status changed.
+
+    The panel and the admin do not come through here. They move a status with
+    ``panel.services.set_status``, which records who did it, and that calls
+    :func:`return_from_sale` itself when the move undoes a sale.
     """
-    if order.status in (Order.Status.CANCELLED, Order.Status.PAYING):
+    if order.status not in SOLD:
         return False
     with transaction.atomic():
-        _move_stock(order, +1)
+        return_from_sale(order)
         order.status = Order.Status.CANCELLED
         order.save(update_fields=['status', 'updated_at'])
     return True
