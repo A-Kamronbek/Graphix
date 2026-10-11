@@ -780,38 +780,46 @@ class StaffTests(CodeCase):
         self.assertContains(response, 'Xodim hisobiga parol bilan kiriladi.')
         self.assertEqual(self.inbox.messages, [])
 
-    def test_a_confirmation_left_behind_by_a_signed_out_account_opens_nothing(self):
-        """The attempt stays in the session when the account is switched off."""
-        self.owner.phone_verified = False
-        self.owner.save()
-        self.admin_sign_in()
-        self.client.get(reverse('verify_phone'))
-        code = self.inbox.code
-        User.objects.filter(pk=self.owner.pk).update(is_active=False)
-        self.assertRedirects(self.enter(code), reverse('login'))
-
     def test_the_staff_door_limits_guesses_from_an_address(self):
         cache.set(_bucket_key('staff_login_address', '127.0.0.1'), 60, 300)
         self.admin_sign_in()
         self.assertIsNone(self.signed_in())
 
-    def test_a_staff_number_nobody_confirmed_is_confirmed_by_a_code(self):
+    def fresh_from_createsuperuser(self):
+        """The owner as ``createsuperuser`` leaves them: nobody confirmed the number."""
         self.owner.phone_verified = False
         self.owner.save()
-        self.admin_sign_in()
-        response = self.client.get(reverse('shop'))
-        self.assertRedirects(response, reverse('verify_phone'), fetch_redirect_response=False)
-        self.client.get(reverse('verify_phone'))
-        self.assertEqual(len(self.inbox.messages), 1)
-        self.assertRedirects(self.enter(self.inbox.code), reverse('account'))
-        self.owner.refresh_from_db()
-        self.assertTrue(self.owner.phone_verified)
 
-    def test_an_unconfirmed_staff_account_still_reaches_the_admin(self):
-        self.owner.phone_verified = False
-        self.owner.save()
+    def test_a_new_staff_account_goes_straight_to_the_panel(self):
+        """The password is how staff prove who they are. Nothing asks them
+        for a code as well, on the way to the panel or anywhere else."""
+        self.fresh_from_createsuperuser()
+        response = self.admin_sign_in()
+        self.assertRedirects(response, reverse('panel_dashboard'))
+        self.assertEqual(self.inbox.messages, [])
+
+    def test_a_new_staff_account_uses_the_whole_site(self):
+        self.fresh_from_createsuperuser()
         self.admin_sign_in()
+        for lang in LANGS:
+            for name in ('home', 'shop', 'cart', 'account', 'account_settings',
+                         'panel_dashboard', 'panel_orders'):
+                with self.subTest(lang=lang, name=name), translation.override(lang):
+                    self.assertEqual(self.client.get(reverse(name)).status_code, 200)
         self.assertEqual(self.client.get('/admin/').status_code, 200)
+        self.assertEqual(self.inbox.messages, [])
+
+    def test_the_code_page_is_closed_to_anyone_signed_in(self):
+        """It belongs to the two doors. Opening it signed in sends no code."""
+        self.fresh_from_createsuperuser()
+        self.admin_sign_in()
+        self.assertRedirects(self.client.get(reverse('verify_phone')), reverse('account'))
+        self.assertRedirects(self.enter('123456'), reverse('account'))
+        for name in ('resend_otp', 'cancel_verification', 'expire_verification'):
+            with self.subTest(name=name):
+                self.assertRedirects(self.client.post(reverse(name)), reverse('account'))
+        self.assertEqual(self.inbox.messages, [])
+        self.assertIsNotNone(self.signed_in())
 
 
 # ---------------------------------------------- what staff change in the admin

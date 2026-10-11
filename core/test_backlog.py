@@ -157,8 +157,8 @@ class OrdersOutliveTheirCustomerTests(TestCase):
         lapsed, behind a guard for rows holding an order (§12 risk #4). An
         account now waits for the code, so there is nothing to tidy up and
         the path is gone (§17 #309)."""
-        from user import middleware, services, views
-        for module in (services, views, middleware):
+        from user import codes, services, views
+        for module in (services, views, codes):
             source = inspect.getsource(module)
             with self.subTest(module=module.__name__):
                 self.assertNotIn('.delete(', source)
@@ -557,35 +557,41 @@ class IconAndShareCardTests(TestCase):
         self.assertIn('og-image.png', text)
 
 
-# --------------------------------------------------- verification, §17 #225
-class VerificationInEveryLanguageTests(TestCase):
-    """An unverified account reaches the code page in every language (§17 #225).
+# ------------------------------------------- no phone wall, §17 #225, #341
+class NoPhoneWallTests(TestCase):
+    """Nothing stands between a signed-in account and the site (§17 #341).
 
-    The middleware's exempt paths were resolved in Uzbek only, so on
-    ``/ru/verify-phone/`` it redirected to ``/ru/verify-phone/`` for ever.
+    A wall used to send every account whose number nobody had confirmed to the
+    code page, and for three phases it did so in Uzbek only: on
+    ``/ru/verify-phone/`` it redirected to ``/ru/verify-phone/`` for ever
+    (§17 #225). A customer's number is now confirmed before the account
+    exists, and staff sign in with a password, so the only people the wall
+    still stopped were new staff. It is gone, and so is the loop.
     """
 
     def setUp(self):
-        self.user = make_user('kodsiz', '+998901300071', verified=False)
+        self.user = make_staff('kodsiz', '+998901300071')
+        self.user.phone_verified = False
+        self.user.save(update_fields=['phone_verified'])
         self.client.force_login(self.user)
         sms = mock.patch('user.codes.send_sms', return_value=True)
         self.sent = sms.start()
         self.addCleanup(sms.stop)
 
-    def test_the_code_page_opens_in_every_language(self):
+    def test_every_page_opens_in_every_language(self):
+        for lang in LANGS:
+            for name in ('shop', 'account', 'panel_orders'):
+                with self.subTest(lang=lang, page=name):
+                    self.assertEqual(self.client.get(at(lang, name)).status_code, 200)
+        self.sent.assert_not_called()
+
+    def test_the_code_page_sends_them_on_in_their_own_language(self):
         for lang in LANGS:
             with self.subTest(lang=lang):
                 response = self.client.get(at(lang, 'verify_phone'))
-                self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.sent.call_count, 1)
-
-    def test_any_other_page_leads_there_in_its_own_language(self):
-        for lang in LANGS:
-            with self.subTest(lang=lang):
-                response = self.client.get(at(lang, 'shop'), follow=True)
-                self.assertEqual(response.redirect_chain,
-                                 [(at(lang, 'verify_phone'), 302)])
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response['Location'], at(lang, 'account'))
+        self.sent.assert_not_called()
 
     def test_signing_out_works_in_every_language(self):
         for lang in LANGS:
@@ -594,16 +600,5 @@ class VerificationInEveryLanguageTests(TestCase):
                 self.client.post(at(lang, 'logout'))
                 self.assertNotIn('_auth_user_id', self.client.session)
 
-    def test_the_language_can_be_switched_while_waiting(self):
-        target = at('ru', 'verify_phone')
-        response = self.client.post('/i18n/setlang/', {'language': 'ru', 'next': target})
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], target)
-
-    def test_everything_else_still_waits_for_the_code(self):
-        for lang in LANGS:
-            for name in ('account', 'checkout', 'panel_orders'):
-                with self.subTest(lang=lang, page=name):
-                    response = self.client.get(at(lang, name))
-                    self.assertEqual(response.status_code, 302)
-                    self.assertEqual(response['Location'], at(lang, 'verify_phone'))
+    def test_the_wall_is_not_in_the_settings(self):
+        self.assertFalse([name for name in settings.MIDDLEWARE if 'PhoneVerification' in name])

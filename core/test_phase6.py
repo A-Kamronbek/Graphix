@@ -284,21 +284,23 @@ class NoAccountIsDeletedTests(TestCase):
 
     Sign-up used to write its row first and delete it when the code lapsed,
     unless the row already held a cart or an order. An account now waits for
-    the code, so the only account that can stand on the code page is one made
-    in the admin, and leaving the page signs it out and nothing more
-    (§17 #309).
+    the code, so nobody who is signed in stands on the code page at all, and
+    its buttons send them on to their account and change nothing (§17 #309,
+    #341).
     """
 
     def setUp(self):
         self.product, self.variant = make_product('Oʻchirish sinovi')
 
     def test_cancelling_verification_keeps_an_account_that_claimed_a_cart(self):
-        """An unconfirmed account with a cart, on the code page, gives up."""
+        """An unconfirmed account with a cart presses the code page's cancel."""
         user = make_user('bekor', '+998901110004', verified=False)
         self.client.force_login(user)
         Cart.objects.create(user=user, status=True)
-        self.client.post(reverse('cancel_verification'))
+        response = self.client.post(reverse('cancel_verification'))
+        self.assertRedirects(response, reverse('account'))
         self.assertTrue(User.objects.filter(pk=user.pk).exists())
+        self.assertIn('_auth_user_id', self.client.session)
 
 
 class PruneGuestCartsTests(TestCase):

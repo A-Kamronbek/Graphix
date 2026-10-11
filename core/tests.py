@@ -24,8 +24,8 @@ class SmokeTests(TestCase):
     def setUpTestData(cls):
         """Create the smallest account and catalogue the four paths need.
 
-        ``phone_verified`` is set so PhoneVerificationMiddleware doesn't bounce
-        the logged-in requests to the OTP screen.
+        ``phone_verified`` is set because that is what makes a customer's row
+        an account: the sign-in door turns away a number nobody confirmed.
         """
         cls.password = 'smoke-test-pass-123'
         cls.user = User.objects.create_user(

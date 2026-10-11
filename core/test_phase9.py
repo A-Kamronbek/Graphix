@@ -1121,14 +1121,14 @@ class DuplicateNameTests(TestCase):
 
 
 class StaffVerificationTests(TestCase):
-    """The owner's own account is verified from the Django admin (§19 Q34).
+    """The owner's own account needs nothing done to it (§19 Q34, §17 #341).
 
-    `createsuperuser` leaves `phone_verified` false, and the phone wall sends
-    an unverified account to the OTP screen — but it exempts `/admin/`, and the
-    admin can edit the flag. So the answer to Q34 is a deploy step rather than
-    a code change: sign in at /admin/, tick the box, open the panel. This is
-    that path, as a test, so a later change to either half cannot break it
-    quietly.
+    `createsuperuser` leaves `phone_verified` false. A wall used to send such
+    an account from every page but `/admin/` to the code page, and the answer
+    to Q34 was a deploy step: sign in at `/admin/`, tick the box, open the
+    panel. Staff now sign in with a password and are asked for no code, so
+    there is no wall and no step. The box is still in the admin; nothing reads
+    it for a staff account.
     """
 
     def setUp(self):
@@ -1140,27 +1140,18 @@ class StaffVerificationTests(TestCase):
     def test_the_admin_is_reachable_while_the_phone_is_unverified(self):
         self.assertEqual(self.client.get('/admin/').status_code, 200)
 
-    def test_the_storefront_is_not(self):
-        response = self.client.get(at('uz', 'shop'))
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('verify-phone', response['Location'])
+    def test_so_is_the_storefront(self):
+        self.assertEqual(self.client.get(at('uz', 'shop')).status_code, 200)
 
-    def test_the_panel_is_not_either(self):
-        response = self.client.get(at('uz', 'panel_orders'))
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('verify-phone', response['Location'])
+    def test_and_so_is_the_panel(self):
+        self.assertEqual(self.client.get(at('uz', 'panel_orders')).status_code, 200)
 
-    def test_the_admin_offers_the_box_that_fixes_it(self):
+    def test_the_admin_still_offers_the_box(self):
         page = self.client.get('/admin/user/user/%d/change/' % self.owner.pk)
         self.assertEqual(page.status_code, 200)
         form = page.context['adminform'].form
         self.assertIn('phone_verified', form.fields)
         self.assertFalse(form.fields['phone_verified'].disabled)
-
-    def test_ticking_it_opens_the_panel(self):
-        self.owner.phone_verified = True
-        self.owner.save(update_fields=['phone_verified'])
-        self.assertEqual(self.client.get(at('uz', 'panel_orders')).status_code, 200)
 
 
 class SellerAddressTests(TestCase):

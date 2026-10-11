@@ -18,8 +18,7 @@ config/      settings, the root URL conf, wsgi and asgi
 core/        site pages, the legal documents, the contact form, the Eskiz and
              Telegram clients, the rate limiter, the sitemaps, the test runner
              — and the whole test suite
-user/        the phone-based User, sign-in and sign-up by SMS code, the
-             verification middleware
+user/        the phone-based User, sign-in and sign-up by SMS code
 product/     the catalogue: products, variants, tags, photographs, likes,
              reviews, size charts, and the image pipeline
 cart/        carts, for guests and for signed-in customers
@@ -51,18 +50,12 @@ proxies everything else to gunicorn over a unix socket. Django never serves a
 file in production.
 
 The middleware order in `config/settings.py` is load-bearing and commented
-there. Two entries are ours:
+there. One entry is worth knowing before touching it:
 
 - **`LocaleMiddleware`** sits after the session middleware (it reads the
   language from the session) and before `CommonMiddleware` (which appends
   slashes using the active URL conf). Getting this wrong makes the language
   switcher one-way, which it was for three phases.
-- **`user.middleware.PhoneVerificationMiddleware`** sends a signed-in account
-  whose phone is unverified to the code screen, from anywhere except
-  `/admin/`. A customer's number is confirmed before their account exists, so
-  the accounts this catches are staff made in the admin — which is why a new
-  superuser has to be verified through `/admin/` once, or by the code the
-  screen sends, before the panel will open (plan §19 Q34).
 
 ### URLs and language
 
@@ -130,6 +123,12 @@ Staff are the exception. They keep a username and a password and sign in at
 the storefront will not send a staff number a code, and the panel sends a
 signed-out visitor to that form. An SMS outage therefore cannot lock the
 owner out, and a staff session is never opened by a code alone.
+
+Nothing asks anyone who is signed in to confirm a number. A middleware used
+to send every account whose number was unconfirmed to the code page; a
+customer's number is now confirmed before the account exists and staff are
+asked for no code, so it had nobody left to stop but a new member of staff,
+and it is gone (§17 #341). The code page is for the two doors only.
 
 A customer's `username` is their number without spaces, because Django wants
 the column filled. Nothing shows it. A public page that needs a name uses

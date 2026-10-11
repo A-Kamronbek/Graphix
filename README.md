@@ -41,12 +41,11 @@ python manage.py runserver                 # http://127.0.0.1:8000/uz/
 
 Two things that catch people out:
 
-**Verify your own phone before visiting any page.** `createsuperuser` leaves
-the account unverified, and every page outside `/admin/` sends an unverified
-account to the SMS code screen, superuser or not. Sign in at
-`http://127.0.0.1:8000/admin/`, open your user, fill in the phone and tick
-**phone_verified**. Staff always sign in there, with a username and a
-password; the shop's own sign-in is by SMS code and is for customers.
+**Staff sign in at `/admin/`, not on the shop's own sign-in page.** Sign in at
+`http://127.0.0.1:8000/admin/` with the username and password from
+`createsuperuser`; the staff panel and the shop then open from that session.
+The shop's own sign-in is by SMS code and is for customers, and it does not
+send a staff number a code.
 
 **`compilemessages` needs `--ignore .venv`.** The apps live at the repository
 root, so without it the command walks into the virtualenv and recompiles every
@@ -110,7 +109,7 @@ so a test run cannot notify the real shop.
 config/      settings, root URLs, wsgi/asgi
 core/        site pages, legal documents, contact, Eskiz and Telegram clients,
              rate limiter, CSP middleware, sitemaps, test runner, test suite
-user/        phone-based User, sign-in by SMS code, verification middleware
+user/        phone-based User, sign-in and sign-up by SMS code
 product/     catalogue: products, variants, tags, photos, likes, reviews, charts
 cart/        carts for guests and for signed-in customers
 payment/     checkout, delivery, regions, orders, the payment gateways

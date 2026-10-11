@@ -201,10 +201,9 @@ cd /srv/graphix
 sudo -u graphix .venv/bin/python manage.py createsuperuser
 ```
 
-Then open `https://<host>/admin/` once TLS is up and **mark that account's
-phone as verified**. Until you do, `/boshqaruv/` will not open for it: the
-phone-verification wall applies to staff too, which is §19 Q34 — decided as a
-deploy step rather than a code change (§17 #227). This is that step.
+Nothing else has to be done to the account. It used to need its phone marked
+as verified in the admin before `/boshqaruv/` would open (§19 Q34, §17 #227);
+staff are no longer asked to confirm a number at all (§17 #341).
 
 Staff sign in at `/admin/login/` with this username and password, and nowhere
 else. The shop's own sign-in is by SMS code and is for customers; it does not

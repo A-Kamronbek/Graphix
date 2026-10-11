@@ -9,13 +9,14 @@ abandoned sign-up leaves nothing behind.
 Staff keep a username and a password at ``/admin/``, so an SMS outage cannot
 lock the owner out, and that is their only door: a staff number is not sent a
 code here, because a code is a weaker key than a password and a staff session
-opens every customer's orders. A staff account whose number was never
-confirmed is sent to the same code page while signed in (§17 #227).
+opens every customer's orders. Nor does anything ask staff to confirm the
+number on their account: the code page is for the two doors, and anyone who
+is signed in is sent on from it (§17 #341).
 """
 from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -61,8 +62,9 @@ def _refused(outcome):
 def _reasons():
     """Why a visitor was sent back to a door, keyed by ``?reason=``.
 
-    Kept in the URL rather than as a flash message: the code page signs a
-    staff account out when its attempt ends, and that empties the session.
+    Kept in the URL rather than as a flash message, so the door says it
+    again if the page is reloaded and nothing waits in the session to be shown
+    on some later page.
     """
     return {
         'expired': _("Kod muddati tugadi. Iltimos, qaytadan urinib koʻring."),
@@ -150,48 +152,16 @@ def signup_view(request):
     return _ask(request, form, codes.SIGN_UP, 'user/signup.html')
 
 
-def _attempt(request):
-    """The open attempt that belongs on the code page, or None.
-
-    A signed-in account is only ever here to confirm its own number, so an
-    attempt for anything else is not its attempt.
-    """
-    state = codes.get(request)
-    if state is None:
-        return None
-    confirming = state['purpose'] == codes.CONFIRM
-    if request.user.is_authenticated:
-        if not confirming or state['phone'] != request.user.phone:
-            return None
-    elif confirming:
-        # The account it was for is no longer signed in.
-        return None
-    return state
-
-
 def _leave(request, state, reason=None):
-    """End the attempt and go back to its door.
-
-    A staff account that was confirming its number is signed out as well: it
-    cannot use the site unconfirmed, and leaving it on a page that sends a
-    code each time it is opened would spend an SMS a visit.
-    """
+    """End the attempt and go back to its door."""
     codes.clear(request)
-    if request.user.is_authenticated:
-        logout(request)
     return _door(state, reason)
 
 
 def _finish(request, state):
-    """The code was right: do what it was asked for."""
+    """The code was right: sign the customer in, making the account if this is a sign-up."""
     codes.clear(request)
     purpose, phone = state['purpose'], state['phone']
-
-    if purpose == codes.CONFIRM:
-        request.user.phone_verified = True
-        request.user.save(update_fields=['phone_verified'])
-        messages.success(request, _("Telefon raqam tasdiqlandi."))
-        return redirect('account')
 
     user = User.objects.filter(phone=phone).first()
     if user is not None and (not user.is_active or services.is_staff_account(user)):
@@ -219,29 +189,33 @@ def _finish(request, state):
     return redirect(state.get('next') or landing)
 
 
-def verify_phone(request):
-    """The code page, for both doors and for a staff number being confirmed."""
-    user = request.user
-    if user.is_authenticated and user.phone_verified:
-        return redirect('account')
+def _signed_in(request):
+    """Send a signed-in visitor on from the code page and its buttons.
 
-    state = _attempt(request)
-    if user.is_authenticated and (state is None or codes.is_expired(state)):
-        # Signed in at /admin/ with a number nobody has confirmed (§17 #227).
-        # The code goes out when the page is opened, as it always has.
-        if request.method == 'POST':
-            return redirect('verify_phone')
-        outcome = codes.start(request, codes.CONFIRM, user.phone)
-        if outcome != codes.SENT:
-            messages.error(request, _refused(outcome))
-        state = _attempt(request)
-    elif state is None:
+    The page belongs to the two doors. Somebody who is signed in has already
+    come through one, or is staff and came in with a password, and is asked
+    for no code. Returns the redirect, or None for a visitor who is not
+    signed in.
+    """
+    if not request.user.is_authenticated:
+        return None
+    codes.clear(request)
+    return redirect('account')
+
+
+def verify_phone(request):
+    """The code page, which both doors lead to."""
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
+    if state is None:
         return redirect('login')
-    elif codes.is_expired(state):
+    if codes.is_expired(state):
         return _leave(request, state, 'expired')
 
     form = OTPForm(request.POST or None)
-    if request.method == 'POST' and state:
+    if request.method == 'POST':
         if is_rate_limited(request, 'code_check_address', 30, 300):
             messages.error(request, RATE_LIMIT_MESSAGE)
         elif form.is_valid():
@@ -254,31 +228,26 @@ def verify_phone(request):
                 return _leave(request, state)
             form.add_error('code', _("Kod notoʻgʻri."))
 
-    # No-break spaces, so the number is not cut in two at the end of a line.
-    phone = (state['phone'] if state else user.phone).replace(' ', '\u00a0')
     return render(request, 'user/verify_phone.html', {
         'form': form,
-        'purpose': state['purpose'] if state else codes.CONFIRM,
-        'phone': phone,
-        'resend_in': codes.resend_cooldown(state) if state else 0,
-        'ttl': codes.ttl_remaining(state) if state else 0,
-        'rate_limited': not state or is_currently_limited(request, 'code_check_address', 30),
+        'purpose': state['purpose'],
+        # No-break spaces, so the number is not cut in two at the end of a line.
+        'phone': state['phone'].replace(' ', '\u00a0'),
+        'resend_in': codes.resend_cooldown(state),
+        'ttl': codes.ttl_remaining(state),
+        'rate_limited': is_currently_limited(request, 'code_check_address', 30),
     })
-
-
-def _nothing_to_confirm(request):
-    """A signed-in account with a confirmed number has no business on these pages."""
-    return request.user.is_authenticated and request.user.phone_verified
 
 
 @require_POST
 def resend_otp(request):
     """Send a new code for the open attempt, a minute after the last."""
-    if _nothing_to_confirm(request):
-        return redirect('account')
-    state = _attempt(request)
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
     if state is None:
-        return redirect('verify_phone' if request.user.is_authenticated else 'login')
+        return redirect('login')
     if codes.is_expired(state):
         return _leave(request, state, 'expired')
     if codes.resend_cooldown(state) > 0:
@@ -295,9 +264,10 @@ def resend_otp(request):
 @require_POST
 def cancel_verification(request):
     """Give up on the attempt. Nothing was made, so nothing is removed."""
-    if _nothing_to_confirm(request):
-        return redirect('account')
-    state = _attempt(request)
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
     return _leave(request, state,
                   'cancelled' if state and state['purpose'] == codes.SIGN_UP else None)
 
@@ -309,9 +279,10 @@ def expire_verification(request):
     The server's clock decides, not the page's: a post that arrives while the
     code is still good is sent back to the code page.
     """
-    if _nothing_to_confirm(request):
-        return redirect('account')
-    state = _attempt(request)
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
     if state and not codes.is_expired(state):
         return redirect('verify_phone')
     return _leave(request, state, 'expired')

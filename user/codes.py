@@ -1,4 +1,4 @@
-"""The sign-in code: one flow for signing in, signing up and confirming a number.
+"""The sign-in code: one flow for signing in and for signing up.
 
 A customer has no password (§17 #309). A six-digit code sent by SMS is the only
 key to an account, so everything that keeps a guess, a script or a second
@@ -46,9 +46,9 @@ from core.sms import send_sms
 
 logger = logging.getLogger(__name__)
 
-#: What a code is asked for. CONFIRM is a signed-in account whose number was
-#: never confirmed, which since Phase 15 means staff made in the Django admin.
-SIGN_IN, SIGN_UP, CONFIRM = 'signin', 'signup', 'confirm'
+#: What a code is asked for. Only a customer is ever sent one: staff sign in
+#: with a password and nothing asks them to confirm a number (§17 #341).
+SIGN_IN, SIGN_UP = 'signin', 'signup'
 
 # Five minutes for the whole attempt, a minute between sends, seven wrong tries.
 TTL_SECONDS = 5 * 60
@@ -81,7 +81,6 @@ MESSAGES = {
     SIGN_IN: "GRAPHIX saytiga kirish uchun kodingiz: {code}",
     SIGN_UP: "GRAPHIX saytida ro'yxatdan o'tish uchun kodingiz: {code}",
 }
-MESSAGES[CONFIRM] = MESSAGES[SIGN_UP]
 
 
 def _digest(purpose, phone, code):
