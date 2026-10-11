@@ -57,6 +57,9 @@ jobs:
       SECRET_KEY: ci-only-never-used-to-sign-anything-real-0123456789abcdef
       DEBUG: 'True'
       ALLOWED_HOSTS: 127.0.0.1,localhost
+      # With DEBUG on, settings.py would pick SQLite, the developer's database.
+      # This keeps the suite on PostgreSQL, the engine the shop runs on.
+      DB_ENGINE: postgresql
       DB_NAME: graphix
       DB_USER: graphix
       DB_PASSWORD: graphix

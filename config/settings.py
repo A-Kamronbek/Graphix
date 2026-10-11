@@ -105,16 +105,36 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        "NAME": os.environ["DB_NAME"],
-        "USER": os.environ["DB_USER"],
-        "PASSWORD": os.environ["DB_PASSWORD"],
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
+# ---- database ----
+# The shop runs on PostgreSQL. A developer's machine runs on SQLite, a file
+# beside manage.py, so the site starts there with nothing to install and no
+# DB_* keys to fill in. DEBUG is the switch: it is on only on a developer's
+# machine, and the server's .env has it off, so the server is not touched by
+# this.
+#
+# DB_ENGINE=postgresql keeps PostgreSQL with DEBUG on. CI sets it: the suite
+# needs DEBUG on, because the production security settings would otherwise
+# redirect every test request to https, and it has to run on the engine the
+# shop runs on. SQLite takes no row locks, so the lock the checkout puts on a
+# cart would be tested against nothing.
+if DEBUG and os.environ.get("DB_ENGINE") != "postgresql":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            "NAME": os.environ["DB_NAME"],
+            "USER": os.environ["DB_USER"],
+            "PASSWORD": os.environ["DB_PASSWORD"],
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'user.validators.CustomMinimumLengthValidator'},
