@@ -80,6 +80,8 @@ def _delivery_context():
         # Keyed by region id, split by kind, so the drawer can put Tumanlar and
         # Shaharlar under their own headings (§17 #87).
         'districts_json': json.dumps(by_region, ensure_ascii=False),
+        # The same rows unserialised, for the options the select ships with.
+        'districts_by_region': by_region,
         'google_maps_key': settings.GOOGLE_MAPS_API_KEY,
         # The provider's own URL, built here rather than written into the
         # template: the key, the page's language and the region all live on
@@ -102,6 +104,30 @@ def _maps_src():
     return ('https://maps.googleapis.com/maps/api/js'
             '?key=%s&loading=async&language=%s&region=UZ&callback=GXMapReady'
             % (quote(key, safe=''), translation.get_language() or 'uz'))
+
+
+def _district_options(regions, by_region, region_pk):
+    """The district select's options as the page ships them: ``[(heading, rows)]``.
+
+    The script fills this select from the JSON beside it, and for a long time
+    that was the only thing that did: with scripts off the select held one
+    placeholder, no district could be chosen, and no order could be placed.
+    It also meant a form sent back with a mistake came back without its
+    district, scripts or not.
+
+    With a region chosen, its own districts are listed under the headings the
+    drawer uses. With none, every district is listed under its region, so a
+    customer without scripts picks from one list. The server checks that the
+    two agree either way.
+    """
+    if region_pk in by_region:
+        chosen = by_region[region_pk]
+        headings = (('district', _('Tumanlar')), ('city', _('Shaharlar')), ('other', ''))
+        return [(heading, chosen[kind]) for kind, heading in headings if chosen[kind]]
+    return [(tfield(region, 'name'),
+             by_region[region.pk]['district'] + by_region[region.pk]['city']
+             + by_region[region.pk]['other'])
+            for region in regions]
 
 
 def _read_delivery(post):
@@ -318,6 +344,9 @@ def checkout(request):
         context.update({
             'delivery': delivery, 'discount': discount, 'total': total,
             'form_data': form_data,
+            'district_options': _district_options(
+                context['regions'], context['districts_by_region'],
+                form_data.get('region')),
             'promo': preview,
             'promo_error': code['error'],
             'promo_said': _promo_said(preview, discount, total),

@@ -12,6 +12,7 @@ taken and one marked paid by hand took none. A code's use is counted in the
 same place stock is, so that place had to be right first.
 """
 import hashlib
+import re
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest import mock
@@ -709,6 +710,59 @@ class CheckoutTests(CheckoutCase):
         self.assertEqual(response.context['discount'], 0)
         self.assertIn('name="promo_code" id="id_promo_code"', response.content.decode())
         self.assertNotIn('value="KOD"', response.content.decode())
+
+
+class WithoutScriptsTests(CheckoutCase):
+    """The checkout completes with scripts off, with a code and without one.
+
+    It could not: the district list was filled by a script and by nothing
+    else, so the select held one placeholder and no order could be placed.
+    """
+
+    def districts(self, html):
+        """The district select as shipped: ``[(heading, [(value, selected)])]``."""
+        select = re.search(r'<select[^>]*name="district".*?</select>', html, re.S).group(0)
+        groups = re.findall(r'<optgroup label="([^"]*)">(.*?)</optgroup>', select, re.S)
+        return [(label, re.findall(r'<option value="(\d+)" ?(selected)?', body))
+                for label, body in groups]
+
+    def test_the_page_ships_every_district_under_its_region(self):
+        html = self.client.get(reverse('checkout')).content.decode()
+        shipped = {label: [int(value) for value, _ in rows]
+                   for label, rows in self.districts(html)}
+        self.assertEqual(shipped, {
+            'Toshkent shahri': [self.geo['chilonzor'].pk],
+            'Samarqand viloyati': [self.geo['sam_city'].pk],
+            'Boshqa': [self.geo['other_district'].pk]})
+
+    def test_a_form_sent_back_keeps_its_district(self):
+        """Under the chosen region's own headings, with the choice still made."""
+        html = self.post(name='').content.decode()
+        self.assertEqual(self.districts(html),
+                         [('Tumanlar', [(str(self.geo['chilonzor'].pk), 'selected')])])
+
+    def test_an_order_is_placed_from_what_the_page_ships_alone(self):
+        """A region and a district read off the page, and nothing a script adds."""
+        html = self.client.get(reverse('checkout')).content.decode()
+        region = re.search(r'<option value="(\d+)"[^>]*>\s*Toshkent shahri', html).group(1)
+        district = dict(self.districts(html))['Toshkent shahri'][0][0]
+        for typed in ('', 'KOD'):
+            with self.subTest(code=typed):
+                Order.objects.all().delete()
+                Cart.objects.filter(user=self.user).delete()
+                cart_of(self.user, (self.shirt_m, 1))
+                PromoCode.objects.all().delete()
+                code(Kind.ORDER_SUM, 30000)
+                response = self.post(region=region, district=district, promo_code=typed)
+                order = Order.objects.get()
+                self.assertRedirects(response, reverse('payment', args=[order.pk]))
+                self.assertEqual(order.discount, 30000 if typed else 0)
+
+    def test_a_district_from_another_region_is_still_refused(self):
+        """Every district is on offer now, so the server's own check matters."""
+        response = self.post(district=self.geo['sam_city'].pk)
+        self.assertFalse(Order.objects.exists())
+        self.assertEqual(self.said(response), ['Tanlangan tuman bu viloyatga tegishli emas.'])
 
 
 class CheckoutScriptTests(CheckoutCase):

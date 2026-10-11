@@ -125,6 +125,16 @@
                     data-group-districts="{% trans 'Tumanlar' %}"
                     data-group-cities="{% trans 'Shaharlar' %}">
               <option value="">{% trans "Avval viloyatni tanlang" %}</option>
+              {# The districts themselves, so the select works before any #}
+              {# script runs and a chosen district comes back with the form. #}
+              {# checkout.js rebuilds the list when the region changes. #}
+              {% for heading, rows in district_options %}
+                {% if heading %}<optgroup label="{{ heading }}">{% endif %}
+                {% for row in rows %}
+                  <option value="{{ row.id }}" {% if form_data.district == row.id %}selected{% endif %}>{{ row.name }}</option>
+                {% endfor %}
+                {% if heading %}</optgroup>{% endif %}
+              {% endfor %}
             </select>
           </div>
 
