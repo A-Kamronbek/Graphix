@@ -30,10 +30,14 @@ from django.views.generic import TemplateView
 
 from core import views as core_views
 from core.sitemaps import sitemaps as site_maps
+from panel.auth import staff_sign_in
 from payment.urls import webhook_urlpatterns
 
 # ---- never language-prefixed ----
 urlpatterns = [
+    # The admin's own sign-in form, behind a limit on guesses. Listed first so
+    # it is the one that answers at this path; the admin still names the path.
+    path('admin/login/', staff_sign_in),
     path('admin/', admin.site.urls),
 
     # SEO

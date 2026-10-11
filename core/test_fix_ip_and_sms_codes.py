@@ -8,7 +8,9 @@ hop is the client's own claim: a new invented address with each request
 stepped around every IP-keyed limit on the site. It reads the last hop now.
 
 The signup and password-reset codes were drawn with random, which is a
-predictable generator. They are drawn with secrets now.
+predictable generator. They are drawn with secrets now. Since Phase 15 there
+is one code, for signing in and signing up, in ``user.codes``; it is what the
+last class here reads.
 """
 from types import SimpleNamespace
 from unittest import mock
@@ -17,7 +19,7 @@ from django.core.cache import cache
 from django.test import RequestFactory, SimpleTestCase
 
 from core.ratelimit import client_ip, is_rate_limited
-from user import otp, password_reset
+from user import codes
 
 
 def request_from(forwarded_for=None, remote_addr='10.0.0.1'):
@@ -77,32 +79,26 @@ class SpoofedAddressTests(SimpleTestCase):
 
 
 class SmsCodeTests(SimpleTestCase):
-    """Both codes are drawn from secrets and keep their six digits."""
+    """The code is drawn from secrets and keeps its six digits."""
+
+    def setUp(self):
+        cache.clear()
+        self.addCleanup(cache.clear)
 
     def fake_request(self):
-        user = SimpleNamespace(id=1, phone='+998901234567')
-        return SimpleNamespace(session={}, user=user)
+        return SimpleNamespace(session={}, META={'REMOTE_ADDR': '10.0.0.1'})
 
-    def test_the_signup_code_is_drawn_from_secrets_and_zero_padded(self):
+    def test_the_code_is_drawn_from_secrets_and_zero_padded(self):
         request = self.fake_request()
-        with (mock.patch.object(otp, 'send_sms') as send,
-              mock.patch.object(otp.secrets, 'randbelow', return_value=42) as draw):
-            code = otp.generate(request, reset_expiry=True)
+        with (mock.patch.object(codes, 'send_sms', return_value=True) as send,
+              mock.patch.object(codes.secrets, 'randbelow', return_value=42) as draw):
+            outcome = codes.start(request, codes.SIGN_IN, '+998 90 123 45 67')
+        self.assertEqual(outcome, codes.SENT)
         draw.assert_called_once_with(1000000)
-        self.assertEqual(code, '000042')
-        self.assertEqual(request.session['otp_code'], '000042')
         self.assertIn('000042', send.call_args.args[1])
+        # Kept as a keyed hash: the session never holds the digits.
+        self.assertNotIn('000042', str(request.session))
+        self.assertEqual(codes.check(request, '000042'), codes.OK)
 
-    def test_the_reset_code_is_drawn_from_secrets_and_zero_padded(self):
-        request = self.fake_request()
-        with (mock.patch.object(password_reset, 'send_sms') as send,
-              mock.patch.object(password_reset.secrets, 'randbelow', return_value=7) as draw):
-            code = password_reset.issue_code(request, request.user)
-        draw.assert_called_once_with(1000000)
-        self.assertEqual(code, '000007')
-        self.assertEqual(request.session['pwreset_code'], '000007')
-        self.assertIn('000007', send.call_args.args[1])
-
-    def test_neither_module_imports_random_any_more(self):
-        self.assertFalse(hasattr(otp, 'random'))
-        self.assertFalse(hasattr(password_reset, 'random'))
+    def test_the_module_does_not_import_random(self):
+        self.assertFalse(hasattr(codes, 'random'))

@@ -115,10 +115,18 @@ class PanelNamesTheRecipientTests(TestCase):
         self.order.refresh_from_db()
 
     def test_the_order_page_names_the_recipient_and_the_account(self):
+        """An account is its number, shown when the parcel's number is another."""
+        Order.objects.filter(pk=self.order.pk).update(phone='+998 90 129 00 09')
         page = self.client.get(reverse('panel_order',
                                        kwargs={'order_no': self.order.order_no}))
         self.assertContains(page, 'Jasur Toshmatov')
-        self.assertContains(page, 'buyurtmachi')
+        self.assertContains(page, '<dt>Hisob</dt>')
+        self.assertContains(page, self.customer.phone)
+
+    def test_the_account_is_not_repeated_when_it_is_the_parcels_number(self):
+        page = self.client.get(reverse('panel_order',
+                                       kwargs={'order_no': self.order.order_no}))
+        self.assertNotContains(page, '<dt>Hisob</dt>')
 
     def test_the_list_names_the_recipient(self):
         self.assertContains(self.client.get(reverse('panel_orders')), 'Jasur Toshmatov')

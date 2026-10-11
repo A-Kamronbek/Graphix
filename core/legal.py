@@ -196,7 +196,7 @@ def facts():
     from core.ratelimit import MAX_WINDOW
     from product.images import MAX_BYTES
     from product.views import MAX_PHOTOS, MAX_TEXT
-    from user import otp
+    from user import codes
 
     day = 24 * 60 * 60
     digits = ''.join(ch for ch in SELLER['phone'] if ch.isdigit())
@@ -225,8 +225,8 @@ def facts():
         minimum_age=MINIMUM_AGE,
         guest_cart_days=GUEST_CART_DAYS,
         rate_limit_minutes=MAX_WINDOW // 60,
-        otp_minutes=otp.TTL_SECONDS // 60,
-        otp_attempts=otp.MAX_ATTEMPTS,
+        otp_minutes=codes.TTL_SECONDS // 60,
+        otp_attempts=codes.MAX_ATTEMPTS,
         review_photos=MAX_PHOTOS,
         review_text=MAX_TEXT,
         review_photo_mb=MAX_BYTES // (1024 * 1024),

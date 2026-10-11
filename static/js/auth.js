@@ -1,10 +1,9 @@
-/* Auth-page behaviour: the OTP cell field and the signup draft.
+/* Auth-page behaviour: the code cells and the signup draft.
  *
- * Both are ported from the pre-Phase-5 script unchanged in behaviour — the OTP
- * flow, its rate limiting and its expiry are on the "never break these" list, so
- * this is a move, not a rewrite. The DOM contract is identical: [data-otp],
- * .otp__cell, #id_code, #otpForm, #otpTimer[data-ttl], #otpExpireForm,
- * #otpResend[data-cooldown], #signupForm.
+ * The code page works with scripts off: it has one plain field for the
+ * code. With them on the stylesheet shows six cells instead, and this makes
+ * them work and runs the countdown and the resend timer. The DOM contract: [data-otp], .otp, .otp__cell, #id_code, #otpForm,
+ * #otpTimer[data-ttl], #otpExpireForm, #otpResend[data-cooldown], #signupForm.
  *
  * One thing did change, and it was a bug: the resend button's label was a
  * hardcoded Uzbek string in JavaScript, so it reverted to Uzbek under /ru/ and
@@ -18,30 +17,60 @@
   (function initOtp() {
     var wrap = document.querySelector('[data-otp]');
     if (!wrap) return;
+    var row = wrap.querySelector('.otp');
     var cells = Array.prototype.slice.call(wrap.querySelectorAll('.otp__cell'));
     var hidden = document.getElementById('id_code');
     var form = document.getElementById('otpForm');
-    if (!cells.length || !hidden || !form) return;
+    if (!row || !cells.length || !hidden || !form) return;
 
-    if (hidden.value) {
-      hidden.value.split('').slice(0, cells.length).forEach(function (ch, i) {
-        cells[i].value = ch;
-        cells[i].classList.toggle('is-filled', !!ch);
-      });
-    }
+    /* The stylesheet has already put the cells where the plain field was.
+     * Here that field becomes the hidden store they write into, and the
+     * label is pointed at the first cell. */
+    hidden.type = 'hidden';
+    var label = wrap.querySelector('label[for="id_code"]');
+    if (label) label.htmlFor = cells[0].id;
+    if (!cells[0].disabled) cells[0].focus();
+
+    /* Start empty, whatever the browser put back after "back": the form is
+     * posted the moment the cells are full, so nothing may be in them that
+     * the visitor did not just type. */
+    hidden.value = '';
+    cells.forEach(function (c) { c.value = ''; });
 
     function syncHidden() { hidden.value = cells.map(function (c) { return c.value; }).join(''); }
     function focusCell(i) { if (i >= 0 && i < cells.length) cells[i].focus(); }
     function complete() { return cells.every(function (c) { return c.value; }); }
 
+    /* Lay digits out from one cell onwards. Returns the cell to stand in next. */
+    function spread(digits, from) {
+      digits.split('').slice(0, cells.length - from).forEach(function (ch, i) {
+        cells[from + i].value = ch;
+        cells[from + i].classList.add('is-filled');
+      });
+      return Math.min(from + digits.length, cells.length - 1);
+    }
+
     cells.forEach(function (cell, idx) {
+      /* A phone that offers the code from the SMS puts all six digits into
+       * the first cell at once, so that cell takes any number of them and
+       * they are dealt out from there. */
       cell.addEventListener('input', function () {
-        cell.value = cell.value.replace(/\D/g, '').slice(-1);
-        cell.classList.toggle('is-filled', !!cell.value);
-        syncHidden();
-        if (cell.value && idx < cells.length - 1) focusCell(idx + 1);
+        var digits = cell.value.replace(/\D/g, '');
+        if (digits.length > 1) {
+          var next = spread(digits, idx);
+          syncHidden();
+          focusCell(next);
+        } else {
+          cell.value = digits;
+          cell.classList.toggle('is-filled', !!digits);
+          syncHidden();
+          if (digits && idx < cells.length - 1) focusCell(idx + 1);
+        }
         if (complete()) form.requestSubmit();
       });
+
+      /* Typing into a filled cell replaces what is there. */
+      cell.addEventListener('focus', function () { cell.select(); });
 
       cell.addEventListener('keydown', function (e) {
         if (e.key === 'Backspace') {
@@ -61,11 +90,9 @@
         var text = (e.clipboardData || window.clipboardData).getData('text') || '';
         var digits = text.replace(/\D/g, '').slice(0, cells.length);
         if (!digits) return;
-        digits.split('').forEach(function (ch, i) {
-          if (cells[i]) { cells[i].value = ch; cells[i].classList.add('is-filled'); }
-        });
+        var next = spread(digits, 0);
         syncHidden();
-        focusCell(Math.min(digits.length, cells.length - 1));
+        focusCell(next);
         if (complete()) form.requestSubmit();
       });
     });
@@ -73,7 +100,7 @@
     /* Expiry countdown. The server is the source of truth; this is visual only.
      * On hitting zero it submits the CSRF-protected expire form, and the server
      * re-checks the absolute expiry before acting — so a forged or early POST
-     * cannot delete a user whose code is still valid. */
+     * cannot end an attempt whose code is still valid. */
     var timerEl = document.getElementById('otpTimer');
     if (timerEl) {
       var left = parseInt(timerEl.dataset.ttl, 10) || 0;
@@ -99,7 +126,13 @@
     if (resendBtn) {
       var cd = parseInt(resendBtn.dataset.cooldown, 10) || 0;
       if (cd > 0) {
+        /* Disabled here and not in the markup: without this script nothing
+         * would enable it again, and the server already refuses an early
+         * press with a sentence. */
         var baseLabel = resendBtn.dataset.label || resendBtn.textContent.trim();
+        resendBtn.disabled = true;
+        resendBtn.textContent = baseLabel + ' (' + cd + 's)';
+        cd -= 1;
         var iv = setInterval(function () {
           if (cd <= 0) {
             resendBtn.disabled = false;
@@ -115,15 +148,15 @@
   })();
 
   /* -------------------------------------------------------- signup draft */
-  /* Keeps the non-sensitive fields when the visitor pops out to the Terms page
-   * and comes back. Passwords are deliberately never saved, and sessionStorage
-   * clears itself with the tab, so the draft never outlives the session. */
+  /* Keeps the number when the visitor pops out to the Terms page and comes
+   * back. sessionStorage clears itself with the tab, so the draft never
+   * outlives the session. */
   (function initSignupPersist() {
     var form = document.getElementById('signupForm');
     if (!form) return;
 
     var KEY = 'gx_signup_draft';
-    var FIELDS = ['username', 'first_name', 'phone'];
+    var FIELDS = ['phone'];
 
     /* Restore only into fields the server left empty, so values re-rendered
      * after a validation error always beat the saved draft. */

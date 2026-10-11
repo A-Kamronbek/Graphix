@@ -9,7 +9,7 @@ import re
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 
 
 # Accepts ``+998 XX XXX XX XX`` with optional spaces; ``message`` is user-facing.
@@ -41,10 +41,15 @@ def normalize_uz_phone(value):
 
 
 class User(AbstractUser):
-    """User authenticated by phone number instead of email.
+    """An account, known by its phone number.
 
     ``phone`` is unique and validated against :data:`phone_regex`;
-    ``phone_verified`` records whether the number passed OTP confirmation.
+    ``phone_verified`` records whether the number was confirmed by a code.
+
+    A customer signs in with the number and a code sent to it, so their
+    ``username`` is only the number again, written without spaces, and their
+    password is unusable. Staff have a real username and a password, which is
+    how they sign in at ``/admin/`` (§17 #309).
     """
     phone = models.CharField(
         validators=[phone_regex],
@@ -66,6 +71,15 @@ class User(AbstractUser):
     # than a number nobody actually agreed to.
     terms_version = models.CharField(max_length=10, blank=True, default='')
     privacy_version = models.CharField(max_length=10, blank=True, default='')
+
+    @property
+    def public_name(self):
+        """The name a stranger may be shown: the first name, or "Xaridor".
+
+        Never the username. A customer's is their phone number, and a review
+        is read by everyone.
+        """
+        return self.first_name or gettext("Xaridor")
 
     def save(self, *args, **kwargs):
         """Normalise the phone number before every save.

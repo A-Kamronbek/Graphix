@@ -1,208 +1,296 @@
-"""Auth, phone-verification, account, and password-reset views.
+"""Sign-in, sign-up, the code page and the account pages.
 
-Signup creates the user immediately and gates access behind an SMS OTP (enforced
-by PhoneVerificationMiddleware); unverified accounts are deleted once the OTP
-window lapses. Sensitive endpoints are rate limited via :mod:`core.ratelimit`.
+A customer signs in and signs up with a phone number and a code sent to it by
+SMS; there is no username and no password to ask for (§17 #309). Both doors
+lead to one code page, and the rules a code is held to are in
+:mod:`user.codes`. An account is made only once the code is right, so an
+abandoned sign-up leaves nothing behind.
+
+Staff keep a username and a password at ``/admin/``, so an SMS outage cannot
+lock the owner out, and that is their only door: a staff number is not sent a
+code here, because a code is a weaker key than a password and a staff session
+opens every customer's orders. Nor does anything ask staff to confirm the
+number on their account: the code page is for the two doors, and anyone who
+is signed in is sent on from it (§17 #341).
 """
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
+from urllib.parse import urlencode
+
 from django.contrib import messages
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from .forms import (
-    LoginForm, SignupForm, OTPForm, ForgotPasswordForm, ResetPasswordForm,
-    ProfileForm, ChangePasswordForm,
-)
-from .models import User
-from . import otp
-from . import password_reset as pwreset
+from core import legal
+from core.ratelimit import RATE_LIMIT_MESSAGE, is_currently_limited, is_rate_limited
 from payment.models import Order
-from . import services as user_services
-from core.ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
+
+from . import codes, services
+from .forms import OTPForm, PhoneForm, ProfileForm, SignupForm
+from .models import User
+
+BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
 
-def _cancel_and_delete(request, reason=None):
+def _safe_next(request):
+    """Where the visitor was going, if it is a page of this site.
+
+    A path and nothing else. A bare word would pass the host check, since it
+    names no host, and ``redirect()`` would then read it as the name of a
+    view and fail on it after the code had been spent.
     """
-    Wipe the unverified user, clear session, log out. Returns a redirect to signup.
-    Refuses to delete a verified user as a safety guard.
+    target = request.GET.get('next') or request.POST.get('next') or ''
+    if (target.startswith('/') and not target.startswith('//')
+            and url_has_allowed_host_and_scheme(
+                target, allowed_hosts={request.get_host()}, require_https=request.is_secure())):
+        return target
+    return ''
 
-    `reason` is passed back as a ?reason= query param (NOT a flash message),
-    because logout() flushes the session and would eat any messages.* added here.
-    The signup page reads it and shows the matching explanation.
+
+def _refused(outcome):
+    """What to tell someone a code was not sent to."""
+    if outcome == codes.UNSENT:
+        return _("Kod yuborilmadi. Birozdan soʻng qayta urinib koʻring.")
+    if outcome == codes.CEILING:
+        return _("Hozir kod yubora olmaymiz. Birozdan soʻng qayta urinib koʻring.")
+    return RATE_LIMIT_MESSAGE
+
+
+def _reasons():
+    """Why a visitor was sent back to a door, keyed by ``?reason=``.
+
+    Kept in the URL rather than as a flash message, so the door says it
+    again if the page is reloaded and nothing waits in the session to be shown
+    on some later page.
     """
-    user = request.user
-    if user.is_authenticated and not user.phone_verified:
-        # Whether this account is safe to drop is decided in one place, so the
-        # middleware's copy of this path cannot disagree with it (§12 risk #4).
-        # An unverified signup that already holds a claimed cart or an order is
-        # a customer: deleting it would CASCADE the cart away, and an order
-        # makes the database refuse the delete outright (§17 #219).
-        logout(request)  # flushes session (incl. otp_* keys)
-        user_services.delete_if_disposable(user)
-    if reason:
-        return redirect(f"{reverse('signup')}?reason={reason}")
-    return redirect('signup')
+    return {
+        'expired': _("Kod muddati tugadi. Iltimos, qaytadan urinib koʻring."),
+        'cancelled': _("Roʻyxatdan oʻtish bekor qilindi."),
+    }
+
+
+def _door(state, reason=None):
+    """Back to where the attempt began, with why."""
+    name = 'signup' if state and state.get('purpose') == codes.SIGN_UP else 'login'
+    target = reverse(name)
+    return redirect('%s?%s' % (target, urlencode({'reason': reason})) if reason else target)
+
+
+def _other_door(name, phone, next_url):
+    """The other door's address, carrying the number and the way back."""
+    query = {'phone': phone}
+    if next_url:
+        query['next'] = next_url
+    return '%s?%s' % (reverse(name), urlencode(query))
+
+
+def _staff_door(next_url):
+    """Where staff sign in: the Django admin's form, then on to the panel."""
+    return '%s?%s' % (reverse('admin:login'),
+                      urlencode({'next': next_url or reverse('panel_dashboard')}))
+
+
+def _ask(request, form, purpose, template):
+    """Both doors: check the number, send it a code, go to the code page.
+
+    Sign-in wants a registered number and sign-up an unregistered one, and
+    each sends the other kind to the other door. The site says which it is
+    (§17 #327). That lets a stranger learn whether a number has an account,
+    and the limit on asking is the brake on it.
+    """
+    context = {'form': form, 'notice': _reasons().get(request.GET.get('reason')),
+               'next': _safe_next(request)}
+    if request.method == 'POST':
+        if is_rate_limited(request, 'code_ask_address', 60, 300):
+            messages.error(request, RATE_LIMIT_MESSAGE)
+        elif form.is_valid():
+            phone = form.cleaned_data['phone']
+            holder = User.objects.filter(phone=phone).first()
+            registered = services.is_registered(holder)
+            if purpose == codes.SIGN_IN and not registered:
+                form.add_error('phone', _("Bu raqam roʻyxatdan oʻtmagan."))
+                context['other_door'] = _other_door('signup', phone, context['next'])
+            elif purpose == codes.SIGN_UP and registered:
+                form.add_error('phone', _("Bu raqam roʻyxatdan oʻtgan."))
+                context['other_door'] = _other_door('login', phone, context['next'])
+            elif services.is_staff_account(holder):
+                form.add_error('phone', _("Xodim hisobiga parol bilan kiriladi."))
+                context['staff_door'] = _staff_door(context['next'])
+            elif holder is not None and not holder.is_active:
+                # Said before a code is sent: it would open nothing.
+                form.add_error('phone', _("Bu hisob faol emas."))
+            else:
+                keep = {'next': context['next']}
+                if purpose == codes.SIGN_UP:
+                    # Which wording was agreed to is fixed here, where the box
+                    # is read, and kept with the attempt (§17 #272).
+                    keep['versions'] = legal.accepted_versions()
+                outcome = codes.start(request, purpose, phone, **keep)
+                if outcome == codes.SENT:
+                    return redirect('verify_phone')
+                messages.error(request, _refused(outcome))
+    context['rate_limited'] = is_currently_limited(request, 'code_ask_address', 60)
+    return render(request, template, context)
 
 
 def login_view(request):
-    """Authenticate a user; honour a safe internal ``next``, else go to the shop."""
+    """Sign in: a registered number is sent a code."""
     if request.user.is_authenticated:
         return redirect('account')
-    form = LoginForm(request, data=request.POST or None)
-    if request.method == 'POST':
-        username = request.POST.get('username', '')
-        # Per-account limit stops password brute-force even from rotating IPs;
-        # the IP limit is a generous secondary net.
-        if (is_rate_limited(request, 'login_user', 8, 300, ident=username)
-                or is_rate_limited(request, 'login_ip', 60, 300)):
-            messages.error(request, RATE_LIMIT_MESSAGE)
-            return render(request, 'user/login.html', {'form': form, 'rate_limited': True})
-        elif form.is_valid():
-            # A cart filled as a guest follows them in: cart.signals merges it
-            # whenever anyone signs in.
-            login(request, form.get_user())
-            messages.success(request, _("Xush kelibsiz!"))
-            # Only honor a safe, internal `next`; otherwise fall back to shop.
-            nxt = request.GET.get('next') or request.POST.get('next')
-            if nxt and url_has_allowed_host_and_scheme(
-                nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()
-            ):
-                return redirect(nxt)
-            return redirect('shop')
-    return render(request, 'user/login.html', {
-        'form': form,
-        'rate_limited': is_currently_limited(request, 'login_ip', 60),
-    })
+    form = PhoneForm(request.POST or None, initial={'phone': request.GET.get('phone', '')})
+    return _ask(request, form, codes.SIGN_IN, 'user/login.html')
 
 
 def signup_view(request):
-    """Register a user, issue a signup OTP, and send them to verification."""
+    """Sign up: a new number is sent a code, and the account waits for it."""
     if request.user.is_authenticated:
         return redirect('account')
-    form = SignupForm(request.POST or None)
-    limited = is_currently_limited(request, 'signup_ip', 50)
-    if request.method == 'POST':
-        phone = request.POST.get('phone', '')
-        if (is_rate_limited(request, 'signup_ip', 50, 3600)
-                or is_rate_limited(request, 'signup_phone', 4, 600, ident=phone)):
-            limited = True
-            messages.error(request, RATE_LIMIT_MESSAGE)
-        elif form.is_valid():
-            user = form.save()
-            # Someone who filled a cart and then registered finds it waiting:
-            # cart.signals claims it at sign-in.
-            login(request, user)
-            otp.generate(request, reset_expiry=True)
-            return redirect('verify_phone')
-
-    # Explanation banner after an OTP flow ended (kept in the URL, not the
-    # session, since _cancel_and_delete flushes the session via logout()).
-    reason_messages = {
-        'expired': _("Tasdiqlash kodi muddati tugadi. "
-                     "Iltimos, qaytadan roʻyxatdan oʻting."),
-        'cancelled': _("Roʻyxatdan oʻtish bekor qilindi."),
-    }
-    notice = reason_messages.get(request.GET.get('reason'))
-
-    return render(request, 'user/signup.html', {'form': form, 'notice': notice, 'rate_limited': limited})
+    form = SignupForm(request.POST or None, initial={'phone': request.GET.get('phone', '')})
+    return _ask(request, form, codes.SIGN_UP, 'user/signup.html')
 
 
-@login_required
+def _leave(request, state, reason=None):
+    """End the attempt and go back to its door."""
+    codes.clear(request)
+    return _door(state, reason)
+
+
+def _finish(request, state):
+    """The code was right: sign the customer in, making the account if this is a sign-up."""
+    codes.clear(request)
+    purpose, phone = state['purpose'], state['phone']
+
+    user = User.objects.filter(phone=phone).first()
+    if user is not None and (not user.is_active or services.is_staff_account(user)):
+        # The door turns both away before a code is sent. This is for an
+        # account that changed between the two pages.
+        messages.error(request, _("Bu hisob faol emas.") if not user.is_active
+                       else _("Xodim hisobiga parol bilan kiriladi."))
+        return redirect('login')
+    if purpose == codes.SIGN_IN:
+        if not services.is_registered(user):
+            # The account went away between the two pages.
+            return redirect(_other_door('signup', phone, state.get('next')))
+        welcome, landing = _("Xush kelibsiz!"), 'shop'
+    else:
+        if user is None:
+            user = services.create_customer(phone, state.get('versions'))
+        elif not user.phone_verified:
+            services.claim_unconfirmed(user, state.get('versions'))
+        welcome, landing = _("Telefon raqam tasdiqlandi."), 'account'
+
+    # A cart filled as a guest follows them in: cart.signals merges it
+    # whenever anyone signs in.
+    login(request, user, backend=BACKEND)
+    messages.success(request, welcome)
+    return redirect(state.get('next') or landing)
+
+
+def _signed_in(request):
+    """Send a signed-in visitor on from the code page and its buttons.
+
+    The page belongs to the two doors. Somebody who is signed in has already
+    come through one, or is staff and came in with a password, and is asked
+    for no code. Returns the redirect, or None for a visitor who is not
+    signed in.
+    """
+    if not request.user.is_authenticated:
+        return None
+    codes.clear(request)
+    return redirect('account')
+
+
 def verify_phone(request):
-    """Verify the signup OTP; delete the account on expiry or too many wrong tries."""
-    if request.user.phone_verified:
-        return redirect('account')
-
-    # Expired window -> the account is a throwaway from an abandoned signup.
-    # Delete it and bounce to signup (covers both GET landings and code submits).
-    if 'otp_expires_at' in request.session and otp.is_expired(request):
-        return _cancel_and_delete(request, reason='expired')
-
-    # Seed a code if there isn't one yet (e.g. existing unverified user logging in).
-    if 'otp_code' not in request.session:
-        otp.generate(request, reset_expiry=True)
+    """The code page, which both doors lead to."""
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
+    if state is None:
+        return redirect('login')
+    if codes.is_expired(state):
+        return _leave(request, state, 'expired')
 
     form = OTPForm(request.POST or None)
     if request.method == 'POST':
-        if is_rate_limited(request, 'otp_verify', 12, 300, ident=f"u{request.user.pk}"):
+        if is_rate_limited(request, 'code_check_address', 30, 300):
             messages.error(request, RATE_LIMIT_MESSAGE)
         elif form.is_valid():
-            if form.cleaned_data['code'] != request.session.get('otp_code'):
-                # Wrong code -> count the attempt; after too many, the account is
-                # a brute-force target / abandoned signup, so drop it (same path
-                # as an expired window) rather than letting guessing continue.
-                attempts = otp.register_failed_attempt(request)
-                if attempts >= otp.MAX_ATTEMPTS:
-                    return _cancel_and_delete(request, reason='expired')
-                form.add_error('code', _("Kod notoʻgʻri."))
-            else:
-                request.user.phone_verified = True
-                request.user.save(update_fields=['phone_verified'])
-                otp.clear(request)
-                messages.success(request, _("Telefon raqam tasdiqlandi."))
-                return redirect('account')
+            result = codes.check(request, form.cleaned_data['code'])
+            if result == codes.OK:
+                return _finish(request, state)
+            if result == codes.SPENT:
+                messages.error(request, _("Juda koʻp urinish. "
+                                          "Iltimos, qaytadan urinib koʻring."))
+                return _leave(request, state)
+            form.add_error('code', _("Kod notoʻgʻri."))
 
     return render(request, 'user/verify_phone.html', {
         'form': form,
-        'phone': request.user.phone,
-        'resend_in': otp.resend_cooldown(request),
-        'ttl': otp.ttl_remaining(request),
-        'rate_limited': is_currently_limited(request, 'otp_verify', 12, ident=f"u{request.user.pk}"),
-        'resend_limited': is_currently_limited(request, 'otp_resend', 8, ident=f"u{request.user.pk}"),
+        'purpose': state['purpose'],
+        # No-break spaces, so the number is not cut in two at the end of a line.
+        'phone': state['phone'].replace(' ', '\u00a0'),
+        'resend_in': codes.resend_cooldown(state),
+        'ttl': codes.ttl_remaining(state),
+        'rate_limited': is_currently_limited(request, 'code_check_address', 30),
     })
 
 
-@login_required
 @require_POST
 def resend_otp(request):
-    """Reissue the signup OTP, subject to cooldown and rate limits."""
-    if request.user.phone_verified:
-        return redirect('account')
-
-    if is_rate_limited(request, 'otp_resend', 8, 600, ident=f"u{request.user.pk}"):
-        messages.error(request, RATE_LIMIT_MESSAGE)
-        return redirect('verify_phone')
-
-    # Window expired -> throwaway account from an abandoned signup; delete it.
-    if otp.is_expired(request):
-        return _cancel_and_delete(request, reason='expired')
-
-    if otp.resend_cooldown(request) > 0:
+    """Send a new code for the open attempt, a minute after the last."""
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
+    if state is None:
+        return redirect('login')
+    if codes.is_expired(state):
+        return _leave(request, state, 'expired')
+    if codes.resend_cooldown(state) > 0:
         messages.error(request, _("Iltimos biroz kuting."))
         return redirect('verify_phone')
-
-    otp.generate(request, reset_expiry=False)
-    messages.success(request, _("Yangi kod yuborildi."))
+    outcome = codes.resend(request)
+    if outcome == codes.SENT:
+        messages.success(request, _("Yangi kod yuborildi."))
+    else:
+        messages.error(request, _refused(outcome))
     return redirect('verify_phone')
 
 
-@login_required
 @require_POST
 def cancel_verification(request):
-    """Abort signup verification and delete the unverified account."""
-    return _cancel_and_delete(request, reason='cancelled')
+    """Give up on the attempt. Nothing was made, so nothing is removed."""
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
+    return _leave(request, state,
+                  'cancelled' if state and state['purpose'] == codes.SIGN_UP else None)
 
 
-@login_required
 @require_POST
 def expire_verification(request):
+    """Where the page's countdown posts when it reaches zero.
+
+    The server's clock decides, not the page's: a post that arrives while the
+    code is still good is sent back to the code page.
     """
-    Hardened expiry endpoint. The client no longer auto-submits here on a
-    countdown; this is kept as a server-verified path. It deletes the account
-    ONLY if the absolute OTP expiry has genuinely passed according to the SERVER
-    clock — so a stray or forged POST (XSS, a browser extension, an ad in another
-    tab) can't delete a user whose code is still valid.
-    """
-    if request.user.phone_verified:
-        return redirect('account')
-    if not otp.is_expired(request):
-        # Server says the code is still alive — ignore and stay on the page.
+    onward = _signed_in(request)
+    if onward:
+        return onward
+    state = codes.get(request)
+    if state and not codes.is_expired(state):
         return redirect('verify_phone')
-    return _cancel_and_delete(request, reason='expired')
+    return _leave(request, state, 'expired')
+
+
+def retired(request):
+    """A password page that no longer exists. Its name still resolves, to sign-in."""
+    return redirect('login')
 
 
 @login_required
@@ -223,189 +311,10 @@ def account_orders(request):
 
 @login_required
 def account_settings(request):
-    """Settings: change name + username (one form), change password (requires the
-    current password). A separate 'forgot password' escape exists for users who
-    don't remember their current password."""
-    profile_form = ProfileForm(instance=request.user)
-    password_form = ChangePasswordForm(request.user)
-
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'profile':
-            profile_form = ProfileForm(request.POST, instance=request.user)
-            if profile_form.is_valid():
-                profile_form.save()
-                messages.success(request, _("Maʼlumotlar yangilandi."))
-                return redirect('account_settings')
-        elif action == 'password':
-            password_form = ChangePasswordForm(request.user, request.POST)
-            if password_form.is_valid():
-                password_form.save()
-                # Keep the user logged in after a password change.
-                update_session_auth_hash(request, password_form.user)
-                messages.success(request, _("Parol yangilandi."))
-                return redirect('account_settings')
-
-    return render(request, 'user/account_settings.html', {
-        'profile_form': profile_form,
-        'password_form': password_form,
-    })
-
-
-@login_required
-@require_POST
-def account_forgot_password(request):
-    """For a logged-in user who doesn't remember their current password: log them
-    out and send them into the phone-OTP reset flow (which requires being
-    anonymous)."""
-    logout(request)
-    return redirect('password_reset_request')
-
-
-# ============================================================================
-# Password reset (phone OTP)  —  request phone -> verify code -> set new password
-# Session state + OTP rules live in user/password_reset.py (imported as pwreset).
-# ============================================================================
-
-def password_reset_request(request):
-    """Step 1: take a phone number and SMS a reset code to that user."""
-    if request.user.is_authenticated:
-        return redirect('account')
-
-    form = ForgotPasswordForm(request.POST or None)
-    limited = is_currently_limited(request, 'pwreset_req_ip', 50)
-    if request.method == 'POST':
-        phone_raw = request.POST.get('phone', '')
-        if (is_rate_limited(request, 'pwreset_req_ip', 50, 3600)
-                or is_rate_limited(request, 'pwreset_req_phone', 4, 600, ident=phone_raw)):
-            limited = True
-            messages.error(request, RATE_LIMIT_MESSAGE)
-        elif form.is_valid():
-            phone = form.cleaned_data['phone']
-            user = User.objects.filter(phone=phone).first()
-
-            # Always clear any stale reset state first, so a previous (possibly
-            # verified) attempt can't carry over and let someone skip the OTP step.
-            pwreset.clear(request)
-
-            if not user:
-                # Per product decision, tell the user the number isn't registered.
-                # (Trade-off: this allows phone-number enumeration.)
-                form.add_error('phone', _("Ushbu raqam roʻyxatdan oʻtmagan."))
-            else:
-                pwreset.start_window(request, phone)
-                pwreset.issue_code(request, user)  # sets code, user_id, last_sent_at
-                messages.info(request, _("Tasdiqlash kodi yuborildi."))
-                return redirect('password_reset_verify')
-
-    notice = pwreset.REASONS.get(request.GET.get('reason'))
-    return render(request, 'user/password_reset_request.html', {'form': form, 'notice': notice, 'rate_limited': limited})
-
-
-def password_reset_verify(request):
-    """Step 2: check the reset code; invalidate it after too many wrong tries."""
-    if request.user.is_authenticated:
-        return redirect('account')
-    if 'pwreset_expires_at' not in request.session:
-        return redirect('password_reset_request')
-    if pwreset.is_expired(request):
-        pwreset.clear(request)
-        return redirect(f"{reverse('password_reset_request')}?reason=expired")
-
-    form = OTPForm(request.POST or None)
-    if request.method == 'POST':
-        uid = str(request.session.get('pwreset_user_id') or '')
-        if is_rate_limited(request, 'pwreset_verify', 20, 300, ident=uid):
-            messages.error(request, RATE_LIMIT_MESSAGE)
-        elif form.is_valid():
-            stored = request.session.get('pwreset_code')
-            if stored and form.cleaned_data['code'] == stored:
-                # Code accepted -> grant the set-password step and retire the code.
-                pwreset.mark_verified(request)
-                return redirect('password_reset_set')
-
-            # Wrong code -> count the attempt; after too many, invalidate the code
-            # so it can't be brute-forced within the window.
-            attempts = pwreset.register_failed_attempt(request)
-            if attempts >= pwreset.MAX_ATTEMPTS:
-                pwreset.clear(request)
-                messages.error(request, _("Juda koʻp urinish. "
-                                          "Iltimos, qaytadan urinib koʻring."))
-                return redirect('password_reset_request')
-            form.add_error('code', _("Kod notoʻgʻri."))
-
-    uid_peek = str(request.session.get('pwreset_user_id') or '')
-    return render(request, 'user/password_reset_verify.html', {
-        'form': form,
-        'phone': request.session.get('pwreset_phone', ''),
-        'resend_in': pwreset.resend_cooldown(request),
-        'ttl': pwreset.ttl_remaining(request),
-        'rate_limited': is_currently_limited(request, 'pwreset_verify', 20, ident=uid_peek),
-        'resend_limited': is_currently_limited(request, 'pwreset_resend', 5, ident=uid_peek),
-    })
-
-
-@require_POST
-def password_reset_resend(request):
-    """Reissue the reset code, subject to cooldown and rate limits."""
-    if 'pwreset_expires_at' not in request.session:
-        return redirect('password_reset_request')
-    if pwreset.is_expired(request):
-        pwreset.clear(request)
-        return redirect(f"{reverse('password_reset_request')}?reason=expired")
-    if pwreset.resend_cooldown(request) > 0:
-        messages.error(request, _("Iltimos biroz kuting."))
-        return redirect('password_reset_verify')
-
-    uid = request.session.get('pwreset_user_id')
-    if is_rate_limited(request, 'pwreset_resend', 5, 600, ident=str(uid or '')):
-        messages.error(request, RATE_LIMIT_MESSAGE)
-        return redirect('password_reset_verify')
-    if uid:
-        user = User.objects.filter(pk=uid).first()
-        if user:
-            pwreset.issue_code(request, user)
-
-    messages.info(request, _("Yangi kod yuborildi."))
-    return redirect('password_reset_verify')
-
-
-@require_POST
-def password_reset_expire(request):
-    """Server-verified expiry for the reset flow (ignores premature POSTs)."""
-    # Mirror of expire_verification: only act if the window has genuinely passed,
-    # so a forged/early POST can't wipe an in-progress reset.
-    if 'pwreset_expires_at' in request.session and not pwreset.is_expired(request):
-        return redirect('password_reset_verify')
-    pwreset.clear(request)
-    return redirect(f"{reverse('password_reset_request')}?reason=expired")
-
-
-def password_reset_set(request):
-    """Step 3: set the new password once the code has been verified."""
-    if request.user.is_authenticated:
-        return redirect('account')
-    # Must have passed the OTP step.
-    if not request.session.get('pwreset_verified') or 'pwreset_user_id' not in request.session:
-        return redirect('password_reset_request')
-    if pwreset.is_expired(request):
-        pwreset.clear(request)
-        return redirect(f"{reverse('password_reset_request')}?reason=expired")
-
-    user = User.objects.filter(pk=request.session['pwreset_user_id']).first()
-    if not user:
-        pwreset.clear(request)
-        return redirect('password_reset_request')
-
-    form = ResetPasswordForm(user, request.POST or None)
+    """Settings: the name. The number is the account, and changing it is a request to the shop."""
+    form = ProfileForm(request.POST or None, instance=request.user)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        pwreset.clear(request)
-        messages.success(request, _("Parol yangilandi. Endi kirishingiz mumkin."))
-        return redirect('login')
-
-    return render(request, 'user/password_reset_set.html', {
-        'form': form,
-        'username': user.username,
-        'phone': user.phone,
-    })
+        messages.success(request, _("Maʼlumotlar yangilandi."))
+        return redirect('account_settings')
+    return render(request, 'user/account_settings.html', {'profile_form': form})

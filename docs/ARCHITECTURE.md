@@ -18,8 +18,7 @@ config/      settings, the root URL conf, wsgi and asgi
 core/        site pages, the legal documents, the contact form, the Eskiz and
              Telegram clients, the rate limiter, the sitemaps, the test runner
              — and the whole test suite
-user/        the phone-based User, sign-in, OTP, password reset, the
-             verification middleware
+user/        the phone-based User, sign-in and sign-up by SMS code
 product/     the catalogue: products, variants, tags, photographs, likes,
              reviews, size charts, and the image pipeline
 cart/        carts, for guests and for signed-in customers
@@ -51,16 +50,12 @@ proxies everything else to gunicorn over a unix socket. Django never serves a
 file in production.
 
 The middleware order in `config/settings.py` is load-bearing and commented
-there. Two entries are ours:
+there. One entry is worth knowing before touching it:
 
 - **`LocaleMiddleware`** sits after the session middleware (it reads the
   language from the session) and before `CommonMiddleware` (which appends
   slashes using the active URL conf). Getting this wrong makes the language
   switcher one-way, which it was for three phases.
-- **`user.middleware.PhoneVerificationMiddleware`** sends a signed-in account
-  whose phone is unverified to the code screen, from anywhere except
-  `/admin/`. It applies to staff too — which is why a new superuser has to be
-  verified through `/admin/` once before the panel will open (plan §19 Q34).
 
 ### URLs and language
 
@@ -105,10 +100,39 @@ that is placed and never paid for is never mentioned to anyone.
 
 ### Accounts
 
-There is no email anywhere: an account is a phone number, verified by an SMS
-code, and a forgotten password is reset the same way. `User.save()` normalises
-the number; the OTP flows and their rate limits are correct as written and are
-the last thing on the site that should be refactored casually.
+There is no email anywhere, and for a customer no username and no password:
+an account is a phone number, and the way in is a six-digit code sent to it by
+SMS (§17 #309). Sign-in and sign-up are two doors to one code page. The
+account is written only when the code is right, so an unfinished sign-up
+leaves no row and nothing in the project deletes one. `User.save()`
+normalises the number.
+
+The code is the only key to an account, so everything that guards it is in one
+module, `user/codes.py`, and its docstring is the list: the code is drawn with
+`secrets`, kept only as a keyed hash bound to the number and the purpose,
+compared in constant time, good for five minutes and seven tries; wrong tries
+and codes sent are counted per number in the cache as well as in the session,
+so a second browser buys nothing; and codes are limited per number, per
+address and across the whole site, because each one costs an SMS. When the
+site-wide ceiling is reached the site stops sending and tells the owner on
+Telegram. With the cache down no code is sent at all. Change this module only
+with a reason you can defend.
+
+Staff are the exception. They keep a username and a password and sign in at
+`/admin/login/`, which `panel.auth.staff_sign_in` wraps in a limit on guesses;
+the storefront will not send a staff number a code, and the panel sends a
+signed-out visitor to that form. An SMS outage therefore cannot lock the
+owner out, and a staff session is never opened by a code alone.
+
+Nothing asks anyone who is signed in to confirm a number. A middleware used
+to send every account whose number was unconfirmed to the code page; a
+customer's number is now confirmed before the account exists and staff are
+asked for no code, so it had nobody left to stop but a new member of staff,
+and it is gone (§17 #341). The code page is for the two doors only.
+
+A customer's `username` is their number without spaces, because Django wants
+the column filled. Nothing shows it. A public page that needs a name uses
+`User.public_name`: the first name, or "Xaridor".
 
 An account with an order cannot be deleted — `Order.user` is `PROTECT`
 (§17 #219). The privacy policy promises the orders are kept, and the Tax Code
@@ -170,7 +194,8 @@ the first `{% static %}` on the first page raises.
 
 `/boshqaruv/` is a second interface, not a skin on the Django admin: orders,
 the catalogue, moderation, the contact inbox and the reference tables. It has
-its own guard — a signed-in customer gets a 403, not a second login form — and
+its own guard — a signed-in customer gets a 403, not a second login form, and
+a signed-out visitor gets the staff sign-in at `/admin/login/` — and
 it is **the one place in the project allowed to assume JavaScript** (§17 #141).
 
 Five reference models are edited through a single endpoint behind an allowlist

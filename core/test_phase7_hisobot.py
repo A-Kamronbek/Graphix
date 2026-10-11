@@ -27,6 +27,7 @@ from product.models import LOW_STOCK, Colour, Product, Size, Variant
 from .test_phase4 import make_product
 from .test_phase6 import make_user
 from .test_phase7 import make_staff
+from .test_phase15 import catch_sms
 
 
 def sized(product, label, stock, *, available=True, price='150000'):
@@ -39,23 +40,26 @@ def sized(product, label, stock, *, available=True, price='150000'):
     )
 
 
-class ForgotPasswordWarningTests(TestCase):
-    """The escape hatch logs you out; the screen has to say so first."""
+class ForgotPasswordIsGoneTests(TestCase):
+    """There is no password to forget, so the button went with it (§17 #309).
+
+    It used to sign the customer out, and the screen warned of that first
+    (§17 #176). Its address still resolves, and now does nothing of the kind.
+    """
 
     def setUp(self):
         self.user = make_user('unutgan', '+998901280001')
         self.client.force_login(self.user)
 
-    def test_the_settings_page_warns_before_the_button_is_pressed(self):
+    def test_the_settings_page_has_no_such_button(self):
         page = self.client.get(reverse('account_settings')).content.decode()
-        self.assertIn('Joriy parolni eslay olmayapman', page)
-        self.assertIn('hisobingizdan chiqaradi', page)
+        self.assertNotIn('Joriy parolni eslay olmayapman', page)
+        self.assertNotIn('hisobingizdan chiqaradi', page)
 
-    def test_and_the_button_really_does_sign_you_out(self):
-        """The warning has to be true, so this asserts the behaviour as well."""
+    def test_its_address_no_longer_signs_anyone_out(self):
         response = self.client.post(reverse('account_forgot_password'))
-        self.assertRedirects(response, reverse('password_reset_request'))
-        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertRedirects(response, reverse('login'), fetch_redirect_response=False)
+        self.assertIn('_auth_user_id', self.client.session)
 
 
 class AuthLayoutTests(TestCase):
@@ -73,9 +77,11 @@ class AuthLayoutTests(TestCase):
                 page = self.client.get(reverse(name)).content.decode()
                 self.assertIn('auth auth--narrow', page)
 
-    def test_the_otp_screen_they_were_matched_to_is_unchanged(self):
+    def test_the_code_screen_they_were_matched_to_is_unchanged(self):
         """The shape came from somewhere; that somewhere still has it."""
-        page = self.client.get(reverse('password_reset_request')).content.decode()
+        catch_sms(self)
+        self.client.post(reverse('signup'), {'phone': '+998901280009', 'agree': 'on'})
+        page = self.client.get(reverse('verify_phone')).content.decode()
         self.assertIn('auth auth--narrow', page)
 
 

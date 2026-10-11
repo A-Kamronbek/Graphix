@@ -1,16 +1,29 @@
 {% load i18n %}
-{# Six OTP cells writing into one hidden field. The hidden input is what the #}
-{# server reads, so the flow works even if the cell script never runs. #}
+{# The code field. As it leaves the server it is one ordinary input, which is #}
+{# all the page needs to work with scripts off. With them on, the stylesheet #}
+{# shows six cells in its place and auth.js makes them write into it. The #}
+{# cells used to be the only field on the page, writing into a hidden one, #}
+{# so with the script off there was nothing to type the code into. #}
+{# A code that was wrong is not written back into the field. The cells post #}
+{# the form as soon as all six are filled, so with the old digits left in #}
+{# them the first key pressed sent five of those and one new one, and each #}
+{# such key was another of the seven tries. #}
 <div class="field {% if form.code.errors %}field--error{% endif %}" data-otp>
-  <span class="label">{% trans "Tasdiqlash kodi" %}</span>
+  <label class="label" for="id_code">{% trans "Tasdiqlash kodi" %}</label>
+  {# Not `required`: with scripts on this field is not shown, and a browser #}
+  {# will not post a form whose empty required field it cannot point at. #}
+  <input class="input otp__plain" type="text" name="code" id="id_code" inputmode="numeric"
+         pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" autofocus
+         {% if rate_limited %} disabled{% endif %}>
   <div class="otp">
     {% for i in "012345" %}
-      <input class="otp__cell" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
-             autocomplete="{% if forloop.first %}one-time-code{% else %}off{% endif %}"
+      {# The first cell has no length limit: a phone filling in the code #}
+      {# from the SMS writes all six digits into it, and auth.js deals them out. #}
+      <input class="otp__cell" type="text" inputmode="numeric" pattern="[0-9]*"
+             {% if forloop.first %}id="id_code_first" autocomplete="one-time-code"{% else %}maxlength="1" autocomplete="off"{% endif %}
              aria-label="{% blocktrans with n=forloop.counter %}Kodning {{ n }}-raqami{% endblocktrans %}"
-             {% if forloop.first %}autofocus{% endif %}{% if rate_limited %} disabled{% endif %}>
+             {% if rate_limited %} disabled{% endif %}>
     {% endfor %}
   </div>
-  <input type="hidden" name="code" id="id_code" value="{{ form.code.value|default:'' }}">
   {% if form.code.errors %}<small class="field__error">{{ form.code.errors|join:" · " }}</small>{% endif %}
 </div>

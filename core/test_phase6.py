@@ -23,6 +23,7 @@ from product.models import Product, ProductLike, Tag
 from user.models import User
 
 from .test_phase4 import make_product
+from .test_phase15 import catch_sms, enter_by_code
 
 
 def make_user(username='mijoz', phone='+998901112233', verified=True):
@@ -208,6 +209,7 @@ class GuestCartMergeTests(TestCase):
     """Signing in must never cost the visitor what they had in the cart."""
 
     def setUp(self):
+        self.inbox = catch_sms(self)
         self.product, self.variant = make_product('Birlashtirish', stock=10)
         self.user = make_user()
 
@@ -218,8 +220,8 @@ class GuestCartMergeTests(TestCase):
         )
 
     def _login(self):
-        return self.client.post(reverse('login'),
-                                {'username': self.user.username, 'password': 'parol12345'})
+        """Through the sign-in door and the code page, as a customer goes."""
+        return enter_by_code(self.client, self.inbox, self.user.phone)
 
     def test_a_guest_cart_is_claimed_when_the_user_has_none(self):
         self._add_as_guest(2)
@@ -268,57 +270,37 @@ class GuestCartMergeTests(TestCase):
         self.assertEqual(CartItem.objects.filter(cart__user=self.user).count(), 0)
 
     def test_signing_up_merges_the_cart_too(self):
-        """Signup cycles the session key exactly as login does, so it needs its
-        own test — the two call sites could drift apart otherwise.
-
-        The OTP send is patched out: a test must not depend on a live SMS
-        gateway, and the send is deliberately fire-and-forget anyway.
-        """
+        """Sign-up cycles the session key exactly as sign-in does, and the
+        account it merges into did not exist when the cart was filled."""
         self._add_as_guest(2)
-        with mock.patch('user.otp.send_sms', return_value=True):
-            self.client.post(reverse('signup'), {
-                'username': 'yangi', 'phone': '+998901119988',
-                'password1': 'parol12345', 'password2': 'parol12345',
-                'first_name': 'Yangi', 'agree': 'on',
-            })
-        new_user = User.objects.filter(username='yangi').first()
-        if new_user is None:
-            self.skipTest('signup form fields differ; merge is covered by the login test')
+        enter_by_code(self.client, self.inbox, '+998901119988', door='signup')
+        new_user = User.objects.get(phone='+998 90 111 99 88')
         cart = Cart.objects.get(user=new_user, status=True)
         self.assertEqual(cart.cart_items.get().quantity, 2)
 
 
-class UnverifiedUserDeletionTests(TestCase):
-    """An abandoned signup is disposable. A signup holding a cart is a customer."""
+class NoAccountIsDeletedTests(TestCase):
+    """Giving up on a code deletes nobody.
+
+    Sign-up used to write its row first and delete it when the code lapsed,
+    unless the row already held a cart or an order. An account now waits for
+    the code, so nobody who is signed in stands on the code page at all, and
+    its buttons send them on to their account and change nothing (§17 #309,
+    #341).
+    """
 
     def setUp(self):
         self.product, self.variant = make_product('Oʻchirish sinovi')
 
-    def test_an_empty_unverified_account_is_disposable(self):
-        from user.services import is_disposable
-        user = make_user('bosh', '+998901110001', verified=False)
-        self.assertTrue(is_disposable(user))
-
-    def test_an_unverified_account_holding_a_cart_is_not_deleted(self):
-        from user.services import delete_if_disposable
-        user = make_user('savatli', '+998901110002', verified=False)
-        Cart.objects.create(user=user, status=True)
-        self.assertFalse(delete_if_disposable(user))
-        self.assertTrue(User.objects.filter(pk=user.pk).exists())
-
-    def test_a_verified_account_is_never_deleted(self):
-        from user.services import delete_if_disposable
-        user = make_user('tasdiqlangan', '+998901110003', verified=True)
-        self.assertFalse(delete_if_disposable(user))
-        self.assertTrue(User.objects.filter(pk=user.pk).exists())
-
     def test_cancelling_verification_keeps_an_account_that_claimed_a_cart(self):
-        """The whole path, not just the guard: add as a guest, sign up, cancel."""
+        """An unconfirmed account with a cart presses the code page's cancel."""
         user = make_user('bekor', '+998901110004', verified=False)
         self.client.force_login(user)
         Cart.objects.create(user=user, status=True)
-        self.client.post(reverse('cancel_verification'))
+        response = self.client.post(reverse('cancel_verification'))
+        self.assertRedirects(response, reverse('account'))
         self.assertTrue(User.objects.filter(pk=user.pk).exists())
+        self.assertIn('_auth_user_id', self.client.session)
 
 
 class PruneGuestCartsTests(TestCase):

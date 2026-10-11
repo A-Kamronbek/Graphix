@@ -38,7 +38,7 @@
       </div>
       <p class="note__text">{{ msg.msg_text|linebreaksbr }}</p>
       <div class="note__foot">
-        <span class="small muted">{{ msg.user.first_name|default:msg.user.username }}</span>
+        <span class="small muted">{{ msg.user.public_name }}</span>
         {# The first thing somebody does with a message is ring back — when #}
         {# there is a number. An empty `tel:` is a link that does nothing. #}
         {% if msg.phone_num %}

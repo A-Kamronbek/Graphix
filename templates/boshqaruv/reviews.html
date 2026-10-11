@@ -37,7 +37,7 @@
           {% endfor %}
         </span>
         <a class="link" href="{% url 'panel_product' slug=review.product.slug %}">{{ review.product.name }}</a>
-        <span class="small muted">{{ review.user.first_name|default:review.user.username }}</span>
+        <span class="small muted">{{ review.user.first_name|default:review.user.phone }}</span>
         <time class="small muted" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"j E, H:i"|month_case }}</time>
       </div>
 

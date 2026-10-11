@@ -18,7 +18,6 @@
         {% endif %}
         <form method="post" class="stack">
           {% csrf_token %}
-          <input type="hidden" name="action" value="profile">
 
           <div class="field {% if profile_form.first_name.errors %}field--error{% endif %}">
             <label class="label" for="id_first_name">{% trans "Ismingiz" %}</label>
@@ -27,66 +26,22 @@
             {% if profile_form.first_name.errors %}<small class="field__error">{{ profile_form.first_name.errors|join:" · " }}</small>{% endif %}
           </div>
 
-          <div class="field {% if profile_form.username.errors %}field--error{% endif %}">
-            <label class="label" for="id_username">{% trans "Foydalanuvchi nomi" %}</label>
-            <input class="input" type="text" name="username" id="id_username" required
-                   autocomplete="username" value="{{ profile_form.username.value|default:'' }}">
-            {% if profile_form.username.errors %}<small class="field__error">{{ profile_form.username.errors|join:" · " }}</small>{% endif %}
-          </div>
-
           <button class="btn btn--primary" type="submit">{% trans "Saqlash" %}</button>
         </form>
       </section>
 
-      <section class="panel stack">
-        <h2 class="h3">{% trans "Parolni oʻzgartirish" %}</h2>
-        {% if password_form.non_field_errors %}
-          <div class="msg msg--err" role="alert">{{ password_form.non_field_errors|join:" · " }}</div>
-        {% endif %}
-        <form method="post" class="stack">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="password">
-
-          <div class="field {% if password_form.old_password.errors %}field--error{% endif %}">
-            <label class="label" for="id_old_password">{% trans "Joriy parol" %}</label>
-            <input class="input" type="password" name="old_password" id="id_old_password" required
-                   autocomplete="current-password">
-            {% if password_form.old_password.errors %}<small class="field__error">{{ password_form.old_password.errors|join:" · " }}</small>{% endif %}
-          </div>
-
-          <div class="field {% if password_form.new_password1.errors %}field--error{% endif %}">
-            <label class="label" for="id_new_password1">{% trans "Yangi parol" %}</label>
-            <input class="input" type="password" name="new_password1" id="id_new_password1" required
-                   autocomplete="new-password">
-            {% if password_form.new_password1.errors %}<small class="field__error">{{ password_form.new_password1.errors|join:" · " }}</small>{% endif %}
-          </div>
-
-          <div class="field {% if password_form.new_password2.errors %}field--error{% endif %}">
-            <label class="label" for="id_new_password2">{% trans "Parolni takrorlang" %}</label>
-            <input class="input" type="password" name="new_password2" id="id_new_password2" required
-                   autocomplete="new-password">
-            {% if password_form.new_password2.errors %}<small class="field__error">{{ password_form.new_password2.errors|join:" · " }}</small>{% endif %}
-          </div>
-
-          <div class="row row--wrap">
-            <button class="btn btn--primary" type="submit">{% trans "Parolni saqlash" %}</button>
-          </div>
-        </form>
-
-        {# This button signs you out — the reset flow runs on the phone number #}
-        {# and requires being anonymous — so the screen says so before it is #}
-        {# pressed rather than after (§17 #176). A logged-in person tapping a #}
-        {# button labelled "I can't remember it" is not expecting to lose the #}
-        {# page they were on. #}
-        <div class="stack stack--sm">
-          <form method="post" action="{% url 'account_forgot_password' %}">
-            {% csrf_token %}
-            <button class="btn btn--ghost btn--sm" type="submit">{% trans "Joriy parolni eslay olmayapman" %}</button>
-          </form>
-          <p class="small muted">
-            {% trans "Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga keladigan kod orqali oʻrnatasiz." %}
-          </p>
-        </div>
+      {# The number is the account: it is how the holder signs in and where #}
+      {# the code goes, so it is shown and not edited. Changing it here would #}
+      {# hand the account to whoever holds the session (§17 #309). #}
+      <section class="panel stack stack--sm">
+        <h2 class="h3">{% trans "Telefon" %}</h2>
+        <span class="num">{{ user.phone }}</span>
+        <p class="small muted">
+          {% url 'contact' as contact_url %}
+          {% blocktrans trimmed %}
+            Bu raqam orqali kirasiz. Uni oʻzgartirish uchun <a class="link" href="{{ contact_url }}">biz bilan bogʻlaning</a>.
+          {% endblocktrans %}
+        </p>
       </section>
     </div>
 

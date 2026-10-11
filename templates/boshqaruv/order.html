@@ -87,9 +87,13 @@
         {# The name on the parcel first; the account only for orders placed #}
         {# before the checkout kept one. #}
         <dt>{% trans "Qabul qiluvchi" %}</dt>
-        <dd>{{ order.recipient_name|default:order.user.first_name|default:order.user.username }}</dd>
-        <dt>{% trans "Hisob" %}</dt>
-        <dd>{{ order.user.username }}</dd>
+        <dd>{{ order.recipient_name|default:order.user.public_name }}</dd>
+        {# An account is its number. It is shown only when the parcel's #}
+        {# number is a different one, which is when it tells staff anything. #}
+        {% if order.user.phone != order.phone %}
+          <dt>{% trans "Hisob" %}</dt>
+          <dd class="num">{{ order.user.phone }}</dd>
+        {% endif %}
         <dt>{% trans "Telefon" %}</dt>
         {# The spaces come out of the href: numbers are stored grouped, and a #}
         {# `tel:` URI with spaces in it is one some Android dialers refuse. #}

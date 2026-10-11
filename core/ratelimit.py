@@ -4,6 +4,7 @@ Counters live in the Django cache under hashed keys. Every check is wrapped so a
 cache outage never blocks a request (fail-open): if the backend errors, the hit
 is allowed through rather than denied.
 """
+import ipaddress
 from hashlib import md5
 from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
@@ -38,6 +39,25 @@ def client_ip(request):
     return request.META.get('REMOTE_ADDR') or 'unknown'
 
 
+def address_bucket(address):
+    """What a per-address counter is kept under.
+
+    An IPv4 address stands for one connection. An IPv6 connection is handed a
+    whole /64, which is more addresses than there are grains of sand, so one
+    machine could give every request an address of its own and no per-address
+    limit would ever count past one. Its /64 is counted instead.
+    """
+    try:
+        ip = ipaddress.ip_address(address)
+    except ValueError:
+        return address
+    if ip.version == 4:
+        return address
+    if ip.ipv4_mapped is not None:
+        return str(ip.ipv4_mapped)
+    return str(ipaddress.ip_network((ip, 64), strict=False))
+
+
 def _bucket_key(scope, ident):
     """Build a hashed cache key for a (scope, identity) counter."""
     digest = md5(f"{scope}:{ident}".encode('utf-8', 'ignore')).hexdigest()
@@ -52,7 +72,7 @@ def is_rate_limited(request, scope, limit, window, ident=None):
     """
     try:
         if not ident:
-            ident = client_ip(request)
+            ident = address_bucket(client_ip(request))
         key = _bucket_key(scope, ident)
         cache.add(key, 0, timeout=window)
         try:
@@ -72,7 +92,7 @@ def is_currently_limited(request, scope, limit, ident=None):
     """
     try:
         if not ident:
-            ident = client_ip(request)
+            ident = address_bucket(client_ip(request))
         count = cache.get(_bucket_key(scope, ident), 0) or 0
         return count >= limit
     except Exception:

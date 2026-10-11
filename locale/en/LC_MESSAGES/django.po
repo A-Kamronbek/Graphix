@@ -2464,85 +2464,42 @@ msgstr "Profile"
 msgid "Ismingiz"
 msgstr "Your name"
 
-#: .\templates\user\account_settings.html:31 .\templates\user\login.html:27
-#: .\templates\user\signup.html:25 .\user\forms.py:64
-msgid "Foydalanuvchi nomi"
-msgstr "Username"
-
-#: .\templates\user\account_settings.html:42
-msgid "Parolni oʻzgartirish"
-msgstr "Change password"
-
-#: .\templates\user\account_settings.html:51 .\user\forms.py:80
-msgid "Joriy parol"
-msgstr "Current password"
-
-#: .\templates\user\account_settings.html:58
-#: .\templates\user\password_reset_set.html:3
-#: .\templates\user\password_reset_set.html:10
-#: .\templates\user\password_reset_set.html:19 .\user\forms.py:49
-#: .\user\forms.py:81
-msgid "Yangi parol"
-msgstr "New password"
-
-#: .\templates\user\account_settings.html:65
-#: .\templates\user\password_reset_set.html:26 .\templates\user\signup.html:54
-msgid "Parolni takrorlang"
-msgstr "Repeat password"
-
-#: .\templates\user\account_settings.html:72
-#: .\templates\user\password_reset_set.html:32
-msgid "Parolni saqlash"
-msgstr "Save password"
-
-#: .\templates\user\account_settings.html:84
-msgid "Joriy parolni eslay olmayapman"
-msgstr "I don’t remember my current password"
-
-#: .\templates\user\account_settings.html:87
+#: .\templates\user\account_settings.html:41
+#, python-format
 msgid ""
-"Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga "
-"keladigan kod orqali oʻrnatasiz."
+"Bu raqam orqali kirasiz. Uni oʻzgartirish uchun <a class=\"link\" "
+"href=\"%(contact_url)s\">biz bilan bogʻlaning</a>."
 msgstr ""
-"This signs you out: you set the new password with a code sent to your phone."
+"This is the number you sign in with. To change it, <a class=\"link\" "
+"href=\"%(contact_url)s\">contact us</a>."
 
 #: .\templates\user\login.html:17
-msgid "Buyurtmalaringiz va saqlanganlaringiz shu yerda."
-msgstr "Your orders and saved designs live here."
+msgid "Telefon raqamingizni kiriting — kirish kodi SMS orqali keladi."
+msgstr "Enter your phone number and we’ll text you a sign-in code."
 
-#: .\templates\user\login.html:35 .\templates\user\signup.html:47
-msgid "Parol"
-msgstr "Password"
+#: .\templates\user\login.html:35
+msgid "Shu raqam bilan roʻyxatdan oʻtish"
+msgstr "Sign up with this number"
 
-#: .\templates\user\login.html:36
-msgid "Unutdingizmi?"
-msgstr "Forgot it?"
+#: .\templates\user\login.html:37
+msgid "Parol bilan kirish"
+msgstr "Sign in with a password"
+
+#: .\templates\user\login.html:41 .\templates\user\signup.html:51
+msgid "Kod olish"
+msgstr "Get a code"
 
 #: .\templates\user\login.html:51
 msgid "Hisob yoʻqmi?"
 msgstr "No account yet?"
 
-#: .\templates\user\password_reset_request.html:3
-#: .\templates\user\password_reset_request.html:11
-msgid "Parolni tiklash"
-msgstr "Reset your password"
+#: .\templates\user\signup.html:14
+msgid "Roʻyxatdan oʻtish uchun telefon raqamingizni kiriting."
+msgstr "Enter your phone number to create an account."
 
-#: .\templates\user\password_reset_request.html:12
-msgid "Telefon raqamingizni kiriting — tasdiqlash kodini yuboramiz."
-msgstr "Enter your phone number and we’ll send a confirmation code."
-
-#: .\templates\user\password_reset_request.html:30
-msgid "Kodni yuborish"
-msgstr "Send the code"
-
-#: .\templates\user\password_reset_request.html:36
-#: .\templates\user\password_reset_set.html:35
-msgid "Kirish sahifasiga qaytish"
-msgstr "Back to sign in"
-
-#: .\templates\user\password_reset_verify.html:3
-msgid "Parolni tiklash — kod"
-msgstr "Reset your password — code"
+#: .\templates\user\signup.html:32
+msgid "Shu raqam bilan kirish"
+msgstr "Sign in with this number"
 
 #: .\templates\user\password_reset_verify.html:14
 #: .\templates\user\verify_phone.html:14
@@ -2566,20 +2523,6 @@ msgstr "Code expires in"
 msgid "Qayta yuborish"
 msgstr "Send again"
 
-#: .\templates\user\password_reset_verify.html:47
-#: .\templates\user\verify_phone.html:47
-#, python-format
-msgid "Qayta yuborish (%(n)ss)"
-msgstr "Send again (%(n)ss)"
-
-#: .\templates\user\password_reset_verify.html:50
-msgid "Raqamni qaytadan kiritish"
-msgstr "Enter the number again"
-
-#: .\templates\user\signup.html:14
-msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
-msgstr "We’ll confirm your phone number — it’s needed to deliver your order."
-
 #: .\templates\user\signup.html:68
 #, python-format
 msgid ""
@@ -2591,29 +2534,25 @@ msgstr ""
 "consent to the processing of my personal data under the <a class=\"link\" "
 "href=\"%(privacy_url)s\">privacy policy</a>."
 
-#: .\templates\user\signup.html:76
-msgid "Hisob yaratish"
-msgstr "Create account"
-
 #: .\templates\user\signup.html:83
 msgid "Hisob bormi?"
 msgstr "Already have an account?"
 
 #: .\templates\user\verify_phone.html:3
+msgid "Kirish kodi"
+msgstr "Sign-in code"
+
+#: .\templates\user\verify_phone.html:3
 msgid "Telefon raqamni tasdiqlash"
 msgstr "Confirm your phone"
+
+#: .\templates\user\verify_phone.html:13
+msgid "Kodni kiriting"
+msgstr "Enter the code"
 
 #: .\templates\user\verify_phone.html:11
 msgid "Telefon raqamni tasdiqlang"
 msgstr "Confirm your phone number"
-
-#: .\user\forms.py:12
-msgid "Harflar, raqamlar va _ mumkin"
-msgstr "Letters, numbers and _ only"
-
-#: .\user\forms.py:18
-msgid "Foydalanuvchi nomi yoki parol notoʻgʻri."
-msgstr "Incorrect username or password."
 
 #: .\user\forms.py:19
 msgid "Bu hisob faol emas."
@@ -2631,25 +2570,9 @@ msgstr "Enter the code."
 msgid "Telefon raqamni kiriting."
 msgstr "Enter your phone number."
 
-#: .\user\forms.py:50 .\user\forms.py:82
-msgid "Yangi parolni qayta kiriting"
-msgstr "Repeat new password"
-
-#: .\user\forms.py:51 .\user\forms.py:84 .\user\forms.py:104
-msgid "Parollar mos kelmadi."
-msgstr "Passwords do not match."
-
 #: .\user\forms.py:63
 msgid "Ism"
 msgstr "Name"
-
-#: .\user\forms.py:72
-msgid "Bu foydalanuvchi nomi band."
-msgstr "That username is taken."
-
-#: .\user\forms.py:83
-msgid "Joriy parol notoʻgʻri."
-msgstr "Your current password is incorrect."
 
 #: .\user\forms.py:95
 msgid ""
@@ -2657,13 +2580,13 @@ msgid ""
 "bering."
 msgstr "To create an account, accept the terms of use and the privacy policy."
 
-#: .\user\forms.py:127
-msgid "Koʻpi bilan 50 ta belgi. Harflar, raqamlar va _"
-msgstr "Up to 50 characters. Letters, numbers and _"
-
 #: .\user\forms.py:139
 msgid "Bu raqam roʻyxatdan oʻtgan."
 msgstr "That number is already registered."
+
+#: .\user\views.py:118 .\user\views.py:201
+msgid "Xodim hisobiga parol bilan kiriladi."
+msgstr "Staff accounts sign in with a password."
 
 #: .\user\models.py:18
 msgid "format: +998 XX XXX XX XX"
@@ -2673,6 +2596,10 @@ msgstr "format: +998 XX XXX XX XX"
 msgid "Ushbu raqam allaqachon roʻyxatdan oʻtgan."
 msgstr "That number is already registered."
 
+#: .\user\models.py:82
+msgid "Xaridor"
+msgstr "Customer"
+
 #: .\user\password_reset.py:22
 msgid "Kod muddati tugadi. Iltimos, qaytadan urinib koʻring."
 msgstr "The code has expired. Please try again."
@@ -2681,17 +2608,25 @@ msgstr "The code has expired. Please try again."
 msgid "Parol 8 belgidan kam boʻlmasligi kerak."
 msgstr "Password must be at least 8 characters."
 
+#: .\user\views.py:55
+msgid "Kod yuborilmadi. Birozdan soʻng qayta urinib koʻring."
+msgstr "We couldn’t send the code. Please try again shortly."
+
+#: .\user\views.py:57
+msgid "Hozir kod yubora olmaymiz. Birozdan soʻng qayta urinib koʻring."
+msgstr "We can’t send codes right now. Please try again shortly."
+
 #: .\user\views.py:72
 msgid "Xush kelibsiz!"
 msgstr "Welcome back!"
 
-#: .\user\views.py:111
-msgid "Tasdiqlash kodi muddati tugadi. Iltimos, qaytadan roʻyxatdan oʻting."
-msgstr "The confirmation code has expired. Please sign up again."
-
 #: .\user\views.py:113
 msgid "Roʻyxatdan oʻtish bekor qilindi."
 msgstr "Sign-up was cancelled."
+
+#: .\user\views.py:112
+msgid "Bu raqam roʻyxatdan oʻtmagan."
+msgstr "That number isn’t registered."
 
 #: .\user\views.py:147 .\user\views.py:341
 msgid "Kod notoʻgʻri."
@@ -2713,25 +2648,9 @@ msgstr "A new code has been sent."
 msgid "Maʼlumotlar yangilandi."
 msgstr "Your details have been updated."
 
-#: .\user\views.py:252
-msgid "Parol yangilandi."
-msgstr "Your password has been updated."
-
-#: .\user\views.py:300
-msgid "Ushbu raqam roʻyxatdan oʻtmagan."
-msgstr "That number is not registered."
-
-#: .\user\views.py:304
-msgid "Tasdiqlash kodi yuborildi."
-msgstr "A confirmation code has been sent."
-
 #: .\user\views.py:338
 msgid "Juda koʻp urinish. Iltimos, qaytadan urinib koʻring."
 msgstr "Too many attempts. Please start again."
-
-#: .\user\views.py:410
-msgid "Parol yangilandi. Endi kirishingiz mumkin."
-msgstr "Your password has been updated. You can sign in now."
 
 #: .\payment\models.py:73
 #, python-format
@@ -2782,6 +2701,108 @@ msgstr "No picture was chosen."
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Picture saved."
+
+#~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
+#~ msgstr "We’ll confirm your phone number — it’s needed to deliver your order."
+
+#~ msgid "Foydalanuvchi nomi"
+#~ msgstr "Username"
+
+#~ msgid "Parolni oʻzgartirish"
+#~ msgstr "Change password"
+
+#~ msgid "Joriy parol"
+#~ msgstr "Current password"
+
+#~ msgid "Yangi parol"
+#~ msgstr "New password"
+
+#~ msgid "Parolni takrorlang"
+#~ msgstr "Repeat password"
+
+#~ msgid "Parolni saqlash"
+#~ msgstr "Save password"
+
+#~ msgid "Joriy parolni eslay olmayapman"
+#~ msgstr "I don’t remember my current password"
+
+#~ msgid ""
+#~ "Bu tugma hisobingizdan chiqaradi: yangi parolni telefon raqamingizga "
+#~ "keladigan kod orqali oʻrnatasiz."
+#~ msgstr ""
+#~ "This signs you out: you set the new password with a code sent to your phone."
+
+#~ msgid "Buyurtmalaringiz va saqlanganlaringiz shu yerda."
+#~ msgstr "Your orders and saved designs live here."
+
+#~ msgid "Parol"
+#~ msgstr "Password"
+
+#~ msgid "Unutdingizmi?"
+#~ msgstr "Forgot it?"
+
+#~ msgid "Parolni tiklash"
+#~ msgstr "Reset your password"
+
+#~ msgid "Telefon raqamingizni kiriting — tasdiqlash kodini yuboramiz."
+#~ msgstr "Enter your phone number and we’ll send a confirmation code."
+
+#~ msgid "Kodni yuborish"
+#~ msgstr "Send the code"
+
+#~ msgid "Kirish sahifasiga qaytish"
+#~ msgstr "Back to sign in"
+
+#~ msgid "Parolni tiklash — kod"
+#~ msgstr "Reset your password — code"
+
+#~ msgid "Qayta yuborish (%(n)ss)"
+#~ msgstr "Send again (%(n)ss)"
+
+#~ msgid "Raqamni qaytadan kiritish"
+#~ msgstr "Enter the number again"
+
+#~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
+#~ msgstr "We’ll confirm your phone number — it’s needed to deliver your order."
+
+#~ msgid "Hisob yaratish"
+#~ msgstr "Create account"
+
+#~ msgid "Harflar, raqamlar va _ mumkin"
+#~ msgstr "Letters, numbers and _ only"
+
+#~ msgid "Foydalanuvchi nomi yoki parol notoʻgʻri."
+#~ msgstr "Incorrect username or password."
+
+#~ msgid "Yangi parolni qayta kiriting"
+#~ msgstr "Repeat new password"
+
+#~ msgid "Parollar mos kelmadi."
+#~ msgstr "Passwords do not match."
+
+#~ msgid "Bu foydalanuvchi nomi band."
+#~ msgstr "That username is taken."
+
+#~ msgid "Joriy parol notoʻgʻri."
+#~ msgstr "Your current password is incorrect."
+
+#~ msgid "Koʻpi bilan 50 ta belgi. Harflar, raqamlar va _"
+#~ msgstr "Up to 50 characters. Letters, numbers and _"
+
+#~ msgid "Tasdiqlash kodi muddati tugadi. Iltimos, qaytadan roʻyxatdan oʻting."
+#~ msgstr "The confirmation code has expired. Please sign up again."
+
+#~ msgid "Parol yangilandi."
+#~ msgstr "Your password has been updated."
+
+#~ msgid "Ushbu raqam roʻyxatdan oʻtmagan."
+#~ msgstr "That number is not registered."
+
+#~ msgid "Tasdiqlash kodi yuborildi."
+#~ msgstr "A confirmation code has been sent."
+
+#~ msgid "Parol yangilandi. Endi kirishingiz mumkin."
+#~ msgstr "Your password has been updated. You can sign in now."
 
 #, fuzzy, python-format
 #~| msgid "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."

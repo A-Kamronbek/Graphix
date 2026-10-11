@@ -43,6 +43,12 @@ Page = namedtuple('Page', 'name kwargs anon user staff')
 
 #: Where an unauthenticated visitor is sent by ``login_required``.
 LOGIN = (302, '/uz/login/?next=')
+#: Where the code page and the retired password pages send a visitor: the
+#: sign-in door, with nothing to come back to.
+SIGN_IN = (302, '/uz/login/')
+#: Where the panel sends a signed-out visitor: the form staff sign in at
+#: (§17 #309). The shop's own sign-in is by SMS code and is for customers.
+STAFF_DOOR = (302, '/admin/login/?next=')
 #: Where an already-signed-in visitor is sent away from the auth pages.
 ACCOUNT = (302, '/uz/account/')
 
@@ -65,12 +71,17 @@ PAGES = (
     # ------------------------------------------------------ the auth journey
     Page('login', {}, 200, ACCOUNT, ACCOUNT),
     Page('signup', {}, 200, ACCOUNT, ACCOUNT),
-    Page('verify_phone', {}, LOGIN, ACCOUNT, ACCOUNT),
-    Page('password_reset_request', {}, 200, ACCOUNT, ACCOUNT),
-    Page('password_reset_verify', {},
-         (302, '/uz/parolni-tiklash/'), ACCOUNT, ACCOUNT),
-    Page('password_reset_set', {},
-         (302, '/uz/parolni-tiklash/'), ACCOUNT, ACCOUNT),
+    Page('verify_phone', {}, SIGN_IN, ACCOUNT, ACCOUNT),
+
+    # The password pages, retired with the password (§17 #309). Each name
+    # still resolves, as every URL name must, and leads to sign-in whoever
+    # asks and however: there is no page left behind any of them.
+    Page('account_forgot_password', {}, SIGN_IN, SIGN_IN, SIGN_IN),
+    Page('password_reset_request', {}, SIGN_IN, SIGN_IN, SIGN_IN),
+    Page('password_reset_verify', {}, SIGN_IN, SIGN_IN, SIGN_IN),
+    Page('password_reset_resend', {}, SIGN_IN, SIGN_IN, SIGN_IN),
+    Page('password_reset_expire', {}, SIGN_IN, SIGN_IN, SIGN_IN),
+    Page('password_reset_set', {}, SIGN_IN, SIGN_IN, SIGN_IN),
 
     # ------------------------------------------------- the customer's own
     Page('account', {}, LOGIN, 200, 200),
@@ -92,7 +103,8 @@ PAGES = (
 #: endpoint that answers GET is a write endpoint somebody can trigger with a
 #: link. Where `login_required` wraps the outside, an anonymous GET is sent to
 #: the login page before the method is ever looked at - so the two columns
-#: differ, and both are correct.
+#: differ, and both are correct. The code page's three buttons are pressed
+#: before anyone is signed in, so nothing wraps them and all three agree.
 WRITE_ONLY = (
     Page('logout', {}, 405, 405, 405),
     Page('cart_add', {'product_id': 'product_pk'}, 405, 405, 405),
@@ -101,51 +113,48 @@ WRITE_ONLY = (
     Page('product_like', {'slug': 'slug'}, 405, 405, 405),
     Page('order_cancel', {'pk': 'order_pk'}, LOGIN, 405, 405),
     Page('payment_start', {'order_id': 'paying_pk'}, LOGIN, 405, 405),
-    Page('account_forgot_password', {}, LOGIN, 405, 405),
-    Page('cancel_verification', {}, LOGIN, 405, 405),
-    Page('expire_verification', {}, LOGIN, 405, 405),
-    Page('resend_otp', {}, LOGIN, 405, 405),
-    Page('password_reset_resend', {}, 405, 405, 405),
-    Page('password_reset_expire', {}, 405, 405, 405),
+    Page('cancel_verification', {}, 405, 405, 405),
+    Page('expire_verification', {}, 405, 405, 405),
+    Page('resend_otp', {}, 405, 405, 405),
 )
 
 #: The panel. Its guard is the point: a signed-out visitor is sent to the
-#: login page, and a signed-in customer gets 403 rather than a second login
+#: staff sign-in, and a signed-in customer gets 403 rather than a second login
 #: form (§17 #141). Screens answer 200; the create and edit endpoints are
 #: POST-only and answer 405 to staff.
 PANEL = (
-    Page('panel_dashboard', {}, LOGIN, 403, 200),
-    Page('panel_orders', {}, LOGIN, 403, 200),
-    Page('panel_order', {'order_no': 'order_no'}, LOGIN, 403, 200),
-    Page('panel_products', {}, LOGIN, 403, 200),
-    Page('panel_product_new', {}, LOGIN, 403, 200),
-    Page('panel_product', {'slug': 'slug'}, LOGIN, 403, 200),
-    Page('panel_messages', {}, LOGIN, 403, 200),
-    Page('panel_reviews', {}, LOGIN, 403, 200),
-    Page('panel_regions', {}, LOGIN, 403, 200),
-    Page('panel_settings', {}, LOGIN, 403, 200),
-    Page('panel_slides', {}, LOGIN, 403, 200),
+    Page('panel_dashboard', {}, STAFF_DOOR, 403, 200),
+    Page('panel_orders', {}, STAFF_DOOR, 403, 200),
+    Page('panel_order', {'order_no': 'order_no'}, STAFF_DOOR, 403, 200),
+    Page('panel_products', {}, STAFF_DOOR, 403, 200),
+    Page('panel_product_new', {}, STAFF_DOOR, 403, 200),
+    Page('panel_product', {'slug': 'slug'}, STAFF_DOOR, 403, 200),
+    Page('panel_messages', {}, STAFF_DOOR, 403, 200),
+    Page('panel_reviews', {}, STAFF_DOOR, 403, 200),
+    Page('panel_regions', {}, STAFF_DOOR, 403, 200),
+    Page('panel_settings', {}, STAFF_DOOR, 403, 200),
+    Page('panel_slides', {}, STAFF_DOOR, 403, 200),
     # The style guide is a panel screen that predates the panel. It answered
     # 302 to /admin/login/ for a signed-in customer until Phase 10 gave it the
     # same guard as its neighbours (§17 #268).
-    Page('style_guide', {}, LOGIN, 403, 200),
+    Page('style_guide', {}, STAFF_DOOR, 403, 200),
 
-    Page('panel_order_status', {'order_no': 'order_no'}, LOGIN, 403, 405),
-    Page('panel_product_inline', {'slug': 'slug'}, LOGIN, 403, 405),
-    Page('panel_product_images', {'slug': 'slug'}, LOGIN, 403, 405),
-    Page('panel_review_moderate', {'pk': 'review_pk'}, LOGIN, 403, 405),
-    Page('panel_message_read', {'pk': 'msg_pk'}, LOGIN, 403, 405),
-    Page('panel_lookup_new', {'kind': 'kind'}, LOGIN, 403, 405),
-    Page('panel_chart_new', {}, LOGIN, 403, 405),
-    Page('panel_size_new', {}, LOGIN, 403, 405),
-    Page('panel_slide_new', {}, LOGIN, 403, 405),
+    Page('panel_order_status', {'order_no': 'order_no'}, STAFF_DOOR, 403, 405),
+    Page('panel_product_inline', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
+    Page('panel_product_images', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
+    Page('panel_review_moderate', {'pk': 'review_pk'}, STAFF_DOOR, 403, 405),
+    Page('panel_message_read', {'pk': 'msg_pk'}, STAFF_DOOR, 403, 405),
+    Page('panel_lookup_new', {'kind': 'kind'}, STAFF_DOOR, 403, 405),
+    Page('panel_chart_new', {}, STAFF_DOOR, 403, 405),
+    Page('panel_size_new', {}, STAFF_DOOR, 403, 405),
+    Page('panel_slide_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_slide_picture', {'pk': 'slide_pk', 'which': 'which'},
-         LOGIN, 403, 405),
-    Page('panel_tag_new', {}, LOGIN, 403, 405),
+         STAFF_DOOR, 403, 405),
+    Page('panel_tag_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_reference_inline', {'kind': 'kind', 'pk': 'tag_pk'},
-         LOGIN, 403, 405),
+         STAFF_DOOR, 403, 405),
     Page('panel_reference_delete', {'kind': 'kind', 'pk': 'tag_pk'},
-         LOGIN, 403, 405),
+         STAFF_DOOR, 403, 405),
 )
 
 #: Served to machines, outside i18n_patterns, and with no language of their
