@@ -26,7 +26,8 @@ from tolov import ClickGateway, OctoGateway, PaymeGateway
 from cart.models import Cart
 from core import legal, telegram
 from product.models import Variant
-from .models import Order, SOLD, location_text
+from . import promos
+from .models import Order, PromoCode, SOLD, location_text
 
 #: Module logger, because every external call on this site logs through one
 #: and returns rather than raising (§4, the `core/sms.py` pattern).
@@ -79,7 +80,8 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
                            delivery=Decimal('0'), delivery_option=None,
                            region=None, district=None, postal_index='',
                            location_note='', address_source='',
-                           latitude=None, longitude=None, recipient_name=''):
+                           latitude=None, longitude=None, recipient_name='',
+                           promo=None):
     """Create an Order from the cart atomically, then close the cart.
 
     The cart row is locked with ``select_for_update`` and the total is computed
@@ -99,6 +101,14 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
     ``recipient_name`` is who the parcel is addressed to. It is only stored:
     it takes no part in the lock or the total, and a caller that does not
     pass it gets a blank, as every order did before it existed.
+
+    ``promo`` is the promo code the customer typed, or None. The form has
+    already checked it and shown a total, and that was a preview: here the
+    code is read again and checked again, and the discount is worked out from
+    the locked lines and the fee just priced. That figure is frozen on the
+    order and taken off the total. A code that stopped being usable in
+    between raises ``promos.Refused`` before anything is written, the way a
+    line that went off sale does (§17 #310).
 
     The version of the terms and of the privacy policy in force at this moment
     is stamped onto the order as well. The checkout says that pressing the
@@ -141,6 +151,16 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
             Decimal('0'),
         ) + delivery
 
+        # The code, last: it is taken off the goods and the fee above, so both
+        # have to be final first. The row is read again here, not trusted from
+        # the form, and the discount comes from the same locked lines the
+        # total was summed from.
+        discount, discount_product = Decimal('0'), None
+        if promo is not None:
+            promo = PromoCode.objects.filter(pk=promo.pk).first()
+            promos.check(promo, user, locked_total - delivery)
+            discount, discount_product = promos.discount(promo, locked_lines, delivery)
+
         order = _create_order(
             user=user,
             cart=locked_cart,
@@ -149,8 +169,12 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
             address=address,
             notes=notes,
             payment_method=payment_method,
-            total_price=locked_total,
+            total_price=locked_total - discount,
             status=Order.Status.PAYING,
+            promo=promo,
+            promo_code=promo.code if promo is not None else '',
+            discount=discount,
+            discount_product=discount_product,
             delivery_option=delivery_option,
             delivery_price=delivery,
             region=region,
@@ -375,20 +399,39 @@ def _move_stock(order, sign):
         )
 
 
+def _count_promo_use(order, sign):
+    """Add ``sign`` to the uses of the code ``order`` was placed with, if any.
+
+    One ``UPDATE`` with an F() expression, for the reason stock moves that
+    way: two payments landing together must both be counted. The floor is
+    there because the owner can delete and remake a code's history by hand in
+    the admin, and a count must not go below nothing.
+    """
+    if order.promo_id:
+        PromoCode.objects.filter(pk=order.promo_id).update(
+            used_count=Greatest(F('used_count') + Value(sign), Value(0)))
+
+
 def take_for_sale(order):
-    """Take what a sale holds: the stock of each line of ``order``.
+    """Take what a sale holds: each line's stock, and one use of its code.
 
     Called once each time an order crosses from not paid to paid, whoever
     moves it: the gateway's callback below, or staff changing the status in
     the panel or the admin. The caller holds the transaction and decides the
     status; this only moves what belongs to it.
+
+    A code's use is counted here and not when the order is placed. An unpaid
+    order holds no use, as it holds no stock, so a checkout nobody finished
+    does not eat into a code that has only a hundred uses (§17 #57, #310).
     """
     _move_stock(order, -1)
+    _count_promo_use(order, +1)
 
 
 def return_from_sale(order):
     """Give back what :func:`take_for_sale` took, when a sale is undone."""
     _move_stock(order, +1)
+    _count_promo_use(order, -1)
 
 
 def apply_successful_payment(order):

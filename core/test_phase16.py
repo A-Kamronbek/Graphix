@@ -11,18 +11,23 @@ without touching stock, so a paid order cancelled by staff kept its stock
 taken and one marked paid by hand took none. A code's use is counted in the
 same place stock is, so that place had to be right first.
 """
+import hashlib
+from datetime import timedelta
 from decimal import Decimal
 from unittest import mock
 
-from django.test import TestCase
+from django.core.exceptions import ValidationError
+from django.db.models import ProtectedError
+from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from cart.models import Cart, CartItem
 from core import telegram
 from panel.models import OrderStatusChange
 from panel.services import set_status
-from payment import services
-from payment.models import Order
+from payment import promos, services
+from payment.models import Order, PromoCode
 
 from .test_phase4 import make_product
 from .test_phase6 import make_user
@@ -47,6 +52,66 @@ def stock_of(variant):
     """The stock of ``variant`` as the database has it now."""
     variant.refresh_from_db()
     return variant.stock
+
+
+#: What a parcel costs to send in these tests, in so'm.
+FEE = Decimal('15000')
+Kind = PromoCode.Kind
+
+
+def code(kind, value=0, name='KOD', products=(), **limits):
+    """A promo code of ``kind``, switched on, with the limits given."""
+    promo = PromoCode(code=name, kind=kind, value=value, **limits)
+    promo.full_clean()
+    promo.save()
+    promo.products.set(products)
+    return promo
+
+
+def cart_of(user, *lines):
+    """An open cart of ``lines``, each a ``(variant, quantity)`` pair."""
+    cart = Cart.objects.create(user=user, status=True)
+    for variant, quantity in lines:
+        CartItem.objects.create(cart=cart, variant=variant, quantity=quantity,
+                                price_stat=variant.price)
+    return cart
+
+
+def place(user, cart, promo=None, delivery=FEE):
+    """Turn ``cart`` into an order the way the checkout does, with ``promo``."""
+    return services.create_order_from_cart(
+        user, cart, phone=user.phone, address='Amir Temur 1', notes='',
+        payment_method=Order.PaymentMethod.CLICK, delivery=delivery, promo=promo)
+
+
+class PromoCase(TestCase):
+    """A customer, two products at two prices, and the helpers above."""
+
+    def setUp(self):
+        self.user = make_user('xaridor', '+998901220003')
+        self.shirt, self.shirt_m = make_product('Koʻylak', price='150000')
+        self.hoodie, self.hoodie_m = make_product('Xudi', price='250000')
+
+    def order(self, promo, *lines, delivery=FEE, user=None):
+        """Place an order of ``lines`` (one shirt if none) with ``promo``."""
+        user = user or self.user
+        cart = cart_of(user, *(lines or [(self.shirt_m, 1)]))
+        return place(user, cart, promo, delivery)
+
+    def assertRefused(self, reason, promo, *lines, delivery=FEE, user=None):
+        """The order is refused for ``reason`` and nothing is written."""
+        user = user or self.user
+        before = Order.objects.count()
+        cart = cart_of(user, *(lines or [(self.shirt_m, 1)]))
+        with self.assertRaises(promos.Refused) as caught:
+            place(user, cart, promo, delivery)
+        self.assertEqual(caught.exception.reason, reason)
+        self.assertEqual(Order.objects.count(), before)
+        cart.refresh_from_db()
+        self.assertTrue(cart.status, 'a refused code must leave the cart open')
+        # Out of the way, so the next cart in the same test can be opened.
+        cart.delete()
+        return caught.exception
 
 
 class StaffMovesStockTests(TestCase):
@@ -127,3 +192,345 @@ class StaffMovesStockTests(TestCase):
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, Order.Status.PAID)
         self.assertEqual(stock_of(self.variant), 7)
+
+
+# ---------------------------------------------------------- the five kinds
+
+class KindTests(PromoCase):
+    """What each kind takes off, worked out under the lock and frozen."""
+
+    def test_an_order_without_a_code_is_as_it_always_was(self):
+        order = self.order(None)
+        self.assertEqual(order.total_price, 150000 + FEE)
+        self.assertEqual((order.promo, order.promo_code, order.discount), (None, '', 0))
+
+    def test_a_sum_off_one_product(self):
+        promo = code(Kind.PRODUCT_SUM, 20000, products=[self.shirt])
+        order = self.order(promo)
+        self.assertEqual(order.discount, 20000)
+        self.assertEqual(order.total_price, 150000 + FEE - 20000)
+        self.assertEqual(order.discount_product, self.shirt)
+        self.assertEqual((order.promo, order.promo_code), (promo, 'KOD'))
+
+    def test_a_product_code_comes_off_one_piece_whatever_the_quantity(self):
+        """Two of the same shirt: 20 000 off one of them, not 40 000."""
+        promo = code(Kind.PRODUCT_SUM, 20000, products=[self.shirt])
+        order = self.order(promo, (self.shirt_m, 2))
+        self.assertEqual(order.discount, 20000)
+        self.assertEqual(order.total_price, 300000 + FEE - 20000)
+
+    def test_a_sum_is_never_more_than_the_item_costs(self):
+        promo = code(Kind.PRODUCT_SUM, 400000, products=[self.shirt])
+        order = self.order(promo, (self.shirt_m, 1), (self.hoodie_m, 1))
+        self.assertEqual(order.discount, 150000)
+
+    def test_a_share_off_one_product_is_rounded_down(self):
+        _, odd = make_product('Toq narx', price='149999')
+        promo = code(Kind.PRODUCT_PERCENT, 10, products=[odd.product])
+        order = self.order(promo, (odd, 3))
+        self.assertEqual(order.discount, 14999)
+
+    def test_the_dearest_item_the_code_covers_is_the_one_discounted(self):
+        promo = code(Kind.PRODUCT_PERCENT, 10, products=[self.shirt, self.hoodie])
+        order = self.order(promo, (self.shirt_m, 2), (self.hoodie_m, 1))
+        self.assertEqual(order.discount, 25000)
+        self.assertEqual(order.discount_product, self.hoodie)
+
+    def test_a_dearer_item_the_code_does_not_cover_is_left_alone(self):
+        promo = code(Kind.PRODUCT_PERCENT, 10, products=[self.shirt])
+        order = self.order(promo, (self.shirt_m, 1), (self.hoodie_m, 1))
+        self.assertEqual(order.discount, 15000)
+        self.assertEqual(order.discount_product, self.shirt)
+
+    def test_a_cart_with_none_of_the_codes_products_is_refused_it(self):
+        promo = code(Kind.PRODUCT_SUM, 20000, products=[self.hoodie])
+        self.assertRefused(promos.NO_PRODUCT, promo, (self.shirt_m, 1))
+        # The control: the same code on a cart that holds the product.
+        self.assertEqual(self.order(promo, (self.hoodie_m, 1)).discount, 20000)
+
+    def test_a_sum_off_the_order_comes_off_goods_and_delivery_together(self):
+        order = self.order(code(Kind.ORDER_SUM, 30000))
+        self.assertEqual(order.discount, 30000)
+        self.assertEqual(order.total_price, 150000 + FEE - 30000)
+        self.assertIsNone(order.discount_product)
+
+    def test_a_share_off_the_order_is_a_share_of_goods_and_delivery(self):
+        """Ten per cent of 165 000, not of the 150 000 of goods."""
+        order = self.order(code(Kind.ORDER_PERCENT, 10))
+        self.assertEqual(order.discount, 16500)
+        self.assertEqual(order.total_price, 148500)
+
+    def test_a_share_off_the_order_is_rounded_down(self):
+        _, odd = make_product('Toq narx', price='149999')
+        order = self.order(code(Kind.ORDER_PERCENT, 7), (odd, 1))
+        # 7 % of 164 999 is 11 549.93.
+        self.assertEqual(order.discount, 11549)
+
+    def test_free_delivery_takes_off_the_fee_and_keeps_it_on_record(self):
+        order = self.order(code(Kind.FREE_DELIVERY))
+        self.assertEqual(order.discount, FEE)
+        self.assertEqual(order.delivery_price, FEE)
+        self.assertEqual(order.total_price, 150000)
+
+    def test_free_delivery_on_an_order_that_ships_free_is_refused(self):
+        promo = code(Kind.FREE_DELIVERY)
+        self.assertRefused(promos.NOTHING_OFF, promo, delivery=Decimal('0'))
+        self.assertEqual(self.order(promo).discount, FEE)
+
+    def test_the_total_is_always_goods_plus_delivery_less_the_discount(self):
+        kinds = [(Kind.PRODUCT_SUM, 20000), (Kind.PRODUCT_PERCENT, 15),
+                 (Kind.ORDER_SUM, 30000), (Kind.ORDER_PERCENT, 15),
+                 (Kind.FREE_DELIVERY, 0)]
+        for index, (kind, value) in enumerate(kinds):
+            with self.subTest(kind=kind):
+                user = make_user('mijoz%d' % index, '+99890122001%d' % index)
+                promo = code(kind, value, name='KOD%d' % index, products=[self.shirt])
+                order = self.order(promo, (self.shirt_m, 2), (self.hoodie_m, 1), user=user)
+                self.assertGreater(order.discount, 0)
+                self.assertEqual(order.total_price, 550000 + FEE - order.discount)
+
+    def test_a_code_never_makes_an_order_free(self):
+        """A gateway cannot be asked for nothing: the floor is left to pay."""
+        for kind, value in ((Kind.ORDER_SUM, 900000), (Kind.ORDER_PERCENT, 100)):
+            with self.subTest(kind=kind):
+                promo = code(kind, value, name='HAMMA%s' % value, once_per_customer=False)
+                order = self.order(promo)
+                self.assertEqual(order.total_price, promos.FLOOR)
+                self.assertEqual(order.discount, 150000 + FEE - promos.FLOOR)
+
+    def test_a_code_changed_afterwards_does_not_rewrite_the_order(self):
+        promo = code(Kind.ORDER_SUM, 30000)
+        order = self.order(promo)
+        PromoCode.objects.filter(pk=promo.pk).update(value=1, is_active=False)
+        order.refresh_from_db()
+        self.assertEqual((order.discount, order.total_price), (30000, 135000))
+
+    def test_a_code_an_order_points_at_cannot_be_deleted(self):
+        promo = code(Kind.ORDER_SUM, 30000)
+        self.order(promo)
+        with self.assertRaises(ProtectedError):
+            promo.delete()
+
+
+# ---------------------------------------------------------------- the limits
+
+class LimitTests(PromoCase):
+    """Each way a code is refused, beside the same order going through."""
+
+    def test_a_code_switched_off_is_refused(self):
+        promo = code(Kind.ORDER_SUM, 30000, is_active=False)
+        self.assertRefused(promos.UNKNOWN, promo)
+        PromoCode.objects.filter(pk=promo.pk).update(is_active=True)
+        self.assertEqual(self.order(promo).discount, 30000)
+
+    def test_a_code_is_refused_outside_its_dates(self):
+        now = timezone.now()
+        early = code(Kind.ORDER_SUM, 30000, name='ERTA', starts_at=now + timedelta(hours=1))
+        late = code(Kind.ORDER_SUM, 30000, name='KECH', ends_at=now - timedelta(hours=1))
+        self.assertRefused(promos.UNKNOWN, early)
+        self.assertRefused(promos.UNKNOWN, late)
+        inside = code(Kind.ORDER_SUM, 30000, name='AYNI',
+                      starts_at=now - timedelta(hours=1), ends_at=now + timedelta(hours=1))
+        self.assertEqual(self.order(inside).discount, 30000)
+
+    def test_a_code_that_is_used_up_is_refused(self):
+        promo = code(Kind.ORDER_SUM, 30000, max_uses=2, used_count=2)
+        self.assertRefused(promos.UNKNOWN, promo)
+        PromoCode.objects.filter(pk=promo.pk).update(used_count=1)
+        self.assertEqual(self.order(promo).discount, 30000)
+
+    def test_the_minimum_is_set_against_the_goods_not_the_delivery(self):
+        promo = code(Kind.ORDER_SUM, 30000, min_subtotal=160000)
+        refusal = self.assertRefused(promos.MINIMUM, promo)       # 150 000 of goods
+        self.assertIn('160\u00a0000', str(refusal.message))
+        exact = code(Kind.ORDER_SUM, 30000, name='TENG', min_subtotal=150000)
+        self.assertEqual(self.order(exact).discount, 30000)
+
+    def test_once_per_customer_refuses_a_customer_who_paid_with_it(self):
+        promo = code(Kind.ORDER_SUM, 30000)
+        services.apply_successful_payment(self.order(promo))
+        self.assertRefused(promos.USED, promo)
+        # Another customer may still use it.
+        other = make_user('boshqa', '+998901220004')
+        self.assertEqual(self.order(promo, user=other).discount, 30000)
+
+    def test_an_unpaid_order_with_the_code_holds_it_until_paid_or_cancelled(self):
+        """Or several orders could be opened with it first and all paid after."""
+        promo = code(Kind.ORDER_SUM, 30000)
+        first = self.order(promo)
+        self.assertRefused(promos.UNPAID, promo)
+        services.cancel_order(first)
+        self.assertEqual(self.order(promo).discount, 30000)
+
+    def test_a_code_for_any_number_of_uses_is_not_held_by_an_earlier_order(self):
+        promo = code(Kind.ORDER_SUM, 30000, once_per_customer=False)
+        services.apply_successful_payment(self.order(promo))
+        self.order(promo)
+        self.assertEqual(self.order(promo).discount, 30000)
+
+    def test_a_code_switched_off_between_the_form_and_the_lock_is_refused(self):
+        """The form held a row that was good when it read it."""
+        held = code(Kind.ORDER_SUM, 30000)
+        PromoCode.objects.filter(pk=held.pk).update(is_active=False)
+        self.assertTrue(held.is_active, 'the copy the form holds still reads on')
+        self.assertRefused(promos.UNKNOWN, held)
+
+    def test_a_code_deleted_between_the_form_and_the_lock_is_refused(self):
+        held = code(Kind.ORDER_SUM, 30000)
+        PromoCode.objects.filter(pk=held.pk).delete()
+        self.assertRefused(promos.UNKNOWN, held)
+
+    def test_a_typed_code_is_found_whatever_its_case_or_spacing(self):
+        promo = code(Kind.ORDER_SUM, 30000, name='YOZ2026')
+        for typed in ('YOZ2026', 'yoz2026', '  Yoz 2026 '):
+            with self.subTest(typed=typed):
+                self.assertEqual(promos.find(typed), promo)
+        for typed in ('', 'YOZ', 'YOZ2026!', 'ЁЗ2026', 'x' * 60):
+            with self.subTest(typed=typed):
+                self.assertIsNone(promos.find(typed))
+
+    def test_four_refusals_read_the_same_so_codes_cannot_be_fished_for(self):
+        """Not there, switched off, out of date and used up: one sentence."""
+        cart = cart_of(self.user, (self.shirt_m, 1))
+        lines = list(cart.cart_items.select_related('variant__product'))
+        now = timezone.now()
+        code(Kind.ORDER_SUM, 30000, name='OFF', is_active=False)
+        code(Kind.ORDER_SUM, 30000, name='KECH', ends_at=now - timedelta(days=1))
+        code(Kind.ORDER_SUM, 30000, name='TUGADI', max_uses=1, used_count=1)
+        said = set()
+        for typed in ('YOQ123', 'OFF', 'KECH', 'TUGADI'):
+            with self.assertRaises(promos.Refused) as caught:
+                promos.apply(typed, self.user, lines, FEE)
+            self.assertEqual(caught.exception.reason, promos.UNKNOWN)
+            said.add(str(caught.exception.message))
+        self.assertEqual(len(said), 1)
+
+    def test_a_code_is_spelt_in_latin_capitals_and_digits(self):
+        for name in ('AB', 'A' * 25, 'YOZ-10', 'ЁЗ10', 'yoz 10!'):
+            with self.subTest(name=name), self.assertRaises(ValidationError):
+                PromoCode(code=name, kind=Kind.ORDER_SUM, value=1000).full_clean()
+        promo = PromoCode(code=' yoz 10 ', kind=Kind.ORDER_SUM, value=1000)
+        promo.full_clean()
+        promo.save()
+        self.assertEqual(promo.code, 'YOZ10')
+
+    def test_a_value_has_to_fit_its_kind(self):
+        bad = [(Kind.ORDER_PERCENT, 0), (Kind.ORDER_PERCENT, 101),
+               (Kind.PRODUCT_PERCENT, 150), (Kind.ORDER_SUM, 0), (Kind.PRODUCT_SUM, 0)]
+        for index, (kind, value) in enumerate(bad):
+            with self.subTest(kind=kind, value=value), self.assertRaises(ValidationError):
+                PromoCode(code='KOD%d' % index, kind=kind, value=value).full_clean()
+        free = PromoCode(code='BEPUL', kind=Kind.FREE_DELIVERY, value=5000)
+        free.full_clean()
+        self.assertEqual(free.value, 0)
+
+    def test_a_code_cannot_end_before_it_starts(self):
+        now = timezone.now()
+        with self.assertRaises(ValidationError):
+            PromoCode(code='TESKARI', kind=Kind.ORDER_SUM, value=1000,
+                      starts_at=now, ends_at=now - timedelta(days=1)).full_clean()
+
+
+# ------------------------------------------------------------------ the uses
+
+class UseTests(PromoCase):
+    """A use is counted when the order is paid, once, and comes back."""
+
+    def setUp(self):
+        super().setUp()
+        self.staff = make_staff()
+        self.promo = code(Kind.ORDER_SUM, 30000, max_uses=5)
+
+    def uses(self):
+        """How many uses the code has now."""
+        self.promo.refresh_from_db()
+        return self.promo.used_count
+
+    def test_an_order_that_is_only_placed_holds_no_use(self):
+        self.order(self.promo)
+        self.assertEqual(self.uses(), 0)
+
+    def test_paying_counts_one_use_and_a_replay_counts_no_more(self):
+        order = self.order(self.promo)
+        services.apply_successful_payment(order)
+        services.apply_successful_payment(Order.objects.get(pk=order.pk))
+        self.assertEqual(self.uses(), 1)
+
+    def test_a_staff_cancellation_gives_the_use_back(self):
+        order = self.order(self.promo)
+        services.apply_successful_payment(order)
+        set_status(Order.objects.get(pk=order.pk), Order.Status.CANCELLED, by=self.staff)
+        self.assertEqual(self.uses(), 0)
+        # And the customer may use the code again.
+        self.assertEqual(self.order(self.promo).discount, 30000)
+
+    def test_a_customer_cancelling_an_unpaid_order_changes_no_count(self):
+        services.cancel_order(self.order(self.promo))
+        self.assertEqual(self.uses(), 0)
+
+    def test_staff_marking_an_order_paid_counts_the_use(self):
+        set_status(self.order(self.promo), Order.Status.PAID, by=self.staff)
+        self.assertEqual(self.uses(), 1)
+
+    def test_an_order_without_a_code_counts_nothing(self):
+        services.apply_successful_payment(self.order(None))
+        self.assertEqual(self.uses(), 0)
+
+    def test_the_count_never_goes_below_nothing(self):
+        order = self.order(self.promo)
+        services.apply_successful_payment(order)
+        PromoCode.objects.filter(pk=self.promo.pk).update(used_count=0)
+        set_status(Order.objects.get(pk=order.pk), Order.Status.CANCELLED, by=self.staff)
+        self.assertEqual(self.uses(), 0)
+
+
+# ---------------------------------------------------------------- the gateway
+
+CLICK = {'CLICK': {'SERVICE_ID': '111', 'MERCHANT_ID': '222', 'SECRET_KEY': 'sir',
+                   'ACCOUNT_MODEL': 'payment.models.Order', 'ACCOUNT_FIELD': 'id',
+                   'ONE_TIME_PAYMENT': True, 'COMMISSION_PERCENT': 0.0}}
+
+
+@override_settings(TOLOV=CLICK, CLICK_SERVICE_ID='111', CLICK_MERCHANT_ID='222')
+class GatewayTests(PromoCase):
+    """The gateway is asked for the discounted total and paid exactly that."""
+
+    def click(self, order, amount, action, prepare_id=''):
+        """Post one Click callback for ``order``, signed as Click signs it."""
+        params = {'click_trans_id': '900%d' % order.pk, 'service_id': '111',
+                  'merchant_trans_id': str(order.pk), 'amount': str(amount),
+                  'action': str(action), 'error': '0', 'sign_time': '2026-10-11 12:00:00'}
+        if prepare_id:
+            params['merchant_prepare_id'] = str(prepare_id)
+        signed = (params['click_trans_id'] + '111' + 'sir' + params['merchant_trans_id']
+                  + str(prepare_id) + params['amount'] + params['action'] + params['sign_time'])
+        params['sign_string'] = hashlib.md5(signed.encode()).hexdigest()
+        return self.client.post(reverse('click_webhook'), params).json()
+
+    def test_the_pay_link_asks_for_the_discounted_total(self):
+        order = self.order(code(Kind.ORDER_PERCENT, 10))
+        with mock.patch.object(services.ClickGateway, 'create_payment',
+                               return_value='https://my.click.uz/pay') as asked:
+            services.generate_paylink(order, 'https://graphix.uz/uz/order/1/')
+        self.assertEqual(asked.call_args.kwargs['amount'], Decimal('148500'))
+
+    def test_a_click_payment_of_the_discounted_total_is_accepted(self):
+        promo = code(Kind.ORDER_PERCENT, 10)
+        order = self.order(promo)
+        prepared = self.click(order, 148500, action=0)
+        self.assertEqual(prepared['error'], 0, prepared)
+        done = self.click(order, 148500, action=1,
+                          prepare_id=prepared['merchant_prepare_id'])
+        self.assertEqual(done['error'], 0, done)
+        order.refresh_from_db()
+        promo.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
+        self.assertEqual(promo.used_count, 1)
+
+    def test_a_click_payment_of_the_full_price_is_not(self):
+        """The order costs what it was frozen at, and no other sum pays it."""
+        order = self.order(code(Kind.ORDER_PERCENT, 10))
+        refused = self.click(order, 165000, action=0)
+        self.assertEqual(refused['error'], -2, refused)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAYING)
