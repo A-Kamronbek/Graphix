@@ -55,6 +55,36 @@ def get_active_cart(request):
     return cart
 
 
+def lock_open(cart):
+    """``cart``'s row, locked until the transaction ends, or None if it was ordered.
+
+    The checkout locks this row, sums the cart's lines and writes the order.
+    Anything that writes a line takes the same lock first, so it either goes
+    in before the lines are summed, and is charged for, or waits and finds
+    the cart closed. Without it a change sent at the same moment as the
+    order could land after the sum: nine shirts on an order charged for one.
+
+    Call it inside a transaction; the lock is held to the end of it.
+    """
+    return Cart.objects.select_for_update().filter(pk=cart.pk, status=True).first()
+
+
+def open_cart_for_writing(request):
+    """The visitor's open cart, locked, for a line to be added to.
+
+    A cart found open can have been ordered by the time its lock is given.
+    The line then belongs to the visitor's next cart, so one is started and
+    that one is locked instead.
+    """
+    for _attempt in range(3):
+        cart = lock_open(get_active_cart(request))
+        if cart is not None:
+            return cart
+    # Three carts ordered in the time it takes to add one line is not a
+    # customer; say so and write nothing.
+    raise CartError(_("Xatolik yuz berdi. Qayta urinib koʻring."))
+
+
 @transaction.atomic
 def merge_guest_cart(session_key, user):
     """Fold a guest cart into ``user``'s open cart. Returns the surviving cart.

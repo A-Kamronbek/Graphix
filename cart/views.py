@@ -8,6 +8,7 @@ a cart belongs either to a user or to a session, and a line is only reachable
 through the cart the request actually owns.
 """
 from decimal import Decimal
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import Http404
@@ -43,10 +44,19 @@ def _own_line(request, item_id):
     The cart is resolved first and the line is looked up *inside* it, so the
     check is the same one for a signed-in customer and for a guest: there is no
     branch where a missing user silently widens the query.
+
+    Call it inside a transaction: the cart is locked here and the caller's
+    write has to happen under that lock.
     """
     cart = services.find_cart(request)
     if cart is None:
         raise Http404('no open cart')
+    # Locked before the line is read, and only if it is still open: a cart
+    # ordered a moment ago is a record of what was charged for, and its
+    # lines are no longer the visitor's to change (see `services.lock_open`).
+    cart = services.lock_open(cart)
+    if cart is None:
+        raise Http404('the cart has been ordered')
     return get_object_or_404(CartItem, pk=item_id, cart=cart)
 
 
@@ -79,8 +89,9 @@ def cart_add(request, product_id):
     # add_variant if it ran out between the page load and the POST.
     try:
         variant = services.resolve_variant(product, colour_id, size_id)
-        cart = services.get_active_cart(request)
-        services.add_variant(cart, variant, qty)
+        with transaction.atomic():
+            cart = services.open_cart_for_writing(request)
+            services.add_variant(cart, variant, qty)
     except services.CartError as e:
         messages.error(request, str(e))
         # Back to the product, unless it has been switched off: its page is a
@@ -97,10 +108,11 @@ def cart_add(request, product_id):
 @require_POST
 def cart_update(request, item_id):
     """Update a line's quantity (a quantity of 0 removes it)."""
-    item = _own_line(request, item_id)
     qty = _parse_qty(request.POST.get('quantity', 1), default=1, lo=0, hi=99)
     try:
-        services.set_item_quantity(item, qty)
+        with transaction.atomic():
+            item = _own_line(request, item_id)
+            services.set_item_quantity(item, qty)
     except services.CartError as e:
         messages.error(request, str(e))
     return redirect('cart')
@@ -109,7 +121,8 @@ def cart_update(request, item_id):
 @require_POST
 def cart_remove(request, item_id):
     """Remove a line from the cart."""
-    item = _own_line(request, item_id)
-    item.delete()
+    with transaction.atomic():
+        item = _own_line(request, item_id)
+        item.delete()
     messages.success(request, _("Olib tashlandi."))
     return redirect('cart')
