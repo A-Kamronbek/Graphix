@@ -21,6 +21,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import F, Value
 from django.db.models.functions import Greatest
 from django.conf import settings
+from django.utils import timezone
 from tolov import ClickGateway, OctoGateway, PaymeGateway
 
 from cart.models import Cart
@@ -443,39 +444,63 @@ def apply_successful_payment(order):
     replayed staff may have moved the order on to packing, and that order
     must not be taken from stock again or put back a step.
 
+    The question is asked of the row itself, locked, and not of the copy the
+    caller holds. A callback and a member of staff marking the same order
+    paid a moment apart each hold a copy that reads unpaid; ``set_status``
+    locks the row for the same reason.
+
     Takes the order rather than a gateway's transaction id. It used to take a
     Click transaction id and look the order up through click-pkg's own table,
     which made this function know about one gateway; resolving the order is
     the webhook's job now, and this stays the single place the status moves
     (§17 #253).
     """
-    if order.status not in SOLD:
-        with transaction.atomic():
-            take_for_sale(order)
-            order.status = Order.Status.PAID
-            order.save(update_fields=['status', 'updated_at'])
-            # Queued inside the transaction and sent after it commits: a
-            # notification for a payment that then rolled back is worse than
-            # none, and an HTTP call inside the transaction would hold the
-            # order's row open for the length of it (§12 risk #17).
-            telegram.notify_paid_order(order)
+    with transaction.atomic():
+        locked = Order.objects.select_for_update().get(pk=order.pk)
+        if locked.status in SOLD:
+            return
+        take_for_sale(locked)
+        locked.status = Order.Status.PAID
+        locked.save(update_fields=['status', 'updated_at'])
+        # The caller's copy is kept honest, as `set_status` keeps it.
+        order.status = locked.status
+        # Queued inside the transaction and sent after it commits: a
+        # notification for a payment that then rolled back is worse than
+        # none, and an HTTP call inside the transaction would hold the
+        # order's row open for the length of it (§12 risk #17).
+        telegram.notify_paid_order(locked)
+
+
+def _cancel_if_unpaid(order):
+    """Move ``order`` from PAYING to CANCELLED in one statement; True if it moved.
+
+    One ``UPDATE`` that names the status it expects, so the answer comes from
+    the row and not from a copy read earlier. A payment that landed in
+    between is not undone, and an order that is a sale is never cancelled
+    here: that would leave its stock taken and its code's use counted with
+    nothing to show for either.
+    """
+    moved = Order.objects.filter(pk=order.pk, status=Order.Status.PAYING).update(
+        status=Order.Status.CANCELLED, updated_at=timezone.now())
+    if moved:
+        order.status = Order.Status.CANCELLED
+    return bool(moved)
 
 
 def apply_cancelled_payment(order):
-    """Mark ``order`` CANCELLED unless it is already paid or cancelled.
+    """Cancel ``order`` because its gateway says the payment fell through.
 
-    Leaves orders that are already paid or cancelled untouched — so no stock
-    moves here: an order that never reached PAID never took any.
+    Only an order still awaiting payment. One that is paid, packed, sent or
+    delivered is a sale, and a sale is undone by staff, through
+    ``panel.services.set_status``, which gives back what it holds. This used
+    to leave PAID alone and cancel every other status, so a cancellation
+    arriving for an order staff had moved on to packing left it reading
+    cancelled with its stock still taken.
 
-    The old version re-read click-pkg's transaction row and acted only if its
-    state was CANCELLED. That guard is not lost: tolov calls its
-    ``cancelled_payment`` hook only for a cancellation, so the call itself is
-    the signal, and the status check below is what stops a replay undoing a
-    paid order.
+    tolov calls its ``cancelled_payment`` hook only for a cancellation, so
+    the call itself is the signal.
     """
-    if order.status not in (Order.Status.PAID, Order.Status.CANCELLED):
-        order.status = Order.Status.CANCELLED
-        order.save(update_fields=['status', 'updated_at'])
+    _cancel_if_unpaid(order)
 
 
 def cancel_order(order):
@@ -484,11 +509,7 @@ def cancel_order(order):
     PAYING only, so there is no stock to give back. Cancelling an order that was
     already paid for is a staff action — see :func:`cancel_paid_order`.
     """
-    if order.status == Order.Status.PAYING:
-        order.status = Order.Status.CANCELLED
-        order.save(update_fields=['status'])
-        return True
-    return False
+    return _cancel_if_unpaid(order)
 
 
 def cancel_paid_order(order):

@@ -144,17 +144,23 @@ def check(promo, user, goods, now=None):
     paid orders alone would let somebody open several orders with the code
     first and pay for them all afterwards. The unpaid one can be paid or
     cancelled, and the sentence says so (§17 #343).
+
+    A code with a number of uses is held by an unpaid order in the same way,
+    whether or not it is once per customer: a use is counted on payment, so
+    without this one customer could place a dozen orders under a code's last
+    use and pay for them all. Two customers can still both take a last use;
+    that much is accepted, as it is for the last shirt (§18 #49).
     """
     if promo is None or standing(promo, now) != LIVE:
         raise Refused(UNKNOWN)
     if goods < promo.min_subtotal:
         raise Refused(MINIMUM, sum=price(promo.min_subtotal))
-    if promo.once_per_customer:
-        mine = Order.objects.filter(user=user, promo=promo)
-        if mine.filter(status__in=SOLD).exists():
-            raise Refused(USED)
-        if mine.filter(status=Order.Status.PAYING).exists():
-            raise Refused(UNPAID)
+    mine = Order.objects.filter(user=user, promo=promo)
+    if promo.once_per_customer and mine.filter(status__in=SOLD).exists():
+        raise Refused(USED)
+    if ((promo.once_per_customer or promo.max_uses is not None)
+            and mine.filter(status=Order.Status.PAYING).exists()):
+        raise Refused(UNPAID)
 
 
 def _share(amount, percent):

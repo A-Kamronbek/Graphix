@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest import mock
 
+from django.contrib import admin as django_admin
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError
@@ -30,6 +31,7 @@ from core.ratelimit import RATE_LIMIT_MESSAGE
 from panel.models import OrderStatusChange
 from panel.services import set_status
 from payment import promos, services, views
+from payment.admin import OrderAdmin
 from payment.models import DeliveryOption, Order, PromoCode
 
 from .test_phase4 import make_product
@@ -196,6 +198,54 @@ class StaffMovesStockTests(TestCase):
         self.assertEqual(self.order.status, Order.Status.PAID)
         self.assertEqual(stock_of(self.variant), 7)
 
+    def test_the_django_admin_moves_stock_the_same_way(self):
+        """The admin saves a status through the same function the panel does."""
+        order = self.paid()
+        order.status = Order.Status.CANCELLED
+        form = mock.Mock(changed_data=['status'])
+        request = mock.Mock(user=self.staff)
+        OrderAdmin(Order, django_admin.site).save_model(request, order, form, change=True)
+        self.assertEqual(stock_of(self.variant), 10)
+        self.assertEqual(OrderStatusChange.objects.get().note, 'Django admin')
+
+    def test_two_markings_of_one_payment_take_the_stock_once(self):
+        """A callback and a second one, each holding a copy read before the other wrote."""
+        first = Order.objects.get(pk=self.order.pk)
+        second = Order.objects.get(pk=self.order.pk)
+        services.apply_successful_payment(first)
+        services.apply_successful_payment(second)
+        self.assertEqual(stock_of(self.variant), 7)
+
+    def test_a_gateways_cancellation_ends_only_an_order_still_awaiting_payment(self):
+        """Not one that is paid, and not one staff have moved on to packing.
+
+        The second was the gap: it read as cancelled with its stock still
+        taken, and putting it back took the stock a second time.
+        """
+        services.apply_cancelled_payment(Order.objects.get(pk=self.order.pk))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.Status.CANCELLED)
+
+        _, other = make_product('Boshqa', stock=10)
+        for status in (Order.Status.PAID, Order.Status.PROCESSING,
+                       Order.Status.ON_THE_WAY, Order.Status.DONE):
+            with self.subTest(status=status):
+                order = order_of(self.customer, (other, 1))
+                services.apply_successful_payment(order)
+                set_status(order, status, by=self.staff)
+                services.apply_cancelled_payment(Order.objects.get(pk=order.pk))
+                order.refresh_from_db()
+                self.assertEqual(order.status, status)
+
+    def test_a_customers_cancel_does_not_undo_a_payment_that_landed_first(self):
+        """The cancel page was opened before the payment and pressed after it."""
+        held = Order.objects.get(pk=self.order.pk)
+        self.paid()
+        self.assertFalse(services.cancel_order(held))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.Status.PAID)
+        self.assertEqual(stock_of(self.variant), 7)
+
 
 # ---------------------------------------------------------- the five kinds
 
@@ -301,6 +351,40 @@ class KindTests(PromoCase):
                 self.assertEqual(order.total_price, promos.FLOOR)
                 self.assertEqual(order.discount, 150000 + FEE - promos.FLOOR)
 
+    def test_the_floor_holds_for_a_code_off_one_item_too(self):
+        """All of a cheap item, with nothing to send it: the floor is still left."""
+        _, cheap = make_product('Arzon', price='5000')
+        promo = code(Kind.PRODUCT_PERCENT, 100, products=[cheap.product])
+        order = self.order(promo, (cheap, 1), delivery=Decimal('0'))
+        self.assertEqual((order.discount, order.total_price), (4000, promos.FLOOR))
+
+    def test_an_order_already_at_the_floor_is_refused_every_kind(self):
+        _, tiny = make_product('Mayda', price='800')
+        for index, kind in enumerate((Kind.PRODUCT_SUM, Kind.ORDER_SUM, Kind.ORDER_PERCENT)):
+            with self.subTest(kind=kind):
+                promo = code(kind, 50, name='PAST%d' % index, products=[tiny.product])
+                self.assertRefused(promos.NOTHING_OFF, promo, (tiny, 1), delivery=Decimal('0'))
+
+    def test_between_two_items_at_one_price_the_first_in_the_cart_is_discounted(self):
+        """Settled the same way every time, so the form and the lock agree."""
+        twin, twin_m = make_product('Egizak', price='150000')
+        promo = code(Kind.PRODUCT_SUM, 20000, products=[self.shirt, twin])
+        order = self.order(promo, (twin_m, 1), (self.shirt_m, 1))
+        self.assertEqual(order.discount_product, twin)
+
+    def test_the_preview_gives_a_figure_for_each_delivery_fee(self):
+        """And 0 for a fee the code takes nothing off, when another fee has something."""
+        cart = cart_of(self.user, (self.shirt_m, 1))
+        lines = list(cart.cart_items.select_related('variant__product'))
+        free = code(Kind.FREE_DELIVERY)
+        seen = promos.preview('KOD', self.user, lines,
+                              {'post': Decimal('0'), 'door': Decimal('40000')})
+        self.assertEqual(seen.discounts, {'post': 0, 'door': 40000})
+        with self.assertRaises(promos.Refused) as caught:
+            promos.preview('KOD', self.user, lines, {'post': Decimal('0')})
+        self.assertEqual(caught.exception.reason, promos.NOTHING_OFF)
+        self.assertEqual(free.used_count, 0)
+
     def test_a_code_changed_afterwards_does_not_rewrite_the_order(self):
         promo = code(Kind.ORDER_SUM, 30000)
         order = self.order(promo)
@@ -364,6 +448,19 @@ class LimitTests(PromoCase):
         self.assertRefused(promos.UNPAID, promo)
         services.cancel_order(first)
         self.assertEqual(self.order(promo).discount, 30000)
+
+    def test_a_code_with_a_number_of_uses_is_held_by_an_unpaid_order_as_well(self):
+        """Or one customer could open a dozen orders under its last use."""
+        promo = code(Kind.ORDER_SUM, 30000, max_uses=1, once_per_customer=False)
+        first = self.order(promo)
+        self.assertRefused(promos.UNPAID, promo)
+        # Paid, it is used up for everyone; a customer may still buy twice with
+        # a code that has uses left.
+        services.apply_successful_payment(first)
+        self.assertRefused(promos.UNKNOWN, promo)
+        many = code(Kind.ORDER_SUM, 30000, name='KOP', max_uses=5, once_per_customer=False)
+        services.apply_successful_payment(self.order(many))
+        self.assertEqual(self.order(many).discount, 30000)
 
     def test_a_code_for_any_number_of_uses_is_not_held_by_an_earlier_order(self):
         promo = code(Kind.ORDER_SUM, 30000, once_per_customer=False)
@@ -529,6 +626,50 @@ class GatewayTests(PromoCase):
         promo.refresh_from_db()
         self.assertEqual(order.status, Order.Status.PAID)
         self.assertEqual(promo.used_count, 1)
+
+    def test_a_cancelled_order_cannot_be_paid_for(self):
+        """Click asks before it charges, and is told the order is not there.
+
+        Without this a once-per-customer code had no limit: place an order
+        with it, keep the pay page open, cancel the order, which frees the
+        code, place another, and pay for them all.
+        """
+        promo = code(Kind.ORDER_PERCENT, 10)
+        first = self.order(promo)
+        services.cancel_order(first)
+        second = self.order(promo)                      # the code is free again
+        refused = self.click(first, 148500, action=0)
+        self.assertEqual(refused['error'], -5, refused)
+        first.refresh_from_db()
+        self.assertEqual(first.status, Order.Status.CANCELLED)
+        # The live order is paid for as usual, and the code was used once.
+        prepared = self.click(second, 148500, action=0)
+        self.click(second, 148500, action=1, prepare_id=prepared['merchant_prepare_id'])
+        second.refresh_from_db()
+        promo.refresh_from_db()
+        self.assertEqual(second.status, Order.Status.PAID)
+        self.assertEqual(promo.used_count, 1)
+
+    def test_a_payment_already_under_way_when_the_order_is_cancelled_is_kept(self):
+        """Click has charged the card by then, so the order is paid, not lost."""
+        order = self.order(None)
+        prepared = self.click(order, 165000, action=0)
+        services.cancel_order(Order.objects.get(pk=order.pk))
+        done = self.click(order, 165000, action=1, prepare_id=prepared['merchant_prepare_id'])
+        self.assertEqual(done['error'], 0, done)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
+
+    def test_payme_is_refused_a_cancelled_order_before_it_charges(self):
+        from tolov.core.exceptions import AccountNotFound
+        order = self.order(None)
+        # The hook as tolov calls it, on a view that was not built from a
+        # request: Payme has no credentials here to build one with.
+        view = views.PaymeWebhookAPIView.__new__(views.PaymeWebhookAPIView)
+        view.before_check_perform_transaction({}, order)          # a live order passes
+        services.cancel_order(order)
+        with self.assertRaises(AccountNotFound):
+            view.before_check_perform_transaction({}, Order.objects.get(pk=order.pk))
 
     def test_a_click_payment_of_the_full_price_is_not(self):
         """The order costs what it was frozen at, and no other sum pays it."""

@@ -19,6 +19,7 @@ from django.utils.translation import gettext as _, gettext_lazy, ngettext
 # `...django.views`, not `...django.webhooks`. The two modules hold the
 # same handlers; only these are wrapped in `csrf_exempt`, and a payment
 # gateway has no CSRF token to send (§17 #270).
+from tolov.core.exceptions import AccountNotFound
 from tolov.integrations.django.views import (BaseClickWebhookView,
                                              BaseOctoWebhookView,
                                              BasePaymeWebhookView)
@@ -620,6 +621,23 @@ class PaidByWebhook:
 
         return guarded
 
+    @staticmethod
+    def refuse_cancelled(order):
+        """Tell a gateway that asks before it charges: a cancelled order is not there.
+
+        A cancelled order could still be paid for through a pay page opened
+        before it was cancelled. That mattered little until promo codes:
+        cancelling an order frees its code, so a once-per-customer code could
+        be put on order after order, each cancelled in turn, and all of them
+        paid for afterwards at the discount.
+
+        Only where the gateway is asking. Once it has charged the card the
+        payment is honoured whatever the order reads, because the money is
+        real: ``apply_successful_payment`` still makes a cancelled order paid.
+        """
+        if order.status == Order.Status.CANCELLED:
+            raise AccountNotFound('Order %s was cancelled' % order.pk)
+
     @classmethod
     def _order(cls, transaction):
         """The order this transaction is for, or None with a line in the log.
@@ -644,6 +662,19 @@ class ClickWebhookAPIView(PaidByWebhook, BaseClickWebhookView):
     asserted by a test, because breaking it fails silently (§12 risk #2).
     """
 
+    def _find_account(self, merchant_trans_id):
+        """The order, unless Click is asking to start a payment for a cancelled one.
+
+        Click's Prepare (action 0) comes before the card is charged, and an
+        order tolov cannot find is answered there with Click's own "not
+        found", -5, which stops the payment. Complete (action 1) comes after
+        the charge and is left alone. See :meth:`refuse_cancelled`.
+        """
+        order = super()._find_account(merchant_trans_id)
+        if self.request.POST.get('action') == '0':
+            self.refuse_cancelled(order)
+        return order
+
 
 class PaymeWebhookAPIView(PaidByWebhook, BasePaymeWebhookView):
     """Payme's JSON-RPC callback endpoint.
@@ -651,6 +682,14 @@ class PaymeWebhookAPIView(PaidByWebhook, BasePaymeWebhookView):
     Payme quotes tiyin; tolov multiplies `total_price` by 100 before comparing,
     so the amount check needs nothing from us beyond `AMOUNT_FIELD`.
     """
+
+    def before_check_perform_transaction(self, params, account):
+        """Payme's question before it charges: may this order be paid for?
+
+        Not if it was cancelled. tolov turns the exception into Payme's own
+        "account not found". See :meth:`refuse_cancelled`.
+        """
+        self.refuse_cancelled(account)
 
 
 class OctoWebhookAPIView(PaidByWebhook, BaseOctoWebhookView):
