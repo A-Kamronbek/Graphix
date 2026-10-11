@@ -140,12 +140,12 @@ CI runs both against a real PostgreSQL, plus `check --deploy` with `DEBUG`
 off, which is the only run where the production security settings are checked
 at all.
 
-Your own machine runs them on SQLite, which is what `DEBUG=True` selects. It
-is close enough to build on and not the same: SQLite takes no row locks, so
-the lock the checkout puts on a cart does nothing there, and its
+Your own machine runs them on SQLite, which is what a `.env` with no `DB_NAME`
+gets. It is close enough to build on and not the same: SQLite takes no row
+locks, so the lock the checkout puts on a cart does nothing there, and its
 case-insensitive search only folds ASCII, so a Cyrillic search can miss
 locally what it finds on the server. CI's run is the one that counts. To run
-against PostgreSQL at home, set `DB_ENGINE=postgresql` beside the `DB_*` keys.
+against PostgreSQL at home, fill in the `DB_*` keys.
 
 Measure rather than assert. Phase 9's accessibility work reached 100 on
 Lighthouse only because it was run against a production-shaped server; two of

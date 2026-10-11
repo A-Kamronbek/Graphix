@@ -7,6 +7,8 @@ startup rather than running with an unsafe default.
 import os
 import sys
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -106,18 +108,28 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ---- database ----
-# The shop runs on PostgreSQL. A developer's machine runs on SQLite, a file
-# beside manage.py, so the site starts there with nothing to install and no
-# DB_* keys to fill in. DEBUG is the switch: it is on only on a developer's
-# machine, and the server's .env has it off, so the server is not touched by
-# this.
+# One rule for every machine: where a PostgreSQL database is configured, that
+# is the database. The server's .env names one and so does CI's environment,
+# so both are on PostgreSQL with nothing said about it here.
 #
-# DB_ENGINE=postgresql keeps PostgreSQL with DEBUG on. CI sets it: the suite
-# needs DEBUG on, because the production security settings would otherwise
-# redirect every test request to https, and it has to run on the engine the
-# shop runs on. SQLite takes no row locks, so the lock the checkout puts on a
-# cart would be tested against nothing.
-if DEBUG and os.environ.get("DB_ENGINE") != "postgresql":
+# A machine that names none is a developer's, and runs on SQLite, a file
+# beside manage.py, so the site starts there with nothing to install. That is
+# allowed only with DEBUG on. With DEBUG off and no DB_NAME the site refuses
+# to start: a server that lost its .env must stop, not open an empty SQLite
+# file and take orders into it.
+DB_NAME = os.environ.get("DB_NAME", "")
+if DB_NAME:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            "NAME": DB_NAME,
+            "USER": os.environ["DB_USER"],
+            "PASSWORD": os.environ["DB_PASSWORD"],
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
+    }
+elif DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -125,16 +137,9 @@ if DEBUG and os.environ.get("DB_ENGINE") != "postgresql":
         }
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            "NAME": os.environ["DB_NAME"],
-            "USER": os.environ["DB_USER"],
-            "PASSWORD": os.environ["DB_PASSWORD"],
-            "HOST": os.environ.get("DB_HOST", "localhost"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
-        }
-    }
+    raise ImproperlyConfigured(
+        "DB_NAME is not set. With DEBUG off the site runs on PostgreSQL and "
+        "does not fall back to SQLite: fill in the DB_* keys in .env.")
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'user.validators.CustomMinimumLengthValidator'},
