@@ -18,8 +18,9 @@ Production: **https://graphix.uz**
 
 ## Running it locally
 
-Needs Python 3.12 or newer and GNU gettext. No database to install: with
-`DEBUG=True` the site keeps its data in SQLite, a file beside `manage.py`.
+Needs Python 3.12 or newer and GNU gettext. No database to install: with no
+`DB_NAME` in `.env` the site keeps its data in SQLite, a file beside
+`manage.py`.
 
 ```bash
 git clone git@github.com:A-Kamronbek/Graphix.git
@@ -29,7 +30,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate   |   Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env          # DEBUG=True is enough to start
+cp .env.example .env          # runs as it is, on SQLite
 
 python manage.py migrate
 python manage.py seed_regions              # the checkout's regions and districts
@@ -127,8 +128,7 @@ docs/        architecture and integration contracts
 
 Everything is read from `.env` beside `manage.py`.
 [`.env.example`](.env.example) lists every key with notes. The Click and Eskiz
-keys fail at startup if missing, and so do the database keys once `DEBUG` is
-off. Google Maps, Payme, Octo and
+keys fail at startup if missing, and so does `DB_NAME` once `DEBUG` is off. Google Maps, Payme, Octo and
 Telegram are optional, and without one the feature it switches on stays off.
 Never commit `.env`.
 
@@ -138,8 +138,7 @@ Never commit `.env`.
 | `DEBUG` | `True` locally, `False` in production |
 | `ALLOWED_HOSTS` | Comma-separated hostnames |
 | `CSRF_TRUSTED_ORIGINS` | Full origins allowed to POST; required in production |
-| `DB_*` | PostgreSQL connection. Not read while `DEBUG` is `True`, when the database is SQLite |
-| `DB_ENGINE` | `postgresql` keeps PostgreSQL with `DEBUG` on. CI sets it; leave it out otherwise |
+| `DB_*` | PostgreSQL connection. Where `DB_NAME` is set, that database is used; left out, with `DEBUG` on, the site uses SQLite |
 | `CLICK_*` | Click merchant credentials |
 | `PAYME_*`, `OCTO_*` | Payme and Octo credentials; blank until the merchant accounts exist |
 | `ESKIZ_*` | Eskiz account and sender name |
