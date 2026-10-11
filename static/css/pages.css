@@ -473,9 +473,6 @@ html.js .slides__controls {
    smaller cap, not sign-up alone, so the heading does not change size as a
    visitor steps from one door to the other. */
 .auth .h1 { font-size: clamp(var(--fs-4xl), 8vw, var(--fs-auth-title)); }
-/* In a column this narrow the line under the title runs to two lines, and the
-   second was a single word. Balanced, the two come out about even. */
-.auth .lede { text-wrap: balance; }
 
 /* --------------------------------------------------------------- account */
 /* Tabs across the top on mobile, a sidebar from 860 px. */
