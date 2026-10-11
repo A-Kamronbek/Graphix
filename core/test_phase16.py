@@ -351,6 +351,11 @@ class KindTests(PromoCase):
                 self.assertEqual(order.total_price, promos.FLOOR)
                 self.assertEqual(order.discount, 150000 + FEE - promos.FLOOR)
 
+    def test_the_floor_is_a_sum_click_will_take(self):
+        """An order left costing less than Click's smallest payment could be
+        placed and never paid for."""
+        self.assertGreaterEqual(promos.FLOOR, promos.CLICK_SMALLEST)
+
     def test_the_floor_holds_for_a_code_off_one_item_too(self):
         """All of a cheap item, with nothing to send it: the floor is still left."""
         _, cheap = make_product('Arzon', price='5000')

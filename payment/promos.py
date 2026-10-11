@@ -30,7 +30,14 @@ from .models import Order, PromoCode, SOLD
 #: The least an order may cost after a code, in so'm. A code never makes an
 #: order free, because no gateway can be asked for nothing: a discount that
 #: would take the total below this is cut to leave it (§17 #318).
+#:
+#: It is also the smallest payment Click takes, so it cannot go lower: an
+#: order left costing less could be placed and never paid for (§17 #350).
 FLOOR = Decimal('1000')
+
+#: Click's smallest payment, in so'm. Not used to compute anything: it is
+#: here so that a test can hold the floor above it.
+CLICK_SMALLEST = Decimal('1000')
 
 #: Why a code was refused. The first is deliberately one answer for four
 #: cases; the rest tell the customer something they can act on.
