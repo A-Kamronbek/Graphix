@@ -12,7 +12,7 @@ taken and one marked paid by hand took none. A code's use is counted in the
 same place stock is, so that place had to be right first.
 """
 import hashlib
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest import mock
 
@@ -881,3 +881,220 @@ class ShownTests(CheckoutCase):
         response = self.client.get(reverse('panel_dashboard'))
         self.assertEqual(response.context['revenue_today'], self.order.total_price)
         self.assertEqual(self.order.total_price, 150000 + self.office.price - 20000)
+
+
+# ------------------------------------------------------------------ the panel
+
+class PanelTests(PromoCase):
+    """The owner makes, limits and switches off a code himself."""
+
+    def setUp(self):
+        super().setUp()
+        self.staff = make_staff()
+        self.client.force_login(self.staff)
+
+    def form(self, **over):
+        """What the new-code form posts for a sum off the order, plus ``over``."""
+        data = {'code': 'YOZ10', 'kind': Kind.ORDER_SUM, 'value': '30000',
+                'once_per_customer': 'on', 'is_active': 'on',
+                'starts_on': '', 'ends_on': '', 'max_uses': '', 'min_subtotal': '',
+                'note': ''}
+        data.update(over)
+        return {key: value for key, value in data.items() if value is not None}
+
+    def make(self, **over):
+        return self.client.post(reverse('panel_promo_new'), self.form(**over))
+
+    def errors(self, response):
+        """The form's refusals, by field."""
+        return {name: [str(e) for e in errs]
+                for name, errs in response.context['form'].errors.items()}
+
+    def test_only_staff_reach_it(self):
+        promo = code(Kind.ORDER_SUM, 30000)
+        urls = [reverse('panel_promos'), reverse('panel_promo_new'),
+                reverse('panel_promo', kwargs={'pk': promo.pk})]
+        for url in urls:
+            self.assertEqual(self.client.get(url).status_code, 200, url)
+        self.client.force_login(self.user)
+        for url in urls:
+            self.assertEqual(self.client.get(url).status_code, 403, url)
+            self.assertEqual(self.client.post(url, self.form()).status_code, 403, url)
+        self.assertFalse(PromoCode.objects.filter(code='YOZ10').exists())
+
+    def test_a_code_of_each_kind_can_be_made(self):
+        made = [
+            ('MAHSUM', Kind.PRODUCT_SUM, '20000', [self.shirt.pk]),
+            ('MAHFOIZ', Kind.PRODUCT_PERCENT, '15', [self.shirt.pk, self.hoodie.pk]),
+            ('BUYSUM', Kind.ORDER_SUM, '30000', None),
+            ('BUYFOIZ', Kind.ORDER_PERCENT, '10', None),
+            ('BEPUL', Kind.FREE_DELIVERY, '', None),
+        ]
+        for name, kind, value, products in made:
+            with self.subTest(kind=kind):
+                response = self.make(code=name, kind=kind, value=value, products=products)
+                self.assertRedirects(response, reverse('panel_promos'))
+                promo = PromoCode.objects.get(code=name)
+                self.assertEqual(promo.kind, kind)
+                self.assertEqual(promo.value, Decimal(value or 0))
+                self.assertEqual(set(promo.products.values_list('pk', flat=True)),
+                                 set(products or []))
+                self.assertTrue(promo.is_active)
+                self.assertTrue(promo.once_per_customer)
+        # And each one works at the checkout's own rules.
+        order = self.order(PromoCode.objects.get(code='MAHSUM'))
+        self.assertEqual(order.discount, 20000)
+
+    def test_a_code_is_kept_in_capitals_however_it_is_typed(self):
+        self.make(code=' yoz 10 ')
+        self.assertTrue(PromoCode.objects.filter(code='YOZ10').exists())
+
+    def test_a_code_that_already_exists_is_refused_whatever_its_case(self):
+        code(Kind.ORDER_SUM, 30000, name='YOZ10')
+        response = self.make(code='yoz10')
+        self.assertEqual(self.errors(response)['code'], ['Bunday promokod allaqachon bor.'])
+        self.assertEqual(PromoCode.objects.count(), 1)
+
+    def test_what_does_not_fit_is_refused_in_the_panels_words(self):
+        refused = [
+            ({'code': 'YOZ-10'}, 'code'),
+            ({'code': 'AB'}, 'code'),
+            ({'code': ''}, 'code'),
+            ({'value': ''}, 'value'),
+            ({'value': '0'}, 'value'),
+            ({'kind': Kind.ORDER_PERCENT, 'value': '101'}, 'value'),
+            ({'kind': Kind.PRODUCT_SUM, 'value': '20000'}, 'products'),
+            ({'kind': 'chegirma'}, 'kind'),
+            ({'max_uses': '-1'}, 'max_uses'),
+            ({'starts_on': 'ertaga'}, 'starts_on'),
+            ({'starts_on': '20/10/2026', 'ends_on': '19/10/2026'}, 'ends_on'),
+        ]
+        for over, field in refused:
+            with self.subTest(over=over):
+                response = self.make(**over)
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(field, self.errors(response))
+                self.assertFalse(PromoCode.objects.exists())
+                # What was typed is still in the form.
+                self.assertContains(response, 'name="note"')
+
+    def test_a_refused_form_keeps_what_was_typed(self):
+        response = self.make(code='YOZ-10', note='Instagram uchun', max_uses='50',
+                             kind=Kind.PRODUCT_SUM, products=[self.hoodie.pk])
+        html = response.content.decode()
+        self.assertIn('value="YOZ-10"', html)
+        self.assertIn('value="Instagram uchun"', html)
+        self.assertIn('value="50"', html)
+        self.assertRegex(html, r'value="%d"\s+checked' % self.hoodie.pk)
+        self.assertNotRegex(html, r'value="%d"\s+checked' % self.shirt.pk)
+
+    def test_products_are_kept_only_for_a_code_that_discounts_one_item(self):
+        self.make(kind=Kind.ORDER_SUM, products=[self.shirt.pk])
+        self.assertEqual(PromoCode.objects.get().products.count(), 0)
+
+    def test_days_are_typed_day_first_and_cover_the_whole_of_each_day(self):
+        self.make(starts_on='12/10/2026', ends_on='31/10/2026')
+        promo = PromoCode.objects.get()
+        zone = timezone.get_current_timezone()
+        at = lambda *parts: timezone.make_aware(datetime(*parts), zone)
+        self.assertEqual(promo.starts_at, at(2026, 10, 12))
+        self.assertEqual(promos.standing(promo, at(2026, 10, 11, 23, 59)), promos.EARLY)
+        self.assertEqual(promos.standing(promo, at(2026, 10, 12, 0, 1)), promos.LIVE)
+        # Good until the last minute of its last day, in the shop's own time.
+        self.assertEqual(promos.standing(promo, at(2026, 10, 31, 23, 59)), promos.LIVE)
+        self.assertEqual(promos.standing(promo, at(2026, 11, 1, 0, 1)), promos.ENDED)
+        html = self.client.get(reverse('panel_promo', kwargs={'pk': promo.pk})).content.decode()
+        self.assertIn('value="12/10/2026"', html)
+        self.assertIn('value="31/10/2026"', html)
+
+    def test_the_limits_can_be_edited_and_the_spelling_and_kind_cannot(self):
+        promo = code(Kind.ORDER_SUM, 30000, name='YOZ10')
+        url = reverse('panel_promo', kwargs={'pk': promo.pk})
+        response = self.client.post(url, self.form(
+            code='BOSHQA', kind=Kind.FREE_DELIVERY, value='45000', max_uses='7',
+            min_subtotal='200000', once_per_customer=None, is_active=None,
+            ends_on='31/12/2026', note='Yangi yil'))
+        self.assertRedirects(response, reverse('panel_promos'))
+        promo.refresh_from_db()
+        self.assertEqual((promo.code, promo.kind), ('YOZ10', Kind.ORDER_SUM))
+        self.assertEqual((promo.value, promo.max_uses, promo.min_subtotal),
+                         (45000, 7, 200000))
+        self.assertFalse(promo.once_per_customer)
+        self.assertFalse(promo.is_active)
+        self.assertEqual(promo.note, 'Yangi yil')
+        self.assertIsNotNone(promo.ends_at)
+
+    def test_editing_a_code_does_not_touch_an_order_placed_with_it(self):
+        promo = code(Kind.ORDER_SUM, 30000, name='YOZ10')
+        order = self.order(promo)
+        self.client.post(reverse('panel_promo', kwargs={'pk': promo.pk}),
+                         self.form(value='90000'))
+        order.refresh_from_db()
+        self.assertEqual((order.discount, order.total_price), (30000, 150000 + FEE - 30000))
+
+    def test_clearing_a_day_takes_the_limit_off(self):
+        promo = code(Kind.ORDER_SUM, 30000, name='YOZ10',
+                     ends_at=timezone.now() - timedelta(days=1))
+        self.client.post(reverse('panel_promo', kwargs={'pk': promo.pk}), self.form())
+        promo.refresh_from_db()
+        self.assertIsNone(promo.ends_at)
+        self.assertEqual(promos.standing(promo), promos.LIVE)
+
+    def test_the_switch_on_the_list_turns_a_code_off_and_on(self):
+        promo = code(Kind.ORDER_SUM, 30000)
+        url = reverse('panel_reference_inline', kwargs={'kind': 'promo', 'pk': promo.pk})
+        self.assertTrue(self.client.post(url, {'field': 'is_active', 'value': '0'}).json()['ok'])
+        promo.refresh_from_db()
+        self.assertFalse(promo.is_active)
+        self.assertRefused(promos.UNKNOWN, promo)
+        self.client.post(url, {'field': 'is_active', 'value': '1'})
+        self.assertEqual(self.order(promo).discount, 30000)
+
+    def test_the_switch_reaches_nothing_but_the_switch(self):
+        """A value or a count changed one field at a time would skip the form's checks."""
+        promo = code(Kind.ORDER_SUM, 30000, max_uses=5)
+        url = reverse('panel_reference_inline', kwargs={'kind': 'promo', 'pk': promo.pk})
+        for field, value in (('value', '1'), ('used_count', '0'), ('code', 'OGRI'),
+                             ('max_uses', '999'), ('kind', Kind.ORDER_PERCENT)):
+            with self.subTest(field=field):
+                self.assertEqual(self.client.post(url, {'field': field, 'value': value})
+                                 .status_code, 400)
+        promo.refresh_from_db()
+        self.assertEqual((promo.value, promo.code, promo.max_uses), (30000, 'KOD', 5))
+
+    def test_a_code_nobody_used_can_be_deleted(self):
+        promo = code(Kind.ORDER_SUM, 30000)
+        url = reverse('panel_reference_delete', kwargs={'kind': 'promo', 'pk': promo.pk})
+        self.assertEqual(self.client.post(url).json(), {'ok': True, 'name': 'KOD'})
+        self.assertFalse(PromoCode.objects.exists())
+
+    def test_a_code_an_order_was_placed_with_can_only_be_switched_off(self):
+        promo = code(Kind.ORDER_SUM, 30000)
+        self.order(promo)
+        url = reverse('panel_reference_delete', kwargs={'kind': 'promo', 'pk': promo.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Yoqilgan', response.json()['error'])
+        self.assertTrue(PromoCode.objects.filter(pk=promo.pk).exists())
+
+    def test_the_list_says_what_each_code_is_and_where_it_stands(self):
+        now = timezone.now()
+        code(Kind.PRODUCT_SUM, 20000, name='MAHSUM', products=[self.shirt, self.hoodie],
+             max_uses=5, used_count=2, note='Instagram')
+        code(Kind.ORDER_PERCENT, 10, name='ERTA', starts_at=now + timedelta(days=2))
+        code(Kind.ORDER_SUM, 30000, name='KECH', ends_at=now - timedelta(days=2))
+        code(Kind.FREE_DELIVERY, name='TUGADI', max_uses=1, used_count=1)
+        html = self.client.get(reverse('panel_promos')).content.decode()
+        for name in ('MAHSUM', 'ERTA', 'KECH', 'TUGADI'):
+            self.assertIn(name, html)
+        self.assertIn('2 / 5', html)
+        self.assertIn('Koʻylak, Xudi', html)
+        self.assertIn('Instagram', html)
+        self.assertIn('20\u00a0000 soʻm', html)
+        self.assertIn('10 %', html)
+        for badge in ('Hali boshlanmagan', 'Muddati tugagan', 'Limit tugagan'):
+            self.assertEqual(html.count(badge), 1, badge)
+
+    def test_the_panel_has_a_tab_for_it(self):
+        html = self.client.get(reverse('panel_dashboard')).content.decode()
+        self.assertIn('href="%s"' % reverse('panel_promos'), html)

@@ -1,0 +1,20 @@
+{% load i18n %}
+{# One day on a promo code's form: typed as dd/mm/yyyy, with the browser's #}
+{# calendar behind a button, the same field the orders filter uses (§18 #38). #}
+<div class="field {% if field.errors %}field--error{% endif %}">
+  <label class="label" for="promo-{{ field.name }}">{{ label }}</label>
+  <span class="datefield">
+    <input class="input" type="text" name="{{ field.name }}" id="promo-{{ field.name }}"
+           value="{{ field.value|default:'' }}" autocomplete="off" maxlength="10"
+           placeholder="{% trans 'kk/oo/yyyy' %}"
+           pattern="[0-9]{1,2}[.\/][0-9]{1,2}[.\/][0-9]{4}"
+           title="{% trans 'Sanani kk/oo/yyyy koʻrinishida kiriting, masalan 16/09/2026.' %}"
+           data-date-text>
+    <button class="datefield__pick" type="button" hidden data-date-pick
+            aria-label="{% trans 'Kalendardan tanlash' %}">
+      <svg class="i i--sm" aria-hidden="true"><use href="#i-calendar"></use></svg>
+    </button>
+    <input class="datefield__native" type="date" tabindex="-1" aria-hidden="true" data-date-native>
+  </span>
+  {% if field.errors %}<small class="field__error">{{ field.errors|join:" · " }}</small>{% endif %}
+</div>

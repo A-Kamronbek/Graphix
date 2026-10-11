@@ -104,6 +104,35 @@ def find(text):
     return PromoCode.objects.filter(code=code).first()
 
 
+#: Where a code stands at a given moment, whoever is asking. Only a live
+#: one can be used. The panel shows the others by name, so the owner can see
+#: why a code he believes is good is being refused.
+LIVE = 'live'
+OFF = 'off'
+EARLY = 'early'
+ENDED = 'ended'
+USED_UP = 'used_up'
+
+
+def limit_reached(promo, now=None):
+    """The limit that stops ``promo`` right now, switched on or not, or None."""
+    now = now or timezone.now()
+    if promo.starts_at and now < promo.starts_at:
+        return EARLY
+    if promo.ends_at and now > promo.ends_at:
+        return ENDED
+    if promo.max_uses is not None and promo.used_count >= promo.max_uses:
+        return USED_UP
+    return None
+
+
+def standing(promo, now=None):
+    """Whether ``promo`` can be used right now, and if not, what stops it."""
+    if not promo.is_active:
+        return OFF
+    return limit_reached(promo, now) or LIVE
+
+
 def check(promo, user, goods, now=None):
     """Raise :class:`Refused` unless ``user`` may use ``promo`` on these goods.
 
@@ -116,11 +145,7 @@ def check(promo, user, goods, now=None):
     first and pay for them all afterwards. The unpaid one can be paid or
     cancelled, and the sentence says so (§17 #343).
     """
-    now = now or timezone.now()
-    if (promo is None or not promo.is_active
-            or (promo.starts_at and now < promo.starts_at)
-            or (promo.ends_at and now > promo.ends_at)
-            or (promo.max_uses is not None and promo.used_count >= promo.max_uses)):
+    if promo is None or standing(promo, now) != LIVE:
         raise Refused(UNKNOWN)
     if goods < promo.min_subtotal:
         raise Refused(MINIMUM, sum=price(promo.min_subtotal))

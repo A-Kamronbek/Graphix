@@ -49,6 +49,13 @@ urlpatterns = [
     path('boshqaruv/slaydlar/<int:pk>/rasm/<str:which>/', views.slide_picture,
          name='panel_slide_picture'),
 
+    # Promo codes. The list, and one form that makes a code or edits one. The
+    # switch and the delete go through the reference endpoints below, like
+    # every other row the panel turns off or removes.
+    path('boshqaruv/promokodlar/', views.promos, name='panel_promos'),
+    path('boshqaruv/promokodlar/yangi/', views.promo_form, name='panel_promo_new'),
+    path('boshqaruv/promokodlar/<int:pk>/', views.promo_form, name='panel_promo'),
+
     # Reference data: rows somebody changes two or three times a year, so that
     # none of it needs a deploy.
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),

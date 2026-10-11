@@ -30,7 +30,7 @@ from django.urls import get_resolver, reverse
 from django.utils import translation
 
 from cart.models import Cart, CartItem
-from payment.models import Order
+from payment.models import Order, PromoCode
 from product.models import Category, ImageP, Review
 
 from .test_phase4 import make_product
@@ -135,6 +135,9 @@ PANEL = (
     Page('panel_regions', {}, STAFF_DOOR, 403, 200),
     Page('panel_settings', {}, STAFF_DOOR, 403, 200),
     Page('panel_slides', {}, STAFF_DOOR, 403, 200),
+    Page('panel_promos', {}, STAFF_DOOR, 403, 200),
+    Page('panel_promo_new', {}, STAFF_DOOR, 403, 200),
+    Page('panel_promo', {'pk': 'promo_pk'}, STAFF_DOOR, 403, 200),
     # The style guide is a panel screen that predates the panel. It answered
     # 302 to /admin/login/ for a signed-in customer until Phase 10 gave it the
     # same guard as its neighbours (§17 #268).
@@ -221,6 +224,8 @@ class SmokeMatrix(TestCase):
             # A slide need not exist: every answer in the matrix comes before
             # the view looks one up (§17 #302).
             'slide_pk': 1, 'which': 'phone',
+            'promo_pk': PromoCode.objects.create(
+                code='SMOKE', kind=PromoCode.Kind.ORDER_SUM, value=1000).pk,
         }
 
     def url_for(self, page, tokens):

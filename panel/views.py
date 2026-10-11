@@ -39,7 +39,11 @@ from product.models import (Category, PrintMethod, Product, Review, Size,
                             SizeChart, Slide, SlidePhone, Tag, TagKind, Variant,
                             slide_link)
 
+from payment import promos as promo_rules
+from payment.models import PromoCode
+
 from . import catalogue, reference
+from .promos import PromoForm
 from .auth import staff_only
 from .services import PANEL_CHOICES, PANEL_SETTABLE, UnknownStatus, set_status
 
@@ -1020,3 +1024,60 @@ def chart_new(request):
     SizeChart.objects.create(name=name, image=clean)
     messages.success(request, _('Jadval qoʻshildi.'))
     return redirect('panel_settings')
+
+
+# -------------------------------------------------------------- promo codes
+# Its own tab, like the slides: a code is made for a season or a customer and
+# switched off again, which is not the pace of Sozlamalar (§17 #251, #310).
+
+def _promo_rows():
+    """Every code, newest first, with the limit that stops each one, if any.
+
+    The limit and not the switch: the switch is on the card and is changed in
+    place, so a label that also spoke for it would be wrong until the page
+    was loaded again.
+    """
+    now = timezone.now()
+    rows = list(PromoCode.objects.prefetch_related('products'))
+    for row in rows:
+        row.limit = promo_rules.limit_reached(row, now)
+    return rows
+
+
+@staff_only
+def promos(request):
+    """The list: each code, what it takes off, its limits and its uses.
+
+    A code that is switched on and still refused is the question this screen
+    exists to answer, so each one says where it stands: not started, ended,
+    or used up. Switched-off codes stay in the list, like slides, because the
+    one turned off last month is the one most likely to be turned on again.
+    """
+    return render(request, 'boshqaruv/promos.html', {
+        'screen': 'promos',
+        'promos': _promo_rows(),
+    })
+
+
+@staff_only
+def promo_form(request, pk=None):
+    """Make a code, or edit one. One form and one template for both."""
+    promo = get_object_or_404(PromoCode, pk=pk) if pk is not None else None
+    form = PromoForm(request.POST or None, instance=promo)
+    if request.method == 'POST' and form.is_valid():
+        saved = form.save()
+        messages.success(request, _('%(code)s — saqlandi.') % {'code': saved.code})
+        return redirect('panel_promos')
+    return render(request, 'boshqaruv/promo_form.html', {
+        'screen': 'promos',
+        'form': form,
+        'promo': promo,
+        'kinds': PromoCode.Kind.choices,
+        'product_kinds': [kind.value for kind in PromoCode.PRODUCT_KINDS],
+        'percent_kinds': [kind.value for kind in PromoCode.PERCENT_KINDS],
+        'free_kind': PromoCode.Kind.FREE_DELIVERY.value,
+        # The ticked products, as the form has them now: what was posted when
+        # it came back with a mistake, what the code holds otherwise.
+        'chosen': {str(value) for value in (form['products'].value() or [])},
+        'orders': promo.orders.count() if promo else 0,
+    })
