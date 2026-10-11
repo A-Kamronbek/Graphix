@@ -16,6 +16,7 @@ from datetime import timedelta
 from decimal import Decimal
 from unittest import mock
 
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError
 from django.test import TestCase, override_settings
@@ -24,13 +25,14 @@ from django.utils import timezone
 
 from cart.models import Cart, CartItem
 from core import telegram
+from core.ratelimit import RATE_LIMIT_MESSAGE
 from panel.models import OrderStatusChange
 from panel.services import set_status
-from payment import promos, services
-from payment.models import Order, PromoCode
+from payment import promos, services, views
+from payment.models import DeliveryOption, Order, PromoCode
 
 from .test_phase4 import make_product
-from .test_phase6 import make_user
+from .test_phase6 import make_regions, make_user
 from .test_phase7 import make_staff
 
 
@@ -534,3 +536,348 @@ class GatewayTests(PromoCase):
         self.assertEqual(refused['error'], -2, refused)
         order.refresh_from_db()
         self.assertEqual(order.status, Order.Status.PAYING)
+
+
+# --------------------------------------------------------------- the checkout
+
+class CheckoutCase(PromoCase):
+    """A signed-in customer with one shirt in the cart, at the checkout."""
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        self.geo = make_regions()
+        self.client.force_login(self.user)
+        self.cart = cart_of(self.user, (self.shirt_m, 1))
+        self.office = DeliveryOption.objects.get(code='uzpost_office')
+        self.door = DeliveryOption.objects.get(code='uzpost_door')
+
+    def form(self, **over):
+        """A checkout form that would place the order, with ``over`` on top."""
+        data = {'name': 'Dilnoza Karimova', 'phone': '+998 90 122 00 03',
+                'delivery_option': 'uzpost_office',
+                'region': self.geo['tashkent'].pk, 'district': self.geo['chilonzor'].pk,
+                'postal_index': '100011', 'payment_method': 'click', 'notes': ''}
+        data.update(over)
+        return {key: value for key, value in data.items() if value is not None}
+
+    def post(self, **over):
+        return self.client.post(reverse('checkout'), self.form(**over))
+
+    def apply(self, typed, **over):
+        """Press "Qoʻllash" with ``typed`` in the field."""
+        return self.post(promo_code=typed, apply_promo='1', **over)
+
+    def said(self, response):
+        """Every message the page came back with, as text."""
+        return [str(m) for m in response.context['messages']]
+
+
+class CheckoutTests(CheckoutCase):
+    """The field at the checkout, used the way a page without scripts uses it."""
+
+    def test_the_field_is_in_the_form_above_the_order_button(self):
+        """On a phone the summary comes after the button; the field must not."""
+        html = self.client.get(reverse('checkout')).content.decode()
+        form = html.split('data-checkout', 1)[1].split('</form>', 1)[0]
+        self.assertIn('name="promo_code"', form)
+        apply = form.index('name="apply_promo"')
+        order_button = form.rindex('type="submit"')
+        self.assertLess(apply, order_button)
+        self.assertIn('formnovalidate', form[apply - 200:apply + 200])
+        # Nothing is taken off and nothing says so until a code is tried.
+        self.assertRegex(html, r'data-promo-row hidden')
+
+    def test_enter_in_a_field_still_places_the_order(self):
+        """A form's first submit button is the one Enter presses.
+
+        "Qoʻllash" now comes before the order button, so the order button is
+        in the form once more ahead of it, out of sight and out of the tab
+        order, and carries no name: pressing it applies nothing.
+        """
+        html = self.client.get(reverse('checkout')).content.decode()
+        form = html.split('data-checkout', 1)[1].split('</form>', 1)[0]
+        first = form[form.index('<button'):].split('>', 1)[0]
+        self.assertIn('type="submit"', first)
+        self.assertIn('class="sr-only"', first)
+        self.assertIn('tabindex="-1"', first)
+        self.assertNotIn('name=', first)
+
+    def test_applying_a_code_shows_the_discount_and_places_no_order(self):
+        code(Kind.ORDER_PERCENT, 10)
+        response = self.apply('kod', name='')          # the form is not finished
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Order.objects.exists())
+        expected = (150000 + self.office.price) // 10
+        self.assertEqual(response.context['discount'], expected)
+        self.assertEqual(response.context['total'], 150000 + self.office.price - expected)
+        html = response.content.decode()
+        self.assertNotRegex(html, r'data-promo-row hidden')
+        self.assertIn('Chegirma: 16\u00a0500 soʻm. Jami: 148\u00a0500 soʻm.', html)
+        # Not a word about the empty name: the customer asked about the code.
+        self.assertEqual(self.said(response), [])
+
+    def test_what_was_typed_comes_back_with_the_code(self):
+        code(Kind.ORDER_SUM, 30000)
+        html = self.apply('kod', notes='Qoʻngʻiroq qiling').content.decode()
+        self.assertIn('value="Dilnoza Karimova"', html)
+        self.assertIn('Qoʻngʻiroq qiling', html)
+        self.assertIn('value="100011"', html)
+
+    def test_a_refused_code_comes_back_as_typed_with_the_reason(self):
+        response = self.apply('yoq 123')
+        self.assertFalse(Order.objects.exists())
+        self.assertEqual(response.context['discount'], 0)
+        self.assertEqual(self.said(response), [str(promos.MESSAGES[promos.UNKNOWN])])
+        html = response.content.decode()
+        self.assertIn('value="yoq 123"', html)
+        self.assertRegex(html, r'data-promo-row hidden')
+        self.assertIn('promo__status--refused', html)
+
+    def test_applying_an_empty_field_asks_for_a_code(self):
+        response = self.apply('')
+        self.assertEqual(self.said(response), ['Promokodni kiriting.'])
+
+    def test_a_product_code_names_the_product_it_came_off(self):
+        code(Kind.PRODUCT_SUM, 20000, products=[self.shirt])
+        html = self.apply('KOD').content.decode()
+        self.assertIn('Chegirma (Koʻylak): 20\u00a0000 soʻm.', html)
+
+    def test_the_discount_follows_the_delivery_method(self):
+        """A share of the order is a share of whichever fee is chosen."""
+        code(Kind.ORDER_PERCENT, 10)
+        by_method = {}
+        for option in (self.office, self.door):
+            response = self.apply('KOD', delivery_option=option.code, postal_index=None,
+                                  address='Amir Temur 1')
+            by_method[option.code] = response.context['discount']
+            self.assertEqual(response.context['discount'], (150000 + option.price) // 10)
+        self.assertNotEqual(by_method['uzpost_office'], by_method['uzpost_door'])
+        # The page's script is handed both figures, so it need not ask again.
+        self.assertEqual(response.context['promo'].discounts, by_method)
+        self.assertIn('&quot;uzpost_door&quot;: %d' % by_method['uzpost_door'],
+                      response.content.decode())
+
+    def test_free_delivery_takes_off_the_fee_of_the_method_chosen(self):
+        code(Kind.FREE_DELIVERY)
+        response = self.apply('KOD', delivery_option='uzpost_door', postal_index=None,
+                              address='Amir Temur 1')
+        self.assertEqual(response.context['discount'], self.door.price)
+        self.assertEqual(response.context['total'], 150000)
+
+    def test_an_order_placed_with_a_typed_code_uses_it(self):
+        """Whether or not "Qoʻllash" was pressed first."""
+        promo = code(Kind.ORDER_SUM, 30000)
+        response = self.post(promo_code='kod')
+        order = Order.objects.get()
+        self.assertRedirects(response, reverse('payment', args=[order.pk]))
+        self.assertEqual((order.promo, order.discount), (promo, 30000))
+        self.assertEqual(order.total_price, 150000 + self.office.price - 30000)
+
+    def test_a_refused_code_stops_the_order_and_says_why(self):
+        response = self.post(promo_code='YOQ123')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Order.objects.exists())
+        self.assertEqual(self.said(response), [str(promos.MESSAGES[promos.UNKNOWN])])
+        # The control: the same form with a code that is good.
+        code(Kind.ORDER_SUM, 30000)
+        self.post(promo_code='KOD')
+        self.assertEqual(Order.objects.get().discount, 30000)
+
+    def test_an_order_without_a_code_is_placed_as_before(self):
+        self.post()
+        order = Order.objects.get()
+        self.assertEqual((order.promo, order.discount), (None, 0))
+        self.assertEqual(order.total_price, 150000 + self.office.price)
+
+    def test_a_code_refused_under_the_lock_brings_the_checkout_back(self):
+        """Good at the form, switched off before the order was written."""
+        code(Kind.ORDER_SUM, 30000)
+        with mock.patch.object(services, 'create_order_from_cart',
+                               side_effect=promos.Refused(promos.UNKNOWN)):
+            response = self.post(promo_code='KOD')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Order.objects.exists())
+        self.assertEqual(response.context['discount'], 0)
+        self.assertEqual(self.said(response), [str(promos.MESSAGES[promos.UNKNOWN])])
+
+    def test_taking_the_code_out_empties_the_field(self):
+        code(Kind.ORDER_SUM, 30000)
+        response = self.post(promo_code='KOD', remove_promo='1')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Order.objects.exists())
+        self.assertEqual(response.context['discount'], 0)
+        self.assertIn('name="promo_code" id="id_promo_code"', response.content.decode())
+        self.assertNotIn('value="KOD"', response.content.decode())
+
+
+class CheckoutScriptTests(CheckoutCase):
+    """The same answer as JSON, for the page's script."""
+
+    def ask(self, typed):
+        return self.client.post(reverse('checkout_promo'), {'promo_code': typed})
+
+    def test_a_good_code_answers_with_a_figure_for_each_delivery_method(self):
+        code(Kind.ORDER_PERCENT, 10)
+        reply = self.ask(' kod ').json()
+        self.assertEqual(reply, {
+            'ok': True, 'code': 'KOD', 'product': '',
+            'discounts': {'uzpost_office': (150000 + int(self.office.price)) // 10,
+                          'uzpost_door': (150000 + int(self.door.price)) // 10}})
+
+    def test_a_product_code_answers_with_the_product_in_the_readers_language(self):
+        self.shirt.name_ru = 'Рубашка'
+        self.shirt.save(update_fields=['name_ru'])
+        code(Kind.PRODUCT_SUM, 20000, products=[self.shirt])
+        reply = self.client.post('/ru/checkout/promo/', {'promo_code': 'KOD'}).json()
+        self.assertEqual(reply['product'], 'Рубашка')
+
+    def test_a_refused_code_answers_with_the_reason(self):
+        reply = self.ask('YOQ123').json()
+        self.assertEqual(reply, {'ok': False, 'error': str(promos.MESSAGES[promos.UNKNOWN])})
+
+    def test_it_places_no_order_and_changes_no_cart(self):
+        code(Kind.ORDER_SUM, 30000)
+        self.ask('KOD')
+        self.assertFalse(Order.objects.exists())
+        self.cart.refresh_from_db()
+        self.assertTrue(self.cart.status)
+
+    def test_it_is_for_a_signed_in_customer_and_a_post(self):
+        self.assertEqual(self.client.get(reverse('checkout_promo')).status_code, 405)
+        self.client.logout()
+        response = self.ask('KOD')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response.url)
+
+    def test_an_empty_cart_and_an_empty_field_are_answered_in_words(self):
+        self.assertFalse(self.ask('').json()['ok'])
+        self.cart.cart_items.all().delete()
+        self.assertFalse(self.ask('KOD').json()['ok'])
+
+
+class GuessingTests(CheckoutCase):
+    """A code is short and worth money, so trying them is limited."""
+
+    def ask(self, typed):
+        return self.client.post(reverse('checkout_promo'), {'promo_code': typed}).json()
+
+    def test_a_customer_gets_ten_tries_in_ten_minutes(self):
+        code(Kind.ORDER_SUM, 30000)
+        for attempt in range(views.PROMO_TRIES):
+            self.assertEqual(self.ask('YOQ%03d' % attempt)['error'],
+                             str(promos.MESSAGES[promos.UNKNOWN]))
+        # The eleventh is refused whatever it is, a good code included.
+        self.assertEqual(self.ask('KOD'), {'ok': False, 'error': str(RATE_LIMIT_MESSAGE)})
+
+    def test_the_form_counts_the_same_tries(self):
+        """Pressing "Qoʻllash" and placing an order are tries too."""
+        code(Kind.ORDER_SUM, 30000)
+        for attempt in range(views.PROMO_TRIES):
+            self.apply('YOQ%03d' % attempt)
+        response = self.post(promo_code='KOD')
+        self.assertFalse(Order.objects.exists())
+        self.assertEqual(self.said(response), [str(RATE_LIMIT_MESSAGE)])
+        # Without a code the order is not held up by the limit.
+        self.post()
+        self.assertTrue(Order.objects.exists())
+
+    def test_a_code_already_accepted_is_not_a_try_again(self):
+        """The form is posted for every field corrected, and none is a guess."""
+        code(Kind.ORDER_SUM, 30000)
+        for _ in range(views.PROMO_TRIES + 5):
+            response = self.apply('KOD', name='')
+            self.assertEqual(response.context['discount'], 30000)
+        self.post(promo_code='KOD')
+        self.assertEqual(Order.objects.get().discount, 30000)
+
+    def test_an_address_is_limited_across_customers(self):
+        code(Kind.ORDER_SUM, 30000)
+        with mock.patch.object(views, 'PROMO_TRIES_ADDRESS', 3):
+            for index in range(3):
+                other = make_user('mehmon%d' % index, '+99890122005%d' % index)
+                cart_of(other, (self.shirt_m, 1))
+                self.client.force_login(other)
+                self.assertEqual(self.ask('YOQ%03d' % index)['error'],
+                                 str(promos.MESSAGES[promos.UNKNOWN]))
+            self.client.force_login(self.user)
+            self.assertEqual(self.ask('KOD')['error'], str(RATE_LIMIT_MESSAGE))
+
+
+# ------------------------------------------------- wherever a total is shown
+
+class ShownTests(CheckoutCase):
+    """The discount is on every page that shows the order's total."""
+
+    def setUp(self):
+        super().setUp()
+        self.staff = make_staff()
+        self.staff.is_superuser = True
+        self.staff.save(update_fields=['is_superuser'])
+        self.promo = code(Kind.PRODUCT_SUM, 20000, products=[self.shirt])
+        self.post(promo_code='KOD')
+        self.order = Order.objects.get()
+        # A second order, placed without a code: the control for every page.
+        self.other = make_user('boshqa', '+998901220004')
+        self.plain = place(self.other, cart_of(self.other, (self.shirt_m, 1)))
+
+    def test_the_payment_page(self):
+        html = self.client.get(reverse('payment', args=[self.order.pk])).content.decode()
+        self.assertIn('Promokod KOD: −20\u00a0000 soʻm', html)
+        self.assertIn('%s soʻm' % '145\u00a0000', html)
+        self.client.force_login(self.other)
+        html = self.client.get(reverse('payment', args=[self.plain.pk])).content.decode()
+        self.assertNotIn('Promokod', html)
+
+    def test_the_customers_order_page_names_the_code_and_the_item(self):
+        html = self.client.get(reverse('order_detail', args=[self.order.pk])).content.decode()
+        self.assertIn('−20\u00a0000 soʻm', html)
+        self.assertRegex(html, r'Promokod <span class="num">KOD</span>'
+                               r'<span class="spec__sub">Koʻylak</span>')
+        self.client.force_login(self.other)
+        html = self.client.get(reverse('order_detail', args=[self.plain.pk])).content.decode()
+        self.assertNotIn('Promokod', html)
+
+    def test_the_panels_order_screen(self):
+        self.client.force_login(self.staff)
+        html = self.client.get(reverse('panel_order',
+                                       kwargs={'order_no': self.order.order_no})).content.decode()
+        self.assertIn('Promokod KOD', html)
+        self.assertIn('−20\u00a0000 soʻm', html)
+        self.assertIn('Koʻylak</span>', html)
+        html = self.client.get(reverse('panel_order',
+                                       kwargs={'order_no': self.plain.order_no})).content.decode()
+        self.assertNotIn('Promokod KOD', html)
+
+    def test_the_django_admin(self):
+        self.client.force_login(self.staff)
+        html = self.client.get(reverse('admin:payment_order_change',
+                                       args=[self.order.pk])).content.decode()
+        self.assertIn('KOD', html)
+        self.assertIn('20000', html)
+        self.assertEqual(self.client.get(reverse('admin:payment_promocode_changelist'))
+                         .status_code, 200)
+        self.assertEqual(self.client.get(reverse('admin:payment_promocode_change',
+                                                 args=[self.promo.pk])).status_code, 200)
+
+    def test_the_telegram_message_for_a_paid_order(self):
+        with mock.patch.object(telegram, 'notify') as sent:
+            telegram.notify_paid_order(self.order)
+        text, data = sent.call_args.args[0], sent.call_args.kwargs['data']['order']
+        self.assertIn('<b>Jami:</b> 145000 soʻm', text)
+        self.assertIn('<b>Promokod:</b> KOD — −20000 soʻm', text)
+        self.assertEqual((data['total'], data['discount'], data['promo_code']),
+                         (145000, 20000, 'KOD'))
+        with mock.patch.object(telegram, 'notify') as sent:
+            telegram.notify_paid_order(self.plain)
+        text, data = sent.call_args.args[0], sent.call_args.kwargs['data']['order']
+        self.assertNotIn('Promokod', text)
+        self.assertEqual((data['discount'], data['promo_code']), (0, ''))
+
+    def test_the_account_and_the_dashboard_count_what_was_paid(self):
+        """Both read ``total_price``, which is already less the discount."""
+        services.apply_successful_payment(self.order)
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse('panel_dashboard'))
+        self.assertEqual(response.context['revenue_today'], self.order.total_price)
+        self.assertEqual(self.order.total_price, 150000 + self.office.price - 20000)

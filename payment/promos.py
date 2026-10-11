@@ -75,6 +75,22 @@ class Applied:
     product: object = None
 
 
+@dataclass(frozen=True)
+class Preview:
+    """A code that may be used, against each delivery method still on offer.
+
+    The checkout shows a total before the customer has finally settled how
+    the parcel travels, and a share of the order or free delivery depends on
+    that. So the form is handed what the code takes off under every method,
+    and shows the right figure whichever one is picked, with no second trip
+    to the server. ``discounts`` maps a method's code to so'm; a method the
+    code takes nothing off reads 0.
+    """
+    promo: PromoCode
+    discounts: dict
+    product: object = None
+
+
 def spelling(text):
     """A typed code in the one spelling codes are kept in: no spaces, capitals."""
     return re.sub(r'\s+', '', str(text or '')).upper()
@@ -179,3 +195,28 @@ def apply(text, user, lines, delivery):
     check(promo, user, goods)
     off, product = discount(promo, lines, delivery)
     return Applied(promo=promo, discount=off, product=product)
+
+
+def preview(text, user, lines, fees):
+    """The typed code against each delivery fee in ``fees``: a :class:`Preview`.
+
+    ``fees`` maps each delivery method's code to what it costs this cart.
+    Raises :class:`Refused` when the customer may not use the code, when the
+    cart holds none of its products, or when it takes nothing off whichever
+    method is picked.
+    """
+    promo = find(text)
+    goods = sum(((line.price_stat or Decimal('0')) * line.quantity for line in lines),
+                Decimal('0'))
+    check(promo, user, goods)
+    discounts, product, refusal = {}, None, None
+    for method, fee in fees.items():
+        try:
+            discounts[method], product = discount(promo, lines, fee)
+        except Refused as error:
+            if error.reason != NOTHING_OFF:
+                raise
+            discounts[method], refusal = Decimal('0'), error
+    if not any(discounts.values()):
+        raise refusal or Refused(NOTHING_OFF)
+    return Preview(promo=promo, discounts=discounts, product=product)

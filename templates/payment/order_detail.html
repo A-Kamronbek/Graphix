@@ -59,6 +59,14 @@
             <dd class="num">{{ order.delivery_price|price }} {% trans "soʻm" %}</dd>
           </div>
         {% endif %}
+        {# What the promo code took off, frozen on the order with the code as #}
+        {# it was typed. A code for one item names the item it came off. #}
+        {% if order.discount %}
+          <div class="spec__row">
+            <dt><span>{% trans "Promokod" %} <span class="num">{{ order.promo_code }}</span>{% if order.discount_product %}<span class="spec__sub">{{ order.discount_product|t:"name" }}</span>{% endif %}</span></dt>
+            <dd class="num">−{{ order.discount|price }} {% trans "soʻm" %}</dd>
+          </div>
+        {% endif %}
         <div class="spec__row cartpage__total">
           <dt>{% trans "Jami" %}</dt>
           <dd class="num">{{ order.total_price|price }} {% trans "soʻm" %}</dd>

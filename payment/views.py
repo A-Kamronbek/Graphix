@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.decorators import classonlymethod
 from django.views.decorators.http import require_POST
 from django.utils import translation
-from django.utils.translation import gettext as _, ngettext
+from django.utils.translation import gettext as _, gettext_lazy as _lazy, ngettext
 # `...django.views`, not `...django.webhooks`. The two modules hold the
 # same handlers; only these are wrapped in `csrf_exempt`, and a payment
 # gateway has no CSRF token to send (§17 #270).
@@ -24,10 +24,12 @@ from tolov.integrations.django.views import (BaseClickWebhookView,
                                              BasePaymeWebhookView)
 
 from core.i18n import tfield
+from core.ratelimit import RATE_LIMIT_MESSAGE, is_rate_limited
+from product.templatetags.price_format import price
 from .models import (DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX)
 from user.models import phone_regex
-from . import services
+from . import promos, services
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +188,86 @@ def _refuse_off_sale(request, lines):
     return redirect('cart')
 
 
+# ---------- the promo code ----------
+
+#: How many times a promo code may be tried in ten minutes: by one customer,
+#: and from one address. A code is short and worth money, so the form that
+#: says whether one is good cannot be asked without end (§17 #134). A
+#: customer who types theirs, mistypes it and types it again is nowhere near
+#: either figure.
+PROMO_TRIES = 10
+PROMO_TRIES_ADDRESS = 30
+
+#: How much of what was typed into the field is read. A code is at most 24
+#: characters; the rest is room for stray spaces, and anything past it is
+#: not a code.
+PROMO_TYPED_MAX = 40
+
+#: What the page says under the field once a code is in: what it takes off
+#: and what is left to pay. Written with braces and not gettext's own
+#: placeholders because the same two sentences are handed to `checkout.js`,
+#: which fills them in again when the delivery method changes.
+PROMO_SAID = _lazy("Chegirma: {discount} soʻm. Jami: {total} soʻm.")
+PROMO_SAID_PRODUCT = _lazy("Chegirma ({product}): {discount} soʻm. Jami: {total} soʻm.")
+
+
+def _fees(options, item_count):
+    """What each delivery method on offer costs this cart, by the method's code."""
+    return {option.code: Decimal(option.price_for_items(item_count)) for option in options}
+
+
+def _promo_limited(request):
+    """Count one try of a promo code; True when there have been too many.
+
+    Both counters move on every try, a good code as much as a bad one: a
+    counter that only moved on a refusal would tell a script which of its
+    guesses to keep.
+    """
+    by_customer = is_rate_limited(request, 'promo_customer', PROMO_TRIES, 600,
+                                  ident='u%s' % request.user.pk)
+    by_address = is_rate_limited(request, 'promo_address', PROMO_TRIES_ADDRESS, 600)
+    return by_customer or by_address
+
+
+def _try_promo(request, typed, items, fees):
+    """The typed code against this cart: ``(preview, '')`` or ``(None, why)``.
+
+    A code this session has already had accepted is not counted as a try
+    again. The form is posted once to apply a code and again to place the
+    order, and once more for every field the customer has to correct, and
+    none of those is a guess. The code is still checked every time.
+    """
+    spelt = promos.spelling(typed)
+    if request.session.get('promo_ok') != spelt and _promo_limited(request):
+        return None, RATE_LIMIT_MESSAGE
+    try:
+        preview = promos.preview(typed, request.user, items, fees)
+    except promos.Refused as refusal:
+        return None, refusal.message
+    if request.session.get('promo_ok') != spelt:
+        request.session['promo_ok'] = spelt
+    return preview, ''
+
+
+def _promo_said(preview, discount, total):
+    """The sentence under the field for a code that is in, or '' for none."""
+    if preview is None or not discount:
+        return ''
+    if preview.product is not None:
+        return PROMO_SAID_PRODUCT.format(product=tfield(preview.product, 'name'),
+                                         discount=price(discount), total=price(total))
+    return PROMO_SAID.format(discount=price(discount), total=price(total))
+
+
+def _promo_payload(preview):
+    """A previewed code as the page's script reads it."""
+    return {
+        'code': preview.promo.code,
+        'discounts': {method: int(off) for method, off in preview.discounts.items()},
+        'product': tfield(preview.product, 'name') if preview.product is not None else '',
+    }
+
+
 @login_required
 def checkout(request):
     """Collect delivery details, validate them, and turn the cart into an Order.
@@ -216,13 +298,34 @@ def checkout(request):
     item_count = sum(it.quantity for it in items)
 
     context = {'items': items, 'subtotal': subtotal, 'item_count': item_count,
-               'recipient_name_max': RECIPIENT_NAME_MAX}
+               'recipient_name_max': RECIPIENT_NAME_MAX,
+               'promo_said_template': PROMO_SAID,
+               'promo_said_product_template': PROMO_SAID_PRODUCT,
+               'promo_nothing': promos.MESSAGES[promos.NOTHING_OFF]}
     context.update(_delivery_context())
+    fees = _fees(context['delivery_options'], item_count)
+    # The promo code in play, if any, and why one was refused. Held here so
+    # that every way back to the form below shows the same thing.
+    code = {'preview': None, 'error': ''}
 
     def again(form_data, delivery=Decimal('0')):
         """Re-render the form with what the customer typed still in it."""
-        context.update({'delivery': delivery, 'total': subtotal + delivery,
-                        'form_data': form_data})
+        preview = code['preview']
+        discount = (preview.discounts.get(form_data.get('delivery_option'), Decimal('0'))
+                    if preview else Decimal('0'))
+        total = subtotal + delivery - discount
+        context.update({
+            'delivery': delivery, 'discount': discount, 'total': total,
+            'form_data': form_data,
+            'promo': preview,
+            'promo_error': code['error'],
+            'promo_said': _promo_said(preview, discount, total),
+            # For the script, which shows the figure for whichever delivery
+            # method is picked. The server works the real one out under the
+            # lock; this is the preview (§17 #310).
+            'promo_json': json.dumps(_promo_payload(preview), ensure_ascii=False)
+            if preview else '',
+        })
         return render(request, 'payment/checkout.html', context)
 
     if request.method != 'POST':
@@ -253,7 +356,28 @@ def checkout(request):
         'address_source': delivery_kwargs['address_source'],
         'latitude': delivery_kwargs['latitude'],
         'longitude': delivery_kwargs['longitude'],
+        # As typed, so a refused code comes back to be corrected (§17 #133).
+        'promo_code': post.get('promo_code', '').strip()[:PROMO_TYPED_MAX],
     }
+
+    # The code first, before anything else on the form is judged: "Qoʻllash"
+    # is pressed by a customer who has not finished the address yet, and they
+    # are owed an answer about the code and not a list of empty fields.
+    if 'remove_promo' in post:
+        form_data['promo_code'] = ''
+        return again(form_data, delivery)
+    if form_data['promo_code']:
+        code['preview'], code['error'] = _try_promo(
+            request, form_data['promo_code'], items, fees)
+    elif 'apply_promo' in post:
+        code['error'] = _("Promokodni kiriting.")
+    if code['error'] or 'apply_promo' in post:
+        # A refused code stops the order as well as the preview. The customer
+        # typed it expecting to pay less, and an order placed at the full
+        # price would be a surprise on the payment page.
+        if code['error']:
+            messages.error(request, code['error'])
+        return again(form_data, delivery)
 
     # The payment method has to be an option the shop currently offers. Anything
     # else is refused rather than defaulted past: cash is switched off, and a
@@ -302,8 +426,15 @@ def checkout(request):
             request.user, cart,
             phone=phone, notes=notes, recipient_name=name,
             payment_method=payment_method, delivery=delivery,
+            promo=code['preview'].promo if code['preview'] else None,
             **delivery_kwargs,
         )
+    except promos.Refused as refusal:
+        # Good at the form a moment ago and not under the lock: switched off,
+        # used up, or the cart changed in another tab. Nothing was written.
+        code['preview'], code['error'] = None, refusal.message
+        messages.error(request, refusal.message)
+        return again(form_data, delivery)
     except services.CartAlreadyCheckedOut as e:
         messages.info(request, _("Buyurtma allaqachon rasmiylashtirilgan."))
         return redirect('payment', order_id=e.existing_order.id)
@@ -315,6 +446,34 @@ def checkout(request):
 
     messages.success(request, _("Buyurtma qabul qilindi. Toʻlovni amalga oshiring."))
     return redirect('payment', order_id=order.id)
+
+
+@login_required
+@require_POST
+def checkout_promo(request):
+    """What a typed promo code takes off this cart, for the checkout's script.
+
+    The page works without this: "Qoʻllash" is a real button that posts the
+    form, and the checkout comes back with the discount in it. This is the
+    same answer as JSON, so that with scripts running the summary changes in
+    place and nothing the customer has typed is sent anywhere yet.
+
+    Tries are counted here exactly as they are on the form.
+    """
+    cart = services.get_open_cart(request.user)
+    items = (list(cart.cart_items.select_related('variant__product'))
+             if cart else [])
+    if not items:
+        return JsonResponse({'ok': False, 'error': _("Savat boʻsh.")})
+    typed = request.POST.get('promo_code', '').strip()[:PROMO_TYPED_MAX]
+    if not typed:
+        return JsonResponse({'ok': False, 'error': _("Promokodni kiriting.")})
+    fees = _fees(DeliveryOption.objects.filter(is_active=True),
+                 sum(it.quantity for it in items))
+    preview, error = _try_promo(request, typed, items, fees)
+    if preview is None:
+        return JsonResponse({'ok': False, 'error': str(error)})
+    return JsonResponse({'ok': True, **_promo_payload(preview)})
 
 
 # ---------- payment (Click) ----------

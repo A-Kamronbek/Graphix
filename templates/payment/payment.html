@@ -11,6 +11,14 @@
         <span class="eyebrow">{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}</span>
         <h1 class="h1">{% trans "Click orqali toʻlov" %}</h1>
         <p class="pdp__price num">{{ order.total_price|price }} {% trans "soʻm" %}</p>
+        {# Why the figure above is less than the lines below add up to. #}
+        {% if order.discount %}
+          <p class="small muted">
+            {% blocktrans trimmed with code=order.promo_code off=order.discount|price %}
+              Promokod {{ code }}: −{{ off }} soʻm
+            {% endblocktrans %}
+          </p>
+        {% endif %}
       </div>
 
       <ul class="stack stack--sm">

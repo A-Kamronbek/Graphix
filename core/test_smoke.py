@@ -113,6 +113,7 @@ WRITE_ONLY = (
     Page('product_like', {'slug': 'slug'}, 405, 405, 405),
     Page('order_cancel', {'pk': 'order_pk'}, LOGIN, 405, 405),
     Page('payment_start', {'order_id': 'paying_pk'}, LOGIN, 405, 405),
+    Page('checkout_promo', {}, LOGIN, 405, 405),
     Page('cancel_verification', {}, 405, 405, 405),
     Page('expire_verification', {}, 405, 405, 405),
     Page('resend_otp', {}, 405, 405, 405),
