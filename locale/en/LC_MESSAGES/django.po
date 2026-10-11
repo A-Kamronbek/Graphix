@@ -529,6 +529,10 @@ msgstr "A percentage is from 1 to 100."
 msgid "Summani kiriting."
 msgstr "Enter the sum."
 
+#: .\payment\models.py:306
+msgid "Kamida 1 boʻlishi kerak."
+msgstr "At least 1."
+
 #: .\payment\models.py:212
 msgid "Toʻlanmoqda"
 msgstr "Awaiting payment"

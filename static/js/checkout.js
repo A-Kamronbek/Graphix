@@ -147,8 +147,11 @@
     if (!applied) return;
     if (!off) { sayPromo(promoBox.dataset.nothing, true); return; }
     var said = applied.product ? promoBox.dataset.saidProduct : promoBox.dataset.said;
-    sayPromo(said.replace('{product}', applied.product)
-      .replace('{discount}', format(off)).replace('{total}', format(total)), false);
+    /* Functions, not strings: a product called "$& Tee" would otherwise be
+     * read as a pattern by `replace`. */
+    sayPromo(said.replace('{product}', function () { return applied.product; })
+      .replace('{discount}', function () { return format(off); })
+      .replace('{total}', function () { return format(total); }), false);
   }
 
   function dropPromo() {
@@ -169,6 +172,9 @@
   function applyPromo() {
     var token = $('[name="csrfmiddlewaretoken"]', form);
     var body = new FormData();
+    /* What is being asked about. An answer that comes back after the field
+     * has been changed is an answer about something else, and is dropped. */
+    var asked = spelt(promoInput.value);
     body.append('promo_code', promoInput.value);
     body.append('csrfmiddlewaretoken', token ? token.value : '');
     promoButton.disabled = true;
@@ -180,6 +186,7 @@
       return response.json();
     }).then(function (reply) {
       promoButton.disabled = false;
+      if (spelt(promoInput.value) !== asked) return;
       if (!reply.ok) {
         applied = null;
         syncTotals(chosenDelivery());

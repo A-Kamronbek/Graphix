@@ -50,7 +50,7 @@
                value="{{ form.code.value|default:'' }}">
         <small class="field__hint">{% trans "3 tadan 24 tagacha lotin harfi va raqam, boʻsh joysiz. Masalan: YOZ10." %}</small>
       {% endif %}
-      {% if form.code.errors %}<small class="field__error">{{ form.code.errors|join:" · " }}</small>{% endif %}
+      {% if form.code.errors %}<small class="field__error">{{ form.code.errors.0 }}</small>{% endif %}
     </div>
 
     <div class="field {% if form.kind.errors %}field--error{% endif %}">
@@ -65,7 +65,7 @@
         </select>
         <small class="field__hint">{% trans "Mahsulot uchun kod savatdagi bitta donaga qoʻllanadi: eng qimmatiga. Buyurtma uchun kod mahsulotlar va yetkazib berish summasiga qoʻllanadi." %}</small>
       {% endif %}
-      {% if form.kind.errors %}<small class="field__error">{{ form.kind.errors|join:" · " }}</small>{% endif %}
+      {% if form.kind.errors %}<small class="field__error">{{ form.kind.errors.0 }}</small>{% endif %}
     </div>
 
     <div class="field {% if form.value.errors %}field--error{% endif %}" data-promo-value>
@@ -73,7 +73,7 @@
       <input class="input num" type="number" inputmode="numeric" min="0" step="1"
              name="value" id="promo-value" value="{{ form.value.value|default_if_none:''|floatformat:'0' }}">
       <small class="field__hint">{% trans "Summa uchun — soʻmda, foiz uchun — 1 dan 100 gacha. Bepul yetkazib berishda kerak emas." %}</small>
-      {% if form.value.errors %}<small class="field__error">{{ form.value.errors|join:" · " }}</small>{% endif %}
+      {% if form.value.errors %}<small class="field__error">{{ form.value.errors.0 }}</small>{% endif %}
     </div>
 
     <div class="field {% if form.products.errors %}field--error{% endif %}" data-promo-products>
@@ -96,7 +96,7 @@
           <p class="small muted">{% trans "Hozircha mahsulot yoʻq." %}</p>
         {% endfor %}
       </div>
-      {% if form.products.errors %}<small class="field__error">{{ form.products.errors|join:" · " }}</small>{% endif %}
+      {% if form.products.errors %}<small class="field__error">{{ form.products.errors.0 }}</small>{% endif %}
     </div>
   </section>
 
@@ -116,14 +116,14 @@
         <input class="input num" type="number" inputmode="numeric" min="0" step="1"
                name="max_uses" id="promo-max" value="{{ form.max_uses.value|default_if_none:'' }}">
         <small class="field__hint">{% trans "Toʻlangan buyurtmalar soni. Boʻsh — cheklanmagan." %}</small>
-        {% if form.max_uses.errors %}<small class="field__error">{{ form.max_uses.errors|join:" · " }}</small>{% endif %}
+        {% if form.max_uses.errors %}<small class="field__error">{{ form.max_uses.errors.0 }}</small>{% endif %}
       </div>
       <div class="field {% if form.min_subtotal.errors %}field--error{% endif %}">
         <label class="label" for="promo-min">{% trans "Eng kam summa" %}</label>
         <input class="input num" type="number" inputmode="numeric" min="0" step="1"
                name="min_subtotal" id="promo-min" value="{{ form.min_subtotal.value|default_if_none:''|floatformat:'0' }}">
         <small class="field__hint">{% trans "Mahsulotlar summasi, yetkazib berishsiz, soʻmda." %}</small>
-        {% if form.min_subtotal.errors %}<small class="field__error">{{ form.min_subtotal.errors|join:" · " }}</small>{% endif %}
+        {% if form.min_subtotal.errors %}<small class="field__error">{{ form.min_subtotal.errors.0 }}</small>{% endif %}
       </div>
     </div>
 
@@ -137,7 +137,7 @@
       <input class="input" type="text" name="note" id="promo-note" maxlength="200"
              value="{{ form.note.value|default:'' }}">
       <small class="field__hint">{% trans "Faqat siz uchun: kod kimga yoki nima uchun berilgani." %}</small>
-      {% if form.note.errors %}<small class="field__error">{{ form.note.errors|join:" · " }}</small>{% endif %}
+      {% if form.note.errors %}<small class="field__error">{{ form.note.errors.0 }}</small>{% endif %}
     </div>
 
     <label class="switch">

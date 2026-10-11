@@ -833,15 +833,50 @@ class CheckoutTests(CheckoutCase):
         self.assertEqual(order.total_price, 150000 + self.office.price)
 
     def test_a_code_refused_under_the_lock_brings_the_checkout_back(self):
-        """Good at the form, switched off before the order was written."""
-        code(Kind.ORDER_SUM, 30000)
-        with mock.patch.object(services, 'create_order_from_cart',
-                               side_effect=promos.Refused(promos.UNKNOWN)):
+        """Good at the form, switched off before the order was written.
+
+        The form's own check is made to pass with what it saw a moment
+        earlier, and the order is then placed for real, so the refusal that
+        comes back is the one made under the lock.
+        """
+        promo = code(Kind.ORDER_SUM, 30000)
+        lines = list(self.cart.cart_items.select_related('variant__product'))
+        seen = promos.preview('KOD', self.user, lines, {'uzpost_office': self.office.price})
+        PromoCode.objects.filter(pk=promo.pk).update(is_active=False)
+        with mock.patch.object(views, '_try_promo', return_value=(seen, '')):
             response = self.post(promo_code='KOD')
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Order.objects.exists())
         self.assertEqual(response.context['discount'], 0)
         self.assertEqual(self.said(response), [str(promos.MESSAGES[promos.UNKNOWN])])
+        self.cart.refresh_from_db()
+        self.assertTrue(self.cart.status)
+
+    def test_a_code_that_takes_nothing_off_the_chosen_delivery_says_so(self):
+        """Free delivery, on a method that is already free for this cart."""
+        DeliveryOption.objects.filter(pk=self.office.pk).update(free_from_items=1)
+        code(Kind.FREE_DELIVERY)
+        response = self.apply('KOD')
+        self.assertEqual(response.context['discount'], 0)
+        html = response.content.decode()
+        self.assertIn(str(promos.MESSAGES[promos.NOTHING_OFF]), html)
+        self.assertNotRegex(html, r'data-promo-remove\s+hidden')
+        # And the other method, where it does take something off, is offered.
+        self.assertEqual(response.context['promo'].discounts['uzpost_door'], self.door.price)
+
+    def test_the_script_is_told_what_each_method_costs_this_cart(self):
+        """Not the tier's list price: a tier can be free from so many items."""
+        DeliveryOption.objects.filter(pk=self.office.pk).update(free_from_items=1)
+        html = self.client.get(reverse('checkout')).content.decode()
+        self.assertRegex(html, r'value="uzpost_office"[^>]*data-price="0"')
+        self.assertRegex(html, r'value="uzpost_door"[^>]*data-price="%d"' % self.door.price)
+
+    def test_the_form_posts_to_the_checkout_and_not_to_wherever_it_is(self):
+        """After "Qoʻllash" the address ends in #promo. The order button must
+        not inherit that, or every mistake after it is reported at the top of
+        a page that opens at the promo box."""
+        html = self.client.get(reverse('checkout')).content.decode()
+        self.assertRegex(html, r'<form method="post" action="%s"' % reverse('checkout'))
 
     def test_taking_the_code_out_empties_the_field(self):
         code(Kind.ORDER_SUM, 30000)
@@ -952,21 +987,27 @@ class CheckoutScriptTests(CheckoutCase):
 
 
 class GuessingTests(CheckoutCase):
-    """A code is short and worth money, so trying them is limited."""
+    """A code is short and worth money, so guessing them is limited.
+
+    A refused code is a guess and is counted; an accepted one is not. A
+    customer with a good code posts it once to apply it, again to place the
+    order and once more for every field they have to correct, and a whole
+    campaign's customers may sit behind one carrier's address.
+    """
 
     def ask(self, typed):
         return self.client.post(reverse('checkout_promo'), {'promo_code': typed}).json()
 
-    def test_a_customer_gets_ten_tries_in_ten_minutes(self):
+    def test_a_customer_gets_ten_wrong_codes_in_ten_minutes(self):
         code(Kind.ORDER_SUM, 30000)
         for attempt in range(views.PROMO_TRIES):
             self.assertEqual(self.ask('YOQ%03d' % attempt)['error'],
                              str(promos.MESSAGES[promos.UNKNOWN]))
-        # The eleventh is refused whatever it is, a good code included.
+        # After the tenth, nothing is answered, a good code included.
         self.assertEqual(self.ask('KOD'), {'ok': False, 'error': str(RATE_LIMIT_MESSAGE)})
 
-    def test_the_form_counts_the_same_tries(self):
-        """Pressing "Qoʻllash" and placing an order are tries too."""
+    def test_the_form_counts_the_same_guesses(self):
+        """Pressing "Qoʻllash" and placing an order with a wrong code are guesses too."""
         code(Kind.ORDER_SUM, 30000)
         for attempt in range(views.PROMO_TRIES):
             self.apply('YOQ%03d' % attempt)
@@ -977,14 +1018,19 @@ class GuessingTests(CheckoutCase):
         self.post()
         self.assertTrue(Order.objects.exists())
 
-    def test_a_code_already_accepted_is_not_a_try_again(self):
-        """The form is posted for every field corrected, and none is a guess."""
+    def test_a_code_that_is_accepted_is_never_counted(self):
         code(Kind.ORDER_SUM, 30000)
-        for _ in range(views.PROMO_TRIES + 5):
-            response = self.apply('KOD', name='')
-            self.assertEqual(response.context['discount'], 30000)
+        for _ in range(views.PROMO_TRIES_ADDRESS + 5):
+            self.assertEqual(self.apply('KOD', name='').context['discount'], 30000)
         self.post(promo_code='KOD')
         self.assertEqual(Order.objects.get().discount, 30000)
+
+    def test_a_code_that_exists_but_does_not_fit_is_still_a_guess(self):
+        """Being told "not for your cart" is how a guesser learns a code is real."""
+        code(Kind.PRODUCT_SUM, 20000, products=[self.hoodie])
+        for _ in range(views.PROMO_TRIES):
+            self.assertEqual(self.ask('KOD')['error'], str(promos.MESSAGES[promos.NO_PRODUCT]))
+        self.assertEqual(self.ask('KOD')['error'], str(RATE_LIMIT_MESSAGE))
 
     def test_an_address_is_limited_across_customers(self):
         code(Kind.ORDER_SUM, 30000)
@@ -997,6 +1043,16 @@ class GuessingTests(CheckoutCase):
                                  str(promos.MESSAGES[promos.UNKNOWN]))
             self.client.force_login(self.user)
             self.assertEqual(self.ask('KOD')['error'], str(RATE_LIMIT_MESSAGE))
+
+    def test_one_account_cannot_use_up_the_address_for_everyone_else(self):
+        """Once a customer is stopped, their further tries are not counted at all."""
+        code(Kind.ORDER_SUM, 30000)
+        for attempt in range(views.PROMO_TRIES_ADDRESS + 10):
+            self.ask('YOQ%03d' % attempt)
+        other = make_user('qoshni', '+998901220060')
+        cart_of(other, (self.shirt_m, 1))
+        self.client.force_login(other)
+        self.assertTrue(self.ask('KOD')['ok'])
 
 
 # ------------------------------------------------- wherever a total is shown
@@ -1161,7 +1217,13 @@ class PanelTests(PromoCase):
             ({'kind': Kind.PRODUCT_SUM, 'value': '20000'}, 'products'),
             ({'kind': 'chegirma'}, 'kind'),
             ({'max_uses': '-1'}, 'max_uses'),
+            ({'max_uses': '0'}, 'max_uses'),
+            ({'min_subtotal': '-5'}, 'min_subtotal'),
+            ({'value': '1.5'}, 'value'),
+            ({'value': '9' * 20}, 'value'),
             ({'starts_on': 'ertaga'}, 'starts_on'),
+            ({'starts_on': '01/01/0001'}, 'starts_on'),
+            ({'ends_on': '01/01/9999'}, 'ends_on'),
             ({'starts_on': '20/10/2026', 'ends_on': '19/10/2026'}, 'ends_on'),
         ]
         for over, field in refused:
@@ -1172,6 +1234,36 @@ class PanelTests(PromoCase):
                 self.assertFalse(PromoCode.objects.exists())
                 # What was typed is still in the form.
                 self.assertContains(response, 'name="note"')
+
+    def test_a_refusal_is_one_sentence_a_box_and_never_djangos_own(self):
+        for over in ({'value': ''}, {'value': '9' * 20}, {'value': '1.5'}, {'code': ''}):
+            with self.subTest(over=over):
+                html = self.make(**over).content.decode()
+                self.assertEqual(html.count('class="field__error"'), 1, html.count('field__error'))
+                self.assertNotIn('Ensure', html)
+                self.assertNotIn('This field', html)
+
+    def test_saving_the_form_does_not_write_over_the_count_of_uses(self):
+        """A payment can land while the form is open or being saved."""
+        from panel.promos import PromoForm
+        promo = code(Kind.ORDER_SUM, 30000, name='YOZ10')
+        form = PromoForm(self.form(value='45000'), instance=PromoCode.objects.get(pk=promo.pk))
+        self.assertTrue(form.is_valid(), form.errors)
+        PromoCode.objects.filter(pk=promo.pk).update(used_count=3)
+        form.save()
+        promo.refresh_from_db()
+        self.assertEqual((promo.value, promo.used_count), (45000, 3))
+
+    def test_the_admin_does_not_write_over_the_count_of_uses_either(self):
+        from payment.admin import PromoCodeAdmin
+        promo = code(Kind.ORDER_SUM, 30000, name='YOZ10')
+        held = PromoCode.objects.get(pk=promo.pk)
+        PromoCode.objects.filter(pk=promo.pk).update(used_count=3)
+        held.note = 'Admin orqali'
+        PromoCodeAdmin(PromoCode, django_admin.site).save_model(
+            mock.Mock(), held, mock.Mock(), change=True)
+        promo.refresh_from_db()
+        self.assertEqual((promo.note, promo.used_count), ('Admin orqali', 3))
 
     def test_a_refused_form_keeps_what_was_typed(self):
         response = self.make(code='YOZ-10', note='Instagram uchun', max_uses='50',

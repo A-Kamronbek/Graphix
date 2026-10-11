@@ -33,23 +33,33 @@ def shown(moment):
     return f'{day.day:02d}/{day.month:02d}/{day.year:04d}'
 
 
+#: The years a code's day may fall in. A slip of the finger ("0026" for
+#: "2026") parses as a real date nineteen centuries ago, and once the shop's
+#: time zone is taken off it the database cannot store it or read it back.
+YEARS = range(2020, 2101)
+
+
 class DayField(forms.CharField):
     """A day typed as dd/mm/yyyy. Blank is allowed and means no limit."""
 
     def __init__(self, **kwargs):
+        """Optional, and no longer than a typed date."""
         kwargs.setdefault('required', False)
         kwargs.setdefault('max_length', 10)
         super().__init__(**kwargs)
 
     def clean(self, value):
+        """The day as a ``date``, None for an empty box, or a refusal."""
         text = super().clean(value)
         if not text:
             return None
         for pattern in DAY_READ:
             try:
-                return datetime.strptime(text.strip(), pattern).date()
+                day = datetime.strptime(text.strip(), pattern).date()
             except ValueError:
                 continue
+            if day.year in YEARS:
+                return day
         raise forms.ValidationError(
             _('Sanani kk/oo/yyyy koʻrinishida kiriting, masalan 16/09/2026.'))
 
@@ -78,7 +88,11 @@ class PromoForm(forms.ModelForm):
         # The panel speaks for itself; Django's own sentences are not ours.
         for field in self.fields.values():
             field.error_messages['required'] = _('Bu maydonni toʻldiring.')
-            field.error_messages['invalid'] = _('Qiymatni tekshiring.')
+            # One sentence for every way a number can be wrong: not a number,
+            # too long, or with a fraction where a whole soʻm is meant.
+            for key in ('invalid', 'max_digits', 'max_decimal_places',
+                        'max_whole_digits', 'max_value', 'max_length'):
+                field.error_messages[key] = _('Qiymatni tekshiring.')
         self.fields['products'].error_messages['invalid_choice'] = _('Bunday mahsulot yoʻq.')
         self.fields['kind'].error_messages['invalid_choice'] = _('Turini tanlang.')
         self.fields['max_uses'].error_messages['min_value'] = _('Notoʻgʻri son.')
@@ -95,9 +109,11 @@ class PromoForm(forms.ModelForm):
             self.initial.setdefault('ends_on', shown(self.instance.ends_at))
 
     def clean_value(self):
+        """An empty box is no value, which is right for free delivery alone."""
         return self.cleaned_data.get('value') or 0
 
     def clean_min_subtotal(self):
+        """An empty box is no minimum."""
         return self.cleaned_data.get('min_subtotal') or 0
 
     def clean(self):
@@ -126,3 +142,23 @@ class PromoForm(forms.ModelForm):
                 timezone.make_aware(datetime.combine(ends, time.max), zone)
                 if ends else None)
         return data
+
+    def save(self, commit=True):
+        """Write what this form is for, and leave the count of uses alone.
+
+        ``used_count`` is moved by payments, one ``UPDATE`` at a time. A
+        plain save writes every column from a copy read when the form was
+        opened, so a payment landing while the owner edits a limit would be
+        counted and then written over.
+        """
+        promo = super().save(commit=False)
+        if not commit:
+            return promo
+        if promo._state.adding:
+            promo.save()
+        else:
+            promo.save(update_fields=['value', 'max_uses', 'min_subtotal',
+                                      'once_per_customer', 'note', 'is_active',
+                                      'starts_at', 'ends_at'])
+        self.save_m2m()
+        return promo

@@ -138,6 +138,18 @@ class PromoCodeAdmin(admin.ModelAdmin):
     filter_horizontal = ('products',)
     readonly_fields = ('used_count', 'created_at')
 
+    def save_model(self, request, obj, form, change):
+        """Save an edit without writing the count of uses back.
+
+        The count is read-only on the page, and a plain save would still
+        write the figure the page was opened with over one a payment has
+        moved since.
+        """
+        if not change:
+            return super().save_model(request, obj, form, change)
+        obj.save(update_fields=[field.name for field in obj._meta.concrete_fields
+                                if not field.primary_key and field.name != 'used_count'])
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):

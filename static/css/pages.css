@@ -524,6 +524,9 @@ html.js .slides__controls {
    capitals, and the field shows what is typed that way so "yoz10" and
    "YOZ10" do not look like two codes. */
 .promo { display: flex; gap: var(--s-3); }
+/* Without scripts "Qoʻllash" brings the page back at this box, and the
+   header is fixed over the top of the page. */
+#promo { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
 .promo__code { flex: 1 1 0; min-width: 0; text-transform: uppercase;
   letter-spacing: var(--ls-wide); }
 .promo__code::placeholder { text-transform: none; letter-spacing: var(--ls-normal); }

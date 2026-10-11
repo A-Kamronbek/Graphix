@@ -300,6 +300,12 @@ class PromoCode(models.Model):
             errors['value'] = _('Foiz 1 dan 100 gacha boʻlishi kerak.')
         elif not self.is_percent and value < 1:
             errors['value'] = _('Summani kiriting.')
+        # A limit of no uses is a code that is switched off, and that has a
+        # switch. A minimum below nothing is a typing mistake.
+        if self.max_uses is not None and self.max_uses < 1:
+            errors['max_uses'] = _('Kamida 1 boʻlishi kerak.')
+        if (self.min_subtotal or 0) < 0:
+            errors['min_subtotal'] = _('Qiymatni tekshiring.')
         if self.starts_at and self.ends_at and self.ends_at < self.starts_at:
             errors['ends_at'] = _('Tugash sanasi boshlanish sanasidan oldin '
                                   'boʻlishi mumkin emas.')

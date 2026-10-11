@@ -37,7 +37,11 @@
   <h1 class="h1">{% trans "Rasmiylashtirish" %}</h1>
 
   <div class="checkout">
-    <form method="post" class="stack stack--lg" data-checkout
+    {# The address is written out. "Qoʻllash" sends the page back at #promo, #}
+    {# and a form with no action of its own would post there ever after: a #}
+    {# mistake in the address would then be reported at the top of a page #}
+    {# that opens at the promo box. #}
+    <form method="post" action="{% url 'checkout' %}" class="stack stack--lg" data-checkout
           data-districts="{{ districts_json }}">
       {% csrf_token %}
       {# Enter in a text field presses a form's first submit button. That #}
@@ -81,7 +85,7 @@
             <input type="radio" name="delivery_option" value="{{ opt.code }}"
                    data-delivery-choice
                    data-branch="{% if opt.requires_branch %}1{% else %}0{% endif %}"
-                   data-price="{{ opt.price }}"
+                   data-price="{{ opt.fee|floatformat:'0' }}"
                    {% if form_data.delivery_option == opt.code %}checked{% endif %}>
             <span>
               <strong>{{ opt|t:"name" }} — <span class="num">{{ opt.price|price }} {% trans "soʻm" %}</span></strong>
@@ -327,7 +331,7 @@
            id="promo-status" role="status" data-promo-status>{% if promo_error %}{{ promo_error }}{% else %}{{ promo_said }}{% endif %}</p>
         <button class="link small promo__remove" type="submit" name="remove_promo" value="1"
                 formnovalidate formaction="{% url 'checkout' %}#promo"
-                data-promo-remove{% if not discount %} hidden{% endif %}>{% trans "Promokodni olib tashlash" %}</button>
+                data-promo-remove{% if not promo %} hidden{% endif %}>{% trans "Promokodni olib tashlash" %}</button>
       </section>
 
       {# Placing the order is accepting the offer (terms §1), so the page says #}

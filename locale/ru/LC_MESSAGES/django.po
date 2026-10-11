@@ -533,6 +533,10 @@ msgstr "Процент — от 1 до 100."
 msgid "Summani kiriting."
 msgstr "Введите сумму."
 
+#: .\payment\models.py:306
+msgid "Kamida 1 boʻlishi kerak."
+msgstr "Не меньше 1."
+
 #: .\payment\models.py:212
 msgid "Toʻlanmoqda"
 msgstr "Ожидает оплаты"

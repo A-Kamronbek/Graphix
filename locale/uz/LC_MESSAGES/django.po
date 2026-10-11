@@ -529,6 +529,10 @@ msgstr ""
 msgid "Summani kiriting."
 msgstr ""
 
+#: .\payment\models.py:306
+msgid "Kamida 1 boʻlishi kerak."
+msgstr ""
+
 #: .\payment\models.py:212
 msgid "Toʻlanmoqda"
 msgstr "Toʻlanmoqda"

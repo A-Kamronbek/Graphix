@@ -25,7 +25,8 @@ from tolov.integrations.django.views import (BaseClickWebhookView,
                                              BasePaymeWebhookView)
 
 from core.i18n import tfield
-from core.ratelimit import RATE_LIMIT_MESSAGE, is_rate_limited
+from core.ratelimit import (RATE_LIMIT_MESSAGE, is_currently_limited,
+                            is_rate_limited)
 from product.templatetags.price_format import price
 from .models import (DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX)
@@ -217,11 +218,15 @@ def _refuse_off_sale(request, lines):
 
 # ---------- the promo code ----------
 
-#: How many times a promo code may be tried in ten minutes: by one customer,
+#: How many wrong promo codes are answered in ten minutes: from one customer,
 #: and from one address. A code is short and worth money, so the form that
-#: says whether one is good cannot be asked without end (§17 #134). A
-#: customer who types theirs, mistypes it and types it again is nowhere near
-#: either figure.
+#: says whether one is good cannot be asked without end (§17 #134).
+#:
+#: A refusal is counted and an accepted code is not. The form is posted once
+#: to apply a code, again to place the order, and once more for every field
+#: the customer has to correct, and none of those is a guess. A whole
+#: campaign's customers can also sit behind one mobile carrier's address,
+#: each typing a good code once.
 PROMO_TRIES = 10
 PROMO_TRIES_ADDRESS = 30
 
@@ -244,37 +249,42 @@ def _fees(options, item_count):
     return {option.code: Decimal(option.price_for_items(item_count)) for option in options}
 
 
-def _promo_limited(request):
-    """Count one try of a promo code; True when there have been too many.
+def _promo_idents(request):
+    """The two counters a guess is kept under: ``(scope, limit, ident)`` each."""
+    return (('promo_customer', PROMO_TRIES, 'u%s' % request.user.pk),
+            ('promo_address', PROMO_TRIES_ADDRESS, None))
 
-    Both counters move on every try, a good code as much as a bad one: a
-    counter that only moved on a refusal would tell a script which of its
-    guesses to keep.
-    """
-    by_customer = is_rate_limited(request, 'promo_customer', PROMO_TRIES, 600,
-                                  ident='u%s' % request.user.pk)
-    by_address = is_rate_limited(request, 'promo_address', PROMO_TRIES_ADDRESS, 600)
-    return by_customer or by_address
+
+def _promo_blocked(request):
+    """Whether this customer or this address has had its wrong codes. Counts nothing."""
+    return any(is_currently_limited(request, scope, limit, ident=ident)
+               for scope, limit, ident in _promo_idents(request))
+
+
+def _count_refusal(request):
+    """One wrong code, against the customer and against the address."""
+    for scope, limit, ident in _promo_idents(request):
+        is_rate_limited(request, scope, limit, 600, ident=ident)
 
 
 def _try_promo(request, typed, items, fees):
     """The typed code against this cart: ``(preview, '')`` or ``(None, why)``.
 
-    A code this session has already had accepted is not counted as a try
-    again. The form is posted once to apply a code and again to place the
-    order, and once more for every field the customer has to correct, and
-    none of those is a guess. The code is still checked every time.
+    Asked first whether either counter is already full, without moving them.
+    A customer who has been stopped adds nothing more to the address's count,
+    so one account cannot use up the address for everybody behind it.
+
+    Every refusal is a guess, not only "no such code": being told a code is
+    not for this cart, or is below its minimum, is how a guesser learns the
+    code is real.
     """
-    spelt = promos.spelling(typed)
-    if request.session.get('promo_ok') != spelt and _promo_limited(request):
+    if _promo_blocked(request):
         return None, RATE_LIMIT_MESSAGE
     try:
-        preview = promos.preview(typed, request.user, items, fees)
+        return promos.preview(typed, request.user, items, fees), ''
     except promos.Refused as refusal:
+        _count_refusal(request)
         return None, refusal.message
-    if request.session.get('promo_ok') != spelt:
-        request.session['promo_ok'] = spelt
-    return preview, ''
 
 
 def _promo_said(preview, discount, total):
@@ -332,6 +342,10 @@ def checkout(request):
                'promo_nothing': promos.MESSAGES[promos.NOTHING_OFF]}
     context.update(_delivery_context())
     fees = _fees(context['delivery_options'], item_count)
+    # What each method costs this cart, which is not always its list price: a
+    # tier can be free from so many items. The script's totals read this.
+    for option in context['delivery_options']:
+        option.fee = fees[option.code]
     # The promo code in play, if any, and why one was refused. Held here so
     # that every way back to the form below shows the same thing.
     code = {'preview': None, 'error': ''}
@@ -342,6 +356,11 @@ def checkout(request):
         discount = (preview.discounts.get(form_data.get('delivery_option'), Decimal('0'))
                     if preview else Decimal('0'))
         total = subtotal + delivery - discount
+        if preview and not discount and not code['error']:
+            # Good for this cart, and nothing off the delivery method chosen:
+            # free delivery where delivery is already free. The script says
+            # the same when the method is changed.
+            code['error'] = promos.MESSAGES[promos.NOTHING_OFF]
         context.update({
             'delivery': delivery, 'discount': discount, 'total': total,
             'form_data': form_data,

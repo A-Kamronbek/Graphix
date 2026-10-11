@@ -1038,7 +1038,9 @@ def _promo_rows():
     was loaded again.
     """
     now = timezone.now()
-    rows = list(PromoCode.objects.prefetch_related('products'))
+    # By name, so a code's products read the same way every time.
+    rows = list(PromoCode.objects.prefetch_related(
+        Prefetch('products', queryset=Product.objects.order_by('name', 'pk'))))
     for row in rows:
         row.limit = promo_rules.limit_reached(row, now)
     return rows

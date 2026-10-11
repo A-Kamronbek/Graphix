@@ -16,5 +16,5 @@
     </button>
     <input class="datefield__native" type="date" tabindex="-1" aria-hidden="true" data-date-native>
   </span>
-  {% if field.errors %}<small class="field__error">{{ field.errors|join:" · " }}</small>{% endif %}
+  {% if field.errors %}<small class="field__error">{{ field.errors.0 }}</small>{% endif %}
 </div>
