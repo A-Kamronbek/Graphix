@@ -2470,7 +2470,7 @@ msgid "Hisob yoʻqmi?"
 msgstr ""
 
 #: .\templates\user\signup.html:14
-msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
+msgid "Roʻyxatdan oʻtish uchun telefon raqamingizni kiriting."
 msgstr ""
 
 #: .\templates\user\signup.html:32
@@ -2671,6 +2671,9 @@ msgstr ""
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr ""
+
+#~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
+#~ msgstr ""
 
 #~ msgid "Foydalanuvchi nomi"
 #~ msgstr ""

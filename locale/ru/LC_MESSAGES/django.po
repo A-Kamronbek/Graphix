@@ -2521,8 +2521,8 @@ msgid "Hisob yoʻqmi?"
 msgstr "Нет аккаунта?"
 
 #: .\templates\user\signup.html:14
-msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
-msgstr "Подтвердим номер телефона — он нужен для доставки заказа."
+msgid "Roʻyxatdan oʻtish uchun telefon raqamingizni kiriting."
+msgstr "Введите номер телефона, чтобы зарегистрироваться."
 
 #: .\templates\user\signup.html:32
 msgid "Shu raqam bilan kirish"
@@ -2732,6 +2732,9 @@ msgstr "Изображение не выбрано."
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Изображение сохранено."
+
+#~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
+#~ msgstr "Подтвердим номер телефона — он нужен для доставки заказа."
 
 #~ msgid "Foydalanuvchi nomi"
 #~ msgstr "Имя пользователя"

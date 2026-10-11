@@ -219,6 +219,38 @@ class SignUpTests(CodeCase):
         self.assertEqual(text, "GRAPHIX saytida ro'yxatdan o'tish uchun kodingiz: %s"
                          % self.inbox.code)
 
+    def test_the_page_says_what_it_asks_for(self):
+        """Under the title is the one thing to do here: type a number. The
+        line it replaced spoke of confirming a number for delivery, which is
+        what the next page does and not why somebody opens this one."""
+        lines = {'uz': 'Roʻyxatdan oʻtish uchun telefon raqamingizni kiriting.',
+                 'ru': 'Введите номер телефона, чтобы зарегистрироваться.',
+                 'en': 'Enter your phone number to create an account.'}
+        for lang in LANGS:
+            with self.subTest(lang=lang), translation.override(lang):
+                html = self.client.get(reverse('signup')).content.decode()
+                self.assertIn('<p class="lede">%s</p>' % lines[lang], html)
+
+    def test_the_title_is_set_a_step_smaller_to_stay_on_one_line(self):
+        """At the site's full title size "Roʻyxatdan oʻtish" is wider than the
+        column these pages are set in and broke in two. The pages take their
+        own, smaller cap, from a token."""
+        def size(css, token):
+            return int(re.search(r'--%s:\s*(\d+)px' % token, css).group(1))
+
+        tokens = (settings.BASE_DIR / 'static/css/tokens.css').read_text(encoding='utf-8')
+        pages = (settings.BASE_DIR / 'static/css/pages.css').read_text(encoding='utf-8')
+        self.assertLess(size(tokens, 'fs-auth-title'), size(tokens, 'fs-5xl'))
+        self.assertIn('.auth .h1 { font-size: clamp(var(--fs-4xl), 8vw, var(--fs-auth-title)); }',
+                      pages)
+        # Every page in the flow, so the title keeps its size from door to door.
+        for name in ('login', 'signup', 'verify_phone'):
+            with self.subTest(page=name):
+                template = (settings.BASE_DIR / 'templates/user' / (name + '.html')
+                            ).read_text(encoding='utf-8')
+                inside = template.split('class="auth', 1)[1]
+                self.assertIn('<h1 class="h1">', inside)
+
 
 # ------------------------------------------------------------------ sign-in
 

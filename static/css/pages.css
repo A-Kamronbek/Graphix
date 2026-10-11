@@ -468,6 +468,14 @@ html.js .slides__controls {
    exactly one job (§17 #177). The mark is in the header already. */
 .auth { display: grid; gap: var(--s-7); max-width: 460px; margin-inline: auto; }
 .auth--narrow { max-width: 420px; }
+/* At the site's full title size "Roʻyxatdan oʻtish" is 8px wider than this
+   column and broke onto a second line. Every page in the flow takes the
+   smaller cap, not sign-up alone, so the heading does not change size as a
+   visitor steps from one door to the other. */
+.auth .h1 { font-size: clamp(var(--fs-4xl), 8vw, var(--fs-auth-title)); }
+/* In a column this narrow the line under the title runs to two lines, and the
+   second was a single word. Balanced, the two come out about even. */
+.auth .lede { text-wrap: balance; }
 
 /* --------------------------------------------------------------- account */
 /* Tabs across the top on mobile, a sidebar from 860 px. */
