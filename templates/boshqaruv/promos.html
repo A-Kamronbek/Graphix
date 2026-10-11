@@ -1,0 +1,91 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n price_format %}
+{% block title %}{% trans "Promokodlar" %}{% endblock %}
+
+{% comment %}
+  Every promo code, newest first: what it takes off, its limits, and how many
+  paid orders have used it.
+
+  The question this screen answers most often is "why is my code refused?",
+  so a code that a limit has stopped says which one: not started yet, ended,
+  or used up. The switch is on the card, because turning a code off is the
+  thing done in a hurry. Everything else is one tap away, on the code's own
+  form, where the fields that depend on one another are saved together.
+
+  A code switched off stays in the list, as a slide does. A code an order was
+  placed with cannot be deleted at all, only switched off: the order points
+  at it for good.
+{% endcomment %}
+
+{% block content %}
+<div class="row row--between pnl__head">
+  <h1 class="pnl__title">{% trans "Promokodlar" %}</h1>
+  <a class="btn btn--primary" href="{% url 'panel_promo_new' %}">{% trans "Yangi promokod" %}</a>
+</div>
+<form hidden>{% csrf_token %}</form>
+
+<section class="stack">
+  {% for promo in promos %}
+    <article class="panel-card promocard" data-ref="promo" data-id="{{ promo.pk }}"
+             data-ref-url="{% url 'panel_reference_inline' kind='promo' pk=promo.pk %}">
+      <div class="row row--between row--wrap">
+        <h2 class="promocard__code num">{{ promo.code }}</h2>
+        {% if promo.limit == 'early' %}
+          <span class="badge badge--info">{% trans "Hali boshlanmagan" %}</span>
+        {% elif promo.limit == 'ended' %}
+          <span class="badge badge--danger">{% trans "Muddati tugagan" %}</span>
+        {% elif promo.limit == 'used_up' %}
+          <span class="badge badge--danger">{% trans "Limit tugagan" %}</span>
+        {% endif %}
+      </div>
+
+      {# What it takes off, in one line: the kind, then the figure. #}
+      <p class="promocard__what">
+        {{ promo.get_kind_display }}{% if promo.kind != 'free_delivery' %}:
+          <strong class="num">{% if promo.is_percent %}{{ promo.value }} %{% else %}{{ promo.value|price }} {% trans "soʻm" %}{% endif %}</strong>{% endif %}
+      </p>
+      {% if promo.is_for_products %}
+        <p class="small muted">{% for product in promo.products.all %}{{ product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+      {% endif %}
+
+      <dl class="facts promocard__facts">
+        <dt>{% trans "Ishlatilgan" %}</dt>
+        <dd class="num">{{ promo.used_count }}{% if promo.max_uses is not None %} / {{ promo.max_uses }}{% endif %}</dd>
+        {% if promo.starts_at %}
+          <dt>{% trans "Boshlanishi" %}</dt><dd class="num">{{ promo.starts_at|date:"d/m/Y" }}</dd>
+        {% endif %}
+        {% if promo.ends_at %}
+          <dt>{% trans "Tugashi" %}</dt><dd class="num">{{ promo.ends_at|date:"d/m/Y" }}</dd>
+        {% endif %}
+        {% if promo.min_subtotal %}
+          <dt>{% trans "Eng kam summa" %}</dt>
+          <dd class="num">{{ promo.min_subtotal|price }} {% trans "soʻm" %}</dd>
+        {% endif %}
+        <dt>{% trans "Bir xaridorga" %}</dt>
+        <dd>{% if promo.once_per_customer %}{% trans "bir marta" %}{% else %}{% trans "cheklanmagan" %}{% endif %}</dd>
+        {% if promo.note %}
+          <dt>{% trans "Izoh" %}</dt><dd>{{ promo.note }}</dd>
+        {% endif %}
+      </dl>
+
+      <div class="row row--between row--wrap promocard__foot">
+        <label class="switch">
+          <input type="checkbox" data-ref-field="is_active" {% if promo.is_active %}checked{% endif %}>
+          <span>{% trans "Yoqilgan" %}</span>
+        </label>
+        <span class="row">
+          <a class="btn btn--secondary btn--sm" href="{% url 'panel_promo' pk=promo.pk %}">{% trans "Tahrirlash" %}</a>
+          <button type="button" class="btn btn--ghost btn--sm ref__x"
+                  data-ref-delete="{% url 'panel_reference_delete' kind='promo' pk=promo.pk %}"
+                  data-ref-name="{{ promo.code }}">
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+            <span class="sr-only">{% trans "Oʻchirish" %}</span>
+          </button>
+        </span>
+      </div>
+    </article>
+  {% empty %}
+    <p class="muted">{% trans "Hozircha promokod yoʻq." %}</p>
+  {% endfor %}
+</section>
+{% endblock %}

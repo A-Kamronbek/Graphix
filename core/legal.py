@@ -195,6 +195,7 @@ def facts():
     from cart.services import GUEST_CART_DAYS
     from core.ratelimit import MAX_WINDOW
     from product.images import MAX_BYTES
+    from payment.promos import FLOOR
     from product.views import MAX_PHOTOS, MAX_TEXT
     from user import codes
 
@@ -208,6 +209,8 @@ def facts():
             site_url='https://' + SELLER['site'],
         ),
         uncollected_fee=UNCOLLECTED_FEE,
+        # The least an order costs after a promo code, from the rule itself.
+        promo_floor=FLOOR,
         refund_days=REFUND_DAYS,
         claim_days=CLAIM_RESPONSE_DAYS,
         exchange_days=EXCHANGE_DAYS,

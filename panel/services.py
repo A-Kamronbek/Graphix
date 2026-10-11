@@ -7,6 +7,12 @@ log that depends on every caller remembering to write to it is a log with
 holes in it. ``payment.services`` keeps the money paths (§4: do not
 restructure ``create_order_from_cart``); this is the staff-facing one.
 
+A move across the line between paid and not paid is more than a label: a
+sale holds stock. So the function asks ``payment.services`` to take or give
+back what the sale holds whenever a move crosses that line. It did not, for
+a long time, and a paid order cancelled from the panel kept its shirts out of
+stock (§17 #57).
+
 The function records; it does not decide policy. Which statuses a *panel* user
 may set is the panel's business and lives with the view, because the Django
 admin is a superuser tool with a different answer. Keeping the two apart is
@@ -14,7 +20,8 @@ what lets the admin route through here as well, instead of writing silently.
 """
 from django.db import transaction
 
-from payment.models import Order
+from payment import services as payment_services
+from payment.models import Order, SOLD
 from .models import OrderStatusChange
 
 #: What the panel offers. ``paying`` is missing on purpose: an order becomes
@@ -54,6 +61,13 @@ def set_status(order, status, by=None, note=''):
         return None
 
     previous = locked.status
+    # Inside this transaction, so the stock and the status move together or
+    # not at all. Moving along after payment (paid to packing to delivered)
+    # crosses nothing and takes nothing more.
+    if status in SOLD and previous not in SOLD:
+        payment_services.take_for_sale(locked)
+    elif previous in SOLD and status not in SOLD:
+        payment_services.return_from_sale(locked)
     locked.status = status
     locked.save(update_fields=['status', 'updated_at'])
 

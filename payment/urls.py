@@ -24,6 +24,9 @@ webhook_urlpatterns = [
 # Human-facing. Translated, and therefore language-prefixed.
 urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
+    # Read by the checkout page's own script and by nothing else; the form
+    # posts to `checkout` and needs no second address.
+    path('checkout/promo/', views.checkout_promo, name='checkout_promo'),
 
     path('payment/<int:order_id>/',         views.payment,       name='payment'),
     path('payment/<int:order_id>/start/',   views.payment_start, name='payment_start'),

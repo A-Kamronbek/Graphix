@@ -519,6 +519,24 @@ html.js .slides__controls {
   .checkout { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-7); }
 }
 
+/* The promo code: the field and its button on one row at every width. The
+   button is one short word, so the field takes the rest. Codes are kept in
+   capitals, and the field shows what is typed that way so "yoz10" and
+   "YOZ10" do not look like two codes. */
+.promo { display: flex; gap: var(--s-3); }
+/* Without scripts "Qoʻllash" brings the page back at this box, and the
+   header is fixed over the top of the page. */
+#promo { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
+.promo__code { flex: 1 1 0; min-width: 0; text-transform: uppercase;
+  letter-spacing: var(--ls-wide); }
+.promo__code::placeholder { text-transform: none; letter-spacing: var(--ls-normal); }
+/* What the code took off, or why it was refused. Empty until a code is tried,
+   and an empty line takes no room. */
+.promo__status { color: var(--c-success); }
+.promo__status:empty { display: none; }
+.promo__status--refused { color: var(--c-danger); }
+.promo__remove { align-self: flex-start; }
+
 /* ------------------------------------------------------------ order steps */
 /* Five states, each either done, current, or still ahead. Colour is never the
    only signal: the dot fills and the label changes weight too. */

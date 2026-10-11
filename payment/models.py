@@ -1,9 +1,12 @@
 """Order model: a checked-out cart with delivery details and payment status,
-plus the delivery options and Uzpost pickup points an order can point at.
+plus the delivery options and Uzpost pickup points an order can point at,
+and the promo codes an order can be placed with.
 
 Translation follows the project convention: Uzbek lives in the base field,
 Russian and English in ``_ru`` / ``_en`` (plan §7, §17 #8).
 """
+import re
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -212,6 +215,112 @@ def location_text(region=None, district=None, postal_index='', location_note='',
     return ' · '.join(parts)
 
 
+class PromoCode(models.Model):
+    """A code a customer types at checkout to pay less.
+
+    One of five kinds, chosen when the code is made: a sum or a share off one
+    item, a sum or a share off the whole order, or free delivery. One code
+    discounts one item or one order, never more (§17 #314 to #317). The rules
+    themselves, when a code may be used and what it takes off, are in
+    ``payment/promos.py``; this is the row they read.
+
+    ``used_count`` is how many paid orders hold the code. It moves when an
+    order is paid for or a paid one is cancelled, never when an order is only
+    placed: an unpaid order holds no use, as it holds no stock.
+
+    A code an order points at is never deleted, only switched off: the order
+    keeps a ``PROTECT`` key to it, so the owner can still read what a code
+    was a year after it ended.
+    """
+    class Kind(models.TextChoices):
+        PRODUCT_SUM = 'product_sum', _('Bitta mahsulotdan summa')
+        PRODUCT_PERCENT = 'product_percent', _('Bitta mahsulotdan foiz')
+        ORDER_SUM = 'order_sum', _('Buyurtmadan summa')
+        ORDER_PERCENT = 'order_percent', _('Buyurtmadan foiz')
+        FREE_DELIVERY = 'free_delivery', _('Bepul yetkazib berish')
+
+    #: The kinds that discount one item, and so need to know which products.
+    PRODUCT_KINDS = (Kind.PRODUCT_SUM, Kind.PRODUCT_PERCENT)
+    #: The kinds whose ``value`` is a share, 1 to 100, and not a sum.
+    PERCENT_KINDS = (Kind.PRODUCT_PERCENT, Kind.ORDER_PERCENT)
+
+    #: What a code is written in: Latin capitals and digits, three to
+    #: twenty-four of them. No spaces and no look-alike letters from another
+    #: alphabet, so a code read out over the phone has one spelling.
+    CODE_RE = re.compile(r'^[A-Z0-9]{3,24}$')
+
+    code = models.CharField(max_length=24, unique=True)
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    # So'm for the two sum kinds, 1 to 100 for the two percentages, and
+    # nothing for free delivery, which takes off whatever the fee is.
+    value = models.DecimalField(max_digits=15, decimal_places=0, default=0)
+    # The products a product code may be used on. Empty for the other kinds.
+    products = models.ManyToManyField('product.Product', blank=True,
+                                      related_name='promo_codes')
+    is_active = models.BooleanField(default=True, db_index=True)
+
+    # Every limit is optional: blank dates mean no start or no end, a blank
+    # ``max_uses`` means any number, and a zero minimum means none.
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    max_uses = models.PositiveIntegerField(null=True, blank=True)
+    min_subtotal = models.DecimalField(max_digits=15, decimal_places=0, default=0)
+    once_per_customer = models.BooleanField(default=True)
+
+    used_count = models.PositiveIntegerField(default=0)
+    # For the owner alone: who the code was made for, or why.
+    note = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.code
+
+    @property
+    def is_percent(self):
+        """Whether ``value`` is a share of a price and not a sum of money."""
+        return self.kind in self.PERCENT_KINDS
+
+    @property
+    def is_for_products(self):
+        """Whether this code discounts one item, and so names its products."""
+        return self.kind in self.PRODUCT_KINDS
+
+    def clean(self):
+        """A code has one spelling and a value that fits its kind."""
+        super().clean()
+        errors = {}
+        self.code = re.sub(r'\s+', '', self.code or '').upper()
+        if not self.CODE_RE.match(self.code):
+            errors['code'] = _('Promokod 3 tadan 24 tagacha lotin harfi va '
+                               'raqamdan iborat boʻlishi kerak.')
+        value = self.value or 0
+        if self.kind == self.Kind.FREE_DELIVERY:
+            self.value = 0
+        elif self.is_percent and not 1 <= value <= 100:
+            errors['value'] = _('Foiz 1 dan 100 gacha boʻlishi kerak.')
+        elif not self.is_percent and value < 1:
+            errors['value'] = _('Summani kiriting.')
+        # A limit of no uses is a code that is switched off, and that has a
+        # switch. A minimum below nothing is a typing mistake.
+        if self.max_uses is not None and self.max_uses < 1:
+            errors['max_uses'] = _('Kamida 1 boʻlishi kerak.')
+        if (self.min_subtotal or 0) < 0:
+            errors['min_subtotal'] = _('Qiymatni tekshiring.')
+        if self.starts_at and self.ends_at and self.ends_at < self.starts_at:
+            errors['ends_at'] = _('Tugash sanasi boshlanish sanasidan oldin '
+                                  'boʻlishi mumkin emas.')
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        """Keep the code in the one spelling it is matched in."""
+        self.code = re.sub(r'\s+', '', self.code or '').upper()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+
 class Order(models.Model):
     """A placed order, created from a cart at checkout.
 
@@ -321,6 +430,19 @@ class Order(models.Model):
     # before this was recorded.
     terms_version = models.CharField(max_length=10, blank=True, default='')
     privacy_version = models.CharField(max_length=10, blank=True, default='')
+
+    # The promo code the order was placed with, frozen like the delivery
+    # price: the code as it was typed, what it took off in so'm, and for a
+    # code that discounts one item, the product it was taken from. A code
+    # edited or switched off later cannot rewrite an order. ``total_price``
+    # is goods + delivery - discount, and stays the figure a gateway is asked
+    # for (§17 #310).
+    promo = models.ForeignKey(PromoCode, on_delete=models.PROTECT,
+                              null=True, blank=True, related_name='orders')
+    promo_code = models.CharField(max_length=24, blank=True, default='')
+    discount = models.DecimalField(max_digits=15, decimal_places=0, default=0)
+    discount_product = models.ForeignKey('product.Product', on_delete=models.PROTECT,
+                                         null=True, blank=True, related_name='+')
 
     def __str__(self):
         return f"Order {self.order_no or self.id} | {self.user.username} | {self.get_status_display()}"
@@ -434,3 +556,12 @@ class Order(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+#: The statuses of an order the shop was paid for and kept: a sale. Stock is
+#: held by these orders and by no others, the dashboard counts these and
+#: nothing else as takings, and a promo code's use belongs to one of them.
+#: `paying` is out because nobody has paid; `cancelled` is out whether or not
+#: money moved first (§17 #57, #297).
+SOLD = (Order.Status.PAID, Order.Status.PROCESSING,
+        Order.Status.ON_THE_WAY, Order.Status.DONE)

@@ -43,6 +43,15 @@
         {% endfor %}
         <dt>{% trans "Yetkazib berish" %}</dt>
         <dd class="num">{{ order.delivery_price|price }} {% trans "soʻm" %}</dd>
+        {# The lines and the fee above no longer add up to the total once a #}
+        {# code is used, so what it took off is its own line between them. #}
+        {# The product is named for a code that came off one item: a return #}
+        {# of that item is refunded at what was paid for it. #}
+        {% if order.discount %}
+          <dt>{% trans "Promokod" %} {{ order.promo_code }}{% if order.discount_product %}
+            · <span class="small muted">{{ order.discount_product.name }}</span>{% endif %}</dt>
+          <dd class="num">−{{ order.discount|price }} {% trans "soʻm" %}</dd>
+        {% endif %}
         <dt><strong>{% trans "Jami" %}</strong></dt>
         <dd class="num"><strong>{{ order.total_price|price }} {% trans "soʻm" %}</strong></dd>
       </dl>

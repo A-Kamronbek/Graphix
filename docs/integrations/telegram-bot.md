@@ -176,6 +176,8 @@ notifications are parcels.
   "created_at": "2026-09-16T18:41:05.123Z",
   "total": 190000,
   "currency": "UZS",
+  "discount": 0,
+  "promo_code": "",
   "payment_method": "click",
   "delivery": {"code": "uzpost_office", "name": "Pochta boʻlimigacha",
                "price": 15000, "to_branch": true},
@@ -190,6 +192,9 @@ notifications are parcels.
 
 - `created_at` is when the order was placed, not when it was paid for; the
   request's own `sent_at` is the moment the payment landed.
+- `discount` is what a promo code took off, in soʻm, and `promo_code` is the
+  code. An order placed without one has `0` and `""`. `total` is what was
+  paid: the items plus delivery, less the discount.
 - `delivery` is `null` for an order without a delivery method.
 - `to_branch` is `true` when the parcel goes to a post office, `false` for a
   door delivery.

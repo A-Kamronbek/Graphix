@@ -46,6 +46,9 @@
   <p>Orders are paid in full at checkout. Payment methods currently accepted: {% for option in payment_options %}<strong>{{ option|t:"name" }}</strong>{% if not forloop.last %}, {% endif %}{% empty %}none at the moment{% endfor %}. The methods in force are always shown at checkout.</p>
   <p>When you pay with Click, you enter your card details on Click’s own page. We never see or store your card number.</p>
   <p>Until the payment is confirmed, the order stays “Awaiting payment”. You can cancel an unpaid order yourself on its “Order status” page.</p>
+  <h3 id="promo">Promo codes</h3>
+  <p>A promo code is entered at checkout and reduces what you pay. One promo code can be used per order. A code takes money off one product or off the whole order, or makes delivery free. Each code may have its own conditions: the dates it is valid, a minimum value of goods, how many times it can be used. The discount is shown at checkout before you place the order. A code never makes an order free: after the discount at least <span class="num">{{ legal.promo_floor|price }}&nbsp;soʻm</span> remains to pay.</p>
+  <p>A promo code is not money: it cannot be exchanged for money or paid out in cash. The store may withdraw a code at any time; orders already placed are not affected. When an order placed with a promo code is refunded, the refund is the amount actually paid.</p>
 </section>
 
 <section class="legal__sec" id="delivery">

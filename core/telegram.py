@@ -266,6 +266,11 @@ def notify_paid_order(order):
                      f"{esc(item.variant.size.size)} × {item.quantity}")
 
     lines.append(f"\n<b>Jami:</b> {esc(order.total_price)} soʻm")
+    # The total above is already less the code. Said on its own line, so the
+    # owner does not read a short payment as a mistake.
+    if order.discount:
+        lines.append(f"<b>Promokod:</b> {esc(order.promo_code)} — "
+                     f"−{esc(order.discount)} soʻm")
     if order.delivery_option_id:
         lines.append(f"<b>Yetkazish:</b> {esc(order.delivery_option.name)} — "
                      f"{esc(order.delivery_price)} soʻm")
@@ -302,6 +307,10 @@ def notify_paid_order(order):
         'created_at': order.created_at,
         'total': _som(order.total_price),
         'currency': 'UZS',
+        # What a promo code took off, and which. 0 and '' for an order
+        # placed without one; `total` is already less the discount.
+        'discount': _som(order.discount),
+        'promo_code': order.promo_code,
         'payment_method': order.payment_method,
         'delivery': {
             'code': delivery.code,

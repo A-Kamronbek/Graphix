@@ -22,7 +22,8 @@ user/        the phone-based User, sign-in and sign-up by SMS code
 product/     the catalogue: products, variants, tags, photographs, likes,
              reviews, size charts, and the image pipeline
 cart/        carts, for guests and for signed-in customers
-payment/     checkout, delivery options, regions and districts, orders, Click
+payment/     checkout, delivery options, regions and districts, orders, promo
+             codes, Click
 panel/       the staff panel at /boshqaruv/
 templates/   every template, including robots.txt and site.webmanifest
 static/      CSS, JS, fonts, icons
@@ -90,6 +91,24 @@ first version stated them as copy and two pages quietly lied for a week.
 
 An order is `GX-YYMMDD-NNNN`. Every screen and every document calls it that;
 the database id is never shown.
+
+A promo code is one of five kinds: a sum or a share off one item, a sum or a
+share off the whole order, or free delivery. Its rules are in
+`payment/promos.py`, and they are asked twice. The checkout asks them to show
+a total, and that is a preview. `create_order_from_cart` asks them again under
+its lock, from the locked lines, and freezes the answer on the order:
+`total_price` is goods + delivery − `discount`, and stays the figure a gateway
+is asked for. A code never takes the total below `promos.FLOOR`.
+
+### Stock, and a code's uses
+
+Both belong to a sale, which is an order in one of the `SOLD` statuses. Stock
+is taken and a code's use is counted when an order becomes a sale, and both
+come back when a sale is undone. An unpaid order holds neither. There are two
+ways across that line: a gateway's callback (`apply_successful_payment`), and
+staff changing a status in the panel or the admin (`panel.services.set_status`,
+which also records who did it). Both call the same two functions in
+`payment/services.py`, so neither can forget the other half.
 
 ### Payment
 
@@ -200,6 +219,10 @@ it is **the one place in the project allowed to assume JavaScript** (§17 #141).
 
 Five reference models are edited through a single endpoint behind an allowlist
 (§17 #149) rather than five near-identical views.
+
+Promo codes have their own tab. A code's value, products and limits depend on
+one another, so they are saved together by one form (`panel/promos.py`); only
+its on/off switch goes through the shared endpoint.
 
 The Django admin stays at `/admin/` as the fallback for the things the panel
 deliberately does not do.

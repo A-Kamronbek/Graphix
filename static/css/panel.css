@@ -472,3 +472,26 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 .pnl .input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 .pnl .input[type="number"]::-webkit-outer-spin-button,
 .pnl .input[type="number"]::-webkit-inner-spin-button { appearance: none; margin: 0; }
+
+/* ------------------------------------------------------------ promo codes */
+/* One card per code. The code itself is the largest thing on it, set wide,
+   because it is what the owner reads out to a customer. */
+.promocard { display: grid; gap: var(--s-3); }
+.promocard__code { font-size: var(--fs-xl); font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide); }
+/* The figure and its unit stay together when the line has to break. */
+.promocard__what strong { white-space: nowrap; }
+.promocard__facts { font-size: var(--fs-sm); }
+.promocard__foot { padding-top: var(--s-3); border-top: 1px solid var(--c-line); }
+/* A new code is typed in capitals whatever the keyboard is set to; a saved
+   one is shown, not edited. */
+.promoform__code { text-transform: uppercase; letter-spacing: var(--ls-wide); }
+.promoform__fixed { font-weight: var(--fw-semibold); }
+/* A date field grows along a filter row. Under a label it sits in a column,
+   where the same rule would make it tall, so here it keeps its own height. */
+.field > .datefield { flex: none; }
+/* The catalogue as tick boxes. It scrolls inside its own box, so forty
+   products do not push the limits below them off a phone's screen. */
+.promoform__products { display: grid; gap: var(--s-1); max-height: 320px;
+  overflow-y: auto; padding: var(--s-3); border: 1px solid var(--c-line);
+  border-radius: var(--r-sm); }

@@ -674,4 +674,40 @@ function TELL(message, kind) {
     box.addEventListener('input', sync);
     sync();
   });
+  /* ----------------------------------------------- the promo code's form */
+  /* The kind decides which boxes mean anything: free delivery has no value,
+     and only the two kinds that discount one item have products. The boxes
+     that do not apply are put away, and the product list can be searched.
+     Nothing here is needed to save: without it every box shows, and the
+     server reads only what the kind uses. */
+  var promoForm = document.querySelector('[data-promo-form]');
+  if (promoForm) {
+    var promoKind = promoForm.querySelector('[data-promo-kind]');
+    var promoValue = promoForm.querySelector('[data-promo-value]');
+    var promoProducts = promoForm.querySelector('[data-promo-products]');
+    var forProducts = (promoForm.dataset.productKinds || '').split(' ');
+    var syncPromoKind = function () {
+      /* A select on a new code; plain text with the kind beside it on a
+         saved one, whose kind does not change. */
+      var kind = promoKind ? (promoKind.value || promoKind.dataset.value || '') : '';
+      if (promoValue) promoValue.hidden = kind === promoForm.dataset.freeKind;
+      if (promoProducts) promoProducts.hidden = forProducts.indexOf(kind) < 0;
+    };
+    if (promoKind) promoKind.addEventListener('change', syncPromoKind);
+    syncPromoKind();
+
+    var promoSearch = promoForm.querySelector('[data-promo-search]');
+    if (promoSearch) {
+      promoSearch.addEventListener('input', function () {
+        var wanted = promoSearch.value.trim().toLowerCase();
+        promoForm.querySelectorAll('[data-promo-product]').forEach(function (row) {
+          /* A ticked product stays in sight whatever is typed: a search must
+             not hide what the code already covers. */
+          var ticked = row.querySelector('input').checked;
+          row.hidden = !!wanted && !ticked
+            && row.textContent.toLowerCase().indexOf(wanted) < 0;
+        });
+      });
+    }
+  }
 })();

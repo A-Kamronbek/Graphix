@@ -1,0 +1,166 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n %}
+{% block title %}{% if promo %}{{ promo.code }}{% else %}{% trans "Yangi promokod" %}{% endif %}{% endblock %}
+
+{% comment %}
+  Make a promo code, or edit one. One screen for both.
+
+  Every box is filled from `form`: the saved code normally, and what was typed
+  when a save was refused, so a mistake in one box does not cost the others.
+
+  The kind decides which boxes mean anything. Free delivery has no value, and
+  only the two kinds that discount one item have products. With the script
+  running the boxes that do not apply are put away; without it they all show,
+  each says when it applies, and the server reads only what the kind uses.
+
+  Once a code exists, its spelling and its kind are shown and not edited:
+  customers already hold the code, and a code handed out as "10 % off" should
+  not come to mean something else. Its value, products and limits can change,
+  and an order already placed keeps what it was placed with.
+{% endcomment %}
+
+{% block content %}
+<nav aria-label="{% trans 'Yoʻnalish' %}">
+  <ol class="crumbs">
+    <li><a href="{% url 'panel_promos' %}">{% trans "Promokodlar" %}</a></li>
+    <li aria-current="page">{% if promo %}{{ promo.code }}{% else %}{% trans "Yangi" %}{% endif %}</li>
+  </ol>
+</nav>
+
+<h1 class="pnl__title">{% if promo %}{{ promo.code }}{% else %}{% trans "Yangi promokod" %}{% endif %}</h1>
+
+{% if form.non_field_errors %}
+  <p class="msg msg--warn" role="alert">{{ form.non_field_errors|join:" · " }}</p>
+{% endif %}
+
+<form method="post" class="stack stack--lg" data-promo-form
+      data-product-kinds="{{ product_kinds|join:' ' }}" data-free-kind="{{ free_kind }}">
+  {% csrf_token %}
+
+  <section class="panel-card stack">
+    <h2>{% trans "Promokod" %}</h2>
+
+    <div class="field {% if form.code.errors %}field--error{% endif %}">
+      <label class="label" for="promo-code">{% trans "Kod" %}{% if not promo %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+      {% if promo %}
+        <p class="num promoform__fixed" id="promo-code">{{ promo.code }}</p>
+      {% else %}
+        <input class="input promoform__code" type="text" name="code" id="promo-code" required
+               maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false"
+               value="{{ form.code.value|default:'' }}">
+        <small class="field__hint">{% trans "3 tadan 24 tagacha lotin harfi va raqam, boʻsh joysiz. Masalan: YOZ10." %}</small>
+      {% endif %}
+      {% if form.code.errors %}<small class="field__error">{{ form.code.errors.0 }}</small>{% endif %}
+    </div>
+
+    <div class="field {% if form.kind.errors %}field--error{% endif %}">
+      <label class="label" for="promo-kind">{% trans "Turi" %}{% if not promo %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+      {% if promo %}
+        <p class="promoform__fixed" id="promo-kind" data-promo-kind data-value="{{ promo.kind }}">{{ promo.get_kind_display }}</p>
+      {% else %}
+        <select class="select" name="kind" id="promo-kind" required data-promo-kind>
+          {% for value, label in kinds %}
+            <option value="{{ value }}" {% if form.kind.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <small class="field__hint">{% trans "Mahsulot uchun kod savatdagi bitta donaga qoʻllanadi: eng qimmatiga. Buyurtma uchun kod mahsulotlar va yetkazib berish summasiga qoʻllanadi." %}</small>
+      {% endif %}
+      {% if form.kind.errors %}<small class="field__error">{{ form.kind.errors.0 }}</small>{% endif %}
+    </div>
+
+    <div class="field {% if form.value.errors %}field--error{% endif %}" data-promo-value>
+      <label class="label" for="promo-value">{% trans "Qiymati" %}</label>
+      <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+             name="value" id="promo-value" value="{{ form.value.value|default_if_none:''|floatformat:'0' }}">
+      <small class="field__hint">{% trans "Summa uchun — soʻmda, foiz uchun — 1 dan 100 gacha. Bepul yetkazib berishda kerak emas." %}</small>
+      {% if form.value.errors %}<small class="field__error">{{ form.value.errors.0 }}</small>{% endif %}
+    </div>
+
+    <div class="field {% if form.products.errors %}field--error{% endif %}" data-promo-products>
+      <span class="label" id="promo-products-label">{% trans "Mahsulotlar" %}</span>
+      <small class="field__hint">{% trans "Faqat mahsulot uchun kodda: kod shu mahsulotlarga qoʻllanadi." %}</small>
+      <label class="search">
+        <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+        <span class="sr-only">{% trans "Qidirish" %}</span>
+        <input type="search" autocomplete="off" data-promo-search
+               placeholder="{% trans 'Qidirish...' %}">
+      </label>
+      <div class="promoform__products" role="group" aria-labelledby="promo-products-label">
+        {% for product in form.fields.products.queryset %}
+          <label class="check" data-promo-product>
+            <input type="checkbox" name="products" value="{{ product.pk }}"
+                   {% if product.pk|stringformat:"s" in chosen %}checked{% endif %}>
+            <span>{{ product.name }}</span>
+          </label>
+        {% empty %}
+          <p class="small muted">{% trans "Hozircha mahsulot yoʻq." %}</p>
+        {% endfor %}
+      </div>
+      {% if form.products.errors %}<small class="field__error">{{ form.products.errors.0 }}</small>{% endif %}
+    </div>
+  </section>
+
+  <section class="panel-card stack">
+    <h2>{% trans "Cheklovlar" %}</h2>
+    <p class="field__hint">{% trans "Har biri ixtiyoriy. Boʻsh qoldirilgan cheklov qoʻllanmaydi." %}</p>
+
+    <div class="row--fields">
+      {% trans "Boshlanish sanasi" as starts_label %}{% trans "Tugash sanasi" as ends_label %}
+      {% include "boshqaruv/_promo_day.html" with field=form.starts_on label=starts_label %}
+      {% include "boshqaruv/_promo_day.html" with field=form.ends_on label=ends_label %}
+    </div>
+
+    <div class="row--fields">
+      <div class="field {% if form.max_uses.errors %}field--error{% endif %}">
+        <label class="label" for="promo-max">{% trans "Necha marta ishlatish mumkin" %}</label>
+        <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+               name="max_uses" id="promo-max" value="{{ form.max_uses.value|default_if_none:'' }}">
+        <small class="field__hint">{% trans "Toʻlangan buyurtmalar soni. Boʻsh — cheklanmagan." %}</small>
+        {% if form.max_uses.errors %}<small class="field__error">{{ form.max_uses.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="field {% if form.min_subtotal.errors %}field--error{% endif %}">
+        <label class="label" for="promo-min">{% trans "Eng kam summa" %}</label>
+        <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+               name="min_subtotal" id="promo-min" value="{{ form.min_subtotal.value|default_if_none:''|floatformat:'0' }}">
+        <small class="field__hint">{% trans "Mahsulotlar summasi, yetkazib berishsiz, soʻmda." %}</small>
+        {% if form.min_subtotal.errors %}<small class="field__error">{{ form.min_subtotal.errors.0 }}</small>{% endif %}
+      </div>
+    </div>
+
+    <label class="check">
+      <input type="checkbox" name="once_per_customer" {% if form.once_per_customer.value %}checked{% endif %}>
+      <span>{% trans "Har bir xaridor faqat bir marta ishlatadi" %}</span>
+    </label>
+
+    <div class="field {% if form.note.errors %}field--error{% endif %}">
+      <label class="label" for="promo-note">{% trans "Izoh" %}</label>
+      <input class="input" type="text" name="note" id="promo-note" maxlength="200"
+             value="{{ form.note.value|default:'' }}">
+      <small class="field__hint">{% trans "Faqat siz uchun: kod kimga yoki nima uchun berilgani." %}</small>
+      {% if form.note.errors %}<small class="field__error">{{ form.note.errors.0 }}</small>{% endif %}
+    </div>
+
+    <label class="switch">
+      <input type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %}>
+      <span>{% trans "Yoqilgan" %}</span>
+    </label>
+  </section>
+
+  {% if promo %}
+    {# Two counts after colons, not a sentence with numbers in it: Uzbek does #}
+    {# not inflect after a numeral and Russian has three forms, so a plural #}
+    {# here would be three entries for a line that only reports two figures. #}
+    <p class="small muted">
+      {% blocktrans trimmed with used=promo.used_count n=orders %}
+        Bu kod bilan berilgan buyurtmalar: {{ n }}. Toʻlangani: {{ used }}.
+      {% endblocktrans %}
+      {% trans "Oʻzgarishlar berilgan buyurtmalarga taʼsir qilmaydi." %}
+    </p>
+  {% endif %}
+
+  <div class="row">
+    <button class="btn btn--primary" type="submit">{% trans "Saqlash" %}</button>
+    <a class="btn btn--ghost" href="{% url 'panel_promos' %}">{% trans "Bekor qilish" %}</a>
+  </div>
+</form>
+{% endblock %}

@@ -75,7 +75,11 @@
 
   /* The summary follows the choice immediately. The server recomputes it from
    * the locked cart lines anyway — this is a preview, never the number that
-   * gets charged. */
+   * gets charged.
+   *
+   * A promo code follows it too. A share of the order and free delivery both
+   * depend on how the parcel travels, so the server sent what the code takes
+   * off under each method and the figure for the chosen one is read here. */
   function syncTotals(choice) {
     var totalEl = $('[data-order-total]');
     var deliveryEl = $('[data-delivery-total]');
@@ -83,8 +87,10 @@
     var price = parseInt(choice.dataset.price, 10) || 0;
     var subtotal = parseInt(totalEl.dataset.subtotal, 10);
     if (isNaN(subtotal)) return;
+    var off = applied ? (applied.discounts[choice.value] || 0) : 0;
     deliveryEl.textContent = format(price) + deliveryEl.dataset.suffix;
-    totalEl.textContent = format(subtotal + price) + totalEl.dataset.suffix;
+    totalEl.textContent = format(subtotal + price - off) + totalEl.dataset.suffix;
+    showPromo(off, subtotal + price - off);
   }
 
   /* Thin spaces between thousands, the way the price filter renders them. */
@@ -95,6 +101,134 @@
   $$('[data-delivery-choice]').forEach(function (radio) {
     radio.addEventListener('change', syncBranch);
   });
+
+  /* ---------------------------------------------------------- promo code */
+  /* "Qoʻllash" is a real submit button: with this file blocked it posts the
+   * form and the page comes back with the discount in it. Here the same
+   * question is asked in the background, so nothing typed so far is sent and
+   * the page does not jump. If the answer does not come, the button is left
+   * to do what it does without a script.
+   *
+   * What is shown is a preview. The code is checked again and the discount
+   * worked out again when the order is placed. */
+
+  var promoBox = $('[data-promo]');
+  var promoInput = $('[data-promo-code]');
+  var promoButton = $('[data-promo-apply]');
+  var promoRemove = $('[data-promo-remove]');
+  var promoStatus = $('[data-promo-status]');
+  var promoRow = $('[data-promo-row]');
+  /* The code in play: { code, discounts: { method: soʻm }, product }. The page
+   * arrives with one when the form came back from the server with a code. */
+  var applied = null;
+  try {
+    applied = JSON.parse((promoBox && promoBox.dataset.promoApplied) || 'null');
+  } catch (e) { applied = null; }
+
+  /* A code is kept in capitals with no spaces, and matched that way. */
+  function spelt(text) { return String(text || '').replace(/\s+/g, '').toUpperCase(); }
+
+  function sayPromo(text, refused) {
+    if (!promoStatus) return;
+    promoStatus.textContent = text || '';
+    promoStatus.classList.toggle('promo__status--refused', !!refused);
+  }
+
+  /* Called from `syncTotals`, so the row, the sentence and the total are
+   * always changed together. */
+  function showPromo(off, total) {
+    if (!promoBox) return;
+    var amount = $('[data-promo-amount]');
+    var name = $('[data-promo-name]');
+    if (promoRow) promoRow.hidden = !off;
+    if (amount && off) amount.textContent = '\u2212' + format(off) + amount.dataset.suffix;
+    if (name) name.textContent = applied ? applied.code : '';
+    if (promoRemove) promoRemove.hidden = !applied;
+    if (!applied) return;
+    if (!off) { sayPromo(promoBox.dataset.nothing, true); return; }
+    var said = applied.product ? promoBox.dataset.saidProduct : promoBox.dataset.said;
+    /* Functions, not strings: a product called "$& Tee" would otherwise be
+     * read as a pattern by `replace`. */
+    sayPromo(said.replace('{product}', function () { return applied.product; })
+      .replace('{discount}', function () { return format(off); })
+      .replace('{total}', function () { return format(total); }), false);
+  }
+
+  function dropPromo() {
+    applied = null;
+    sayPromo('', false);
+    syncTotals(chosenDelivery());
+  }
+
+  /* The button's own way: post the form, asking only about the code. */
+  function applyByPage() {
+    var flag = document.createElement('input');
+    flag.type = 'hidden'; flag.name = 'apply_promo'; flag.value = '1';
+    form.appendChild(flag);
+    form.action = promoButton.getAttribute('formaction') || form.action;
+    form.submit();
+  }
+
+  function applyPromo() {
+    var token = $('[name="csrfmiddlewaretoken"]', form);
+    var body = new FormData();
+    /* What is being asked about. An answer that comes back after the field
+     * has been changed is an answer about something else, and is dropped. */
+    var asked = spelt(promoInput.value);
+    body.append('promo_code', promoInput.value);
+    body.append('csrfmiddlewaretoken', token ? token.value : '');
+    promoButton.disabled = true;
+    fetch(promoBox.dataset.promoUrl, {
+      method: 'POST', body: body, credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'fetch' }
+    }).then(function (response) {
+      if (!response.ok) throw new Error('promo');
+      return response.json();
+    }).then(function (reply) {
+      promoButton.disabled = false;
+      if (spelt(promoInput.value) !== asked) return;
+      if (!reply.ok) {
+        applied = null;
+        syncTotals(chosenDelivery());
+        sayPromo(reply.error, true);
+        return;
+      }
+      applied = { code: reply.code, discounts: reply.discounts, product: reply.product };
+      promoInput.value = reply.code;
+      syncTotals(chosenDelivery());
+    }).catch(function () {
+      promoButton.disabled = false;
+      applyByPage();
+    });
+  }
+
+  if (promoBox && promoInput && promoButton && promoBox.dataset.promoUrl && window.fetch) {
+    promoButton.addEventListener('click', function (e) {
+      /* An empty field is the server's to answer, in its own words. */
+      if (!spelt(promoInput.value)) return;
+      e.preventDefault();
+      applyPromo();
+    });
+    /* Enter in this field means "use this code", not "place the order". */
+    promoInput.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (spelt(promoInput.value)) applyPromo();
+    });
+    /* A field edited after a code went in no longer holds that code, so the
+     * discount shown for it comes off until the new one is applied. */
+    promoInput.addEventListener('input', function () {
+      if (applied && spelt(promoInput.value) !== applied.code) dropPromo();
+    });
+    if (promoRemove) {
+      promoRemove.addEventListener('click', function (e) {
+        e.preventDefault();
+        promoInput.value = '';
+        dropPromo();
+        promoInput.focus();
+      });
+    }
+  }
 
   /* ------------------------------------------------------------- drawers */
   /* A native <select> cannot group Tumanlar and Shaharlar under headings, and

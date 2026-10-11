@@ -21,12 +21,14 @@ from django.db import IntegrityError, transaction
 from django.db.models import F, Value
 from django.db.models.functions import Greatest
 from django.conf import settings
+from django.utils import timezone
 from tolov import ClickGateway, OctoGateway, PaymeGateway
 
 from cart.models import Cart
 from core import legal, telegram
 from product.models import Variant
-from .models import Order, location_text
+from . import promos
+from .models import Order, PromoCode, SOLD, location_text
 
 #: Module logger, because every external call on this site logs through one
 #: and returns rather than raising (§4, the `core/sms.py` pattern).
@@ -79,7 +81,8 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
                            delivery=Decimal('0'), delivery_option=None,
                            region=None, district=None, postal_index='',
                            location_note='', address_source='',
-                           latitude=None, longitude=None, recipient_name=''):
+                           latitude=None, longitude=None, recipient_name='',
+                           promo=None):
     """Create an Order from the cart atomically, then close the cart.
 
     The cart row is locked with ``select_for_update`` and the total is computed
@@ -99,6 +102,14 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
     ``recipient_name`` is who the parcel is addressed to. It is only stored:
     it takes no part in the lock or the total, and a caller that does not
     pass it gets a blank, as every order did before it existed.
+
+    ``promo`` is the promo code the customer typed, or None. The form has
+    already checked it and shown a total, and that was a preview: here the
+    code is read again and checked again, and the discount is worked out from
+    the locked lines and the fee just priced. That figure is frozen on the
+    order and taken off the total. A code that stopped being usable in
+    between raises ``promos.Refused`` before anything is written, the way a
+    line that went off sale does (§17 #310).
 
     The version of the terms and of the privacy policy in force at this moment
     is stamped onto the order as well. The checkout says that pressing the
@@ -141,6 +152,16 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
             Decimal('0'),
         ) + delivery
 
+        # The code, last: it is taken off the goods and the fee above, so both
+        # have to be final first. The row is read again here, not trusted from
+        # the form, and the discount comes from the same locked lines the
+        # total was summed from.
+        discount, discount_product = Decimal('0'), None
+        if promo is not None:
+            promo = PromoCode.objects.filter(pk=promo.pk).first()
+            promos.check(promo, user, locked_total - delivery)
+            discount, discount_product = promos.discount(promo, locked_lines, delivery)
+
         order = _create_order(
             user=user,
             cart=locked_cart,
@@ -149,8 +170,12 @@ def create_order_from_cart(user, cart, *, phone, address, notes, payment_method,
             address=address,
             notes=notes,
             payment_method=payment_method,
-            total_price=locked_total,
+            total_price=locked_total - discount,
             status=Order.Status.PAYING,
+            promo=promo,
+            promo_code=promo.code if promo is not None else '',
+            discount=discount,
+            discount_product=discount_product,
             delivery_option=delivery_option,
             delivery_price=delivery,
             region=region,
@@ -375,11 +400,54 @@ def _move_stock(order, sign):
         )
 
 
+def _count_promo_use(order, sign):
+    """Add ``sign`` to the uses of the code ``order`` was placed with, if any.
+
+    One ``UPDATE`` with an F() expression, for the reason stock moves that
+    way: two payments landing together must both be counted. The floor is
+    there because the owner can delete and remake a code's history by hand in
+    the admin, and a count must not go below nothing.
+    """
+    if order.promo_id:
+        PromoCode.objects.filter(pk=order.promo_id).update(
+            used_count=Greatest(F('used_count') + Value(sign), Value(0)))
+
+
+def take_for_sale(order):
+    """Take what a sale holds: each line's stock, and one use of its code.
+
+    Called once each time an order crosses from not paid to paid, whoever
+    moves it: the gateway's callback below, or staff changing the status in
+    the panel or the admin. The caller holds the transaction and decides the
+    status; this only moves what belongs to it.
+
+    A code's use is counted here and not when the order is placed. An unpaid
+    order holds no use, as it holds no stock, so a checkout nobody finished
+    does not eat into a code that has only a hundred uses (§17 #57, #310).
+    """
+    _move_stock(order, -1)
+    _count_promo_use(order, +1)
+
+
+def return_from_sale(order):
+    """Give back what :func:`take_for_sale` took, when a sale is undone."""
+    _move_stock(order, +1)
+    _count_promo_use(order, -1)
+
+
 def apply_successful_payment(order):
-    """Mark ``order`` PAID (idempotent). The only place an order becomes paid.
+    """Mark ``order`` PAID (idempotent). The only place a payment makes one paid.
 
     The status check is what makes it idempotent: a gateway can replay a
-    callback, and stock must only come down once.
+    callback, and stock must only come down once. It asks whether the order
+    is already a sale, not whether it reads PAID: by the time a callback is
+    replayed staff may have moved the order on to packing, and that order
+    must not be taken from stock again or put back a step.
+
+    The question is asked of the row itself, locked, and not of the copy the
+    caller holds. A callback and a member of staff marking the same order
+    paid a moment apart each hold a copy that reads unpaid; ``set_status``
+    locks the row for the same reason.
 
     Takes the order rather than a gateway's transaction id. It used to take a
     Click transaction id and look the order up through click-pkg's own table,
@@ -387,33 +455,52 @@ def apply_successful_payment(order):
     the webhook's job now, and this stays the single place the status moves
     (§17 #253).
     """
-    if order.status != Order.Status.PAID:
-        with transaction.atomic():
-            _move_stock(order, -1)
-            order.status = Order.Status.PAID
-            order.save(update_fields=['status', 'updated_at'])
-            # Queued inside the transaction and sent after it commits: a
-            # notification for a payment that then rolled back is worse than
-            # none, and an HTTP call inside the transaction would hold the
-            # order's row open for the length of it (§12 risk #17).
-            telegram.notify_paid_order(order)
+    with transaction.atomic():
+        locked = Order.objects.select_for_update().get(pk=order.pk)
+        if locked.status in SOLD:
+            return
+        take_for_sale(locked)
+        locked.status = Order.Status.PAID
+        locked.save(update_fields=['status', 'updated_at'])
+        # The caller's copy is kept honest, as `set_status` keeps it.
+        order.status = locked.status
+        # Queued inside the transaction and sent after it commits: a
+        # notification for a payment that then rolled back is worse than
+        # none, and an HTTP call inside the transaction would hold the
+        # order's row open for the length of it (§12 risk #17).
+        telegram.notify_paid_order(locked)
+
+
+def _cancel_if_unpaid(order):
+    """Move ``order`` from PAYING to CANCELLED in one statement; True if it moved.
+
+    One ``UPDATE`` that names the status it expects, so the answer comes from
+    the row and not from a copy read earlier. A payment that landed in
+    between is not undone, and an order that is a sale is never cancelled
+    here: that would leave its stock taken and its code's use counted with
+    nothing to show for either.
+    """
+    moved = Order.objects.filter(pk=order.pk, status=Order.Status.PAYING).update(
+        status=Order.Status.CANCELLED, updated_at=timezone.now())
+    if moved:
+        order.status = Order.Status.CANCELLED
+    return bool(moved)
 
 
 def apply_cancelled_payment(order):
-    """Mark ``order`` CANCELLED unless it is already paid or cancelled.
+    """Cancel ``order`` because its gateway says the payment fell through.
 
-    Leaves orders that are already paid or cancelled untouched — so no stock
-    moves here: an order that never reached PAID never took any.
+    Only an order still awaiting payment. One that is paid, packed, sent or
+    delivered is a sale, and a sale is undone by staff, through
+    ``panel.services.set_status``, which gives back what it holds. This used
+    to leave PAID alone and cancel every other status, so a cancellation
+    arriving for an order staff had moved on to packing left it reading
+    cancelled with its stock still taken.
 
-    The old version re-read click-pkg's transaction row and acted only if its
-    state was CANCELLED. That guard is not lost: tolov calls its
-    ``cancelled_payment`` hook only for a cancellation, so the call itself is
-    the signal, and the status check below is what stops a replay undoing a
-    paid order.
+    tolov calls its ``cancelled_payment`` hook only for a cancellation, so
+    the call itself is the signal.
     """
-    if order.status not in (Order.Status.PAID, Order.Status.CANCELLED):
-        order.status = Order.Status.CANCELLED
-        order.save(update_fields=['status', 'updated_at'])
+    _cancel_if_unpaid(order)
 
 
 def cancel_order(order):
@@ -422,11 +509,7 @@ def cancel_order(order):
     PAYING only, so there is no stock to give back. Cancelling an order that was
     already paid for is a staff action — see :func:`cancel_paid_order`.
     """
-    if order.status == Order.Status.PAYING:
-        order.status = Order.Status.CANCELLED
-        order.save(update_fields=['status'])
-        return True
-    return False
+    return _cancel_if_unpaid(order)
 
 
 def cancel_paid_order(order):
@@ -435,11 +518,15 @@ def cancel_paid_order(order):
     Separate from :func:`cancel_order` on purpose: that one is reachable from the
     storefront, and a customer must not be able to cancel a paid order. Returns
     whether the status changed.
+
+    The panel and the admin do not come through here. They move a status with
+    ``panel.services.set_status``, which records who did it, and that calls
+    :func:`return_from_sale` itself when the move undoes a sale.
     """
-    if order.status in (Order.Status.CANCELLED, Order.Status.PAYING):
+    if order.status not in SOLD:
         return False
     with transaction.atomic():
-        _move_stock(order, +1)
+        return_from_sale(order)
         order.status = Order.Status.CANCELLED
         order.save(update_fields=['status', 'updated_at'])
     return True

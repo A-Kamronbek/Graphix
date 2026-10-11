@@ -37,9 +37,19 @@
   <h1 class="h1">{% trans "Rasmiylashtirish" %}</h1>
 
   <div class="checkout">
-    <form method="post" class="stack stack--lg" data-checkout
+    {# The address is written out. "Qoʻllash" sends the page back at #promo, #}
+    {# and a form with no action of its own would post there ever after: a #}
+    {# mistake in the address would then be reported at the top of a page #}
+    {# that opens at the promo box. #}
+    <form method="post" action="{% url 'checkout' %}" class="stack stack--lg" data-checkout
           data-districts="{{ districts_json }}">
       {% csrf_token %}
+      {# Enter in a text field presses a form's first submit button. That #}
+      {# has always been "Buyurtma berish" here, and "Qoʻllash" now comes #}
+      {# before it in the page. This is the same button again, out of sight #}
+      {# and out of the tab order, so that Enter still places the order and #}
+      {# does not apply a promo code instead. #}
+      <button class="sr-only" type="submit" tabindex="-1" aria-hidden="true">{% trans "Buyurtma berish" %}</button>
 
       <p class="small muted">
         {% blocktrans trimmed with star='<span class="req" aria-hidden="true">*</span>'|safe %}
@@ -75,7 +85,7 @@
             <input type="radio" name="delivery_option" value="{{ opt.code }}"
                    data-delivery-choice
                    data-branch="{% if opt.requires_branch %}1{% else %}0{% endif %}"
-                   data-price="{{ opt.price }}"
+                   data-price="{{ opt.fee|floatformat:'0' }}"
                    {% if form_data.delivery_option == opt.code %}checked{% endif %}>
             <span>
               <strong>{{ opt|t:"name" }} — <span class="num">{{ opt.price|price }} {% trans "soʻm" %}</span></strong>
@@ -119,6 +129,16 @@
                     data-group-districts="{% trans 'Tumanlar' %}"
                     data-group-cities="{% trans 'Shaharlar' %}">
               <option value="">{% trans "Avval viloyatni tanlang" %}</option>
+              {# The districts themselves, so the select works before any #}
+              {# script runs and a chosen district comes back with the form. #}
+              {# checkout.js rebuilds the list when the region changes. #}
+              {% for heading, rows in district_options %}
+                {% if heading %}<optgroup label="{{ heading }}">{% endif %}
+                {% for row in rows %}
+                  <option value="{{ row.id }}" {% if form_data.district == row.id %}selected{% endif %}>{{ row.name }}</option>
+                {% endfor %}
+                {% if heading %}</optgroup>{% endif %}
+              {% endfor %}
             </select>
           </div>
 
@@ -270,6 +290,50 @@
         </div>
       </section>
 
+      {% comment %}
+        The promo code. In the form and above the button, not in the order
+        summary beside it: on a phone the summary comes after "Buyurtma
+        berish", and a field down there is one the customer finds after the
+        order is placed (§17 #345).
+
+        "Qoʻllash" is a real submit button. It posts the whole form, so what
+        has been typed so far comes back with it, and `formnovalidate` lets
+        it be pressed before the address is finished. With scripts running
+        `checkout.js` asks the server for the figure and changes the page in
+        place; the sentence under the field is the same either way, and so
+        is the row in the summary.
+
+        A typed code is used when the order is placed whether or not
+        "Qoʻllash" was pressed first, and a code that is refused stops the
+        order and says why.
+      {% endcomment %}
+      <section class="panel stack stack--sm" id="promo" data-promo
+               data-promo-url="{% url 'checkout_promo' %}"
+               data-promo-applied="{{ promo_json }}"
+               data-said="{{ promo_said_template }}"
+               data-said-product="{{ promo_said_product_template }}"
+               data-nothing="{{ promo_nothing }}">
+        <h2 class="h3" id="promo-heading">{% trans "Promokod" %}</h2>
+        <div class="promo">
+          <input class="input promo__code" type="text" name="promo_code" id="id_promo_code"
+                 maxlength="40" autocomplete="off" autocapitalize="characters"
+                 spellcheck="false" value="{{ form_data.promo_code|default:'' }}"
+                 aria-labelledby="promo-heading" aria-describedby="promo-status"
+                 data-promo-code>
+          <button class="btn btn--secondary" type="submit" name="apply_promo" value="1"
+                  formnovalidate formaction="{% url 'checkout' %}#promo"
+                  data-promo-apply>{% trans "Qoʻllash" %}</button>
+        </div>
+        {# One line that says what happened: what the code takes off and what #}
+        {# is left to pay, or why it was refused. Polite, so a screen reader #}
+        {# hears it without being interrupted. #}
+        <p class="small promo__status{% if promo_error %} promo__status--refused{% endif %}"
+           id="promo-status" role="status" data-promo-status>{% if promo_error %}{{ promo_error }}{% else %}{{ promo_said }}{% endif %}</p>
+        <button class="link small promo__remove" type="submit" name="remove_promo" value="1"
+                formnovalidate formaction="{% url 'checkout' %}#promo"
+                data-promo-remove{% if not promo %} hidden{% endif %}>{% trans "Promokodni olib tashlash" %}</button>
+      </section>
+
       {# Placing the order is accepting the offer (terms §1), so the page says #}
       {# so where the decision is made, with both documents a tap away. #}
       <p class="small muted">
@@ -309,6 +373,12 @@
         <div class="spec__row">
           <dt>{% trans "Yetkazib berish" %}</dt>
           <dd class="num" data-delivery-total data-suffix=" {% trans 'soʻm' %}">{{ delivery|price }} {% trans "soʻm" %}</dd>
+        </div>
+        {# What the promo code takes off. Always in the page and shown only #}
+        {# when a code is in, so the script has a row to fill. #}
+        <div class="spec__row" data-promo-row{% if not discount %} hidden{% endif %}>
+          <dt>{% trans "Promokod" %} <span class="num" data-promo-name>{{ promo.promo.code }}</span></dt>
+          <dd class="num" data-promo-amount data-suffix=" {% trans 'soʻm' %}">−{{ discount|price }} {% trans "soʻm" %}</dd>
         </div>
         <div class="spec__row cartpage__total">
           <dt>{% trans "Jami" %}</dt>

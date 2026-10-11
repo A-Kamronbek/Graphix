@@ -1,4 +1,5 @@
-"""Admin for orders, delivery tiers, payment methods and the region reference data.
+"""Admin for orders, delivery tiers, payment methods, promo codes and the region
+reference data.
 
 Order details stay read-only — they are a record of what was agreed, and the
 frozen ``delivery_price`` and ``location_snapshot`` only mean something if nobody
@@ -9,7 +10,8 @@ from django.contrib import admin
 from django.contrib.admin.sites import NotRegistered
 from django.utils.html import format_html_join
 from tolov.integrations.django.models import PaymentTransaction
-from .models import DeliveryOption, District, Order, PaymentOption, Region
+from .models import (DeliveryOption, District, Order, PaymentOption, PromoCode,
+                     Region)
 
 
 # Hide tolov's own transaction admin, as click-pkg's was hidden before it: a raw
@@ -120,6 +122,35 @@ class DistrictAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
+    """Promo codes, for looking one up. The owner makes and edits them in the panel.
+
+    ``used_count`` is read-only: it is moved by payments and cancellations,
+    and a figure typed in here would stop meaning "paid orders with this
+    code". Saving runs the model's own checks, so a code made here is held to
+    the same spelling and the same values as one made in the panel.
+    """
+    list_display = ('code', 'kind', 'value', 'is_active', 'used_count', 'max_uses',
+                    'starts_at', 'ends_at')
+    list_filter = ('kind', 'is_active')
+    search_fields = ('code', 'note')
+    filter_horizontal = ('products',)
+    readonly_fields = ('used_count', 'created_at')
+
+    def save_model(self, request, obj, form, change):
+        """Save an edit without writing the count of uses back.
+
+        The count is read-only on the page, and a plain save would still
+        write the figure the page was opened with over one a payment has
+        moved since.
+        """
+        if not change:
+            return super().save_model(request, obj, form, change)
+        obj.save(update_fields=[field.name for field in obj._meta.concrete_fields
+                                if not field.primary_key and field.name != 'used_count'])
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     """Order admin: details are read-only, but status is editable from the list."""
@@ -139,9 +170,11 @@ class OrderAdmin(admin.ModelAdmin):
         'delivery_option', 'delivery_price', 'region', 'district', 'postal_index',
         'location_note', 'location_snapshot', 'latitude', 'longitude',
         'address_source', 'map_link', 'map_preview',
+        'promo', 'promo_code', 'discount', 'discount_product',
     )
     fields = (
         'order_no', 'user', 'recipient_name', 'status', 'payment_method', 'total_price',
+        'promo_code', 'discount', 'discount_product',
         'phone', 'address', 'notes', 'items_summary',
         'delivery_option', 'delivery_price', 'region', 'district', 'postal_index',
         'location_note', 'location_snapshot', 'latitude', 'longitude',

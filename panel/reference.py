@@ -19,9 +19,10 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, gettext_lazy
 
-from payment.models import DeliveryOption, District, PaymentOption, Region
+from payment.models import (DeliveryOption, District, PaymentOption, PromoCode,
+                            Region)
 from product.models import (Category, PrintMethod, Size, SizeChart, Slide,
                             Tag, TagKind, slide_link)
 
@@ -86,6 +87,13 @@ EDITABLE = {
         'alt': 'text', 'alt_ru': 'text', 'alt_en': 'text',
         'link': 'link', 'is_active': 'bool', 'sort_order': 'count',
     }),
+    # A promo code's switch, and nothing else. Its value, products and limits
+    # depend on one another and are saved together by its own form
+    # (`panel/promos.py`); the switch is here so a code can be turned off from
+    # the list in one tap, which is the thing done in a hurry.
+    'promo': (PromoCode, {
+        'is_active': 'bool',
+    }),
 }
 
 #: Where a row keeps the name a reader would call it by, when that is not a
@@ -97,7 +105,7 @@ EDITABLE = {
 #: accessible name a slide has, so blanking it turns a card into an unlabelled
 #: link. It is deliberately absent from :data:`UNIQUE_NAMES` — two slides may
 #: honestly describe the same thing, and there is nothing to disambiguate.
-NAME_FIELD = {'size': 'size', 'slide': 'alt'}
+NAME_FIELD = {'size': 'size', 'slide': 'alt', 'promo': 'code'}
 
 #: What may be removed, and what it costs. Everything here is either unlinked
 #: on delete (a tag comes off its products, a chart and a category fall back to
@@ -113,7 +121,19 @@ NAME_FIELD = {'size': 'size', 'slide': 'alt'}
 #: nothing points at one — it is content, not a record of anything. Its file
 #: and its renditions go with it, through the same `post_delete` receiver
 #: every other photograph uses.
-DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size', 'slide'}
+#: `promo` is here for the same reason `size` is: `Order.promo` is PROTECT,
+#: so a code an order was placed with cannot be removed, and the refusal
+#: below says what to do instead. A code nobody has used is a typo, and can go.
+DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size', 'slide', 'promo'}
+
+#: What a refused delete says, where "something is using this" is not enough
+#: to act on. An order keeps the code it was placed with for good, so the
+#: only way to stop a used code is its switch.
+IN_USE = {
+    'promo': gettext_lazy(
+        'Bu promokod bilan buyurtma berilgan, uni oʻchirib tashlab boʻlmaydi. '
+        'Toʻxtatish uchun «Yoqilgan» belgisini olib qoʻying.'),
+}
 
 
 def _money(raw):
@@ -298,7 +318,8 @@ def delete_row(kind, pk):
     try:
         row.delete()
     except ProtectedError:
-        raise ValidationError(_('Bundan foydalanilmoqda — avval boʻshating.'))
+        raise ValidationError(str(
+            IN_USE.get(kind) or _('Bundan foydalanilmoqda — avval boʻshating.')))
     if picture:
         picture.delete(save=False)
     return name
