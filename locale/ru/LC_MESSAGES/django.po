@@ -303,6 +303,22 @@ msgstr "Такого типа тега нет."
 msgid "Notoʻgʻri son."
 msgstr "Неверное число."
 
+#: .\panel\promos.py:109
+msgid "Kamida bitta mahsulotni tanlang."
+msgstr "Выберите хотя бы один товар."
+
+#: .\panel\promos.py:116 .\payment\models.py:304
+msgid "Tugash sanasi boshlanish sanasidan oldin boʻlishi mumkin emas."
+msgstr "Дата окончания не может быть раньше даты начала."
+
+#: .\panel\reference.py:134
+msgid ""
+"Bu promokod bilan buyurtma berilgan, uni oʻchirib tashlab boʻlmaydi. "
+"Toʻxtatish uchun «Yoqilgan» belgisini olib qoʻying."
+msgstr ""
+"С этим промокодом уже оформлен заказ, поэтому удалить его нельзя. Чтобы "
+"остановить его, снимите отметку «Включено»."
+
 #: .\panel\reference.py:212
 #, python-format
 msgid "«%(name)s» nomi bu roʻyxatda allaqachon bor."
@@ -467,6 +483,11 @@ msgstr "Нужны название и изображение."
 msgid "Jadval qoʻshildi."
 msgstr "Таблица добавлена."
 
+#: .\panel\views.py:1069
+#, python-format
+msgid "%(code)s — saqlandi."
+msgstr "%(code)s — сохранён."
+
 #: .\payment\models.py:139
 msgid "Tuman"
 msgstr "Район"
@@ -478,6 +499,39 @@ msgstr "Город"
 #: .\payment\models.py:144
 msgid "Boshqa"
 msgstr "Другое"
+
+#: .\payment\models.py:236
+msgid "Bitta mahsulotdan summa"
+msgstr "Сумма с одного товара"
+
+#: .\payment\models.py:237
+msgid "Bitta mahsulotdan foiz"
+msgstr "Процент с одного товара"
+
+#: .\payment\models.py:238
+msgid "Buyurtmadan summa"
+msgstr "Сумма со всего заказа"
+
+#: .\payment\models.py:239
+msgid "Buyurtmadan foiz"
+msgstr "Процент со всего заказа"
+
+#: .\payment\models.py:240
+msgid "Bepul yetkazib berish"
+msgstr "Бесплатная доставка"
+
+#: .\payment\models.py:294
+msgid ""
+"Promokod 3 tadan 24 tagacha lotin harfi va raqamdan iborat boʻlishi kerak."
+msgstr "Промокод состоит из 3–24 латинских букв и цифр."
+
+#: .\payment\models.py:300
+msgid "Foiz 1 dan 100 gacha boʻlishi kerak."
+msgstr "Процент — от 1 до 100."
+
+#: .\payment\models.py:302
+msgid "Summani kiriting."
+msgstr "Введите сумму."
 
 #: .\payment\models.py:212
 msgid "Toʻlanmoqda"
@@ -551,6 +605,35 @@ msgstr "При доставке до двери отделение почты н
 msgid "Manzilni kiriting."
 msgstr "Укажите адрес."
 
+#: .\payment\promos.py:45
+msgid "Bunday promokod yoʻq yoki u hozir amal qilmaydi."
+msgstr "Такого промокода нет, или он сейчас не действует."
+
+#: .\payment\promos.py:46
+#, python-format
+msgid ""
+"Bu promokod mahsulotlar summasi %(sum)s soʻmdan boshlanganda amal qiladi."
+msgstr "Этот промокод действует, когда сумма товаров — от %(sum)s сум."
+
+#: .\payment\promos.py:47
+msgid "Siz bu promokoddan avval foydalangansiz."
+msgstr "Вы уже использовали этот промокод."
+
+#: .\payment\promos.py:48
+msgid ""
+"Bu promokod bilan toʻlanmagan buyurtmangiz bor. Uni toʻlang yoki bekor "
+"qiling."
+msgstr ""
+"У вас есть неоплаченный заказ с этим промокодом. Оплатите его или отмените."
+
+#: .\payment\promos.py:50
+msgid "Savatingizda bu promokod amal qiladigan mahsulot yoʻq."
+msgstr "В корзине нет товара, на который действует этот промокод."
+
+#: .\payment\promos.py:51
+msgid "Bu promokod ushbu buyurtmada narxni kamaytirmaydi."
+msgstr "В этом заказе промокод ничего не уменьшает."
+
 #: .\payment\views.py:183
 #, python-format
 msgid ""
@@ -572,9 +655,23 @@ msgstr[3] ""
 "%(names)s больше не продаются. Чтобы оформить заказ, удалите их из "
 "корзины."
 
+#: .\payment\views.py:210
+#, python-brace-format
+msgid "Chegirma: {discount} soʻm. Jami: {total} soʻm."
+msgstr "Скидка: {discount} сум. Итого: {total} сум."
+
+#: .\payment\views.py:212
+#, python-brace-format
+msgid "Chegirma ({product}): {discount} soʻm. Jami: {total} soʻm."
+msgstr "Скидка ({product}): {discount} сум. Итого: {total} сум."
+
 #: .\payment\views.py:201 .\payment\views.py:311
 msgid "Savat boʻsh."
 msgstr "Корзина пуста."
+
+#: .\payment\views.py:374 .\payment\views.py:471
+msgid "Promokodni kiriting."
+msgstr "Введите промокод."
 
 #: .\payment\views.py:265
 msgid "Toʻlov usulini tanlang."
@@ -898,6 +995,11 @@ msgstr "Сообщения"
 msgid "Slaydlar"
 msgstr "Слайды"
 
+#: .\templates\boshqaruv\base.html:72 .\templates\boshqaruv\promo_form.html:25
+#: .\templates\boshqaruv\promos.html:3 .\templates\boshqaruv\promos.html:22
+msgid "Promokodlar"
+msgstr "Промокоды"
+
 #: .\templates\boshqaruv\base.html:74 .\templates\boshqaruv\regions.html:20
 #: .\templates\boshqaruv\settings.html:3 .\templates\boshqaruv\settings.html:27
 #: .\templates\partials\_account_nav.html:7
@@ -997,6 +1099,12 @@ msgstr "Навигация"
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Доставка"
+
+#: .\templates\boshqaruv\order.html:51 .\templates\boshqaruv\promo_form.html:41
+#: .\templates\payment\checkout.html:305 .\templates\payment\checkout.html:369
+#: .\templates\payment\order_detail.html:66
+msgid "Promokod"
+msgstr "Промокод"
 
 #: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:80
 #: .\templates\payment\checkout.html:326
@@ -1113,6 +1221,18 @@ msgstr "дд/мм/гггг"
 #: .\templates\boshqaruv\orders.html:64
 msgid "Sanani kk/oo/yyyy koʻrinishida kiriting, masalan 16/09/2026."
 msgstr "Введите дату в формате дд/мм/гггг, например 16/09/2026."
+
+#: .\panel\promos.py:68
+msgid "Bunday promokod allaqachon bor."
+msgstr "Такой промокод уже есть."
+
+#: .\panel\promos.py:82
+msgid "Bunday mahsulot yoʻq."
+msgstr "Такого товара нет."
+
+#: .\panel\promos.py:83
+msgid "Turini tanlang."
+msgstr "Выберите тип."
 
 #: .\templates\boshqaruv\orders.html:67
 msgid "Kalendardan tanlash"
@@ -1320,6 +1440,20 @@ msgstr[3] "%(n)s товара"
 msgid "Mahsulot topilmadi."
 msgstr "Товары не найдены."
 
+#: .\templates\boshqaruv\promo_form.html:3
+#: .\templates\boshqaruv\promo_form.html:30
+#: .\templates\boshqaruv\promos.html:23
+msgid "Yangi promokod"
+msgstr "Новый промокод"
+
+#: .\templates\boshqaruv\promo_form.html:44
+msgid "Kod"
+msgstr "Код"
+
+#: .\templates\boshqaruv\promo_form.html:51
+msgid "3 tadan 24 tagacha lotin harfi va raqam, boʻsh joysiz. Masalan: YOZ10."
+msgstr "От 3 до 24 латинских букв и цифр, без пробелов. Например: YOZ10."
+
 #: .\templates\boshqaruv\regions.html:3 .\templates\boshqaruv\regions.html:19
 #: .\templates\boshqaruv\settings.html:39
 msgid "Hududlar"
@@ -1389,6 +1523,15 @@ msgstr "Способы оплаты"
 msgid "Yoqilgan"
 msgstr "Включено"
 
+#: .\templates\boshqaruv\promo_form.html:154
+#, python-format
+msgid "Bu kod bilan berilgan buyurtmalar: %(n)s. Toʻlangani: %(used)s."
+msgstr "Заказов с этим кодом: %(n)s. Оплачено: %(used)s."
+
+#: .\templates\boshqaruv\promo_form.html:157
+msgid "Oʻzgarishlar berilgan buyurtmalarga taʼsir qilmaydi."
+msgstr "Изменения не затрагивают уже оформленные заказы."
+
 #: .\templates\boshqaruv\settings.html:60
 msgid "Bepul (dona)"
 msgstr "Бесплатно от (шт.)"
@@ -1432,6 +1575,30 @@ msgstr "Теги — основной сигнал для рекомендац�
 #: .\templates\boshqaruv\settings.html:189
 msgid "Turi"
 msgstr "Тип"
+
+#: .\templates\boshqaruv\promo_form.html:66
+msgid ""
+"Mahsulot uchun kod savatdagi bitta donaga qoʻllanadi: eng qimmatiga. "
+"Buyurtma uchun kod mahsulotlar va yetkazib berish summasiga qoʻllanadi."
+msgstr ""
+"Код на товар действует на одну штуку в корзине — самую дорогую. Код на заказ "
+"действует на сумму товаров и доставки."
+
+#: .\templates\boshqaruv\promo_form.html:72
+msgid "Qiymati"
+msgstr "Значение"
+
+#: .\templates\boshqaruv\promo_form.html:75
+msgid ""
+"Summa uchun — soʻmda, foiz uchun — 1 dan 100 gacha. Bepul yetkazib berishda "
+"kerak emas."
+msgstr ""
+"Для суммы — в сумах, для процента — от 1 до 100. Для бесплатной доставки не "
+"нужно."
+
+#: .\templates\boshqaruv\promo_form.html:81
+msgid "Faqat mahsulot uchun kodda: kod shu mahsulotlarga qoʻllanadi."
+msgstr "Только для кода на товар: код действует на эти товары."
 
 #: .\templates\boshqaruv\settings.html:172
 msgid "Yangi teg"
@@ -2101,6 +2268,14 @@ msgstr "Необязательно"
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr "Способы оплаты сейчас недоступны. Пожалуйста, свяжитесь с нами."
 
+#: .\templates\payment\checkout.html:314
+msgid "Qoʻllash"
+msgstr "Применить"
+
+#: .\templates\payment\checkout.html:323
+msgid "Promokodni olib tashlash"
+msgstr "Убрать промокод"
+
 #: .\templates\payment\checkout.html:289
 #, python-format
 msgid ""
@@ -2127,6 +2302,51 @@ msgstr "Готово"
 #: .\templates\payment\checkout.html:386
 msgid "Qidirish..."
 msgstr "Поиск..."
+
+#: .\templates\boshqaruv\promo_form.html:96
+msgid "Hozircha mahsulot yoʻq."
+msgstr "Товаров пока нет."
+
+#: .\templates\boshqaruv\promo_form.html:104
+msgid "Cheklovlar"
+msgstr "Ограничения"
+
+#: .\templates\boshqaruv\promo_form.html:105
+msgid "Har biri ixtiyoriy. Boʻsh qoldirilgan cheklov qoʻllanmaydi."
+msgstr "Все необязательны. Пустое ограничение не действует."
+
+#: .\templates\boshqaruv\promo_form.html:108
+msgid "Boshlanish sanasi"
+msgstr "Дата начала"
+
+#: .\templates\boshqaruv\promo_form.html:108
+msgid "Tugash sanasi"
+msgstr "Дата окончания"
+
+#: .\templates\boshqaruv\promo_form.html:115
+msgid "Necha marta ishlatish mumkin"
+msgstr "Сколько раз можно использовать"
+
+#: .\templates\boshqaruv\promo_form.html:118
+msgid "Toʻlangan buyurtmalar soni. Boʻsh — cheklanmagan."
+msgstr "Число оплаченных заказов. Пусто — без ограничения."
+
+#: .\templates\boshqaruv\promo_form.html:122
+#: .\templates\boshqaruv\promos.html:61
+msgid "Eng kam summa"
+msgstr "Минимальная сумма"
+
+#: .\templates\boshqaruv\promo_form.html:125
+msgid "Mahsulotlar summasi, yetkazib berishsiz, soʻmda."
+msgstr "Сумма товаров без доставки, в сумах."
+
+#: .\templates\boshqaruv\promo_form.html:132
+msgid "Har bir xaridor faqat bir marta ishlatadi"
+msgstr "Каждый покупатель использует только один раз"
+
+#: .\templates\boshqaruv\promo_form.html:139
+msgid "Faqat siz uchun: kod kimga yoki nima uchun berilgani."
+msgstr "Только для вас: кому или зачем выдан код."
 
 #: .\templates\payment\order_detail.html:44 .\templates\payment\status.html:45
 msgid "Tafsilotlar"
@@ -2185,6 +2405,11 @@ msgstr "Оставить отзыв"
 msgid "Click orqali toʻlov"
 msgstr "Оплата через Click"
 
+#: .\templates\payment\payment.html:17
+#, python-format
+msgid "Promokod %(code)s: −%(off)s soʻm"
+msgstr "Промокод %(code)s: −%(off)s сум"
+
 #: .\templates\payment\payment.html:27
 msgid "Toʻlovga oʻtish"
 msgstr "Перейти к оплате"
@@ -2197,6 +2422,50 @@ msgstr "Детали заказа"
 #: .\templates\user\verify_phone.html:53
 msgid "Bekor qilish"
 msgstr "Отменить"
+
+#: .\templates\boshqaruv\promos.html:34
+msgid "Hali boshlanmagan"
+msgstr "Ещё не начался"
+
+#: .\templates\boshqaruv\promos.html:36
+msgid "Muddati tugagan"
+msgstr "Срок истёк"
+
+#: .\templates\boshqaruv\promos.html:38
+msgid "Limit tugagan"
+msgstr "Лимит исчерпан"
+
+#: .\templates\boshqaruv\promos.html:52
+msgid "Ishlatilgan"
+msgstr "Использовано"
+
+#: .\templates\boshqaruv\promos.html:55
+msgid "Boshlanishi"
+msgstr "Начало"
+
+#: .\templates\boshqaruv\promos.html:58
+msgid "Tugashi"
+msgstr "Окончание"
+
+#: .\templates\boshqaruv\promos.html:64
+msgid "Bir xaridorga"
+msgstr "На покупателя"
+
+#: .\templates\boshqaruv\promos.html:65
+msgid "bir marta"
+msgstr "один раз"
+
+#: .\templates\boshqaruv\promos.html:65
+msgid "cheklanmagan"
+msgstr "без ограничения"
+
+#: .\templates\boshqaruv\promos.html:77
+msgid "Tahrirlash"
+msgstr "Изменить"
+
+#: .\templates\boshqaruv\promos.html:88
+msgid "Hozircha promokod yoʻq."
+msgstr "Промокодов пока нет."
 
 #: .\templates\payment\status.html:3
 msgid "Buyurtma holati"

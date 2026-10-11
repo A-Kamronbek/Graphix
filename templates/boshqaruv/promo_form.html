@@ -147,11 +147,12 @@
   </section>
 
   {% if promo %}
+    {# Two counts after colons, not a sentence with numbers in it: Uzbek does #}
+    {# not inflect after a numeral and Russian has three forms, so a plural #}
+    {# here would be three entries for a line that only reports two figures. #}
     <p class="small muted">
-      {% blocktrans trimmed with used=promo.used_count count n=orders %}
-        Bu kod bilan {{ n }} ta buyurtma berilgan, ulardan {{ used }} tasi toʻlangan.
-      {% plural %}
-        Bu kod bilan {{ n }} ta buyurtma berilgan, ulardan {{ used }} tasi toʻlangan.
+      {% blocktrans trimmed with used=promo.used_count n=orders %}
+        Bu kod bilan berilgan buyurtmalar: {{ n }}. Toʻlangani: {{ used }}.
       {% endblocktrans %}
       {% trans "Oʻzgarishlar berilgan buyurtmalarga taʼsir qilmaydi." %}
     </p>

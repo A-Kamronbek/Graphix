@@ -45,6 +45,9 @@
   <p>Buyurtma rasmiylashtirilganda toʻliq toʻlanadi. Hozir qabul qilinadigan toʻlov usullari: {% for option in payment_options %}<strong>{{ option|t:"name" }}</strong>{% if not forloop.last %}, {% endif %}{% empty %}hozircha yoʻq{% endfor %}. Amaldagi usullar har doim rasmiylashtirish sahifasida koʻrsatiladi.</p>
   <p>Click orqali toʻlashda karta maʼlumotlari Click tizimining oʻz sahifasida kiritiladi. Biz karta raqamingizni koʻrmaymiz va saqlamaymiz.</p>
   <p>Toʻlov tasdiqlanmaguncha buyurtma «Toʻlanmoqda» holatida turadi. Toʻlanmagan buyurtmani «Buyurtma holati» sahifasida oʻzingiz bekor qilishingiz mumkin.</p>
+  <h3 id="promo">Promokodlar</h3>
+  <p>Promokod rasmiylashtirish sahifasida kiritiladi va buyurtma summasini kamaytiradi. Bitta buyurtmada bitta promokod ishlatiladi. Promokod bitta mahsulot narxini yoki butun buyurtma summasini kamaytiradi yoki yetkazib berishni bepul qiladi. Har bir kodning oʻz shartlari boʻlishi mumkin: amal qilish muddati, mahsulotlarning eng kam summasi, necha marta ishlatilishi. Chegirma miqdori buyurtma berishdan oldin rasmiylashtirish sahifasida koʻrsatiladi. Promokod buyurtmani bepul qilmaydi: chegirmadan keyin toʻlanadigan summa <span class="num">{{ legal.promo_floor|price }}&nbsp;soʻm</span>dan kam boʻlmaydi.</p>
+  <p>Promokod pul emas: u pulga almashtirilmaydi va naqd berilmaydi. Doʻkon promokodni istalgan vaqtda toʻxtatishi mumkin; bu allaqachon berilgan buyurtmalarga taʼsir qilmaydi. Promokod bilan berilgan buyurtma uchun pul qaytarilganda amalda toʻlangan summa qaytariladi.</p>
 </section>
 
 <section class="legal__sec" id="delivery">

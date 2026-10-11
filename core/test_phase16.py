@@ -21,7 +21,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from cart.models import Cart, CartItem
 from core import telegram
@@ -1098,3 +1098,68 @@ class PanelTests(PromoCase):
     def test_the_panel_has_a_tab_for_it(self):
         html = self.client.get(reverse('panel_dashboard')).content.decode()
         self.assertIn('href="%s"' % reverse('panel_promos'), html)
+
+
+# ------------------------------------------------------------ three languages
+
+class LanguageTests(CheckoutCase):
+    """Every sentence the phase added is written in all three languages."""
+
+    SAID = {'uz': 'Chegirma: 16\u00a0500 soʻm. Jami: 148\u00a0500 soʻm.',
+            'ru': 'Скидка: 16\u00a0500 сум. Итого: 148\u00a0500 сум.',
+            'en': 'Discount: 16\u00a0500 soʻm. Total: 148\u00a0500 soʻm.'}
+    REFUSED = {'uz': 'Bunday promokod yoʻq yoki u hozir amal qilmaydi.',
+               'ru': 'Такого промокода нет, или он сейчас не действует.',
+               'en': 'There is no such promo code, or it is not valid right now.'}
+
+    def test_the_checkout_says_what_a_code_took_off(self):
+        code(Kind.ORDER_PERCENT, 10, once_per_customer=False)
+        for lang in ('uz', 'ru', 'en'):
+            with self.subTest(lang=lang):
+                html = self.client.post('/%s/checkout/' % lang, self.form(
+                    promo_code='KOD', apply_promo='1')).content.decode()
+                self.assertIn(self.SAID[lang], html)
+                # The script is handed the same sentence, to fill in itself.
+                template = self.SAID[lang].replace('16\u00a0500', '{discount}') \
+                                          .replace('148\u00a0500', '{total}')
+                self.assertIn('data-said="%s"' % template, html)
+
+    def test_a_refusal_is_in_the_readers_language(self):
+        for lang in ('uz', 'ru', 'en'):
+            with self.subTest(lang=lang):
+                reply = self.client.post('/%s/checkout/promo/' % lang,
+                                         {'promo_code': 'YOQ%s' % lang.upper()}).json()
+                self.assertEqual(reply['error'], self.REFUSED[lang])
+
+    def test_no_new_sentence_falls_back_to_uzbek(self):
+        """The rules' own refusals and the kinds, read in each language."""
+        seen = {}
+        for lang in ('uz', 'ru', 'en'):
+            with translation.override(lang):
+                seen[lang] = ([str(text) for text in promos.MESSAGES.values()]
+                              + [str(label) for label in Kind.labels])
+        self.assertEqual(len(set(seen['uz']) & set(seen['ru'])), 0)
+        self.assertEqual(len(set(seen['uz']) & set(seen['en'])), 0)
+
+    def test_the_panel_reads_in_russian_and_english_too(self):
+        self.client.force_login(make_staff())
+        for lang, title in (('ru', 'Промокоды'), ('en', 'Promo codes')):
+            with self.subTest(lang=lang):
+                html = self.client.get('/%s/boshqaruv/promokodlar/' % lang).content.decode()
+                self.assertIn(title, html)
+
+    def test_the_terms_state_the_rules_in_each_language(self):
+        """One code an order, not money, may be withdrawn, refunds what was paid."""
+        words = {'uz': ('Bitta buyurtmada bitta promokod', 'Promokod pul emas',
+                        'amalda toʻlangan summa'),
+                 'ru': ('В одном заказе можно использовать один промокод',
+                        'не деньги', 'фактически уплаченная сумма'),
+                 'en': ('One promo code can be used per order',
+                        'A promo code is not money', 'the amount actually paid')}
+        for lang, phrases in words.items():
+            with self.subTest(lang=lang):
+                html = self.client.get('/%s/terms/' % lang).content.decode()
+                for phrase in phrases:
+                    self.assertIn(phrase, html)
+                # The floor is the rule's own figure, not one typed into the page.
+                self.assertIn('1\u00a0000', html.split('id="promo"')[1].split('</section>')[0])

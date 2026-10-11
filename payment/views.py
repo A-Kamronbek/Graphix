@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.decorators import classonlymethod
 from django.views.decorators.http import require_POST
 from django.utils import translation
-from django.utils.translation import gettext as _, gettext_lazy as _lazy, ngettext
+from django.utils.translation import gettext as _, gettext_lazy, ngettext
 # `...django.views`, not `...django.webhooks`. The two modules hold the
 # same handlers; only these are wrapped in `csrf_exempt`, and a payment
 # gateway has no CSRF token to send (§17 #270).
@@ -207,8 +207,9 @@ PROMO_TYPED_MAX = 40
 #: and what is left to pay. Written with braces and not gettext's own
 #: placeholders because the same two sentences are handed to `checkout.js`,
 #: which fills them in again when the delivery method changes.
-PROMO_SAID = _lazy("Chegirma: {discount} soʻm. Jami: {total} soʻm.")
-PROMO_SAID_PRODUCT = _lazy("Chegirma ({product}): {discount} soʻm. Jami: {total} soʻm.")
+PROMO_SAID = gettext_lazy("Chegirma: {discount} soʻm. Jami: {total} soʻm.")
+PROMO_SAID_PRODUCT = gettext_lazy(
+    "Chegirma ({product}): {discount} soʻm. Jami: {total} soʻm.")
 
 
 def _fees(options, item_count):

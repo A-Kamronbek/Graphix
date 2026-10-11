@@ -299,6 +299,22 @@ msgstr "There is no such tag kind."
 msgid "Notoʻgʻri son."
 msgstr "Invalid number."
 
+#: .\panel\promos.py:109
+msgid "Kamida bitta mahsulotni tanlang."
+msgstr "Choose at least one product."
+
+#: .\panel\promos.py:116 .\payment\models.py:304
+msgid "Tugash sanasi boshlanish sanasidan oldin boʻlishi mumkin emas."
+msgstr "The end date cannot be before the start date."
+
+#: .\panel\reference.py:134
+msgid ""
+"Bu promokod bilan buyurtma berilgan, uni oʻchirib tashlab boʻlmaydi. "
+"Toʻxtatish uchun «Yoqilgan» belgisini olib qoʻying."
+msgstr ""
+"An order has been placed with this promo code, so it cannot be deleted. To "
+"stop it, untick “Enabled”."
+
 #: .\panel\reference.py:212
 #, python-format
 msgid "«%(name)s» nomi bu roʻyxatda allaqachon bor."
@@ -463,6 +479,11 @@ msgstr "A name and an image are required."
 msgid "Jadval qoʻshildi."
 msgstr "Chart added."
 
+#: .\panel\views.py:1069
+#, python-format
+msgid "%(code)s — saqlandi."
+msgstr "%(code)s — saved."
+
 #: .\payment\models.py:139
 msgid "Tuman"
 msgstr "District"
@@ -474,6 +495,39 @@ msgstr "City"
 #: .\payment\models.py:144
 msgid "Boshqa"
 msgstr "Other"
+
+#: .\payment\models.py:236
+msgid "Bitta mahsulotdan summa"
+msgstr "A sum off one product"
+
+#: .\payment\models.py:237
+msgid "Bitta mahsulotdan foiz"
+msgstr "A percentage off one product"
+
+#: .\payment\models.py:238
+msgid "Buyurtmadan summa"
+msgstr "A sum off the order"
+
+#: .\payment\models.py:239
+msgid "Buyurtmadan foiz"
+msgstr "A percentage off the order"
+
+#: .\payment\models.py:240
+msgid "Bepul yetkazib berish"
+msgstr "Free delivery"
+
+#: .\payment\models.py:294
+msgid ""
+"Promokod 3 tadan 24 tagacha lotin harfi va raqamdan iborat boʻlishi kerak."
+msgstr "A promo code is 3 to 24 Latin letters and digits."
+
+#: .\payment\models.py:300
+msgid "Foiz 1 dan 100 gacha boʻlishi kerak."
+msgstr "A percentage is from 1 to 100."
+
+#: .\payment\models.py:302
+msgid "Summani kiriting."
+msgstr "Enter the sum."
 
 #: .\payment\models.py:212
 msgid "Toʻlanmoqda"
@@ -548,6 +602,34 @@ msgstr "Door delivery does not take a post office branch."
 msgid "Manzilni kiriting."
 msgstr "Enter an address."
 
+#: .\payment\promos.py:45
+msgid "Bunday promokod yoʻq yoki u hozir amal qilmaydi."
+msgstr "There is no such promo code, or it is not valid right now."
+
+#: .\payment\promos.py:46
+#, python-format
+msgid ""
+"Bu promokod mahsulotlar summasi %(sum)s soʻmdan boshlanganda amal qiladi."
+msgstr "This promo code applies when the goods come to %(sum)s soʻm or more."
+
+#: .\payment\promos.py:47
+msgid "Siz bu promokoddan avval foydalangansiz."
+msgstr "You have already used this promo code."
+
+#: .\payment\promos.py:48
+msgid ""
+"Bu promokod bilan toʻlanmagan buyurtmangiz bor. Uni toʻlang yoki bekor "
+"qiling."
+msgstr "You have an unpaid order with this promo code. Pay for it or cancel it."
+
+#: .\payment\promos.py:50
+msgid "Savatingizda bu promokod amal qiladigan mahsulot yoʻq."
+msgstr "Nothing in your cart is covered by this promo code."
+
+#: .\payment\promos.py:51
+msgid "Bu promokod ushbu buyurtmada narxni kamaytirmaydi."
+msgstr "This promo code takes nothing off this order."
+
 #: .\payment\views.py:183
 #, python-format
 msgid ""
@@ -563,9 +645,23 @@ msgstr[1] ""
 "%(names)s are no longer on sale. Remove them from your cart to place "
 "the order."
 
+#: .\payment\views.py:210
+#, python-brace-format
+msgid "Chegirma: {discount} soʻm. Jami: {total} soʻm."
+msgstr "Discount: {discount} soʻm. Total: {total} soʻm."
+
+#: .\payment\views.py:212
+#, python-brace-format
+msgid "Chegirma ({product}): {discount} soʻm. Jami: {total} soʻm."
+msgstr "Discount ({product}): {discount} soʻm. Total: {total} soʻm."
+
 #: .\payment\views.py:201 .\payment\views.py:311
 msgid "Savat boʻsh."
 msgstr "Your cart is empty."
+
+#: .\payment\views.py:374 .\payment\views.py:471
+msgid "Promokodni kiriting."
+msgstr "Enter a promo code."
 
 #: .\payment\views.py:265
 msgid "Toʻlov usulini tanlang."
@@ -888,6 +984,11 @@ msgstr "Messages"
 msgid "Slaydlar"
 msgstr "Slides"
 
+#: .\templates\boshqaruv\base.html:72 .\templates\boshqaruv\promo_form.html:25
+#: .\templates\boshqaruv\promos.html:3 .\templates\boshqaruv\promos.html:22
+msgid "Promokodlar"
+msgstr "Promo codes"
+
 #: .\templates\boshqaruv\base.html:74 .\templates\boshqaruv\regions.html:20
 #: .\templates\boshqaruv\settings.html:3 .\templates\boshqaruv\settings.html:27
 #: .\templates\partials\_account_nav.html:7
@@ -987,6 +1088,12 @@ msgstr "Breadcrumb"
 #: .\templates\payment\order_detail.html:54
 msgid "Yetkazib berish"
 msgstr "Delivery"
+
+#: .\templates\boshqaruv\order.html:51 .\templates\boshqaruv\promo_form.html:41
+#: .\templates\payment\checkout.html:305 .\templates\payment\checkout.html:369
+#: .\templates\payment\order_detail.html:66
+msgid "Promokod"
+msgstr "Promo code"
 
 #: .\templates\boshqaruv\order.html:46 .\templates\cart\cart.html:80
 #: .\templates\payment\checkout.html:326
@@ -1103,6 +1210,18 @@ msgstr "dd/mm/yyyy"
 #: .\templates\boshqaruv\orders.html:64
 msgid "Sanani kk/oo/yyyy koʻrinishida kiriting, masalan 16/09/2026."
 msgstr "Enter the date as dd/mm/yyyy, for example 16/09/2026."
+
+#: .\panel\promos.py:68
+msgid "Bunday promokod allaqachon bor."
+msgstr "That promo code already exists."
+
+#: .\panel\promos.py:82
+msgid "Bunday mahsulot yoʻq."
+msgstr "There is no such product."
+
+#: .\panel\promos.py:83
+msgid "Turini tanlang."
+msgstr "Choose a kind."
 
 #: .\templates\boshqaruv\orders.html:67
 msgid "Kalendardan tanlash"
@@ -1306,6 +1425,20 @@ msgstr[1] "%(n)s products"
 msgid "Mahsulot topilmadi."
 msgstr "No products found."
 
+#: .\templates\boshqaruv\promo_form.html:3
+#: .\templates\boshqaruv\promo_form.html:30
+#: .\templates\boshqaruv\promos.html:23
+msgid "Yangi promokod"
+msgstr "New promo code"
+
+#: .\templates\boshqaruv\promo_form.html:44
+msgid "Kod"
+msgstr "Code"
+
+#: .\templates\boshqaruv\promo_form.html:51
+msgid "3 tadan 24 tagacha lotin harfi va raqam, boʻsh joysiz. Masalan: YOZ10."
+msgstr "3 to 24 Latin letters and digits, no spaces. For example: YOZ10."
+
 #: .\templates\boshqaruv\regions.html:3 .\templates\boshqaruv\regions.html:19
 #: .\templates\boshqaruv\settings.html:39
 msgid "Hududlar"
@@ -1373,6 +1506,15 @@ msgstr "Payment methods"
 msgid "Yoqilgan"
 msgstr "Enabled"
 
+#: .\templates\boshqaruv\promo_form.html:154
+#, python-format
+msgid "Bu kod bilan berilgan buyurtmalar: %(n)s. Toʻlangani: %(used)s."
+msgstr "Orders placed with this code: %(n)s. Paid: %(used)s."
+
+#: .\templates\boshqaruv\promo_form.html:157
+msgid "Oʻzgarishlar berilgan buyurtmalarga taʼsir qilmaydi."
+msgstr "Changes do not affect orders already placed."
+
 #: .\templates\boshqaruv\settings.html:60
 msgid "Bepul (dona)"
 msgstr "Free from (items)"
@@ -1417,6 +1559,30 @@ msgstr "Tags, not categories, are what the recommender reads."
 #: .\templates\boshqaruv\settings.html:189
 msgid "Turi"
 msgstr "Kind"
+
+#: .\templates\boshqaruv\promo_form.html:66
+msgid ""
+"Mahsulot uchun kod savatdagi bitta donaga qoʻllanadi: eng qimmatiga. "
+"Buyurtma uchun kod mahsulotlar va yetkazib berish summasiga qoʻllanadi."
+msgstr ""
+"A code for a product comes off one piece in the cart: the dearest. A code "
+"for an order comes off the goods and delivery together."
+
+#: .\templates\boshqaruv\promo_form.html:72
+msgid "Qiymati"
+msgstr "Value"
+
+#: .\templates\boshqaruv\promo_form.html:75
+msgid ""
+"Summa uchun — soʻmda, foiz uchun — 1 dan 100 gacha. Bepul yetkazib berishda "
+"kerak emas."
+msgstr ""
+"For a sum, in soʻm; for a percentage, from 1 to 100. Not needed for free "
+"delivery."
+
+#: .\templates\boshqaruv\promo_form.html:81
+msgid "Faqat mahsulot uchun kodda: kod shu mahsulotlarga qoʻllanadi."
+msgstr "Only for a product code: the code applies to these products."
 
 #: .\templates\boshqaruv\settings.html:172
 msgid "Yangi teg"
@@ -2086,6 +2252,14 @@ msgstr "Optional"
 msgid "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning."
 msgstr "No payment method is available right now. Please get in touch."
 
+#: .\templates\payment\checkout.html:314
+msgid "Qoʻllash"
+msgstr "Apply"
+
+#: .\templates\payment\checkout.html:323
+msgid "Promokodni olib tashlash"
+msgstr "Remove the promo code"
+
 #: .\templates\payment\checkout.html:289
 #, python-format
 msgid ""
@@ -2112,6 +2286,51 @@ msgstr "Done"
 #: .\templates\payment\checkout.html:386
 msgid "Qidirish..."
 msgstr "Search..."
+
+#: .\templates\boshqaruv\promo_form.html:96
+msgid "Hozircha mahsulot yoʻq."
+msgstr "No products yet."
+
+#: .\templates\boshqaruv\promo_form.html:104
+msgid "Cheklovlar"
+msgstr "Limits"
+
+#: .\templates\boshqaruv\promo_form.html:105
+msgid "Har biri ixtiyoriy. Boʻsh qoldirilgan cheklov qoʻllanmaydi."
+msgstr "Each is optional. A limit left empty does not apply."
+
+#: .\templates\boshqaruv\promo_form.html:108
+msgid "Boshlanish sanasi"
+msgstr "Start date"
+
+#: .\templates\boshqaruv\promo_form.html:108
+msgid "Tugash sanasi"
+msgstr "End date"
+
+#: .\templates\boshqaruv\promo_form.html:115
+msgid "Necha marta ishlatish mumkin"
+msgstr "How many times it can be used"
+
+#: .\templates\boshqaruv\promo_form.html:118
+msgid "Toʻlangan buyurtmalar soni. Boʻsh — cheklanmagan."
+msgstr "The number of paid orders. Empty means no limit."
+
+#: .\templates\boshqaruv\promo_form.html:122
+#: .\templates\boshqaruv\promos.html:61
+msgid "Eng kam summa"
+msgstr "Minimum sum"
+
+#: .\templates\boshqaruv\promo_form.html:125
+msgid "Mahsulotlar summasi, yetkazib berishsiz, soʻmda."
+msgstr "The sum of the goods without delivery, in soʻm."
+
+#: .\templates\boshqaruv\promo_form.html:132
+msgid "Har bir xaridor faqat bir marta ishlatadi"
+msgstr "Each customer uses it only once"
+
+#: .\templates\boshqaruv\promo_form.html:139
+msgid "Faqat siz uchun: kod kimga yoki nima uchun berilgani."
+msgstr "For you alone: who the code was given to, or why."
 
 #: .\templates\payment\order_detail.html:44 .\templates\payment\status.html:45
 msgid "Tafsilotlar"
@@ -2162,6 +2381,11 @@ msgstr "Write a review"
 msgid "Click orqali toʻlov"
 msgstr "Pay with Click"
 
+#: .\templates\payment\payment.html:17
+#, python-format
+msgid "Promokod %(code)s: −%(off)s soʻm"
+msgstr "Promo code %(code)s: −%(off)s soʻm"
+
 #: .\templates\payment\payment.html:27
 msgid "Toʻlovga oʻtish"
 msgstr "Go to payment"
@@ -2174,6 +2398,50 @@ msgstr "Order details"
 #: .\templates\user\verify_phone.html:53
 msgid "Bekor qilish"
 msgstr "Cancel"
+
+#: .\templates\boshqaruv\promos.html:34
+msgid "Hali boshlanmagan"
+msgstr "Not started yet"
+
+#: .\templates\boshqaruv\promos.html:36
+msgid "Muddati tugagan"
+msgstr "Ended"
+
+#: .\templates\boshqaruv\promos.html:38
+msgid "Limit tugagan"
+msgstr "Used up"
+
+#: .\templates\boshqaruv\promos.html:52
+msgid "Ishlatilgan"
+msgstr "Used"
+
+#: .\templates\boshqaruv\promos.html:55
+msgid "Boshlanishi"
+msgstr "Starts"
+
+#: .\templates\boshqaruv\promos.html:58
+msgid "Tugashi"
+msgstr "Ends"
+
+#: .\templates\boshqaruv\promos.html:64
+msgid "Bir xaridorga"
+msgstr "Per customer"
+
+#: .\templates\boshqaruv\promos.html:65
+msgid "bir marta"
+msgstr "once"
+
+#: .\templates\boshqaruv\promos.html:65
+msgid "cheklanmagan"
+msgstr "no limit"
+
+#: .\templates\boshqaruv\promos.html:77
+msgid "Tahrirlash"
+msgstr "Edit"
+
+#: .\templates\boshqaruv\promos.html:88
+msgid "Hozircha promokod yoʻq."
+msgstr "No promo codes yet."
 
 #: .\templates\payment\status.html:3
 msgid "Buyurtma holati"

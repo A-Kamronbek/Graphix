@@ -19,7 +19,7 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError
-from django.utils.translation import gettext as _, gettext_lazy as _lazy
+from django.utils.translation import gettext as _, gettext_lazy
 
 from payment.models import (DeliveryOption, District, PaymentOption, PromoCode,
                             Region)
@@ -130,8 +130,9 @@ DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size', 'slide', '
 #: to act on. An order keeps the code it was placed with for good, so the
 #: only way to stop a used code is its switch.
 IN_USE = {
-    'promo': _lazy('Bu promokod bilan buyurtma berilgan, uni oʻchirib tashlab '
-                   'boʻlmaydi. Toʻxtatish uchun «Yoqilgan» belgisini olib qoʻying.'),
+    'promo': gettext_lazy(
+        'Bu promokod bilan buyurtma berilgan, uni oʻchirib tashlab boʻlmaydi. '
+        'Toʻxtatish uchun «Yoqilgan» belgisini olib qoʻying.'),
 }
 
 
