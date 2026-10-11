@@ -18,7 +18,8 @@ Production: **https://graphix.uz**
 
 ## Running it locally
 
-Needs Python 3.12 or newer, PostgreSQL, and GNU gettext.
+Needs Python 3.12 or newer and GNU gettext. No database to install: with
+`DEBUG=True` the site keeps its data in SQLite, a file beside `manage.py`.
 
 ```bash
 git clone git@github.com:A-Kamronbek/Graphix.git
@@ -28,7 +29,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate   |   Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env          # fill in DB_* at least
+cp .env.example .env          # DEBUG=True is enough to start
 
 python manage.py migrate
 python manage.py seed_regions              # the checkout's regions and districts
@@ -93,7 +94,8 @@ so a test run cannot notify the real shop.
 
 ## Built with
 
-- **Django 6**, Python 3.12+, **PostgreSQL**
+- **Django 6**, Python 3.12+, **PostgreSQL** in production and SQLite on a
+  developer's machine
 - **Redis** in production for the rate limiter's counters; in-memory locally
 - **tolov** for Click, Payme and Octo payments, **Eskiz** for SMS
 - **Telegram** notifications, directly or through the shop's own bot service
@@ -125,8 +127,9 @@ docs/        architecture and integration contracts
 ## Configuration
 
 Everything is read from `.env` beside `manage.py`.
-[`.env.example`](.env.example) lists every key with notes. The database, Click
-and Eskiz keys fail at startup if missing. Google Maps, Payme, Octo and
+[`.env.example`](.env.example) lists every key with notes. The Click and Eskiz
+keys fail at startup if missing, and so do the database keys once `DEBUG` is
+off. Google Maps, Payme, Octo and
 Telegram are optional, and without one the feature it switches on stays off.
 Never commit `.env`.
 
@@ -136,7 +139,8 @@ Never commit `.env`.
 | `DEBUG` | `True` locally, `False` in production |
 | `ALLOWED_HOSTS` | Comma-separated hostnames |
 | `CSRF_TRUSTED_ORIGINS` | Full origins allowed to POST; required in production |
-| `DB_*` | PostgreSQL connection |
+| `DB_*` | PostgreSQL connection. Not read while `DEBUG` is `True`, when the database is SQLite |
+| `DB_ENGINE` | `postgresql` keeps PostgreSQL with `DEBUG` on. CI sets it; leave it out otherwise |
 | `CLICK_*` | Click merchant credentials |
 | `PAYME_*`, `OCTO_*` | Payme and Octo credentials; blank until the merchant accounts exist |
 | `ESKIZ_*` | Eskiz account and sender name |

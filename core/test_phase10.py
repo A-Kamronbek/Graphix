@@ -875,10 +875,15 @@ class DeployCheckTests(SimpleTestCase):
         import subprocess
         import sys
         from pathlib import Path
+        # With DEBUG off the settings want the PostgreSQL keys, which a
+        # developer on SQLite does not have. The check opens no connection,
+        # so stand-ins do where the real ones are missing.
+        env = dict({'DB_NAME': 'graphix', 'DB_USER': 'graphix', 'DB_PASSWORD': 'graphix'},
+                   **os.environ)
+        env.update(DEBUG='False', PYTHONIOENCODING='utf-8')
         run = subprocess.run(
             [sys.executable, 'manage.py', 'check', '--deploy'],
-            cwd=str(Path(settings.BASE_DIR)),
-            env=dict(os.environ, DEBUG='False', PYTHONIOENCODING='utf-8'),
+            cwd=str(Path(settings.BASE_DIR)), env=env,
             capture_output=True, text=True, encoding='utf-8')
         output = (run.stdout or '') + (run.stderr or '')
         self.assertEqual(run.returncode, 0, output)
