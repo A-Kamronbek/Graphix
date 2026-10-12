@@ -521,10 +521,12 @@ html.js .slides__controls {
   .checkout { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-7); }
 }
 
-/* A gateway's mark at the end of its payment method's row, level with the
-   middle of the row whatever the note beside it wraps to. */
-.pay__logo { flex: none; align-self: center; margin-left: auto;
-  width: auto; height: var(--s-5); }
+/* A gateway's mark before its payment method's name. As tall as a line of
+   the text beside it, so it sits level with the name when the note wraps
+   under it, and a step nearer the name than the radio is to the mark: the
+   mark and the name are one thing. */
+.pay__mark { flex: none; width: var(--s-5); height: var(--s-5);
+  margin-right: calc(var(--s-1) * -1); }
 
 /* The promo code: the field and its button on one row at every width. The
    button is one short word, so the field takes the rest. Codes are kept in

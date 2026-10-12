@@ -79,13 +79,17 @@ class DeliveryOption(models.Model):
         ordering = ['sort_order', 'code']
 
 
-#: The mark the checkout shows beside a payment method, by the method's
-#: code: a file under ``static/`` and the size it is drawn at, in CSS pixels.
-#: A file and not a field on the row: a gateway's logo is the gateway's, and
-#: there is nothing for the owner to choose. A method with no entry is shown
-#: by its name alone.
+#: The mark the checkout shows before a payment method's name, by the
+#: method's code: a file under ``static/`` and the size it is drawn at, in CSS
+#: pixels. The mark alone, without the gateway's name in it, because the name
+#: is written beside it. A file and not a field on the row: a gateway's logo
+#: is the gateway's, and there is nothing for the owner to choose. A method
+#: with no entry is shown by its name alone.
+#:
+#: Click's is its own drawing, the one its site and its developer pages
+#: carry, so it is sharp at any size.
 PAYMENT_LOGOS = {
-    'click': {'src': 'img/pay/click.png', 'width': 59, 'height': 24},
+    'click': {'src': 'img/pay/click.svg', 'width': 24, 'height': 24},
 }
 
 

@@ -621,47 +621,57 @@ class ChoosingTableTests(TestCase):
 # ------------------------------------------------------------- Click's mark
 
 class ClickLogoTests(CheckoutCase):
-    """Click's own mark beside its payment method at the checkout."""
+    """Click's own mark before the word Click at the checkout."""
+
+    def mark(self, code):
+        """The mark's file as text: a drawing, so it is read and not opened."""
+        spec = PAYMENT_LOGOS[code]
+        path = finders.find(spec['src'])
+        self.assertIsNotNone(path, spec['src'])
+        return Path(path).read_text(encoding='utf-8'), spec
 
     def test_every_mark_named_has_its_file(self):
         """A name with no file behind it is an error on the checkout page."""
-        for code, spec in PAYMENT_LOGOS.items():
+        for code in PAYMENT_LOGOS:
             with self.subTest(method=code):
-                path = finders.find(spec['src'])
-                self.assertIsNotNone(path, spec['src'])
-                with Image.open(path) as im:
-                    self.assertAlmostEqual(im.width / im.height,
-                                           spec['width'] / spec['height'], delta=.03)
+                drawing, spec = self.mark(code)
+                box = re.search(r'viewBox="([^"]+)"', drawing).group(1).split()
+                wide, tall = float(box[2]), float(box[3])
+                # The shape it is drawn in is the shape it is shown at.
+                self.assertAlmostEqual(wide / tall, spec['width'] / spec['height'], delta=.03)
 
-    def test_the_file_is_there_with_no_ground_of_its_own(self):
-        spec = PAYMENT_LOGOS['click']
-        path = finders.find(spec['src'])
-        self.assertIsNotNone(path)
-        with Image.open(path) as im:
-            self.assertEqual(im.mode, 'RGBA')
-            # The corner is clear, and the word in the mark is solid.
-            self.assertEqual(im.getpixel((im.width - 1, 0))[3], 0)
-            self.assertEqual(im.getchannel('A').getextrema(), (0, 255))
-            # Three device pixels for each one it is shown at, and the same shape.
-            self.assertEqual(im.height, spec['height'] * 3)
-            self.assertAlmostEqual(im.width / im.height, spec['width'] / spec['height'], delta=.03)
+    def test_it_is_the_mark_alone_as_click_draws_it(self):
+        drawing, spec = self.mark('click')
+        self.assertTrue(drawing.lstrip().startswith('<svg'))
+        self.assertEqual(spec['width'], spec['height'])
+        # One shape in Click's blue, with nothing behind it and no word in it:
+        # the word is written beside it.
+        self.assertEqual(drawing.count('<path'), 1)
+        self.assertIn('fill="#0065FF"', drawing)
+        self.assertNotIn('<rect', drawing)
+        self.assertNotIn('<text', drawing)
+        # Nothing a drawing could run or fetch.
+        for word in ('<script', 'href', 'onload'):
+            with self.subTest(word=word):
+                self.assertNotIn(word, drawing)
 
-    def test_it_is_shown_beside_click_at_its_own_size(self):
+    def test_it_stands_before_the_name_at_its_own_size(self):
         html = self.client.get(reverse('checkout')).content.decode()
-        tag = re.search(r'<img class="pay__logo"[^>]*>', html).group(0)
+        label = html.split('name="payment_method" value="click"', 1)[1].split('</label>', 1)[0]
+        tag = re.search(r'<img class="pay__mark"[^>]*>', label).group(0)
         self.assertIn('img/pay/click', tag)
-        self.assertIn('width="59"', tag)
+        self.assertIn('width="24"', tag)
         self.assertIn('height="24"', tag)
         # The name is written beside it, so the picture is not read out twice.
         self.assertIn('alt=""', tag)
-        label = html.split('name="payment_method" value="click"', 1)[1].split('</label>', 1)[0]
-        self.assertIn('pay__logo', label)
-        self.assertIn('<strong>Click</strong>', label)
+        # The radio, then the mark, then the name and the note.
+        self.assertLess(label.index('pay__mark'), label.index('<strong>Click</strong>'))
+        self.assertLess(label.index('<strong>Click</strong>'), label.index('field__hint'))
 
     def test_a_method_with_no_mark_is_shown_by_name_alone(self):
         PaymentOption.objects.filter(code='cash').update(is_active=True)
         self.assertIsNone(PaymentOption.objects.get(code='cash').logo)
         html = self.client.get(reverse('checkout')).content.decode()
-        self.assertEqual(html.count('pay__logo'), 1)
+        self.assertEqual(html.count('pay__mark'), 1)
         cash = html.split('name="payment_method" value="cash"', 1)[1].split('</label>', 1)[0]
         self.assertNotIn('<img', cash)
