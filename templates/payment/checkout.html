@@ -283,6 +283,12 @@
                 <strong>{{ opt|t:"name" }}</strong>
                 <span class="field__hint">{{ opt|t:"note" }}</span>
               </span>
+              {# The gateway's own mark, where there is one. The name beside #}
+              {# it already says what it is, so the picture is not read out. #}
+              {% if opt.logo %}
+                <img class="pay__logo" src="{% static opt.logo.src %}" alt=""
+                     width="{{ opt.logo.width }}" height="{{ opt.logo.height }}" decoding="async">
+              {% endif %}
             </label>
           {% empty %}
             <p class="msg msg--warn">{% trans "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning." %}</p>

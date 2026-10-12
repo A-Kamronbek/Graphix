@@ -515,6 +515,11 @@ html.js .slides__controls {
   .checkout { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-7); }
 }
 
+/* A gateway's mark at the end of its payment method's row, level with the
+   middle of the row whatever the note beside it wraps to. */
+.pay__logo { flex: none; align-self: center; margin-left: auto;
+  width: auto; height: var(--s-5); }
+
 /* The promo code: the field and its button on one row at every width. The
    button is one short word, so the field takes the rest. Codes are kept in
    capitals, and the field shows what is typed that way so "yoz10" and
