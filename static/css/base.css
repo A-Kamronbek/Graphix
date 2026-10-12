@@ -66,8 +66,11 @@ address { font-style: normal; }
 
 ::selection { background: var(--c-brand); color: var(--c-brand-fg); }
 
+/* The ring is drawn in the darker brass. A ring has to be seen wherever the
+   thing it is on sits, and on a panel the brass a button is filled with
+   falls under 3:1 (§17 #353). */
 :focus-visible {
-  outline: 2px solid var(--c-brand);
+  outline: 2px solid var(--c-brand-ink);
   outline-offset: 2px;
   border-radius: var(--r-sm);
 }
@@ -117,13 +120,14 @@ address { font-style: normal; }
    which is a second face on the page (§17 #311). */
 code, kbd, samp, pre { font-family: var(--f-mono); }
 
+/* Brass that is read takes the darker of the two brasses (§17 #353). */
 .link {
-  color: var(--c-brand);
-  border-bottom: 1px solid color-mix(in srgb, var(--c-brand) 40%, transparent);
+  color: var(--c-brand-ink);
+  border-bottom: 1px solid color-mix(in srgb, var(--c-brand-ink) 40%, transparent);
   padding-bottom: 1px;
   transition: border-color var(--t-fast);
 }
-.link:hover { border-bottom-color: var(--c-brand); }
+.link:hover { border-bottom-color: var(--c-brand-ink); }
 
 /* --------------------------------------------------------- layout helpers */
 .wrap      { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--pad-x); }

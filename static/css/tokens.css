@@ -5,58 +5,70 @@
    or duration (plan §4). If a value is needed and no token fits, the token is
    added here first.
 
-   The palette is deliberately dark but never pure black: three warm charcoal
-   surfaces layered above a warm charcoal ground, so panels separate by material
-   rather than by outline. One accent — brass — and it is spent only on price,
+   The palette is light: a white page, three warm greys layered on it so a
+   panel separates by material rather than by outline, and a warm ink that is
+   never pure black. It was a dark palette until the owner asked for a white
+   ground (§17 #352). One accent — brass — and it is spent only on price,
    the chosen size, and the primary action (§17 #45). */
 
 :root {
   /* ---------------------------------------------------------------- colour */
-  /* grounds, darkest first */
-  --c-bg:            #100E0C;   /* page */
-  --c-surface:       #17140F;   /* panels sitting on the page */
-  --c-surface-2:     #211C15;   /* controls and panels sitting on a panel */
-  --c-surface-3:     #2A241B;   /* hover / pressed on --c-surface-2 */
+  /* grounds, lightest first. The page is plain white on purpose: a product
+     photograph is shot on white, and on any other ground every card would
+     show as a white rectangle. */
+  --c-bg:            #FFFFFF;   /* page */
+  --c-surface:       #F7F6F3;   /* panels sitting on the page */
+  --c-surface-2:     #EFEDE8;   /* controls and panels sitting on a panel */
+  --c-surface-3:     #E5E2DB;   /* hover / pressed on --c-surface-2 */
 
-  /* ink. Never #fff: pure white halates on a dark ground and makes type look
-     thin, which is the exact fault that sank the first design round. */
-  --c-fg:            #EFE9DE;
-  --c-fg-muted:      #B0A697;   /* secondary text, labels */
-  --c-fg-subtle:     #7D7466;   /* disabled and decorative ONLY - 4.18:1 at best,
+  /* ink. Never #000: on a white page pure black is harsher than print, and
+     the warm grounds would make it look blue. */
+  --c-fg:            #15120E;
+  --c-fg-muted:      #5A5348;   /* secondary text, labels */
+  --c-fg-subtle:     #9B9488;   /* disabled and decorative ONLY - 3.0:1 at best,
                                    so it must never carry text a visitor has to
                                    read. Phase 5's audit found it doing exactly
                                    that in the footer (§17 #67). */
-  --c-fg-hint:       #958A79;   /* quiet but readable: placeholders, timestamps,
-                                   fine print. 4.53:1 on the darkest ground in
+  --c-fg-hint:       #6B6458;   /* quiet but readable: placeholders, timestamps,
+                                   fine print. 4.52:1 on the darkest ground in
                                    the system, so it clears AA everywhere. */
 
   /* lines */
-  --c-line:          #2C2620;   /* hairline between rows */
-  --c-line-strong:   #453D31;   /* panel edges, dividers, decorative frames */
+  --c-line:          #E8E5DE;   /* hairline between rows */
+  --c-line-strong:   #D2CDC2;   /* panel edges, dividers, decorative frames */
   /* The boundary of anything a visitor operates: a field, a checkbox, a size
      button, a filter chip. WCAG 2.1 asks 3:1 of a control's boundary against
      what is behind it, because the border is often the only thing saying the
      control is there at all - an unticked checkbox is a border and nothing
-     else. --c-line-strong is 1.8:1 on the page ground and cannot carry that
-     job; this is 3.54:1 (§17 #188, §19 Q22). */
-  --c-line-control:  #756853;
+     else. --c-line-strong is 1.6:1 on the page ground and cannot carry that
+     job; this is 4.08:1 on the page and 3.15:1 on the darkest ground
+     (§17 #188, §19 Q22). */
+  --c-line-control:  #857D6D;
 
-  /* brand accent */
-  --c-brand:         #C6A44E;
-  --c-brand-hover:   #D6B662;
+  /* brand accent. Two tones, because one cannot do both jobs on white. The
+     brass a button is filled with has to stay bright, and a bright brass is
+     too pale to read as text: --c-brand is 3.1:1 on the page, enough for a
+     fill, an icon or a line there. --c-brand-ink is 5.7:1 on the page and
+     4.4:1 or better on every ground: it is for brass that is read, a price
+     or a link, and for the focus ring, which is drawn on panels too
+     (§17 #353). */
+  --c-brand:         #B98A22;
+  --c-brand-hover:   #A87B18;
   --c-brand-fg:      #171205;   /* ink placed ON --c-brand */
-  --c-brand-bg:      #241D0E;   /* tinted ground for brand-flavoured panels */
+  --c-brand-bg:      #FAF3E0;   /* tinted ground for brand-flavoured panels */
+  --c-brand-ink:     #85600B;   /* brass as text on any ground of the system */
 
-  /* state. Semantic only — never used as decoration, and never as the accent. */
-  --c-success:       #86BE72;  --c-success-bg: #16210F;
-  --c-warning:       #D9A441;  --c-warning-bg: #241B0B;
-  --c-danger:        #E07A62;  --c-danger-bg:  #2A140F;
-  --c-info:          #8AB4CE;  --c-info-bg:    #101D24;
+  /* state. Semantic only — never used as decoration, and never as the accent.
+     Each reads at 4.5:1 or better on the page, on a panel and on its own tint. */
+  --c-success:       #2E7A26;  --c-success-bg: #EAF4E6;
+  --c-warning:       #8A5B00;  --c-warning-bg: #FBF2DD;
+  --c-danger:        #B4371F;  --c-danger-bg:  #FCEBE6;
+  --c-info:          #1E6A8E;  --c-info-bg:    #E6F1F7;
 
   /* The scrim behind anything that covers the page - drawer, filter sheet,
      modal. One value, so every dimmed page dims by the same amount; three
      hand-written color-mix() calls had already drifted to two. */
-  --c-scrim:         color-mix(in srgb, #000 60%, transparent);
+  --c-scrim:         color-mix(in srgb, #000 45%, transparent);
 
   /* ---------------------------------------------------------------- space */
   --s-1:   4px;  --s-2:   8px;  --s-3:  12px;  --s-4:  16px;  --s-5:  24px;
@@ -80,7 +92,9 @@
 
   --lh-tight: 1.1; --lh-snug: 1.3; --lh-normal: 1.55; --lh-loose: 1.75;
 
-  /* 500 is the floor for body copy on this ground, not 400 (§17 #46). */
+  /* 500 is the floor for body copy, not 400 (§17 #46). It was set for the
+     dark ground and is kept on the white one, so no line of text changes
+     width. */
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600;
   --fw-bold:    700; --fw-black:  900;
 
@@ -90,9 +104,9 @@
   --r-sm: 3px; --r-md: 6px; --r-lg: 14px; --r-full: 999px;
 
   /* -------------------------------------------------------------- shadow */
-  --sh-sm: 0 1px 2px rgba(0,0,0,.34);
-  --sh-md: 0 4px 16px rgba(0,0,0,.42);
-  --sh-lg: 0 18px 48px rgba(0,0,0,.55);
+  --sh-sm: 0 1px 2px rgba(0,0,0,.08);
+  --sh-md: 0 4px 16px rgba(0,0,0,.10);
+  --sh-lg: 0 18px 48px rgba(0,0,0,.16);
 
   /* -------------------------------------------------------------- motion */
   --t-fast: 120ms; --t-base: 200ms; --t-slow: 320ms;

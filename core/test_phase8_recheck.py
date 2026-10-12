@@ -73,15 +73,24 @@ def sent(post):
     return json.loads(kwargs['data'].decode('utf-8')), kwargs['headers']
 
 
-class DarkReaderLockTests(TestCase):
-    """§17 #205: the site is dark by design and tells the browser so."""
+class LightSchemeTests(TestCase):
+    """§17 #354: the site is light by design and tells the browser so.
 
-    METAS = ('<meta name="color-scheme" content="dark">', '<meta name="darkreader-lock">')
+    It was dark, and carried a lock against Dark Reader as well (§17 #205).
+    The lock went with the dark ground: on a white page that extension does
+    what its user installed it to do.
+    """
+
+    METAS = ('<meta name="color-scheme" content="only light">',)
+    GONE = ('darkreader-lock', 'content="dark"')
 
     def assert_locked(self, html, where):
         for meta in self.METAS:
             with self.subTest(where=where, meta=meta):
                 self.assertIn(meta, html)
+        for old in self.GONE:
+            with self.subTest(where=where, old=old):
+                self.assertNotIn(old, html)
 
     def test_every_template_with_a_head_carries_both(self):
         heads = [p for p in TEMPLATES.rglob('*.html')

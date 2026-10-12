@@ -69,7 +69,7 @@
 .pdp__price {
   font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold);
-  color: var(--c-brand);
+  color: var(--c-brand-ink);
   font-variant-numeric: tabular-nums;
 }
 .pdp__actions { display: flex; gap: var(--s-2); }
@@ -150,7 +150,7 @@
   border: 1px solid var(--c-line); }
 .reviews__score { text-align: center; }
 .reviews__avg { font-family: var(--f-display); font-size: var(--fs-3xl);
-  font-weight: var(--fw-bold); line-height: 1; color: var(--c-brand);
+  font-weight: var(--fw-bold); line-height: 1; color: var(--c-brand-ink);
   font-variant-numeric: tabular-nums; }
 /* The distribution reads as a chart, so the numbers are the narrow columns and
    the bars take whatever is left — rather than five bars of arbitrary width. */
@@ -363,7 +363,7 @@
   cursor: pointer;
   transition: border-color var(--t-fast), background var(--t-fast);
 }
-.slides__arrow:hover { border-color: var(--c-fg-subtle); }
+.slides__arrow:hover { border-color: var(--c-fg-muted); }
 .slides__arrow[disabled] { opacity: .4; cursor: default; }
 .slides__arrow--prev { left: var(--s-4); }
 .slides__arrow--next { right: var(--s-4); }
@@ -450,7 +450,7 @@ html.js .slides__controls {
 .cartpage__summary { position: sticky; top: calc(var(--s-8) + var(--s-2)); }
 .cartpage__total dt, .cartpage__total dd { font-size: var(--fs-lg);
   font-weight: var(--fw-semibold); color: var(--c-fg); }
-.cartpage__total dd { color: var(--c-brand); }
+.cartpage__total dd { color: var(--c-brand-ink); }
 
 @media (min-width: 860px) {
   .cartpage { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-7); }
@@ -543,7 +543,8 @@ html.js .slides__controls {
 .steps { display: grid; gap: 0; }
 .steps__step { display: grid; grid-template-columns: 24px minmax(0, 1fr);
   gap: var(--s-3); align-items: center; padding-block: var(--s-3);
-  color: var(--c-fg-subtle); }
+  /* A step still ahead is quiet, and still read. */
+  color: var(--c-fg-hint); }
 .steps__dot { width: 12px; height: 12px; margin-inline: auto; border-radius: var(--r-full);
   border: 2px solid var(--c-line-strong); background: var(--c-bg); }
 .steps__step.is-done { color: var(--c-fg-muted); }

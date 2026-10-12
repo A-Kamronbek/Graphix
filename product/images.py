@@ -229,8 +229,8 @@ def build_renditions(fieldfile):
             # error that only shows up on some formats.
             source = _apply_orientation(opened)
             if source.mode in ('RGBA', 'LA', 'P'):
-                # Alpha survives into WebP rather than being flattened: the page
-                # ground is dark and a white box behind a cut-out would show.
+                # Alpha survives into WebP rather than being flattened: a
+                # cut-out stays a cut-out on whatever ground it is shown on.
                 source = source.convert('RGBA')
             elif source.mode != 'RGB':
                 source = source.convert('RGB')

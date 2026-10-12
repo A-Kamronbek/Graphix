@@ -15,7 +15,7 @@
 .btn--primary   { background: var(--c-brand); color: var(--c-brand-fg); }
 .btn--primary:hover:not(:disabled)   { background: var(--c-brand-hover); }
 .btn--secondary { background: var(--c-surface-2); color: var(--c-fg); border-color: var(--c-line-control); }
-.btn--secondary:hover:not(:disabled) { background: var(--c-surface-3); border-color: var(--c-fg-subtle); }
+.btn--secondary:hover:not(:disabled) { background: var(--c-surface-3); border-color: var(--c-fg-muted); }
 .btn--ghost     { background: transparent; color: var(--c-fg); }
 .btn--ghost:hover:not(:disabled)     { background: var(--c-surface-2); }
 .btn--danger    { background: var(--c-danger-bg); color: var(--c-danger); border-color: var(--c-danger); }
@@ -44,18 +44,23 @@
 
 .input, .textarea, .select {
   width: 100%; padding: var(--s-3) var(--s-4);
-  background: var(--c-surface); color: var(--c-fg);
+  background: var(--c-bg); color: var(--c-fg);
   border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   font-size: var(--fs-base); min-height: 48px;
   transition: border-color var(--t-fast), background var(--t-fast);
 }
 .input::placeholder, .textarea::placeholder { color: var(--c-fg-hint); }
-.input:hover, .textarea:hover, .select:hover { border-color: var(--c-fg-subtle); }
-/* The brand border and lifted ground are the focus treatment under a mouse.
-   The brass ring is NOT removed for keyboard focus: a field that only changes
-   its 1px border is not enough to navigate by, and every text field on the site
-   was losing the ring that every button kept. */
-.input:focus, .textarea:focus, .select:focus { border-color: var(--c-brand); background: var(--c-surface-2); }
+/* Under a pointer a boundary gets darker, never paler: on a white ground
+   the quietest ink is paler than the line it would replace. */
+.input:hover, .textarea:hover, .select:hover { border-color: var(--c-fg-muted); }
+/* A field is the page's own white, so on a panel it reads as the place to
+   write (§17 #352). The brass border, doubled by a line inside it, is the
+   focus treatment under a mouse. The brass ring is NOT removed for keyboard
+   focus: a field that only changes its border is not enough to navigate by,
+   and every text field on the site was losing the ring that every button
+   kept. */
+.input:focus, .textarea:focus, .select:focus { border-color: var(--c-brand);
+  box-shadow: inset 0 0 0 1px var(--c-brand); }
 .input:focus:not(:focus-visible), .textarea:focus:not(:focus-visible),
 .select:focus:not(:focus-visible) { outline: none; }
 .textarea { min-height: 120px; resize: vertical; line-height: var(--lh-normal); }
@@ -78,7 +83,7 @@
   border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   cursor: pointer; transition: border-color var(--t-fast), background var(--t-fast);
 }
-.input[type="file"]:hover::file-selector-button { border-color: var(--c-fg-subtle); }
+.input[type="file"]:hover::file-selector-button { border-color: var(--c-fg-muted); }
 
 /* A file field that speaks the page's language: a button-styled label over
    a visually hidden input, and the name of what was chosen beside it. The
@@ -88,7 +93,7 @@
    keyboard, so the ring is drawn on the button it hides behind. */
 .field__file { display: flex; align-items: center; gap: var(--s-3);
   flex-wrap: wrap; min-height: 44px; }
-.field__file:has(input:focus-visible) .btn { outline: 2px solid var(--c-brand);
+.field__file:has(input:focus-visible) .btn { outline: 2px solid var(--c-brand-ink);
   outline-offset: 2px; }
 
 .field--error .input, .field--error .textarea, .field--error .select { border-color: var(--c-danger); }
@@ -114,7 +119,7 @@
 
 .check { display: flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
 .check input { appearance: none; width: 22px; height: 22px; flex: none; margin-top: 1px;
-  background: var(--c-surface); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
+  background: var(--c-bg); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   transition: background var(--t-fast), border-color var(--t-fast); }
 .check input[type="radio"] { border-radius: 50%; }
 .check input:checked { background: var(--c-brand); border-color: var(--c-brand); }
@@ -123,14 +128,14 @@
 .check input[type="radio"]:checked::after { clip-path: circle(26% at 50% 50%); }
 
 .stepper { display: inline-flex; align-items: center; border: 1px solid var(--c-line-control);
-  border-radius: var(--r-sm); background: var(--c-surface); }
+  border-radius: var(--r-sm); background: var(--c-bg); }
 .stepper button { width: 44px; height: 44px; display: grid; place-items: center; color: var(--c-fg); }
 .stepper button:hover:not(:disabled) { background: var(--c-surface-3); }
 .stepper button:disabled { color: var(--c-fg-subtle); cursor: not-allowed; }
 .stepper__val { min-width: 44px; text-align: center; font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums; }
-/* As an <input> it would otherwise take the browser's white default, which reads
-   as a broken white bar on this ground. The stepper's own border is the frame. */
+/* As an <input> it would otherwise take the browser's own ground and border.
+   The stepper's own border is the frame. */
 input.stepper__val { width: 52px; padding: var(--s-2) 0; background: none; border: 0;
   color: inherit; }
 input.stepper__val:focus:not(:focus-visible) { outline: none; }
@@ -155,7 +160,7 @@ html.js .otp__plain { display: none; }
 html.js .otp__timer { display: block; }
 .otp input { flex: 1 1 0; width: 0; min-width: 0; max-width: var(--otp-w); height: var(--otp-h);
   padding: 0; text-align: center; font-size: var(--fs-2xl);
-  font-weight: var(--fw-semibold); background: var(--c-surface); color: var(--c-fg);
+  font-weight: var(--fw-semibold); background: var(--c-bg); color: var(--c-fg);
   border: 1px solid var(--c-line-control); border-radius: var(--r-sm); font-variant-numeric: tabular-nums; }
 .otp input:focus { border-color: var(--c-brand); }
 .otp input:focus:not(:focus-visible) { outline: none; }
@@ -172,7 +177,7 @@ html.js .otp__timer { display: block; }
    instead of a bare field, and every other control on the page keeps a ring
    this one was missing. */
 .search:focus-within { border-color: var(--c-brand); color: var(--c-fg);
-  outline: 2px solid var(--c-brand); outline-offset: 2px; }
+  outline: 2px solid var(--c-brand-ink); outline-offset: 2px; }
 .search input { flex: 1; background: none; border: 0; outline: none; min-width: 0; }
 
 /* ========================================================= 3. product card */
@@ -197,7 +202,7 @@ html.js .otp__timer { display: block; }
 
 /* ======================================================= 5. size selector */
 .sizes { display: flex; flex-wrap: wrap; gap: var(--s-2); }
-.sizes__btn { min-width: 60px; padding: var(--s-3) var(--s-2); background: var(--c-surface);
+.sizes__btn { min-width: 60px; padding: var(--s-3) var(--s-2); background: var(--c-bg);
   color: var(--c-fg); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   font-weight: var(--fw-semibold); min-height: 48px;
   transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast); }
@@ -244,14 +249,14 @@ html.js .otp__timer { display: block; }
    invisible radio inside it; §17 #127 is the same defect on the link that
    scrolls to this section. */
 .stars--input label { display: inline-grid; place-items: center;
-  min-width: 44px; min-height: 44px; color: var(--c-fg-subtle); cursor: pointer; }
+  min-width: 44px; min-height: 44px; color: var(--c-line-control); cursor: pointer; }
 .stars--input label .i { fill: currentColor; stroke: none; width: 26px; height: 26px; }
 .stars--input input:checked ~ label,
 .stars--input label:hover, .stars--input label:hover ~ label { color: var(--c-brand); }
 /* The input is 0x0 and transparent, so a keyboard user tabbing into the row
    would otherwise have nothing to look at. The ring goes on the label, which
    is the thing they can actually see. */
-.stars--input input:focus-visible + label { outline: 2px solid var(--c-brand);
+.stars--input input:focus-visible + label { outline: 2px solid var(--c-brand-ink);
   outline-offset: 2px; border-radius: var(--r-sm); }
 
 /* Both shells use it — the storefront's and the panel's — which is why it
@@ -331,7 +336,7 @@ html.js .otp__timer { display: block; }
   border-radius: var(--r-full); font-size: var(--fs-xs); font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-wide); text-transform: uppercase;
   background: var(--c-surface-2); color: var(--c-fg-muted); border: 1px solid var(--c-line-strong); }
-.badge--brand   { background: var(--c-brand-bg); color: var(--c-brand);   border-color: var(--c-brand); }
+.badge--brand   { background: var(--c-brand-bg); color: var(--c-brand-ink); border-color: var(--c-brand); }
 .badge--success { background: var(--c-success-bg); color: var(--c-success); border-color: var(--c-success); }
 .badge--warning { background: var(--c-warning-bg); color: var(--c-warning); border-color: var(--c-warning); }
 .badge--danger  { background: var(--c-danger-bg);  color: var(--c-danger);  border-color: var(--c-danger); }
@@ -361,7 +366,7 @@ html.js .otp__timer { display: block; }
    real markup to show, and hidden until it is asked for. */
 .sizeguide[hidden] { display: none; }
 .sizeguide__table tr.is-current th,
-.sizeguide__table tr.is-current td { color: var(--c-brand); font-weight: var(--fw-bold); }
+.sizeguide__table tr.is-current td { color: var(--c-brand-ink); font-weight: var(--fw-bold); }
 .sizeguide__table tr.is-current th { box-shadow: inset 3px 0 0 var(--c-brand); }
 
 /* ================================================ 10. modal / mobile sheet */
@@ -404,7 +409,7 @@ html.js .otp__timer { display: block; }
 .pager a, .pager span { min-width: 44px; min-height: 44px; display: grid; place-items: center;
   padding: 0 var(--s-3); border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
   color: var(--c-fg-muted); font-variant-numeric: tabular-nums; }
-.pager a:hover { color: var(--c-fg); border-color: var(--c-fg-subtle); }
+.pager a:hover { color: var(--c-fg); border-color: var(--c-fg-muted); }
 .pager .is-current { background: var(--c-fg); color: var(--c-bg); border-color: var(--c-fg); }
 .pager .is-gap { border: 0; min-width: auto; }
 
@@ -516,10 +521,10 @@ html.js .otp__timer { display: block; }
 .addr { display: flex; align-items: center; gap: var(--s-3);
   width: 100%; min-height: 44px; padding: var(--s-3) var(--s-4);
   text-align: start; color: var(--c-fg);
-  background: var(--c-surface); border: 1px solid var(--c-line-control);
+  background: var(--c-bg); border: 1px solid var(--c-line-control);
   border-radius: var(--r-md); cursor: pointer;
   transition: border-color var(--t-fast); }
-.addr:hover { border-color: var(--c-fg-subtle); }
+.addr:hover { border-color: var(--c-fg-muted); }
 .addr[hidden] { display: none; }
 .addr__body { display: flex; flex-direction: column; gap: var(--s-1);
   min-width: 0; margin-right: auto; }
@@ -542,7 +547,7 @@ html.js .otp__timer { display: block; }
   border-radius: var(--r-md); overflow: hidden; }
 
 .picker__map { aspect-ratio: 4 / 3; background: var(--c-surface); border: 1px solid var(--c-line);
-  border-radius: var(--r-sm); display: grid; place-items: center; color: var(--c-fg-subtle); }
+  border-radius: var(--r-sm); display: grid; place-items: center; color: var(--c-fg-hint); }
 @media (min-width: 860px) { .picker { grid-template-columns: 380px minmax(0, 1fr); } }
 
 /* ================================================== 17. tabs / accordion */

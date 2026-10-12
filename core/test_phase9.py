@@ -799,7 +799,7 @@ class ControlBorderTests(TestCase):
     COMPONENTS = (STATIC / 'css' / 'components.css').read_text(encoding='utf-8')
 
     def test_the_token_exists_and_is_the_agreed_colour(self):
-        self.assertIn('--c-line-control:  #756853;', self.TOKENS)
+        self.assertIn('--c-line-control:  #857D6D;', self.TOKENS)
 
     def test_every_control_uses_it(self):
         for rule in ('.input, .textarea, .select', '.check input', '.stepper',
@@ -822,8 +822,10 @@ class ControlBorderTests(TestCase):
             a, b = sorted((luminance(one), luminance(two)), reverse=True)
             return (a + .05) / (b + .05)
 
-        self.assertGreaterEqual(ratio('#756853', '#100E0C'), 3.0)
-        self.assertLess(ratio('#453D31', '#100E0C'), 3.0)
+        # Against the page, and against the darkest ground a control sits on.
+        self.assertGreaterEqual(ratio('#857D6D', '#FFFFFF'), 3.0)
+        self.assertGreaterEqual(ratio('#857D6D', '#E5E2DB'), 3.0)
+        self.assertLess(ratio('#D2CDC2', '#FFFFFF'), 3.0)
 
 
 class ZoomableImageTests(TempMedia, TestCase):
