@@ -526,16 +526,33 @@ def checkout_promo(request):
     return JsonResponse({'ok': True, **_promo_payload(preview)})
 
 
-# ---------- payment (Click) ----------
+# ---------- payment ----------
 
 @login_required
 def payment(request, order_id):
-    """Show the payment page for an order."""
+    """Show the payment page for an order.
+
+    An order paid for through the shop's admin has no gateway to be sent to.
+    Its page carries the link that opens the chat, and only while the order
+    is waiting to be paid for: once staff have marked it paid or it has been
+    cancelled there is nothing left to write about, and the customer is shown
+    where the order stands (§17 #362).
+    """
     order = get_object_or_404(
-        Order.objects.select_related('cart').prefetch_related('cart__cart_items__variant__product'),
+        Order.objects.select_related('cart', 'user')
+        .prefetch_related('cart__cart_items__variant__product'),
         pk=order_id, user=request.user,
     )
-    return render(request, 'payment/payment.html', {'order': order})
+    context = {'order': order}
+    if order.payment_method == Order.PaymentMethod.TELEGRAM:
+        if order.status != Order.Status.PAYING:
+            messages.info(request, _("Bu buyurtma uchun toʻlov holati "
+                                     "allaqachon oʻzgargan."))
+            return redirect('order_status', pk=order.id)
+        context.update(by_telegram=True,
+                       telegram_admin=services.telegram_admin(),
+                       telegram_link=services.telegram_pay_link(order))
+    return render(request, 'payment/payment.html', context)
 
 
 @login_required

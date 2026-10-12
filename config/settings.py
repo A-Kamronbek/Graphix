@@ -318,6 +318,12 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_BOT_WEBHOOK_URL = os.environ.get("TELEGRAM_BOT_WEBHOOK_URL", "")
 WEBSITE_WEBHOOK_SECRET = os.environ.get("WEBSITE_WEBHOOK_SECRET", "")
 
+# The Telegram account a customer is sent to when an order is to be paid for
+# through the shop's admin (§17 #362). A public name and not a secret, so it
+# has a default and the method works without a line in .env. Set to nothing,
+# the method reads as not ready in the panel and its pay page says so.
+TELEGRAM_PAY_ADMIN = os.environ.get("TELEGRAM_PAY_ADMIN", "VMShopSupport")
+
 # Used to build absolute links in notifications, which are read outside any
 # request and so cannot ask one for the host.
 SITE_URL = os.environ.get("SITE_URL", "https://graphix.uz")

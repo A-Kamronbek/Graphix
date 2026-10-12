@@ -566,6 +566,10 @@ msgstr "Отменён"
 msgid "Naqd pul"
 msgstr "Наличные"
 
+#: .\payment\models.py:381
+msgid "Telegram admin orqali"
+msgstr "Через администратора в Telegram"
+
 #: .\payment\models.py:291 .\templates\payment\checkout.html:167
 msgid "Xaritadan"
 msgstr "На карте"
@@ -637,6 +641,30 @@ msgstr "В корзине нет товара, на который действ�
 #: .\payment\promos.py:51
 msgid "Bu promokod ushbu buyurtmada narxni kamaytirmaydi."
 msgstr "В этом заказе промокод ничего не уменьшает."
+
+#: .\payment\services.py:431
+msgid "Assalomu alaykum! GRAPHIX saytidagi buyurtmam uchun toʻlov qilmoqchiman."
+msgstr "Здравствуйте! Хочу оплатить заказ на сайте GRAPHIX."
+
+#: .\payment\services.py:434
+#, python-format
+msgid "Buyurtma raqami: %(number)s"
+msgstr "Номер заказа: %(number)s"
+
+#: .\payment\services.py:437
+#, python-format
+msgid "Summa: %(total)s soʻm"
+msgstr "Сумма: %(total)s сум"
+
+#: .\payment\services.py:441
+#, python-format
+msgid "Ism: %(name)s"
+msgstr "Имя: %(name)s"
+
+#: .\payment\services.py:442
+#, python-format
+msgid "Telefon: %(phone)s"
+msgstr "Телефон: %(phone)s"
 
 #: .\payment\views.py:183
 #, python-format
@@ -2409,14 +2437,46 @@ msgstr "Завершить оплату"
 msgid "Sharh qoldirish"
 msgstr "Оставить отзыв"
 
-#: .\templates\payment\payment.html:12
-msgid "Click orqali toʻlov"
-msgstr "Оплата через Click"
+#: .\templates\payment\payment.html:14
+msgid "Telegram orqali toʻlov"
+msgstr "Оплата через Telegram"
+
+#: .\templates\payment\payment.html:15
+#, python-format
+msgid "%(method)s orqali toʻlov"
+msgstr "Оплата через %(method)s"
 
 #: .\templates\payment\payment.html:17
 #, python-format
 msgid "Promokod %(code)s: −%(off)s soʻm"
 msgstr "Промокод %(code)s: −%(off)s сум"
+
+#: .\templates\payment\payment.html:48
+msgid ""
+"Tugmani bosing: Telegramda adminimiz bilan suhbat ochiladi, xabar esa tayyor "
+"turadi. Uni yuboring, admin qanday toʻlashni aytadi. Toʻlov tasdiqlangach, "
+"buyurtmangiz holati oʻzgaradi."
+msgstr ""
+"Нажмите кнопку: в Telegram откроется чат с нашим администратором, а "
+"сообщение уже будет написано. Отправьте его, и администратор подскажет, как "
+"оплатить. Когда оплата подтвердится, статус заказа изменится."
+
+#: .\templates\payment\payment.html:56
+msgid "Telegramda yozish"
+msgstr "Написать в Telegram"
+
+#: .\templates\payment\payment.html:57
+msgid "(yangi oynada ochiladi)"
+msgstr "(откроется в новой вкладке)"
+
+#: .\templates\payment\payment.html:60
+#, python-format
+msgid ""
+"Telegram ochilmasa, bizga oʻzingiz yozing: <strong>@%(admin)s</strong>. "
+"Buyurtma raqami: <strong>%(number)s</strong>."
+msgstr ""
+"Если Telegram не открылся, напишите нам сами: <strong>@%(admin)s</strong>. "
+"Номер заказа: <strong>%(number)s</strong>."
 
 #: .\templates\payment\payment.html:27
 msgid "Toʻlovga oʻtish"
@@ -3039,6 +3099,9 @@ msgstr "Изображение не выбрано."
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Изображение сохранено."
+
+#~ msgid "Click orqali toʻlov"
+#~ msgstr "Оплата через Click"
 
 #~ msgid "Koʻkrak, sm"
 #~ msgstr "Грудь, см"

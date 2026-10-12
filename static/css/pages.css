@@ -528,6 +528,10 @@ html.js .slides__controls {
 .pay__mark { flex: none; width: var(--s-5); height: var(--s-5);
   margin-right: calc(var(--s-1) * -1); }
 
+/* The name to write to and the order number, under the Telegram button. Each
+   is copied whole, so neither is broken at its hyphen or its capitals. */
+.pay__ref strong { white-space: nowrap; }
+
 /* The promo code: the field and its button on one row at every width. The
    button is one short word, so the field takes the rest. Codes are kept in
    capitals, and the field shows what is typed that way so "yoz10" and

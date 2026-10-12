@@ -5,28 +5,37 @@ whichever method the order names, applies payment-status changes from the
 gateways' webhook callbacks, and moves stock as orders are paid for or
 cancelled.
 
-Four payment methods: Click, Payme, Octo and cash. Only two functions know
-about gateways at all. `generate_paylink` picks the client and is the one
-place that handles a gateway refusing; `apply_successful_payment` knows none
-of them, because the webhook resolves the order before calling it.
+Five payment methods: Click, Payme, Octo, cash, and Telegram. Only two
+functions know about gateways at all. `generate_paylink` picks the client and
+is the one place that handles a gateway refusing; `apply_successful_payment`
+knows none of them, because the webhook resolves the order before calling it.
+
+An order placed for Telegram is paid for in a chat with the shop's admin and
+has no gateway. `telegram_pay_link` writes the link that opens that chat with
+the message ready, and the order becomes paid when staff say so in the panel,
+through `panel.services.set_status` (§17 #362).
 
 Click and Payme build their pay links locally. Octo calls out over HTTP, so a
 gateway having a bad day has to cost the customer a retry rather than a 500
 (§17 #266).
 """
 import logging
+import re
 from decimal import Decimal
+from urllib.parse import quote
 
 from django.db import IntegrityError, transaction
 from django.db.models import F, Value
 from django.db.models.functions import Greatest
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext
 from tolov import ClickGateway, OctoGateway, PaymeGateway
 
 from cart.models import Cart
 from core import legal, telegram
 from product.models import Variant
+from product.templatetags.price_format import price
 from . import promos
 from .models import Order, PromoCode, SOLD, location_text
 
@@ -243,8 +252,8 @@ class PaymentGatewayError(Exception):
 
 
 #: Which settings each online method needs before it can build a pay link.
-#: Cash is absent on purpose: it needs nothing, has no online step, and
-#: `generate_paylink` never reaches a gateway for it.
+#: Cash and Telegram are absent on purpose: neither has a gateway, and
+#: `generate_paylink` never reaches one for them.
 GATEWAY_CREDENTIALS = {
     Order.PaymentMethod.CLICK: ('CLICK_SERVICE_ID', 'CLICK_MERCHANT_ID'),
     Order.PaymentMethod.PAYME: ('PAYME_ID', 'PAYME_KEY'),
@@ -278,7 +287,8 @@ def octo_test_mode():
 def method_is_configured(method):
     """Whether the shop holds the credentials this method needs.
 
-    Cash is configured by definition; a method not in the table is not.
+    Cash is configured by definition, and Telegram when there is somebody to
+    write to; a method not in the table is not.
 
     One function rather than a check wherever somebody wants the answer,
     because two answers that drift apart is exactly how a method comes to
@@ -286,6 +296,8 @@ def method_is_configured(method):
     """
     if method == Order.PaymentMethod.CASH:
         return True
+    if method == Order.PaymentMethod.TELEGRAM:
+        return bool(telegram_admin())
     names = GATEWAY_CREDENTIALS.get(method)
     if not names:
         return False
@@ -356,7 +368,7 @@ def generate_paylink(order, return_url):
     """
     method = order.payment_method
     if method not in GATEWAY_CREDENTIALS:
-        # Cash, and anything else with no online step.
+        # Cash and Telegram, and anything else with no gateway to send to.
         raise PaymentMethodUnavailable(method)
 
     if not method_is_configured(method):
@@ -383,6 +395,66 @@ def generate_paylink(order, return_url):
         raise PaymentGatewayError(method)
 
     return paylink
+
+
+#: What Telegram accepts as a public name: five to thirty-two letters, digits
+#: and underscores, the first of them a letter.
+_TELEGRAM_NAME = re.compile(r'[A-Za-z][A-Za-z0-9_]{4,31}')
+
+
+def telegram_admin():
+    """The Telegram name a customer pays through, without its @, or ''.
+
+    Blank when the setting is blank or is not a name Telegram could have.
+    The method then reads as not ready, in the panel and on its pay page: a
+    button made from such a name would open nothing.
+    """
+    name = str(getattr(settings, 'TELEGRAM_PAY_ADMIN', '') or '').strip()
+    name = name.removeprefix('@')
+    return name if _TELEGRAM_NAME.fullmatch(name) else ''
+
+
+def telegram_pay_text(order):
+    """The message a customer sends the admin to pay for ``order``.
+
+    In the language the customer is reading the site in, because it is sent
+    as their own words. It carries what the admin needs to find the order and
+    to name the sum without opening the panel: the number, the total, and the
+    name and phone the order was placed with.
+
+    The customer can change the message before sending it, so nothing in it
+    is proof of anything. The admin takes the sum from the order in the
+    panel, and the order is marked paid there and nowhere else.
+    """
+    name = (order.recipient_name or order.user.first_name or '').strip()
+    lines = [
+        gettext("Assalomu alaykum! GRAPHIX saytidagi buyurtmam uchun toʻlov "
+                "qilmoqchiman."),
+        '',
+        gettext("Buyurtma raqami: %(number)s") % {'number': order.order_no or order.pk},
+        # An ordinary space between the thousands: the page's unbreakable
+        # one is for a line of a page, and this is a message.
+        gettext("Summa: %(total)s soʻm") % {
+            'total': price(order.total_price).replace('\u00a0', ' ')},
+    ]
+    if name:
+        lines.append(gettext("Ism: %(name)s") % {'name': name})
+    lines.append(gettext("Telefon: %(phone)s") % {'phone': order.phone})
+    return '\n'.join(lines)
+
+
+def telegram_pay_link(order):
+    """Where the pay button of a Telegram order leads, or '' if nowhere.
+
+    A chat with the shop's admin with the message already written, for the
+    customer to send. Made here from what the order holds: nothing is asked
+    of Telegram, so there is nothing to fail.
+    """
+    admin = telegram_admin()
+    if not admin:
+        return ''
+    return 'https://t.me/%s?text=%s' % (
+        admin, quote(telegram_pay_text(order), safe=''))
 
 
 def _move_stock(order, sign):
