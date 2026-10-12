@@ -248,6 +248,12 @@
     padding-block: var(--s-2); background: var(--c-bg); }
 }
 
+/* The end of the shop's list. While the list grows by itself this holds
+   nothing, and it is what the script watches for coming into view, so it
+   must take up room to be seen at all. */
+.more { min-height: 1px; }
+.more__fail { align-items: center; text-align: center; }
+
 /* --------------------------------------------- page-level helper classes */
 /* These exist so no template carries a style attribute. A value used on two
    pages belongs in components.css instead; these are each used once. */

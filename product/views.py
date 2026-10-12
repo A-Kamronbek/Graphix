@@ -112,17 +112,25 @@ def _listing(request, search_page=False):
 
     # Both new sorts fall back to recency, so a catalogue with no likes and no
     # reviews yet still comes out in a sensible order rather than by primary key.
+    #
+    # Every order ends in the row's own id, so it is one order and not a
+    # family of them. Most of the catalogue costs the same, and rows that tie
+    # come back in whatever order the database likes, which may differ from
+    # one request to the next: a design could be on page one and again on
+    # page two, and another on neither. Read as pages that was hard to
+    # notice; read as one list, with page two added under page one, it is
+    # the same shirt twice (§17 #356).
     if sort == 'price_asc':
-        qs = qs.order_by('min_price')
+        qs = qs.order_by('min_price', '-created_at', '-pk')
     elif sort == 'price_desc':
-        qs = qs.order_by('-min_price')
+        qs = qs.order_by('-min_price', '-created_at', '-pk')
     elif sort == 'popular':
-        qs = qs.order_by('-likes_count', '-created_at')
+        qs = qs.order_by('-likes_count', '-created_at', '-pk')
     elif sort == 'rating':
-        qs = qs.order_by('-rating_avg', '-review_count', '-created_at')
+        qs = qs.order_by('-rating_avg', '-review_count', '-created_at', '-pk')
     else:
         sort = 'new'
-        qs = qs.order_by('-created_at')
+        qs = qs.order_by('-created_at', '-pk')
 
     paginator = Paginator(qs, 20)
     page_number = request.GET.get('page') or 1

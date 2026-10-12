@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n i18n_fields %}
+{% load static i18n i18n_fields %}
 
 {# A search result is a page of its own and page two really does hold other #}
 {# designs, so the number is in the title; the filters are not, because they #}
@@ -13,6 +13,7 @@
 {# block: a `{% block %}` wrapped in an `{% if %}` in a child template is #}
 {# registered whatever the condition says, and the shop would be noindex. #}
 {% block robots %}{% if search_page %}<meta name="robots" content="noindex, follow">{% endif %}{% endblock %}
+{% block extra_js %}<script src="{% static 'js/shop.js' %}" defer></script>{% endblock %}
 
 {% block content %}
 <div class="wrap section">
@@ -110,7 +111,7 @@
 
       <div class="stack stack--lg">
       {% if products %}
-        <div class="grid-products">
+        <div class="grid-products" data-more-grid>
           {# The first row is in the first screen at every width, so it is not #}
           {# lazy; the first card asks for priority as the LCP candidate. #}
           {% for p in products %}
@@ -121,7 +122,23 @@
             {% endif %}
           {% endfor %}
         </div>
-        {% include "product/_pager.html" with page_obj=page_obj base_query=base_query %}
+        {# The end of the list. The page links are the way on for a browser #}
+        {# that runs no script and for a search engine. Where shop.js runs it #}
+        {# hides them and adds the next page under the last as the visitor #}
+        {# nears it, and only from the first page: any other page has designs #}
+        {# before it, and the links are the one way back to those (§17 #356). #}
+        {# What the script says is passed in, like every string a page can #}
+        {# show (§17 #80). #}
+        {% if page_obj.paginator.num_pages > 1 %}
+          <div class="more" data-more{% if page_obj.number == 1 %} data-first{% endif %}
+               data-loaded="{% trans 'Yana dizaynlar koʻrsatildi.' %}">
+            <div class="more__fail stack" data-more-fail hidden>
+              <p class="msg msg--err" role="alert">{% trans "Dizaynlarni yuklab boʻlmadi. Qayta urinib koʻring." %}</p>
+              <button type="button" class="btn btn--secondary" data-more-retry>{% trans "Yana koʻrsatish" %}</button>
+            </div>
+            {% include "product/_pager.html" with page_obj=page_obj base_query=base_query %}
+          </div>
+        {% endif %}
       {% else %}
         <div class="empty">
           <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
