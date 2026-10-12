@@ -1958,10 +1958,14 @@ msgstr "Measurements in centimetres, taken from the garment itself."
 msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 msgstr "GRAPHIX T-shirt size chart"
 
-#: .\templates\core\size_guide.html:50 .\templates\core\size_guide.html:60
-#: .\templates\product\item.html:277 .\templates\product\item.html:289
-msgid "Koʻkrak, sm"
-msgstr "Chest, cm"
+#: .\templates\core\size_guide.html:44 .\templates\product\item.html:269
+msgid "Kiyim oʻlchamlari"
+msgstr "Garment measurements"
+
+#: .\templates\core\size_guide.html:58 .\templates\core\size_guide.html:70
+#: .\templates\product\item.html:276 .\templates\product\item.html:288
+msgid "Koʻkrak aylanasi, sm"
+msgstr "Chest circumference, cm"
 
 #: .\templates\core\size_guide.html:51 .\templates\core\size_guide.html:61
 #: .\templates\product\item.html:278 .\templates\product\item.html:290
@@ -2542,6 +2546,27 @@ msgstr "%(current)s / %(total)s"
 msgid "Keyingi"
 msgstr "Next"
 
+#: .\templates\product\_size_fit.html:11
+msgid "Oʻlchamni tanlash"
+msgstr "Choosing a size"
+
+#: .\templates\product\_size_fit.html:16
+msgid "Boʻy, sm"
+msgstr "Height, cm"
+
+#: .\templates\product\_size_fit.html:17
+msgid "Vazn, kg"
+msgstr "Weight, kg"
+
+#: .\templates\product\_size_fit.html:30
+msgid ""
+"Tavsiyalar taxminiy. Agar ikki oʻlcham oraligʻida boʻlsangiz, ixchamroq "
+"fason uchun kichikrogʻini, erkinroq oversize fason uchun kattarogʻini "
+"tanlang."
+msgstr ""
+"These are a guide. If you are between two sizes, take the smaller for a "
+"neater fit and the larger for a looser, oversize one."
+
 #: .\templates\product\item.html:7 .\templates\product\item.html:8
 #, python-format
 msgid ""
@@ -2587,10 +2612,6 @@ msgstr "Print"
 #: .\templates\product\item.html:316
 msgid "Sizga yoqishi mumkin"
 msgstr "You might also like"
-
-#: .\templates\product\item.html:335
-msgid "Savatga"
-msgstr "Add"
 
 #: .\templates\product\liked.html:26
 msgid "Hali hech narsa saqlanmagan"
@@ -2707,6 +2728,18 @@ msgstr "Price: low to high"
 #: .\templates\product\shop.html:128
 msgid "Narx: qimmatdan"
 msgstr "Price: high to low"
+
+#: .\templates\product\shop.html:134
+msgid "Yana dizaynlar koʻrsatildi."
+msgstr "More designs are shown."
+
+#: .\templates\product\shop.html:136
+msgid "Dizaynlarni yuklab boʻlmadi. Qayta urinib koʻring."
+msgstr "More designs could not be loaded. Try again."
+
+#: .\templates\product\shop.html:137
+msgid "Yana koʻrsatish"
+msgstr "Show more"
 
 #: .\templates\product\shop.html:152
 msgid "Hech narsa topilmadi"
@@ -2973,6 +3006,12 @@ msgstr "No picture was chosen."
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Picture saved."
+
+#~ msgid "Koʻkrak, sm"
+#~ msgstr "Chest, cm"
+
+#~ msgid "Savatga"
+#~ msgstr "Add"
 
 #~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
 #~ msgstr "We’ll confirm your phone number — it’s needed to deliver your order."

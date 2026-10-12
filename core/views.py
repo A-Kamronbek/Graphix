@@ -181,6 +181,7 @@ def size_guide(request):
 
     The modal on the product page is Phase 6a; this page is its indexable twin.
     """
+    from product import size_charts
     from product.models import SizeChart
     from .context_processors import size_guide_image
     charts = list(SizeChart.objects.prefetch_related('rows__size'))
@@ -189,7 +190,10 @@ def size_guide(request):
         raise Http404('no size guide has been uploaded yet')
     # The picture and its dimensions come from the context processor, which is
     # the one place that looks it up (§17 #111).
-    return render(request, 'core/size_guide.html', {'charts': charts})
+    return render(request, 'core/size_guide.html', {
+        'charts': charts,
+        'size_fit': size_charts.fit_rows(),
+    })
 
 
 def about(request):
@@ -254,13 +258,14 @@ def contact(request):
 # apart silently: if a token is added to tokens.css it has to be added here to
 # appear on the page, which is the prompt to check its contrast.
 STYLE_SWATCHES = [
-    ('--c-bg', '#100E0C'), ('--c-surface', '#17140F'), ('--c-surface-2', '#211C15'),
-    ('--c-surface-3', '#2A241B'), ('--c-fg', '#EFE9DE'), ('--c-fg-muted', '#B0A697'),
-    ('--c-fg-subtle', '#7D7466'), ('--c-fg-hint', '#958A79'),
-    ('--c-line', '#2C2620'), ('--c-line-strong', '#453D31'),
-    ('--c-brand', '#C6A44E'), ('--c-brand-hover', '#D6B662'), ('--c-brand-fg', '#171205'),
-    ('--c-success', '#86BE72'), ('--c-warning', '#D9A441'), ('--c-danger', '#E07A62'),
-    ('--c-info', '#8AB4CE'),
+    ('--c-bg', '#FFFFFF'), ('--c-surface', '#F7F6F3'), ('--c-surface-2', '#EFEDE8'),
+    ('--c-surface-3', '#E5E2DB'), ('--c-fg', '#15120E'), ('--c-fg-muted', '#5A5348'),
+    ('--c-fg-subtle', '#9B9488'), ('--c-fg-hint', '#6B6458'),
+    ('--c-line', '#E8E5DE'), ('--c-line-strong', '#D2CDC2'), ('--c-line-control', '#857D6D'),
+    ('--c-brand', '#B98A22'), ('--c-brand-hover', '#A87B18'), ('--c-brand-fg', '#171205'),
+    ('--c-brand-ink', '#85600B'),
+    ('--c-success', '#2E7A26'), ('--c-warning', '#8A5B00'), ('--c-danger', '#B4371F'),
+    ('--c-info', '#1E6A8E'),
 ]
 
 STYLE_ICONS = [

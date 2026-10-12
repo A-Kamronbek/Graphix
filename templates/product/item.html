@@ -264,17 +264,19 @@
       {% endif %}
 
       {% if size_chart %}
-        <h2 class="h3">{{ size_chart.name }}</h2>
+        {# Not the chart's own name: that is the owner's label for it in the #}
+        {# panel, in Uzbek alone, and this page shows one chart (§17 #357). #}
+        <h2 class="h3">{% trans "Kiyim oʻlchamlari" %}</h2>
         {% if size_chart.rows.exists %}
           <div class="scroll-x">
             <table class="table sizeguide__table">
               <thead>
                 <tr>
-                  <th>{% trans "Oʻlcham" %}</th>
-                  <th class="num">{% trans "Koʻkrak, sm" %}</th>
-                  <th class="num">{% trans "Uzunlik, sm" %}</th>
-                  <th class="num">{% trans "Yelka, sm" %}</th>
-                  <th class="num">{% trans "Yeng, sm" %}</th>
+                  <th scope="col">{% trans "Oʻlcham" %}</th>
+                  <th scope="col" class="num">{% trans "Koʻkrak aylanasi, sm" %}</th>
+                  <th scope="col" class="num">{% trans "Yelka, sm" %}</th>
+                  <th scope="col" class="num">{% trans "Yeng, sm" %}</th>
+                  <th scope="col" class="num">{% trans "Uzunlik, sm" %}</th>
                 </tr>
               </thead>
               <tbody>
@@ -282,11 +284,11 @@
                   {# data-row-size is how the viewer finds the row for the size #}
                   {# the customer has actually picked. #}
                   <tr data-row-size="{{ row.size_id }}">
-                    <th data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</th>
-                    <td data-label="{% trans 'Koʻkrak, sm' %}" class="num">{{ row.chest_cm }}</td>
-                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm }}</td>
-                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{{ row.shoulder_cm|default:"—" }}</td>
-                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{{ row.sleeve_cm|default:"—" }}</td>
+                    <th scope="row" data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</th>
+                    <td data-label="{% trans 'Koʻkrak aylanasi, sm' %}" class="num">{{ row.chest_cm|floatformat:"-1" }}</td>
+                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{% if row.shoulder_cm is None %}—{% else %}{{ row.shoulder_cm|floatformat:"-1" }}{% endif %}</td>
+                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{% if row.sleeve_cm is None %}—{% else %}{{ row.sleeve_cm|floatformat:"-1" }}{% endif %}</td>
+                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm|floatformat:"-1" }}</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -295,6 +297,8 @@
         {% endif %}
         {% if size_chart|t:"note" %}<p class="small muted">{{ size_chart|t:"note" }}</p>{% endif %}
       {% endif %}
+
+      {% include "product/_size_fit.html" %}
     </div>
   {% endif %}
 
@@ -319,19 +323,6 @@
   </div>
 </section>
 {% endif %}
-
-{# Mobile buy bar. Hidden from 860 px up, where the buy column is always visible. #}
-<div class="pdp__pad" aria-hidden="true"></div>
-<div class="buybar">
-  <span class="buybar__price">
-    <b class="num" data-price-display>{% if selected_variant %}{{ selected_variant.price|price }} {% trans "soʻm" %}{% endif %}</b>
-    <span data-variant-label>{% if selected_variant %}{{ selected_variant.size.size }}{% endif %}</span>
-  </span>
-  <button class="btn btn--primary" type="button" data-buy-jump
-          {% if not is_purchasable %}disabled{% endif %}>
-    {% if is_purchasable %}{% trans "Savatga" %}{% else %}{% trans "Tugadi" %}{% endif %}
-  </button>
-</div>
 {% endblock %}
 
 {% block extra_js %}

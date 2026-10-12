@@ -108,21 +108,23 @@ class PicturesTests(SimpleTestCase):
     def test_the_size_chart_source_names_its_picture(self):
         text = (self.BRAND / 'size-guide.html').read_text(encoding='utf-8')
         self.assertIn('size_guide.png', text)
-        self.assertIn('--window-size=1200,871', text)
+        self.assertIn('--window-size=1200,1480', text)
 
     def test_the_size_chart_carries_the_seeded_measurements(self):
         """The picture's numbers and the rows the site seeds are one table."""
         from product import size_charts
         text = (self.BRAND / 'size-guide.html').read_text(encoding='utf-8')
-        for cut, table in (('regular', size_charts.REGULAR), ('oversize', size_charts.OVERSIZE)):
-            block = re.search(r'data-cut="%s".*?</table>' % cut, text, re.S).group(0)
-            rows = re.findall(r'<tr>((?:<td>[^<]*</td>)+)</tr>', block)
-            drawn = {cells[0]: tuple(cells[1:]) for cells in
-                     (re.findall(r'<td>([^<]*)</td>', row) for row in rows)}
-            seeded = {size: tuple(str(int(float(value))) for value in values)
-                      for size, values in table.items()}
-            with self.subTest(cut=cut):
-                self.assertEqual(drawn, seeded)
+        block = re.search(r'data-sizes.*?</table>', text, re.S).group(0)
+        rows = re.findall(r'<tr>((?:<td>[^<]*</td>)+)</tr>', block)
+        drawn = {cells[0]: tuple(cells[1:]) for cells in
+                 (re.findall(r'<td>([^<]*)</td>', row) for row in rows)}
+        # The picture's columns are in the owner's order: chest, shoulder,
+        # sleeve, length. The table's are chest, length, shoulder, sleeve.
+        seeded = {}
+        for size, (chest, length, shoulder, sleeve) in size_charts.MEASURES.items():
+            seeded[size] = tuple(str(int(float(value)))
+                                 for value in (chest, shoulder, sleeve, length))
+        self.assertEqual(drawn, seeded)
 
     def test_the_lockups_are_outlines(self):
         """Paths only, so they need no font where they are used."""

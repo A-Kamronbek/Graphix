@@ -58,10 +58,10 @@
 .stat { display: block; padding: var(--s-4); border-radius: var(--r-md);
   background: var(--c-surface); border: 1px solid var(--c-line);
   transition: border-color var(--t-fast); }
-a.stat:hover { border-color: var(--c-fg-subtle); }
+a.stat:hover { border-color: var(--c-fg-muted); }
 .stat__n { font-family: var(--f-display); font-size: var(--fs-2xl);
   font-weight: var(--fw-bold); line-height: 1; font-variant-numeric: tabular-nums; }
-.stat__n--brand { color: var(--c-brand); }
+.stat__n--brand { color: var(--c-brand-ink); }
 .stat__label { display: block; margin-top: var(--s-2);
   color: var(--c-fg-muted); font-size: var(--fs-sm); }
 /* A count that needs doing reads differently from a count that is just true. */
@@ -169,7 +169,7 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
 .stockbox__size { font-size: var(--fs-sm); color: var(--c-fg-muted); }
 .stockbox__n { width: 4ch; min-height: 40px; padding: 0; text-align: center;
   background: none; border: 0; color: var(--c-fg); }
-.stockbox__n:focus { outline: 2px solid var(--c-brand); outline-offset: 2px;
+.stockbox__n:focus { outline: 2px solid var(--c-brand-ink); outline-offset: 2px;
   border-radius: var(--r-sm); }
 /* Out of stock, or switched off. The row still shows the number — the owner is
    about to change it — but it stops reading as a number that is fine. */
@@ -198,7 +198,7 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
 .switch input:checked { background: color-mix(in srgb, var(--c-brand) 35%, transparent);
   border-color: var(--c-brand); }
 .switch input:checked::after { transform: translateX(18px); background: var(--c-brand); }
-.switch input:focus-visible { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+.switch input:focus-visible { outline: 2px solid var(--c-brand-ink); outline-offset: 2px; }
 /* The track is 26 px tall and the label around it is 44, so a finger aimed at
    the top or bottom of the 44 px band was landing on the label with exactly one
    pixel to spare — and a pixel of margin is not a margin. The panel's own sweep
@@ -248,8 +248,8 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
   font-size: var(--fs-sm); cursor: pointer;
   transition: border-color var(--t-fast), color var(--t-fast); }
 .chip input { position: absolute; opacity: 0; width: 0; height: 0; }
-.chip:has(input:checked) { border-color: var(--c-brand); color: var(--c-brand); }
-.chip:has(input:focus-visible) { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+.chip:has(input:checked) { border-color: var(--c-brand); color: var(--c-brand-ink); }
+.chip:has(input:focus-visible) { outline: 2px solid var(--c-brand-ink); outline-offset: 2px; }
 
 /* ------------------------------------------------------------------- grid */
 /* Size × price × stock. A table, because that is what it is. */
@@ -290,7 +290,7 @@ a.stat:hover { border-color: var(--c-fg-subtle); }
   border: 1px solid var(--c-line-control); cursor: pointer; }
 .grid input[type="checkbox"]:checked { background: var(--c-brand);
   border-color: var(--c-brand); }
-.grid input[type="checkbox"]:focus-visible { outline: 2px solid var(--c-brand);
+.grid input[type="checkbox"]:focus-visible { outline: 2px solid var(--c-brand-ink);
   outline-offset: 2px; }
 
 @media (min-width: 900px) {
@@ -421,7 +421,7 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 /* The one control on the panel that destroys something, so it reads as an
    afterthought rather than a call to action: a ghost button at the end of the
    row, red only once a finger or a pointer is on it. */
-.ref__x { flex: none; color: var(--c-fg-subtle); padding-inline: var(--s-3); }
+.ref__x { flex: none; color: var(--c-fg-hint); padding-inline: var(--s-3); }
 .ref__x:hover, .ref__x:focus-visible { color: var(--c-danger);
   border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-line)); }
 
@@ -438,7 +438,7 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 .chart__shot img { display: block; width: 100%; height: auto; max-height: 260px;
   object-fit: contain; }
 /* The icon may be subtle; the sentence may not. `--c-fg-subtle` on
-   `--c-surface-2` measures 3.67 against a 4.5 floor (§5), and "Rasm yoʻq" is
+   `--c-surface-2` measures 2.57 against a 4.5 floor (§5), and "Rasm yoʻq" is
    the only thing telling the owner why the box is empty. */
 .chart__shot--empty { display: grid; place-items: center; gap: var(--s-2);
   min-height: 120px; color: var(--c-fg-subtle); }

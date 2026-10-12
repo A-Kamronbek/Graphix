@@ -1,22 +1,24 @@
 <!doctype html>
 <!--
   GRAPHIX size chart - the picture the size guide page and the product page
-  show (static/img/size_guide.png, 2400 x 1742).
+  show (static/img/size_guide.png, 2400 x 2960).
 
   The source of that PNG. The owner can replace the picture with one of his own
   (§17 #69); until he does, this is it, and it is set in the site's own face
   from the file the site serves (§17 #311), on the site's ground and ink.
 
   One picture for all three languages, so the labels carry all three. The
-  numbers are the ones in product/size_charts.py, and a test holds the two
-  together. They are provisional until a real garment is measured (§17 #95).
+  figures are the owner's own, from the chart he supplied (§17 #357): the same
+  ones as in product/size_charts.py, and a test holds the two together. It is
+  tall and its type is large because it is read on a phone first, where a wide
+  picture is a column of very small numbers.
 
   To regenerate, from the repository root in PowerShell, on one line (any
   Chromium browser takes the same switches; the paths must be absolute, and the
   time budget lets the font load before the capture):
 
     & "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe" --headless
-      --hide-scrollbars --window-size=1200,871 --force-device-scale-factor=2
+      --hide-scrollbars --window-size=1200,1480 --force-device-scale-factor=2
       --virtual-time-budget=3000
       "--screenshot=$PWD\static\img\size_guide.png" "$PWD\docs\brand\size-guide.html"
 -->
@@ -29,49 +31,59 @@
     src: url("../../static/fonts/inter-var.woff2") format("woff2-variations"); }
   /* The site's tokens (static/css/tokens.css), copied because this page
      is rendered outside the site. */
-  :root { --c-bg: #100E0C; --c-surface-2: #211C15; --c-fg: #EFE9DE;
-    --c-fg-muted: #B0A697; --c-fg-hint: #958A79; --c-line: #2C2620;
-    --c-line-strong: #453D31; --c-brand: #C6A44E; }
+  :root { --c-bg: #FFFFFF; --c-surface: #F7F6F3; --c-fg: #15120E;
+    --c-fg-muted: #5A5348; --c-fg-hint: #6B6458; --c-line: #E8E5DE;
+    --c-line-strong: #D2CDC2; --c-brand: #B98A22; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 1200px; height: 871px; overflow: hidden;
+  html, body { width: 1200px; height: 1480px; overflow: hidden;
     background: var(--c-bg); color: var(--c-fg);
     font-family: "Inter", sans-serif; font-weight: 500; }
-  .chart { width: 1200px; height: 871px; padding: 0 56px;
-    display: grid; grid-template-rows: 130px 1fr 128px; }
+  .chart { width: 1200px; height: 1480px; padding: 0 72px;
+    display: grid; grid-template-rows: 168px 520px 1fr 176px; }
 
   .chart__head { display: flex; align-items: flex-end; justify-content: space-between;
-    padding-bottom: 26px; border-bottom: 1px solid var(--c-line-strong); }
-  .chart__title { font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: -.02em; }
-  .chart__brand { font-weight: 700; font-size: 20px; line-height: 1; letter-spacing: .10em;
-    color: var(--c-brand); padding-bottom: 6px; }
+    padding-bottom: 32px; border-bottom: 2px solid var(--c-line-strong); }
+  .chart__title { font-weight: 700; font-size: 76px; line-height: 1; letter-spacing: -.02em; }
+  .chart__brand { font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: .10em;
+    color: var(--c-fg-muted); padding-bottom: 8px; }
 
-  .chart__body { display: grid; grid-template-columns: 468px 1fr; padding-top: 36px; }
+  .chart__body { display: grid; grid-template-columns: 500px 1fr; align-items: center;
+    column-gap: 40px; }
 
-  .tee { display: block; width: 292px; height: 264px; margin: -16px 0 0 60px; }
-  .tee__cloth { fill: var(--c-surface-2); stroke: var(--c-line-strong); stroke-width: 2.5;
+  .tee { display: block; width: 500px; height: 463px; }
+  .tee__cloth { fill: var(--c-surface); stroke: var(--c-fg); stroke-width: 3;
     stroke-linejoin: round; }
-  .tee__rule { fill: none; stroke: var(--c-brand); stroke-width: 2.5; stroke-dasharray: 9 7; }
-  .tee__tick { fill: none; stroke: var(--c-brand); stroke-width: 2.5; }
-  .tee__letter { fill: var(--c-brand); font-weight: 700; font-size: 25px; }
+  .tee__seam { fill: none; stroke: var(--c-fg); stroke-width: 1.5; }
+  .tee__rule { fill: none; stroke: var(--c-brand); stroke-width: 3; stroke-dasharray: 10 8; }
+  .tee__tick { fill: none; stroke: var(--c-brand); stroke-width: 3; }
+  .tee__dot { fill: var(--c-fg); }
+  .tee__num { fill: var(--c-bg); font-weight: 700; font-size: 22px; }
 
-  .key { display: grid; grid-template-columns: auto auto; justify-content: start;
-    gap: 14px 26px; margin-top: 38px; font-size: 15px; color: var(--c-fg-muted); }
-  .key b { display: inline-block; width: 24px; color: var(--c-brand); font-weight: 700; }
+  /* The four measurements, each under the number it has on the drawing. */
+  .key { display: grid; row-gap: 26px; }
+  .key__row { display: grid; grid-template-columns: 52px 1fr; column-gap: 20px; align-items: center; }
+  .num { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+    background: var(--c-fg); color: var(--c-bg); font-weight: 700; font-size: 26px; line-height: 1; }
+  .key__name { font-weight: 700; font-size: 34px; line-height: 1.15; letter-spacing: -.01em; }
+  .key__other { font-size: 23px; line-height: 1.3; color: var(--c-fg-muted); }
 
-  .cut + .cut { margin-top: 36px; }
-  .cut__name { font-weight: 700; font-size: 24px; line-height: 1; letter-spacing: -.01em;
-    margin-bottom: 18px; }
-  .cut table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  .cut th, .cut td { text-align: right; width: 91px; }
-  .cut th:first-child, .cut td:first-child { text-align: left; width: auto; }
-  .cut thead th { font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
-    color: var(--c-fg-hint); padding-bottom: 12px; border-bottom: 1px solid var(--c-line-strong); }
-  .cut tbody td { height: 46px; font-size: 16px; font-weight: 600; border-bottom: 1px solid var(--c-line); }
-  .cut tbody td:first-child { font-weight: 700; }
-  .cut tbody tr:last-child td { border-bottom: 0; }
+  .sizes { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums;
+    align-self: start; }
+  .sizes th, .sizes td { text-align: center; width: 204px; }
+  .sizes th:first-child, .sizes td:first-child { text-align: left; width: auto; padding-left: 8px; }
+  .sizes thead th { padding: 22px 0 20px; vertical-align: bottom;
+    border-top: 2px solid var(--c-line-strong); border-bottom: 2px solid var(--c-line-strong);
+    font-size: 21px; font-weight: 600; line-height: 1.25; color: var(--c-fg-muted); }
+  .sizes thead .num { width: 40px; height: 40px; font-size: 21px; margin-bottom: 10px; }
+  .sizes thead b { display: block; color: var(--c-fg); font-weight: 700; font-size: 25px; }
+  .sizes tbody td { height: 88px; font-size: 40px; font-weight: 600;
+    border-bottom: 2px solid var(--c-line); }
+  .sizes tbody td:first-child { font-weight: 700; }
+  .sizes tbody tr:last-child td { border-bottom: 0; }
 
-  .chart__foot { border-top: 1px solid var(--c-line-strong); padding-top: 20px;
-    font-size: 14px; line-height: 21px; color: var(--c-fg-hint); }
+  .chart__foot { border-top: 2px solid var(--c-line-strong); padding-top: 28px;
+    font-size: 23px; line-height: 36px; color: var(--c-fg-hint); }
+  .chart__foot p:first-child { color: var(--c-fg); }
 </style>
 </head>
 <body>
@@ -82,63 +94,70 @@
     </div>
 
     <div class="chart__body">
-      <div>
-        <!-- A T-shirt laid flat, with the four measurements drawn on it. -->
-        <svg class="tee" viewBox="-6 -30 486 440" aria-hidden="true">
-          <path class="tee__cloth" d="M137 57Q227 110 317 57L451 147L397 230L333 173L350 388Q350 400 338 400H115Q103 400 103 388L120 173L57 230L3 147Z"/>
-          <path class="tee__rule" d="M137 31H317"/>
-          <path class="tee__tick" d="M137 16V40M317 16V40"/>
-          <path class="tee__rule" d="M105 207H349"/>
-          <path class="tee__tick" d="M105 195V216M349 195V216"/>
-          <path class="tee__rule" d="M227 64V400"/>
-          <path class="tee__tick" d="M211 64H237M213 400H237"/>
-          <path class="tee__rule" d="M325 62L428 180"/>
-          <path class="tee__tick" d="M310 74L330 58M410 192L428 178"/>
-          <text class="tee__letter" x="227" y="2" text-anchor="middle">C</text>
-          <text class="tee__letter" x="204" y="196" text-anchor="middle">A</text>
-          <text class="tee__letter" x="246" y="303">B</text>
-          <text class="tee__letter" x="446" y="136">D</text>
-        </svg>
-        <div class="key">
-          <span><b>A</b>Koʻkrak · Грудь · Chest</span>
-          <span><b>B</b>Uzunlik · Длина · Length</span>
-          <span><b>C</b>Yelka · Плечо · Shoulder</span>
-          <span><b>D</b>Yeng · Рукав · Sleeve</span>
-        </div>
-      </div>
+      <!-- A T-shirt laid flat, with the four measurements drawn on it. The
+           two short curves are the seams the sleeves hang from: the shoulder
+           is measured between them and the sleeve from one of them down. -->
+      <svg class="tee" viewBox="-4 -30 508 470" aria-hidden="true">
+        <path class="tee__cloth" d="M190 50Q240 92 290 50L362 78L458 168L408 238L346 180L352 398Q352 410 340 410H140Q128 410 128 398L134 180L72 238L22 168L118 78Z"/>
+        <path class="tee__seam" d="M190 50Q240 66 290 50M362 78Q338 128 346 180M118 78Q142 128 134 180"/>
+        <!-- 3: across the shoulders, seam to seam -->
+        <path class="tee__rule" d="M118 26H362"/>
+        <path class="tee__tick" d="M118 12V40M362 12V40"/>
+        <!-- 1: round the chest, under the arms -->
+        <path class="tee__rule" d="M136 202Q240 236 344 202"/>
+        <!-- 4: the length, from the collar to the hem -->
+        <path class="tee__rule" d="M240 74V410"/>
+        <path class="tee__tick" d="M226 74H254M226 410H254"/>
+        <!-- 2: the sleeve, from its seam to its edge -->
+        <path class="tee__rule" d="M374 65L470 155"/>
+        <path class="tee__tick" d="M364 76L384 54M460 166L480 144"/>
 
-      <div>
-        <div class="cut" data-cut="regular">
-          <h2 class="cut__name">Oddiy / Regular</h2>
-          <table>
-            <thead><tr><th>Oʻlcham</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
-            <tbody>
-              <tr><td>S</td><td>48</td><td>69</td><td>43</td><td>19</td></tr>
-              <tr><td>M</td><td>51</td><td>71</td><td>46</td><td>20</td></tr>
-              <tr><td>L</td><td>54</td><td>73</td><td>49</td><td>21</td></tr>
-              <tr><td>XL</td><td>57</td><td>75</td><td>52</td><td>22</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="cut" data-cut="oversize">
-          <h2 class="cut__name">Oversize</h2>
-          <table>
-            <thead><tr><th>Oʻlcham</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
-            <tbody>
-              <tr><td>S</td><td>54</td><td>70</td><td>52</td><td>21</td></tr>
-              <tr><td>M</td><td>57</td><td>72</td><td>55</td><td>22</td></tr>
-              <tr><td>L</td><td>60</td><td>74</td><td>58</td><td>23</td></tr>
-              <tr><td>XL</td><td>63</td><td>76</td><td>61</td><td>24</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <circle class="tee__dot" cx="240" cy="0" r="20"/>
+        <text class="tee__num" x="240" y="8" text-anchor="middle">3</text>
+        <circle class="tee__dot" cx="186" cy="238" r="20"/>
+        <text class="tee__num" x="186" y="246" text-anchor="middle">1</text>
+        <circle class="tee__dot" cx="240" cy="326" r="20"/>
+        <text class="tee__num" x="240" y="334" text-anchor="middle">4</text>
+        <circle class="tee__dot" cx="444" cy="88" r="20"/>
+        <text class="tee__num" x="444" y="96" text-anchor="middle">2</text>
+      </svg>
+
+      <div class="key">
+        <div class="key__row"><span class="num">1</span>
+          <div><div class="key__name">Koʻkrak aylanasi</div><div class="key__other">Обхват груди · Chest, all round</div></div></div>
+        <div class="key__row"><span class="num">2</span>
+          <div><div class="key__name">Yeng</div><div class="key__other">Рукав · Sleeve</div></div></div>
+        <div class="key__row"><span class="num">3</span>
+          <div><div class="key__name">Yelka</div><div class="key__other">Плечо · Shoulder</div></div></div>
+        <div class="key__row"><span class="num">4</span>
+          <div><div class="key__name">Uzunlik</div><div class="key__other">Длина · Length</div></div></div>
       </div>
     </div>
 
+    <!-- size, then chest, shoulder, sleeve and length: the owner's own order. -->
+    <table class="sizes" data-sizes>
+      <thead>
+        <tr>
+          <th><b>Oʻlcham</b>Размер · Size</th>
+          <th><span class="num">1</span><b>Koʻkrak</b>sm</th>
+          <th><span class="num">3</span><b>Yelka</b>sm</th>
+          <th><span class="num">2</span><b>Yeng</b>sm</th>
+          <th><span class="num">4</span><b>Uzunlik</b>sm</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>XS</td><td>110</td><td>60</td><td>17</td><td>65</td></tr>
+        <tr><td>S</td><td>114</td><td>62</td><td>18</td><td>68</td></tr>
+        <tr><td>M</td><td>118</td><td>63</td><td>19</td><td>70</td></tr>
+        <tr><td>L</td><td>124</td><td>66</td><td>20</td><td>75</td></tr>
+        <tr><td>XL</td><td>126</td><td>68</td><td>21</td><td>76</td></tr>
+      </tbody>
+    </table>
+
     <div class="chart__foot">
-      <p>Oʻlchamlar kiyim tekis yotqizilgan holda, santimetrda olingan · ±1 sm farq boʻlishi mumkin</p>
-      <p>Замеры сняты с изделия на плоскости, в сантиметрах · допуск ±1 см</p>
-      <p>Measured flat, in centimetres · allow ±1 cm</p>
+      <p>Oʻlchamlar santimetrda, kiyimning oʻzidan olingan · 1–3 sm farq boʻlishi mumkin</p>
+      <p>Замеры сняты с изделия, в сантиметрах · допустимая погрешность 1–3 см</p>
+      <p>Measured on the garment, in centimetres · allow a difference of 1–3 cm</p>
     </div>
   </div>
 </body>

@@ -69,13 +69,10 @@
 .pdp__price {
   font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold);
-  color: var(--c-brand);
+  color: var(--c-brand-ink);
   font-variant-numeric: tabular-nums;
 }
 .pdp__actions { display: flex; gap: var(--s-2); }
-
-/* Mobile keeps the buy bar fixed to the bottom, so the page needs room under it. */
-.pdp__pad { height: 84px; }
 
 @media (min-width: 860px) {
   .pdp {
@@ -83,7 +80,6 @@
     gap: var(--s-7);
     align-items: start;
   }
-  .pdp__pad { display: none; }
 }
 
 /* The gallery: main image capped in height, thumbnails below on mobile and in a
@@ -150,7 +146,7 @@
   border: 1px solid var(--c-line); }
 .reviews__score { text-align: center; }
 .reviews__avg { font-family: var(--f-display); font-size: var(--fs-3xl);
-  font-weight: var(--fw-bold); line-height: 1; color: var(--c-brand);
+  font-weight: var(--fw-bold); line-height: 1; color: var(--c-brand-ink);
   font-variant-numeric: tabular-nums; }
 /* The distribution reads as a chart, so the numbers are the narrow columns and
    the bars take whatever is left — rather than five bars of arbitrary width. */
@@ -251,6 +247,12 @@
   .shop__filters-hd { position: sticky; top: 0; z-index: 1;
     padding-block: var(--s-2); background: var(--c-bg); }
 }
+
+/* The end of the shop's list. While the list grows by itself this holds
+   nothing, and it is what the script watches for coming into view, so it
+   must take up room to be seen at all. */
+.more { min-height: 1px; }
+.more__fail { align-items: center; text-align: center; }
 
 /* --------------------------------------------- page-level helper classes */
 /* These exist so no template carries a style attribute. A value used on two
@@ -363,7 +365,7 @@
   cursor: pointer;
   transition: border-color var(--t-fast), background var(--t-fast);
 }
-.slides__arrow:hover { border-color: var(--c-fg-subtle); }
+.slides__arrow:hover { border-color: var(--c-fg-muted); }
 .slides__arrow[disabled] { opacity: .4; cursor: default; }
 .slides__arrow--prev { left: var(--s-4); }
 .slides__arrow--next { right: var(--s-4); }
@@ -450,7 +452,7 @@ html.js .slides__controls {
 .cartpage__summary { position: sticky; top: calc(var(--s-8) + var(--s-2)); }
 .cartpage__total dt, .cartpage__total dd { font-size: var(--fs-lg);
   font-weight: var(--fw-semibold); color: var(--c-fg); }
-.cartpage__total dd { color: var(--c-brand); }
+.cartpage__total dd { color: var(--c-brand-ink); }
 
 @media (min-width: 860px) {
   .cartpage { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-7); }
@@ -519,6 +521,13 @@ html.js .slides__controls {
   .checkout { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-7); }
 }
 
+/* A gateway's mark before its payment method's name. As tall as a line of
+   the text beside it, so it sits level with the name when the note wraps
+   under it, and a step nearer the name than the radio is to the mark: the
+   mark and the name are one thing. */
+.pay__mark { flex: none; width: var(--s-5); height: var(--s-5);
+  margin-right: calc(var(--s-1) * -1); }
+
 /* The promo code: the field and its button on one row at every width. The
    button is one short word, so the field takes the rest. Codes are kept in
    capitals, and the field shows what is typed that way so "yoz10" and
@@ -543,7 +552,8 @@ html.js .slides__controls {
 .steps { display: grid; gap: 0; }
 .steps__step { display: grid; grid-template-columns: 24px minmax(0, 1fr);
   gap: var(--s-3); align-items: center; padding-block: var(--s-3);
-  color: var(--c-fg-subtle); }
+  /* A step still ahead is quiet, and still read. */
+  color: var(--c-fg-hint); }
 .steps__dot { width: 12px; height: 12px; margin-inline: auto; border-radius: var(--r-full);
   border: 2px solid var(--c-line-strong); background: var(--c-bg); }
 .steps__step.is-done { color: var(--c-fg-muted); }

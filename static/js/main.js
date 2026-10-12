@@ -378,9 +378,6 @@
   GX.trapFocus = trapFocus;
   GX.lockScroll = lockScroll;
   GX.focusablesIn = focusablesIn;
-  GX.prefersReducedMotion = function () {
-    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  };
 
   /* ------------------------------------------- broken photographs */
   /* A stored photograph whose file has gone - a database restored against an

@@ -1937,9 +1937,13 @@ msgstr ""
 msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 msgstr ""
 
-#: .\templates\core\size_guide.html:50 .\templates\core\size_guide.html:60
-#: .\templates\product\item.html:277 .\templates\product\item.html:289
-msgid "Koʻkrak, sm"
+#: .\templates\core\size_guide.html:44 .\templates\product\item.html:269
+msgid "Kiyim oʻlchamlari"
+msgstr ""
+
+#: .\templates\core\size_guide.html:58 .\templates\core\size_guide.html:70
+#: .\templates\product\item.html:276 .\templates\product\item.html:288
+msgid "Koʻkrak aylanasi, sm"
 msgstr ""
 
 #: .\templates\core\size_guide.html:51 .\templates\core\size_guide.html:61
@@ -2513,6 +2517,25 @@ msgstr "%(current)s / %(total)s"
 msgid "Keyingi"
 msgstr "Keyingi"
 
+#: .\templates\product\_size_fit.html:11
+msgid "Oʻlchamni tanlash"
+msgstr ""
+
+#: .\templates\product\_size_fit.html:16
+msgid "Boʻy, sm"
+msgstr ""
+
+#: .\templates\product\_size_fit.html:17
+msgid "Vazn, kg"
+msgstr ""
+
+#: .\templates\product\_size_fit.html:30
+msgid ""
+"Tavsiyalar taxminiy. Agar ikki oʻlcham oraligʻida boʻlsangiz, ixchamroq "
+"fason uchun kichikrogʻini, erkinroq oversize fason uchun kattarogʻini "
+"tanlang."
+msgstr ""
+
 #: .\templates\product\item.html:7 .\templates\product\item.html:8
 #, python-format
 msgid ""
@@ -2557,10 +2580,6 @@ msgstr ""
 
 #: .\templates\product\item.html:316
 msgid "Sizga yoqishi mumkin"
-msgstr ""
-
-#: .\templates\product\item.html:335
-msgid "Savatga"
 msgstr ""
 
 #: .\templates\product\liked.html:26
@@ -2678,6 +2697,18 @@ msgstr ""
 
 #: .\templates\product\shop.html:128
 msgid "Narx: qimmatdan"
+msgstr ""
+
+#: .\templates\product\shop.html:134
+msgid "Yana dizaynlar koʻrsatildi."
+msgstr ""
+
+#: .\templates\product\shop.html:136
+msgid "Dizaynlarni yuklab boʻlmadi. Qayta urinib koʻring."
+msgstr ""
+
+#: .\templates\product\shop.html:137
+msgid "Yana koʻrsatish"
 msgstr ""
 
 #: .\templates\product\shop.html:152
@@ -2937,6 +2968,12 @@ msgstr ""
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr ""
+
+#~ msgid "Koʻkrak, sm"
+#~ msgstr ""
+
+#~ msgid "Savatga"
+#~ msgstr ""
 
 #~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
 #~ msgstr ""

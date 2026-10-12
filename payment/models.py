@@ -79,6 +79,20 @@ class DeliveryOption(models.Model):
         ordering = ['sort_order', 'code']
 
 
+#: The mark the checkout shows before a payment method's name, by the
+#: method's code: a file under ``static/`` and the size it is drawn at, in CSS
+#: pixels. The mark alone, without the gateway's name in it, because the name
+#: is written beside it. A file and not a field on the row: a gateway's logo
+#: is the gateway's, and there is nothing for the owner to choose. A method
+#: with no entry is shown by its name alone.
+#:
+#: Click's is its own drawing, the one its site and its developer pages
+#: carry, so it is sharp at any size.
+PAYMENT_LOGOS = {
+    'click': {'src': 'img/pay/click.svg', 'width': 24, 'height': 24},
+}
+
+
 class PaymentOption(models.Model):
     """A way to pay, as a row rather than a constant.
 
@@ -105,6 +119,11 @@ class PaymentOption(models.Model):
 
     def __str__(self):
         return f"{self.name} ({'yoqilgan' if self.is_active else 'oʻchirilgan'})"
+
+    @property
+    def logo(self):
+        """The gateway's mark for this method, or None when there is none."""
+        return PAYMENT_LOGOS.get(self.code)
 
     class Meta:
         ordering = ['sort_order', 'code']

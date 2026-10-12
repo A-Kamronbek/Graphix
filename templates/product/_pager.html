@@ -4,7 +4,7 @@
   <nav class="pager" aria-label="{% trans 'Sahifalar' %}">
     {% if page_obj.has_previous %}
       <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.previous_page_number }}"
-         aria-label="{% trans 'Oldingi sahifa' %}">
+         rel="prev" aria-label="{% trans 'Oldingi sahifa' %}">
         <svg class="i i--sm i--flip" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
       </a>
     {% endif %}
@@ -21,7 +21,7 @@
 
     {% if page_obj.has_next %}
       <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.next_page_number }}"
-         aria-label="{% trans 'Keyingi sahifa' %}">
+         rel="next" aria-label="{% trans 'Keyingi sahifa' %}">
         <svg class="i i--sm" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
       </a>
     {% endif %}

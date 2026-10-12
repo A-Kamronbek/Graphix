@@ -27,9 +27,8 @@
   var stepper = form.querySelector('[data-qty]');
   var buttons = Array.prototype.slice.call(form.querySelectorAll('[data-size]'));
 
-  /* Both the buy column and the mobile bar show the price, and they must agree. */
+  /* Wherever the page shows the price of the chosen size. */
   var priceNodes = Array.prototype.slice.call(document.querySelectorAll('[data-price-display]'));
-  var labelNodes = Array.prototype.slice.call(document.querySelectorAll('[data-variant-label]'));
 
   /* Read the currency word out of what the server rendered rather than hardcoding
    * it — the page may be in any of three languages. */
@@ -57,13 +56,6 @@
     if (!entry) return;
 
     priceNodes.forEach(function (n) { n.textContent = format(entry.price) + ' ' + CURRENCY; });
-
-    var label = buttons.filter(function (b) {
-      return b.getAttribute('data-size') === String(sizeId);
-    })[0];
-    if (label) {
-      labelNodes.forEach(function (n) { n.textContent = label.textContent.trim(); });
-    }
 
     if (stepper) {
       stepper.setAttribute('data-qty-max', Math.max(1, Math.min(99, entry.stock || 1)));
@@ -93,16 +85,4 @@
       apply(colourInput ? colourInput.value : '', b.getAttribute('data-size'));
     });
   });
-
-  /* The mobile bar's button is a jump to the real one, not a second submit. */
-  var jump = document.querySelector('[data-buy-jump]');
-  if (jump && buy) {
-    jump.addEventListener('click', function () {
-      /* The only scripted animation on the site, so it is also the only one that
-       * has to ask. A visitor who has turned motion off gets the jump instantly. */
-      var reduce = window.GX && window.GX.prefersReducedMotion && window.GX.prefersReducedMotion();
-      form.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
-      buy.focus();
-    });
-  }
 })();

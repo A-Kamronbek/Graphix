@@ -16,14 +16,15 @@
   <script nonce="{{ request.csp_nonce }}">document.documentElement.className += ' js';</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#100E0C">
-  {# The site is dark by design, so it says so. `color-scheme` gives the browser's #}
-  {# own scrollbars and form controls the dark palette, and `darkreader-lock` #}
-  {# tells Dark Reader - the extension, and the engine inside some browsers' #}
-  {# night modes - to leave the page alone: in its dynamic mode it repainted #}
-  {# every colour here, the gold included, into its own greys (§17 #205). #}
-  <meta name="color-scheme" content="dark">
-  <meta name="darkreader-lock">
+  <meta name="theme-color" content="#FFFFFF">
+  {# The site is light by design, so it says so (§17 #354). `color-scheme` #}
+  {# gives the browser's own scrollbars and form controls the light palette, #}
+  {# and `only` asks a browser not to darken the page by itself: a darkened #}
+  {# page turns every product photograph into a white box on black. The lock #}
+  {# against Dark Reader is gone: it was there because that extension #}
+  {# repainted a page that was already dark, and a visitor who runs it on a #}
+  {# white page has asked for exactly what it does. #}
+  <meta name="color-scheme" content="only light">
   <title>{% block title %}{% trans "Bosh sahifa" %}{% endblock %} — GRAPHIX</title>
   <meta name="description" content="{% block meta_description %}{% trans "Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib berish." %}{% endblock %}">
 
