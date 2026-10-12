@@ -354,26 +354,70 @@ class ImageP(Photograph):
         ordering = ['order', 'id']
 
 
+#: The order clothing sizes are sold in, smallest first. A label that is not
+#: here - a size the owner names his own way - goes after all of these, in
+#: the order it was added.
+SIZE_LADDER = ('XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', 'XXXL', '3XL', '4XL', '5XL')
+
+#: Where a size outside the ladder is placed: after every size on it.
+SIZE_OFF_LADDER = 1000
+
+
+def size_rank(label):
+    """The place of a size among the others, from its label alone.
+
+    Tens, so a size can be put between two neighbours by hand in the admin.
+    Letter case and spaces around the label do not matter.
+    """
+    label = (label or '').strip().upper()
+    if label in SIZE_LADDER:
+        return (SIZE_LADDER.index(label) + 1) * 10
+    return SIZE_OFF_LADDER
+
+
 class Size(models.Model):
     """A selectable size value, in the order the shop sells them.
 
-    The ordering matters and was missing. ``Variant`` orders by ``size``, which
-    is by id, so the storefront and the panel's list already showed S, M, L, XL
-    — but ``Size.objects.all()`` had no ordering at all, and the panel's
-    size/price/stock grid is built from exactly that. Postgres is free to hand
-    back an unordered scan in any order it likes, and it changes the order of a
-    row it has updated, so the grid on the most important screen in the panel
-    was one edit away from coming back shuffled. Ordering by id is the order
-    the sizes were seeded in, which is the order everything else already
-    assumes.
+    The order is ``order`` and then the id. It used to be the id alone, the
+    order the sizes were added in, and that held only while they happened to
+    be added smallest first: the owner added XS after XL, and every size
+    picker on the site then read S, M, L, XL, XS (§17 #358). ``order`` is
+    worked out from the label when a size is saved without one, so a size
+    added in the panel lands in its place and nobody has to number anything.
+
+    An order at all matters because ``Variant`` orders by ``size`` and the
+    panel's size/price/stock grid is built from ``Size.objects.all()``:
+    without one Postgres hands the rows back in whatever order it likes.
     """
     size = models.CharField(max_length=50)
+    order = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return self.size
 
+    def save(self, *args, **kwargs):
+        """Give a size the place its label asks for, unless one was set by hand.
+
+        A size saved with no place takes its label's. So does a size whose
+        label is changed while its place is still the one the old label asked
+        for: a size typed as "SX" and corrected to "XS" in the panel would
+        otherwise stay where "SX" put it, after every size on the ladder. A
+        place that differs from the label's was put there by somebody and is
+        kept.
+        """
+        place = self.order
+        if self.pk and place:
+            was = type(self).objects.filter(pk=self.pk).values_list('size', flat=True).first()
+            if was is not None and was != self.size and place == size_rank(was):
+                place = 0
+        if not place:
+            self.order = size_rank(self.size)
+            if kwargs.get('update_fields') is not None:
+                kwargs['update_fields'] = set(kwargs['update_fields']) | {'order'}
+        super().save(*args, **kwargs)
+
     class Meta:
-        ordering = ['id']
+        ordering = ['order', 'id']
 
 
 class Colour(models.Model):

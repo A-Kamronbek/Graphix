@@ -253,14 +253,19 @@ class SizeOrderTests(TestCase):
 
         Postgres may return an unordered scan in any order, and it moves a row
         it has updated, so the size grid was one edit away from S, XL, M, L.
+
+        The order was the id, the order sizes were added in. It is now each
+        size's own place and then the id, since the owner added XS after XL
+        (§17 #358).
         """
-        self.assertEqual(Size._meta.ordering, ['id'])
+        self.assertEqual(Size._meta.ordering, ['order', 'id'])
 
     def test_the_form_lists_them_in_that_order(self):
         self.client.force_login(make_staff('sizes', '+998901250060'))
         response = self.client.get(reverse('panel_product_new'))
-        rows = [row['size'].pk for row in response.context['grid']]
+        rows = [(row['size'].order, row['size'].pk) for row in response.context['grid']]
         self.assertEqual(rows, sorted(rows))
+        self.assertEqual([row['size'].size for row in response.context['grid']][:2], ['XS', 'S'])
 
 
 class MarkupTests(TestCase):
