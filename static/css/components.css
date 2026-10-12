@@ -86,7 +86,7 @@
 .input[type="file"]:hover::file-selector-button { border-color: var(--c-fg-muted); }
 
 /* A phone number with the country code already in it: +998 is written in
-   the frame and the customer types the rest. The frame draws what `.input`
+   the frame and the customer types the rest (`partials/_tel.html`). The frame draws what `.input`
    draws, its border, its hover and its focus, because the field inside it
    has none of its own; the keyboard ring goes on the frame as the search
    pill's does. */
@@ -115,7 +115,8 @@
 .field__file:has(input:focus-visible) .btn { outline: 2px solid var(--c-brand-ink);
   outline-offset: 2px; }
 
-.field--error .input, .field--error .textarea, .field--error .select { border-color: var(--c-danger); }
+.field--error .input, .field--error .textarea, .field--error .select,
+.field--error .tel { border-color: var(--c-danger); }
 .field__error { color: var(--c-danger); font-size: var(--fs-sm); }
 .field__hint  { color: var(--c-fg-muted); font-size: var(--fs-sm); }
 /* The link a sign-in door offers under its field is as wide as its words. The

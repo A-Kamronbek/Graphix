@@ -34,6 +34,8 @@ from user.models import User
 from .test_phase4 import make_product
 
 PHONE = '+998 90 111 22 33'
+#: The same number as the field holds it: it shows +998 itself (§17 #367).
+NATIONAL = '90 111 22 33'
 OTHER = '+998 90 111 22 44'
 LANGS = ('uz', 'ru', 'en')
 
@@ -210,7 +212,7 @@ class SignUpTests(CodeCase):
         self.assertIn('next=%2Fuz%2Fcheckout%2F', door)
         self.assertEqual(self.inbox.messages, [])
         # The other door opens with the number already in it.
-        self.assertContains(self.client.get(door), 'value="%s"' % PHONE)
+        self.assertContains(self.client.get(door), 'value="%s"' % NATIONAL)
 
     def test_the_message_is_the_text_eskiz_approved(self):
         self.ask(door='signup')
@@ -287,7 +289,7 @@ class SignInTests(CodeCase):
         self.assertTrue(door.startswith(reverse('signup') + '?'))
         self.assertIn('next=%2Fuz%2Fcheckout%2F', door)
         self.assertEqual(self.inbox.messages, [])
-        self.assertContains(self.client.get(door), 'value="%s"' % PHONE)
+        self.assertContains(self.client.get(door), 'value="%s"' % NATIONAL)
 
     def test_the_way_back_is_kept_through_both_pages(self):
         customer()

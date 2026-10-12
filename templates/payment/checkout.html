@@ -69,22 +69,10 @@
                  autocomplete="name" value="{{ form_data.name|default:'' }}">
           <small class="field__hint">{% trans "Joʻnatma shu ismga yuboriladi." %}</small>
         </div>
-        {% comment %}
-          The country code is written in the field and is not typed: the
-          customer writes the nine digits after it. A number typed or pasted
-          whole, with its +998, is read the same way. The frame is a label,
-          so a tap on +998 lands in the field, and +998 is part of the
-          field's name for a screen reader.
-        {% endcomment %}
+        {# +998 is written in the field; the customer types the rest. #}
         <div class="field">
           <label class="label" for="id_phone">{% trans "Telefon" %} <span class="req" aria-hidden="true">*</span></label>
-          <label class="tel" for="id_phone">
-            <span class="tel__code">+998</span>
-            <input class="tel__input" type="tel" name="phone" id="id_phone" required
-                   inputmode="tel" autocomplete="tel-national" placeholder="90 123 45 67"
-                   aria-describedby="id_phone_hint"
-                   value="{{ form_data.phone|default:''|cut:'+998 ' }}">
-          </label>
+          {% include "partials/_tel.html" with value=form_data.phone describedby="id_phone_hint" %}
           <small class="field__hint" id="id_phone_hint">{% trans "Kuryer shu raqamga qoʻngʻiroq qiladi." %}</small>
         </div>
       </section>

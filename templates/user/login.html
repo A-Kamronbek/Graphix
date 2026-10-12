@@ -28,9 +28,8 @@
         {% csrf_token %}
         <div class="field {% if form.phone.errors %}field--error{% endif %}">
           <label class="label" for="id_phone">{% trans "Telefon" %}</label>
-          <input class="input" type="tel" name="phone" id="id_phone" placeholder="+998 ..." required autofocus
-                 autocomplete="tel" value="{{ form.phone.value|default:'' }}">
-          {% if form.phone.errors %}<small class="field__error">{{ form.phone.errors|join:" · " }}</small>{% endif %}
+          {% include "partials/_tel.html" with value=form.phone.value autofocus=True describedby=form.phone.errors|yesno:"id_phone_error," %}
+          {% if form.phone.errors %}<small class="field__error" id="id_phone_error">{{ form.phone.errors|join:" · " }}</small>{% endif %}
           {# An unregistered number: the way to sign up with it, number kept. #}
           {% if other_door %}<a class="link small" href="{{ other_door }}">{% trans "Shu raqam bilan roʻyxatdan oʻtish" %}</a>{% endif %}
           {# A staff number is not sent a code; its door is the admin's form. #}

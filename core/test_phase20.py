@@ -476,6 +476,84 @@ class PhoneFieldTests(CheckoutCase):
         self.assertIn('value="90 122 00 03"', tag)
 
 
+class PhoneFieldEverywhereTests(TestCase):
+    """Every phone field on the storefront has +998 in it (§17 #367)."""
+
+    def setUp(self):
+        from .test_phase15 import catch_sms
+        self.inbox = catch_sms(self)
+
+    def field(self, html):
+        """The phone field's frame, from its opening to its closing tag."""
+        return html.split('<label class="tel"', 1)[1].split('</label>', 1)[0]
+
+    def tag(self, html):
+        """The phone input itself."""
+        return re.search(r'<input[^>]*name="phone"[^>]*>', self.field(html)).group(0)
+
+    def test_both_doors_have_it(self):
+        for door in ('login', 'signup'):
+            with self.subTest(door=door):
+                html = self.client.get(reverse(door)).content.decode()
+                field = self.field(html)
+                self.assertIn('<span class="tel__code">+998</span>', field)
+                tag = self.tag(html)
+                self.assertIn('placeholder="90 123 45 67"', tag)
+                self.assertIn('autofocus', tag)
+                self.assertIn('autocomplete="tel-national"', tag)
+                self.assertIn('value=""', tag)
+                # The old hint, which asked for +998 to be typed, is gone.
+                self.assertNotIn('+998 ...', html)
+
+    def test_no_phone_field_is_left_without_it(self):
+        """Every template that asks for a phone asks for it through the one partial."""
+        for path in sorted((ROOT / 'templates').rglob('*.html')):
+            text = path.read_text(encoding='utf-8')
+            if 'type="tel"' in text:
+                with self.subTest(file=str(path.relative_to(ROOT))):
+                    self.assertEqual(path.name, '_tel.html')
+
+    def test_the_rest_of_the_number_signs_in(self):
+        from .test_phase15 import customer
+        user = customer('+998 90 777 66 55')
+        self.client.post(reverse('login'), {'phone': '90 777 66 55'})
+        self.client.post(reverse('verify_phone'), {'code': self.inbox.code})
+        self.assertEqual(self.client.session.get('_auth_user_id'), str(user.pk))
+
+    def test_a_number_carried_from_the_other_door_shows_once(self):
+        """The link from one door to the other carries the whole number."""
+        response = self.client.get(reverse('signup') + '?phone=%2B998901112233')
+        self.assertIn('value="90 111 22 33"', self.tag(response.content.decode()))
+
+    def test_a_refused_number_comes_back_as_typed_and_says_why(self):
+        response = self.client.post(reverse('login'), {'phone': '12345'})
+        html = response.content.decode()
+        tag = self.tag(html)
+        self.assertIn('value="12345"', tag)
+        self.assertIn('aria-describedby="id_phone_error"', tag)
+        self.assertIn('id="id_phone_error"', html)
+        self.assertIn('field--error', html.split('<label class="tel"', 1)[0].rsplit('<div', 1)[1])
+
+
+class NationalFilterTests(SimpleTestCase):
+    """What a field that shows +998 itself is filled with."""
+
+    def test_a_whole_number_in_any_form_comes_out_as_the_rest(self):
+        from core.templatetags.phone_tags import national
+        for value in ('+998 90 123 45 67', '+998901234567', '998901234567', '901234567',
+                      '90-123-45-67'):
+            with self.subTest(value=value):
+                self.assertEqual(national(value), '90 123 45 67')
+
+    def test_anything_else_is_shown_as_it_came(self):
+        from core.templatetags.phone_tags import national
+        for value in ('12345', '+7 900 123 45 67', 'abc'):
+            with self.subTest(value=value):
+                self.assertEqual(national(value), value)
+        self.assertEqual(national(None), '')
+        self.assertEqual(national(''), '')
+
+
 class TelegramSeedTests(TestCase):
     """What the migration that adds the row does to a shop that has one already."""
 

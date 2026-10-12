@@ -1,0 +1,18 @@
+{% load phone_tags %}{% comment %}
+  The phone field: +998 written in the frame, and the customer types the nine
+  digits after it (§17 #365, #367). The server reads the nine digits, the
+  whole number, or a pasted one alike (`normalize_uz_phone`).
+
+  The frame is a label for the field, so a tap on +998 lands in it and a
+  screen reader names the field with +998 in it. The field's own label, with
+  its words, stays where the page puts it.
+
+  Takes `value` (the number in any form, or nothing), `autofocus`, and
+  `describedby` (the id of the hint or the error under it).
+{% endcomment %}<label class="tel" for="id_phone">
+  <span class="tel__code">+998</span>
+  <input class="tel__input" type="tel" name="phone" id="id_phone" required
+         inputmode="tel" autocomplete="tel-national" placeholder="90 123 45 67"{% if describedby %}
+         aria-describedby="{{ describedby }}"{% endif %}{% if autofocus %} autofocus{% endif %}
+         value="{{ value|national }}">
+</label>
