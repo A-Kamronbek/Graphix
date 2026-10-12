@@ -319,19 +319,6 @@
   </div>
 </section>
 {% endif %}
-
-{# Mobile buy bar. Hidden from 860 px up, where the buy column is always visible. #}
-<div class="pdp__pad" aria-hidden="true"></div>
-<div class="buybar">
-  <span class="buybar__price">
-    <b class="num" data-price-display>{% if selected_variant %}{{ selected_variant.price|price }} {% trans "soʻm" %}{% endif %}</b>
-    <span data-variant-label>{% if selected_variant %}{{ selected_variant.size.size }}{% endif %}</span>
-  </span>
-  <button class="btn btn--primary" type="button" data-buy-jump
-          {% if not is_purchasable %}disabled{% endif %}>
-    {% if is_purchasable %}{% trans "Savatga" %}{% else %}{% trans "Tugadi" %}{% endif %}
-  </button>
-</div>
 {% endblock %}
 
 {% block extra_js %}

@@ -74,16 +74,12 @@
 }
 .pdp__actions { display: flex; gap: var(--s-2); }
 
-/* Mobile keeps the buy bar fixed to the bottom, so the page needs room under it. */
-.pdp__pad { height: 84px; }
-
 @media (min-width: 860px) {
   .pdp {
     grid-template-columns: minmax(0, 1fr) var(--pdp-buy-col);
     gap: var(--s-7);
     align-items: start;
   }
-  .pdp__pad { display: none; }
 }
 
 /* The gallery: main image capped in height, thumbnails below on mobile and in a

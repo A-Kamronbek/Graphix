@@ -680,21 +680,11 @@ html.js .otp__timer { display: block; }
 .msg--warn { border-color: var(--c-warning); background: var(--c-warning-bg); color: var(--c-warning); }
 .msg--err  { border-color: var(--c-danger);  background: var(--c-danger-bg);  color: var(--c-danger); }
 
-/* ============================================ 21. product grid / sticky bar */
+/* ========================================================= 21. product grid */
 .grid-products { display: grid; grid-template-columns: repeat(2, 1fr);
   gap: var(--s-5) var(--s-3); }
 @media (min-width: 720px) { .grid-products { grid-template-columns: repeat(3, 1fr); gap: var(--s-6) var(--s-4); } }
 @media (min-width: 860px) { .grid-products { grid-template-columns: repeat(4, 1fr); } }
-
-.buybar { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-sticky);
-  display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--pad-x);
-  background: color-mix(in srgb, var(--c-bg) 96%, transparent);
-  border-top: 1px solid var(--c-line); backdrop-filter: blur(10px); }
-.buybar__price { display: flex; flex-direction: column; line-height: var(--lh-snug); }
-.buybar__price b { font-size: var(--fs-base); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
-.buybar__price span { font-size: var(--fs-xs); color: var(--c-fg-muted); }
-.buybar .btn { margin-left: auto; }
-@media (min-width: 860px) { .buybar { display: none; } }
 
 /* ===================================================== 19. touch sizing
    Plan §9 sets the floor at 44 x 44. Most controls already meet it; these are
