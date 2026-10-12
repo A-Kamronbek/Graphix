@@ -30,7 +30,7 @@ from core.ratelimit import (RATE_LIMIT_MESSAGE, is_currently_limited,
 from product.templatetags.price_format import price
 from .models import (DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX)
-from user.models import phone_regex
+from user.models import normalize_uz_phone, phone_regex
 from . import promos, services
 
 logger = logging.getLogger(__name__)
@@ -385,7 +385,10 @@ def checkout(request):
 
     post = request.POST
     name = post.get('name', '').strip()
-    phone = post.get('phone', '').strip()
+    # The field shows +998 and takes the nine digits after it; a number typed
+    # or pasted whole comes too. Both are brought to the one form every number
+    # is kept in, so the order and the field shown again agree.
+    phone = normalize_uz_phone(post.get('phone', '').strip())
     notes = post.get('notes', '').strip()
 
     delivery_kwargs, option = _read_delivery(post)
@@ -454,7 +457,11 @@ def checkout(request):
                        % {'n': RECIPIENT_NAME_MAX})
         return again(form_data, delivery)
 
+    # Digits from another script read as digits to the pattern, and the
+    # courier cannot dial them: refused as the sign-in form refuses them.
     try:
+        if any(ch.isdigit() and not ch.isascii() for ch in phone):
+            raise ValidationError(phone_regex.message)
         phone_regex(phone)
     except ValidationError as e:
         messages.error(request, e.messages[0])

@@ -19,9 +19,10 @@ OPTION = {
     'name': 'Telegram admin orqali',
     'name_ru': 'Через администратора в Telegram',
     'name_en': 'Through our Telegram admin',
-    'note': 'Bizga yozing, qanday toʻlashni aytamiz.',
-    'note_ru': 'Напишите нам, и мы подскажем, как оплатить.',
-    'note_en': 'Message us and we will tell you how to pay.',
+    # No note: the name says it all, and the pay page says the rest.
+    'note': '',
+    'note_ru': '',
+    'note_en': '',
     'is_active': True,
     'sort_order': 16,
 }

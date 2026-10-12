@@ -88,9 +88,10 @@ class TelegramOptionTests(CheckoutCase):
         row = PaymentOption.objects.get(code='telegram')
         self.assertTrue(row.is_active)
         self.assertEqual(row.name, 'Telegram admin orqali')
-        for field in ('name_ru', 'name_en', 'note', 'note_ru', 'note_en'):
-            with self.subTest(field=field):
-                self.assertTrue(getattr(row, field))
+        self.assertTrue(row.name_ru)
+        self.assertTrue(row.name_en)
+        # The name is all the checkout says about it (the developer's word).
+        self.assertEqual((row.note, row.note_ru, row.note_en), ('', '', ''))
         PaymentOption.objects.update(is_active=True)
         self.assertEqual(list(PaymentOption.objects.values_list('code', flat=True)),
                          ['click', 'payme', 'octo', 'telegram', 'cash'])
@@ -108,6 +109,14 @@ class TelegramOptionTests(CheckoutCase):
         self.assertIn('alt=""', tag)
         self.assertLess(label.index('pay__mark'),
                         label.index('<strong>Telegram admin orqali</strong>'))
+
+    def test_its_row_carries_the_name_and_nothing_under_it(self):
+        html = self.client.get(reverse('checkout')).content.decode()
+        label = html.split('name="payment_method" value="telegram"', 1)[1].split('</label>', 1)[0]
+        self.assertNotIn('field__hint', label)
+        # Click keeps its note.
+        click = html.split('name="payment_method" value="click"', 1)[1].split('</label>', 1)[0]
+        self.assertIn('field__hint', click)
 
     def test_the_mark_is_a_drawing_that_runs_and_fetches_nothing(self):
         drawing = Path(finders.find(PAYMENT_LOGOS['telegram']['src'])).read_text(encoding='utf-8')
@@ -221,6 +230,8 @@ class TelegramPayPageTests(TelegramOrderCase):
     def test_the_page_says_what_happens_and_names_the_admin_for_who_cannot_open_it(self):
         html = self.page().content.decode()
         self.assertIn('Telegram orqali toʻlov', html)
+        self.assertIn('Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. '
+                      'Admin buyurtmangiz uchun toʻlovni tasdiqlaydi.', html)
         self.assertIn('Telegramda yozish', html)
         # A screen reader is told the button leaves this tab.
         self.assertIn('<span class="sr-only">(yangi oynada ochiladi)</span>', html)
@@ -412,6 +423,59 @@ class OtherMethodsTests(TelegramOrderCase):
                          r'<h1 class="h1">\s*Pay with Click\s*</h1>')
 
 
+class PhoneFieldTests(CheckoutCase):
+    """The checkout's phone field has +998 in it, and the customer types the rest."""
+
+    def field(self, html):
+        """The phone field's frame, from its opening to its closing tag."""
+        return html.split('<label class="tel"', 1)[1].split('</label>', 1)[0]
+
+    def test_the_code_is_written_in_the_field(self):
+        html = self.client.get(reverse('checkout')).content.decode()
+        field = self.field(html)
+        self.assertIn('for="id_phone"', field)
+        self.assertIn('<span class="tel__code">+998</span>', field)
+        tag = re.search(r'<input[^>]*name="phone"[^>]*>', field).group(0)
+        self.assertIn('placeholder="90 123 45 67"', tag)
+        self.assertIn('autocomplete="tel-national"', tag)
+        self.assertIn('inputmode="tel"', tag)
+        self.assertIn('required', tag)
+        self.assertIn('value=""', tag)
+
+    def test_the_rest_of_the_number_is_enough(self):
+        for typed in ('90 122 00 03', '901220003', '90-122-00-03'):
+            with self.subTest(typed=typed):
+                Order.objects.all().delete()
+                self.cart.status = True
+                self.cart.save(update_fields=['status'])
+                self.post(phone=typed)
+                self.assertEqual(Order.objects.get().phone, '+998 90 122 00 03')
+
+    def test_a_number_typed_or_pasted_whole_is_read_the_same(self):
+        for typed in ('+998901220003', '+998 90 122 00 03', '998901220003'):
+            with self.subTest(typed=typed):
+                Order.objects.all().delete()
+                self.cart.status = True
+                self.cart.save(update_fields=['status'])
+                self.post(phone=typed)
+                self.assertEqual(Order.objects.get().phone, '+998 90 122 00 03')
+
+    def test_a_number_that_is_not_one_is_refused(self):
+        for typed in ('12345', '90 122 00', '+7 900 122 00 03', '\u0669\u0660\u0661\u0662\u0662\u0660\u0660\u0660\u0663'):
+            with self.subTest(typed=typed):
+                response = self.post(phone=typed)
+                self.assertEqual(response.status_code, 200)
+                self.assertFalse(Order.objects.exists())
+                self.assertIn('format: +998 XX XXX XX XX', self.said(response))
+
+    def test_shown_again_it_is_the_rest_of_the_number(self):
+        """A form sent back for another reason keeps the number, without +998 twice."""
+        response = self.post(phone='+998901220003', name='')
+        self.assertFalse(Order.objects.exists())
+        tag = re.search(r'<input[^>]*name="phone"[^>]*>', response.content.decode()).group(0)
+        self.assertIn('value="90 122 00 03"', tag)
+
+
 class TelegramSeedTests(TestCase):
     """What the migration that adds the row does to a shop that has one already."""
 
@@ -435,14 +499,6 @@ class TelegramSeedTests(TestCase):
         self.migration.backwards(self.models, None)
         self.assertFalse(PaymentOption.objects.filter(code='telegram').exists())
         self.assertTrue(PaymentOption.objects.filter(code='click').exists())
-
-    def test_the_uzbek_is_written_with_its_own_letter(self):
-        """U+02BB, and not the apostrophe a keyboard offers in its place."""
-        note = self.migration.OPTION['note']
-        self.assertIn('\u02bb', note)
-        for wrong in ("'", '`', '\u2018', '\u2019'):
-            with self.subTest(wrong=wrong):
-                self.assertNotIn(wrong, note)
 
 
 class ChartForTheRestTests(TestCase):

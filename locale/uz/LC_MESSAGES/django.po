@@ -2402,9 +2402,8 @@ msgstr ""
 
 #: .\templates\payment\payment.html:48
 msgid ""
-"Tugmani bosing: Telegramda adminimiz bilan suhbat ochiladi, xabar esa tayyor "
-"turadi. Uni yuboring, admin qanday toʻlashni aytadi. Toʻlov tasdiqlangach, "
-"buyurtmangiz holati oʻzgaradi."
+"Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
+"buyurtmangiz uchun toʻlovni tasdiqlaydi."
 msgstr ""
 
 #: .\templates\payment\payment.html:56
@@ -3023,6 +3022,12 @@ msgstr ""
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr ""
+
+#~ msgid ""
+#~ "Tugmani bosing: Telegramda adminimiz bilan suhbat ochiladi, xabar esa tayyor "
+#~ "turadi. Uni yuboring, admin qanday toʻlashni aytadi. Toʻlov tasdiqlangach, "
+#~ "buyurtmangiz holati oʻzgaradi."
+#~ msgstr ""
 
 #~ msgid "Click orqali toʻlov"
 #~ msgstr ""

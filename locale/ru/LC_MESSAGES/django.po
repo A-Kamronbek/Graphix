@@ -2453,13 +2453,11 @@ msgstr "Промокод %(code)s: −%(off)s сум"
 
 #: .\templates\payment\payment.html:48
 msgid ""
-"Tugmani bosing: Telegramda adminimiz bilan suhbat ochiladi, xabar esa tayyor "
-"turadi. Uni yuboring, admin qanday toʻlashni aytadi. Toʻlov tasdiqlangach, "
-"buyurtmangiz holati oʻzgaradi."
+"Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
+"buyurtmangiz uchun toʻlovni tasdiqlaydi."
 msgstr ""
-"Нажмите кнопку: в Telegram откроется чат с нашим администратором, а "
-"сообщение уже будет написано. Отправьте его, и администратор подскажет, как "
-"оплатить. Когда оплата подтвердится, статус заказа изменится."
+"Свяжитесь с администратором в Telegram и оплатите заказ. Администратор "
+"подтвердит оплату."
 
 #: .\templates\payment\payment.html:56
 msgid "Telegramda yozish"
@@ -3099,6 +3097,15 @@ msgstr "Изображение не выбрано."
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Изображение сохранено."
+
+#~ msgid ""
+#~ "Tugmani bosing: Telegramda adminimiz bilan suhbat ochiladi, xabar esa tayyor "
+#~ "turadi. Uni yuboring, admin qanday toʻlashni aytadi. Toʻlov tasdiqlangach, "
+#~ "buyurtmangiz holati oʻzgaradi."
+#~ msgstr ""
+#~ "Нажмите кнопку: в Telegram откроется чат с нашим администратором, а "
+#~ "сообщение уже будет написано. Отправьте его, и администратор подскажет, как "
+#~ "оплатить. Когда оплата подтвердится, статус заказа изменится."
 
 #~ msgid "Click orqali toʻlov"
 #~ msgstr "Оплата через Click"
