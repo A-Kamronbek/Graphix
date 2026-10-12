@@ -298,18 +298,27 @@ html.js .otp__timer { display: block; }
 /* ============================================== 9. heart / share / badges */
 .like { display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
   color: var(--c-fg); padding: var(--s-2); border-radius: var(--r-sm);
-  min-width: 44px; min-height: 44px; transition: color var(--t-fast); }
-.like:hover { color: var(--c-brand); }
-.like[aria-pressed="true"] { color: var(--c-brand); }
-.like[aria-pressed="true"] .i { fill: currentColor; }
+  min-width: 44px; min-height: 44px; }
+/* Only the heart takes the brass, under a pointer and once pressed. The
+   button's ground never changes, and the count stays in ink: a number is
+   read, and the brass a fill takes is too pale for that (§17 #353).
+
+   The hover is asked for only where a pointer can hover. A touch screen
+   leaves `:hover` on the last thing tapped, so on a phone a heart that had
+   been tapped stayed in its hover state until something else was (§17 #355). */
+.like .i { transition: color var(--t-fast); }
+@media (hover: hover) { .like:hover .i { color: var(--c-brand); } }
+.like[aria-pressed="true"] .i { color: var(--c-brand); fill: currentColor; }
 .like__count { font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 /* The floating heart on a card. It is the <form>, not the button: the button
    inside keeps .like's own sizing and pressed state, and z-index puts the whole
    thing above the card's link so the tap lands on the heart. */
 .like--float { position: absolute; top: var(--s-2); right: var(--s-2); z-index: 1;
-  background: color-mix(in srgb, var(--c-bg) 66%, transparent);
-  border-radius: var(--r-full); backdrop-filter: blur(4px); }
-.like--float:hover { background: var(--c-brand); color: var(--c-brand-fg); }
+  background: color-mix(in srgb, var(--c-bg) 86%, transparent);
+  border-radius: var(--r-full); backdrop-filter: blur(4px);
+  /* On a white photograph the ground is the photograph's own colour, and
+     the shadow is what still says there is a button here. */
+  box-shadow: var(--sh-sm); }
 /* A count of zero is hidden rather than absent, so the toggle can reveal it
    without rebuilding the button. */
 .like__count[hidden] { display: none; }
