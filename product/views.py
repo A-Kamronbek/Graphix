@@ -17,7 +17,7 @@ from django.views.decorators.http import require_POST
 from core import seo
 from core.i18n import tfield
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
-from . import images, services
+from . import images, services, size_charts
 from .models import Colour, Product, ProductLike, Review, Size, Tag, Variant
 
 
@@ -302,6 +302,9 @@ def item(request, slug):
         'is_purchasable': is_purchasable,
         'variants_json': json.dumps(variants_map),
         'size_chart': product.resolve_size_chart(),
+        # The choosing table, each row tied to the size it is for so the
+        # viewer can mark the one the customer has picked.
+        'size_fit': size_charts.fit_rows(sizes),
         # The drawn chart comes from the context processor, which is also what
         # the standalone page and the footer link read - so the two pages can
         # never show different files (§17 #111).

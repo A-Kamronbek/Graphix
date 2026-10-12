@@ -339,13 +339,15 @@ class SizeChartTests(TestCase):
     neither answers, the product gets nothing rather than a guess.
     """
 
-    def test_both_seeded_charts_have_four_measured_rows(self):
+    def test_the_shops_chart_has_a_measured_row_for_each_size(self):
+        """One chart since the owner supplied his own (§17 #357); it was two."""
         from product import size_charts
         from product.models import SizeChart
-        for name in size_charts.BY_NAME:
+        self.assertEqual(list(size_charts.BY_NAME), [size_charts.NAME])
+        for name, table in size_charts.BY_NAME.items():
             chart = SizeChart.objects.filter(name=name).first()
             self.assertIsNotNone(chart, f'no chart seeded as {name!r}')
-            self.assertEqual(chart.rows.count(), 4)
+            self.assertEqual(chart.rows.count(), len(table))
 
     def test_the_products_own_chart_is_the_one_that_resolves(self):
         from product.models import SizeChart
@@ -384,7 +386,9 @@ class SizeChartTests(TestCase):
     def test_the_standalone_page_renders_now_that_charts_exist(self):
         response = self.client.get(reverse('size_guide'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Oversize')
+        self.assertContains(response, 'Koʻkrak aylanasi, sm')
+        # The largest size's chest, from the seeded rows.
+        self.assertContains(response, '>126<')
 
     def test_the_guide_is_advertised_once_there_is_one(self):
         from core.context_processors import size_guide

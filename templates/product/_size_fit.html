@@ -1,0 +1,33 @@
+{% load i18n legal_tags %}
+{# The owner's guide to choosing a size: a height and a weight for each. #}
+{# Expects `size_fit`, the rows product.size_charts.fit_rows() makes. On the #}
+{# product page a row carries its size's id, and the viewer marks the row for #}
+{# the size the customer has picked the same way it marks the measured one. #}
+{# #}
+{# Three short columns, so it stays a table on a phone: these are ranges to #}
+{# run an eye down, and a card for every size would hide that. Each range is #}
+{# printed as one value that cannot break at its dash (§17 #204). #}
+{% if size_fit %}
+  <section class="stack">
+    <h2 class="h3">{% trans "Oʻlchamni tanlash" %}</h2>
+    <table class="table table--keep sizeguide__table">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Oʻlcham" %}</th>
+          <th scope="col" class="num">{% trans "Boʻy, sm" %}</th>
+          <th scope="col" class="num">{% trans "Vazn, kg" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in size_fit %}
+          <tr{% if row.size_id %} data-row-size="{{ row.size_id }}"{% endif %}>
+            <th scope="row">{{ row.label }}</th>
+            <td class="num">{{ row.height.0|legal_range:row.height.1 }}</td>
+            <td class="num">{{ row.weight.0|legal_range:row.weight.1 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="small muted">{% trans "Tavsiyalar taxminiy. Agar ikki oʻlcham oraligʻida boʻlsangiz, ixchamroq fason uchun kichikrogʻini, erkinroq oversize fason uchun kattarogʻini tanlang." %}</p>
+  </section>
+{% endif %}

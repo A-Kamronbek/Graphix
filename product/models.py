@@ -535,7 +535,12 @@ class Variant(models.Model):
 
 
 class SizeChartRow(models.Model):
-    """One measured row of a size chart. Optional — the chart image is the source."""
+    """One measured row of a size chart. Optional — the chart image is the source.
+
+    Centimetres, taken from the garment. ``chest_cm`` is the measure all the
+    way round the chest, as the owner's own chart gives it; until that chart
+    arrived it was half of that, taken flat (§17 #357).
+    """
     chart = models.ForeignKey(SizeChart, on_delete=models.CASCADE, related_name='rows')
     size = models.ForeignKey(Size, on_delete=models.PROTECT)
     chest_cm = models.DecimalField(max_digits=4, decimal_places=1)

@@ -374,6 +374,10 @@ html.js .otp__timer { display: block; }
 /* The chart block the viewer clones. Present in the document so the viewer has
    real markup to show, and hidden until it is asked for. */
 .sizeguide[hidden] { display: none; }
+/* A row's own heading is its size, and is read as one: the small capitals a
+   column heading is set in would make "XS" the quietest thing in its row. */
+.sizeguide__table tbody th { font-size: inherit; font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-normal); text-transform: none; color: var(--c-fg); }
 .sizeguide__table tr.is-current th,
 .sizeguide__table tr.is-current td { color: var(--c-brand-ink); font-weight: var(--fw-bold); }
 .sizeguide__table tr.is-current th { box-shadow: inset 3px 0 0 var(--c-brand); }
@@ -451,6 +455,19 @@ html.js .otp__timer { display: block; }
     border: 0; padding: var(--s-2) 0; }
   .table td::before { content: attr(data-label); color: var(--c-fg-muted); font-size: var(--fs-sm); }
   .table .num { text-align: right; }
+}
+
+/* A table narrow enough to stay a table on a phone: a few short columns read
+   better as rows to run an eye down than as a card for every row. */
+@media (max-width: 719px) {
+  .table--keep { display: table; }
+  .table--keep thead { display: table-header-group; }
+  .table--keep tbody { display: table-row-group; }
+  .table--keep tr { display: table-row; border: 0; border-radius: 0;
+    margin: 0; padding: 0; }
+  .table--keep th, .table--keep td { display: table-cell; width: auto;
+    padding: var(--s-3) var(--s-2); border-bottom: 1px solid var(--c-line); }
+  .table--keep td::before { content: none; }
 }
 
 /* ====================================================== 15. filters / chips */

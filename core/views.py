@@ -181,6 +181,7 @@ def size_guide(request):
 
     The modal on the product page is Phase 6a; this page is its indexable twin.
     """
+    from product import size_charts
     from product.models import SizeChart
     from .context_processors import size_guide_image
     charts = list(SizeChart.objects.prefetch_related('rows__size'))
@@ -189,7 +190,10 @@ def size_guide(request):
         raise Http404('no size guide has been uploaded yet')
     # The picture and its dimensions come from the context processor, which is
     # the one place that looks it up (§17 #111).
-    return render(request, 'core/size_guide.html', {'charts': charts})
+    return render(request, 'core/size_guide.html', {
+        'charts': charts,
+        'size_fit': size_charts.fit_rows(),
+    })
 
 
 def about(request):

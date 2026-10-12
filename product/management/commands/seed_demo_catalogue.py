@@ -47,7 +47,7 @@ CATALOGUE = [
     ('fade',      'Fade',           'Fade',           'Fade',           185000, ['streetwear']),
 ]
 
-SIZES = ('S', 'M', 'L', 'XL')
+SIZES = ('XS', 'S', 'M', 'L', 'XL')
 
 # slug, link, and the alt in the three languages.
 #
@@ -185,9 +185,8 @@ class Command(BaseCommand):
             size_charts.rebuild_rows({s.size: s for s in sizes})
             # A product used to find a chart through its cut; the cut is gone
             # (§17 #172) and a chart now reaches a product only because
-            # somebody attached it. The seeded catalogue attaches them itself,
-            # alternating, so both charts render somewhere and the size guide
-            # is on every demo product exactly as it was before.
+            # somebody attached it. The seeded catalogue attaches the shop's
+            # chart itself, so the size guide is on every demo product.
             chart_names = list(size_charts.BY_NAME)
             demo_charts = [SizeChart.objects.filter(name=n).first() for n in chart_names]
             demo_charts = [c for c in demo_charts if c is not None]
@@ -204,7 +203,7 @@ class Command(BaseCommand):
                     # A row now rather than a choice (§17, Phase 7 recheck);
                     # migration 0019 seeds the four the code used to hold.
                     print_method=PrintMethod.objects.filter(slug='dtf').first(),
-                    # Alternated so both seeded charts are on something.
+                    # By turns, should there ever be more than one again.
                     size_chart=(demo_charts[i % len(demo_charts)] if demo_charts else None),
                     # Phase 6b maintains this; seeded so the hearts are not all zero.
                     likes_count=(i * 7) % 23,

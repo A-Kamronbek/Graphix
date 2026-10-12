@@ -11,6 +11,10 @@
   exist yet. The owner's image comes first because it is the thing people
   actually read; the structured charts are the machine-readable version behind
   it and arrive with Phase 6.
+
+  A chart's own name is a heading only when there is more than one chart to
+  tell apart. The shop has one (§17 #357), and its name is the owner's label
+  for it in the panel, in Uzbek alone.
 {% endcomment %}
 
 {% block content %}
@@ -34,7 +38,11 @@
         {# heading on this page — the panel refuses that now, but the Django #}
         {# admin can still write one and a heading with nothing in it is worse #}
         {# than no heading at all. #}
-        {% if chart.name %}<h2 class="h3">{{ chart.name }}</h2>{% endif %}
+        {% if charts|length > 1 %}
+          {% if chart.name %}<h2 class="h3">{{ chart.name }}</h2>{% endif %}
+        {% else %}
+          <h2 class="h3">{% trans "Kiyim oʻlchamlari" %}</h2>
+        {% endif %}
         {% if chart.image %}
           <img class="sizeguide__img" {% photo_attrs chart 'chart' %}
                alt="{{ chart.name }}" loading="lazy" decoding="async">
@@ -46,21 +54,23 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th>{% trans "Oʻlcham" %}</th>
-                  <th class="num">{% trans "Koʻkrak, sm" %}</th>
-                  <th class="num">{% trans "Uzunlik, sm" %}</th>
-                  <th class="num">{% trans "Yelka, sm" %}</th>
-                  <th class="num">{% trans "Yeng, sm" %}</th>
+                  <th scope="col">{% trans "Oʻlcham" %}</th>
+                  <th scope="col" class="num">{% trans "Koʻkrak aylanasi, sm" %}</th>
+                  <th scope="col" class="num">{% trans "Yelka, sm" %}</th>
+                  <th scope="col" class="num">{% trans "Yeng, sm" %}</th>
+                  <th scope="col" class="num">{% trans "Uzunlik, sm" %}</th>
                 </tr>
               </thead>
               <tbody>
                 {% for row in chart.rows.all %}
                   <tr>
+                    {# A whole number of centimetres is printed as one; #}
+                    {# a half keeps its half. #}
                     <td data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</td>
-                    <td data-label="{% trans 'Koʻkrak, sm' %}" class="num">{{ row.chest_cm }}</td>
-                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm }}</td>
-                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{{ row.shoulder_cm|default:"—" }}</td>
-                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{{ row.sleeve_cm|default:"—" }}</td>
+                    <td data-label="{% trans 'Koʻkrak aylanasi, sm' %}" class="num">{{ row.chest_cm|floatformat:"-1" }}</td>
+                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{% if row.shoulder_cm is None %}—{% else %}{{ row.shoulder_cm|floatformat:"-1" }}{% endif %}</td>
+                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{% if row.sleeve_cm is None %}—{% else %}{{ row.sleeve_cm|floatformat:"-1" }}{% endif %}</td>
+                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm|floatformat:"-1" }}</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -69,6 +79,8 @@
         {% endif %}
       </section>
     {% endfor %}
+
+    {% include "product/_size_fit.html" %}
 
     <p class="body">{% trans "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz." %}</p>
     <a class="btn btn--primary" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
