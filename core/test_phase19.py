@@ -672,6 +672,7 @@ class ClickLogoTests(CheckoutCase):
         PaymentOption.objects.filter(code='cash').update(is_active=True)
         self.assertIsNone(PaymentOption.objects.get(code='cash').logo)
         html = self.client.get(reverse('checkout')).content.decode()
-        self.assertEqual(html.count('pay__mark'), 1)
+        marked = [row for row in PaymentOption.objects.filter(is_active=True) if row.logo]
+        self.assertEqual(html.count('pay__mark'), len(marked))
         cash = html.split('name="payment_method" value="cash"', 1)[1].split('</label>', 1)[0]
         self.assertNotIn('<img', cash)

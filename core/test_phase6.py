@@ -728,7 +728,9 @@ class PaymentOptionTests(TestCase):
     def test_the_checkout_does_not_offer_an_inactive_method(self):
         response = self.client.get(reverse('checkout'))
         codes = [o.code for o in response.context['payment_options']]
-        self.assertEqual(codes, ['click'])
+        # Telegram is switched on from the start, as the way to pay while a
+        # gateway cannot (§17 #362). Payme, Octo and cash are not.
+        self.assertEqual(codes, ['click', 'telegram'])
 
     def test_a_posted_inactive_method_is_refused_rather_than_defaulted_past(self):
         from payment.models import Order
