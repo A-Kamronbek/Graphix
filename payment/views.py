@@ -30,7 +30,7 @@ from core.ratelimit import (RATE_LIMIT_MESSAGE, is_currently_limited,
 from product.templatetags.price_format import price
 from .models import (DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX)
-from user.models import phone_regex
+from user.models import normalize_uz_phone, phone_regex
 from . import promos, services
 
 logger = logging.getLogger(__name__)
@@ -385,7 +385,10 @@ def checkout(request):
 
     post = request.POST
     name = post.get('name', '').strip()
-    phone = post.get('phone', '').strip()
+    # The field shows +998 and takes the nine digits after it; a number typed
+    # or pasted whole comes too. Both are brought to the one form every number
+    # is kept in, so the order and the field shown again agree.
+    phone = normalize_uz_phone(post.get('phone', '').strip())
     notes = post.get('notes', '').strip()
 
     delivery_kwargs, option = _read_delivery(post)
@@ -454,7 +457,11 @@ def checkout(request):
                        % {'n': RECIPIENT_NAME_MAX})
         return again(form_data, delivery)
 
+    # Digits from another script read as digits to the pattern, and the
+    # courier cannot dial them: refused as the sign-in form refuses them.
     try:
+        if any(ch.isdigit() and not ch.isascii() for ch in phone):
+            raise ValidationError(phone_regex.message)
         phone_regex(phone)
     except ValidationError as e:
         messages.error(request, e.messages[0])
@@ -526,16 +533,33 @@ def checkout_promo(request):
     return JsonResponse({'ok': True, **_promo_payload(preview)})
 
 
-# ---------- payment (Click) ----------
+# ---------- payment ----------
 
 @login_required
 def payment(request, order_id):
-    """Show the payment page for an order."""
+    """Show the payment page for an order.
+
+    An order paid for through the shop's admin has no gateway to be sent to.
+    Its page carries the link that opens the chat, and only while the order
+    is waiting to be paid for: once staff have marked it paid or it has been
+    cancelled there is nothing left to write about, and the customer is shown
+    where the order stands (§17 #362).
+    """
     order = get_object_or_404(
-        Order.objects.select_related('cart').prefetch_related('cart__cart_items__variant__product'),
+        Order.objects.select_related('cart', 'user')
+        .prefetch_related('cart__cart_items__variant__product'),
         pk=order_id, user=request.user,
     )
-    return render(request, 'payment/payment.html', {'order': order})
+    context = {'order': order}
+    if order.payment_method == Order.PaymentMethod.TELEGRAM:
+        if order.status != Order.Status.PAYING:
+            messages.info(request, _("Bu buyurtma uchun toʻlov holati "
+                                     "allaqachon oʻzgargan."))
+            return redirect('order_status', pk=order.id)
+        context.update(by_telegram=True,
+                       telegram_admin=services.telegram_admin(),
+                       telegram_link=services.telegram_pay_link(order))
+    return render(request, 'payment/payment.html', context)
 
 
 @login_required

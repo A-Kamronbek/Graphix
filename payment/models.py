@@ -87,9 +87,11 @@ class DeliveryOption(models.Model):
 #: with no entry is shown by its name alone.
 #:
 #: Click's is its own drawing, the one its site and its developer pages
-#: carry, so it is sharp at any size.
+#: carry, so it is sharp at any size. Telegram's is the one telegram.org
+#: carries.
 PAYMENT_LOGOS = {
     'click': {'src': 'img/pay/click.svg', 'width': 24, 'height': 24},
+    'telegram': {'src': 'img/pay/telegram.svg', 'width': 24, 'height': 24},
 }
 
 
@@ -374,6 +376,9 @@ class Order(models.Model):
         PAYME = 'payme', 'Payme'
         OCTO = 'octo', 'Octo'
         CASH = 'cash', _('Naqd pul')
+        # Paid for in a chat with the shop's admin, who then marks the order
+        # paid by hand. No gateway is asked and none calls back (§17 #362).
+        TELEGRAM = 'telegram', _('Telegram admin orqali')
 
     # PROTECT, not CASCADE: an order is a sales record the Tax Code keeps and
     # the privacy policy promises to keep after an account is closed, so

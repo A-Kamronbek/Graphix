@@ -9,7 +9,13 @@
     <div class="stack stack--lg">
       <div class="stack stack--sm">
         <span class="eyebrow">{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}</span>
-        <h1 class="h1">{% trans "Click orqali toʻlov" %}</h1>
+        {# The heading names the method the order was placed with. #}
+        <h1 class="h1">
+          {% if by_telegram %}{% trans "Telegram orqali toʻlov" %}
+          {% else %}{% blocktrans trimmed with method=order.get_payment_method_display %}
+            {{ method }} orqali toʻlov
+          {% endblocktrans %}{% endif %}
+        </h1>
         <p class="pdp__price num">{{ order.total_price|price }} {% trans "soʻm" %}</p>
         {# Why the figure above is less than the lines below add up to. #}
         {% if order.discount %}
@@ -30,10 +36,42 @@
         {% endfor %}
       </ul>
 
-      <form method="post" action="{% url 'payment_start' order.id %}">
-        {% csrf_token %}
-        <button class="btn btn--primary btn--lg btn--block" type="submit">{% trans "Toʻlovga oʻtish" %}</button>
-      </form>
+      {% if by_telegram %}
+        {% comment %}
+          No gateway: the customer writes to the shop's admin, and staff mark
+          the order paid. A link and not a form, so the site stays open in
+          this tab while Telegram opens in its own.
+        {% endcomment %}
+        {% if telegram_link %}
+          <p class="muted">
+            {% blocktrans trimmed %}
+              Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring.
+              Admin buyurtmangiz uchun toʻlovni tasdiqlaydi.
+            {% endblocktrans %}
+          </p>
+          <a class="btn btn--primary btn--lg btn--block" href="{{ telegram_link }}"
+             target="_blank" rel="noopener noreferrer">
+            {% trans "Telegramda yozish" %}
+            <span class="sr-only">{% trans "(yangi oynada ochiladi)" %}</span>
+          </a>
+          <p class="small muted pay__ref">
+            {% blocktrans trimmed with admin=telegram_admin number=order.order_no|default:order.id %}
+              Telegram ochilmasa, bizga oʻzingiz yozing: <strong>@{{ admin }}</strong>.
+              Buyurtma raqami: <strong>{{ number }}</strong>.
+            {% endblocktrans %}
+          </p>
+        {% else %}
+          <p class="msg msg--warn">
+            {% trans "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning." %}
+            <a class="link" href="{% url 'contact' %}">{% trans "Aloqa" %}</a>
+          </p>
+        {% endif %}
+      {% else %}
+        <form method="post" action="{% url 'payment_start' order.id %}">
+          {% csrf_token %}
+          <button class="btn btn--primary btn--lg btn--block" type="submit">{% trans "Toʻlovga oʻtish" %}</button>
+        </form>
+      {% endif %}
 
       <div class="row row--wrap">
         <a class="btn btn--ghost btn--sm" href="{% url 'order_detail' order.id %}">{% trans "Buyurtma tafsilotlari" %}</a>

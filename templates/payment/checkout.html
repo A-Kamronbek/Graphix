@@ -69,11 +69,23 @@
                  autocomplete="name" value="{{ form_data.name|default:'' }}">
           <small class="field__hint">{% trans "Joʻnatma shu ismga yuboriladi." %}</small>
         </div>
+        {% comment %}
+          The country code is written in the field and is not typed: the
+          customer writes the nine digits after it. A number typed or pasted
+          whole, with its +998, is read the same way. The frame is a label,
+          so a tap on +998 lands in the field, and +998 is part of the
+          field's name for a screen reader.
+        {% endcomment %}
         <div class="field">
           <label class="label" for="id_phone">{% trans "Telefon" %} <span class="req" aria-hidden="true">*</span></label>
-          <input class="input" type="tel" name="phone" id="id_phone" required
-                 autocomplete="tel" placeholder="+998 ..." value="{{ form_data.phone|default:'' }}">
-          <small class="field__hint">{% trans "Kuryer shu raqamga qoʻngʻiroq qiladi." %}</small>
+          <label class="tel" for="id_phone">
+            <span class="tel__code">+998</span>
+            <input class="tel__input" type="tel" name="phone" id="id_phone" required
+                   inputmode="tel" autocomplete="tel-national" placeholder="90 123 45 67"
+                   aria-describedby="id_phone_hint"
+                   value="{{ form_data.phone|default:''|cut:'+998 ' }}">
+          </label>
+          <small class="field__hint" id="id_phone_hint">{% trans "Kuryer shu raqamga qoʻngʻiroq qiladi." %}</small>
         </div>
       </section>
 
@@ -288,7 +300,7 @@
               {% endif %}
               <span>
                 <strong>{{ opt|t:"name" }}</strong>
-                <span class="field__hint">{{ opt|t:"note" }}</span>
+                {% with note=opt|t:"note" %}{% if note %}<span class="field__hint">{{ note }}</span>{% endif %}{% endwith %}
               </span>
             </label>
           {% empty %}
