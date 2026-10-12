@@ -13,6 +13,11 @@ back what the sale holds whenever a move crosses that line. It did not, for
 a long time, and a paid order cancelled from the panel kept its shirts out of
 stock (§17 #57).
 
+A move into a sale also tells the shop, with the same one message a gateway's
+payment sends. An order paid through the shop's admin on Telegram becomes a
+sale here and nowhere else, and the message is what says there is a parcel to
+pack (§17 #237, #364).
+
 The function records; it does not decide policy. Which statuses a *panel* user
 may set is the panel's business and lives with the view, because the Django
 admin is a superuser tool with a different answer. Keeping the two apart is
@@ -20,6 +25,7 @@ what lets the admin route through here as well, instead of writing silently.
 """
 from django.db import transaction
 
+from core import telegram
 from payment import services as payment_services
 from payment.models import Order, SOLD
 from .models import OrderStatusChange
@@ -66,6 +72,9 @@ def set_status(order, status, by=None, note=''):
     # crosses nothing and takes nothing more.
     if status in SOLD and previous not in SOLD:
         payment_services.take_for_sale(locked)
+        # Queued, and sent once this move has committed: a move that rolls
+        # back sends nothing.
+        telegram.notify_paid_order(locked)
     elif previous in SOLD and status not in SOLD:
         payment_services.return_from_sale(locked)
     locked.status = status

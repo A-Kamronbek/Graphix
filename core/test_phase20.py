@@ -15,6 +15,7 @@ sees.
 import importlib
 import re
 from pathlib import Path
+from unittest import mock
 from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
@@ -25,7 +26,9 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import translation
 
+from core import telegram
 from core.middleware import PAY_PAGES
+from panel.models import OrderStatusChange
 from panel.services import set_status
 from payment import services
 from payment.models import PAYMENT_LOGOS, Order, PaymentOption
@@ -328,6 +331,39 @@ class StaffMarkItPaidTests(TelegramOrderCase):
         self.assertEqual(stock_of(self.shirt_m), before - 2)
         self.assertEqual((change.from_status, change.to_status, change.changed_by),
                          (Order.Status.PAYING, Order.Status.PAID, staff))
+
+    def test_marking_it_paid_tells_the_shop_once_it_has_committed(self):
+        """The one message a gateway's payment sends, for a sale staff record."""
+        with mock.patch.object(telegram, 'deliver') as sent:
+            with self.captureOnCommitCallbacks(execute=False) as queued:
+                set_status(self.order, Order.Status.PAID, by=make_staff())
+            sent.assert_not_called()
+            for callback in queued:
+                callback()
+        self.assertEqual(sent.call_count, 1)
+        event, text = sent.call_args.args[:2]
+        self.assertEqual(event, 'order.paid')
+        self.assertIn(self.order.order_no, text)
+        self.assertIn('Telegram admin orqali', text)
+
+    def test_moving_a_sale_along_tells_nobody_again(self):
+        staff = make_staff()
+        set_status(self.order, Order.Status.PAID, by=staff)
+        with mock.patch.object(telegram, 'notify_paid_order') as told:
+            set_status(self.order, Order.Status.PROCESSING, by=staff)
+            set_status(self.order, Order.Status.ON_THE_WAY, by=staff)
+            set_status(self.order, Order.Status.DONE, by=staff)
+        told.assert_not_called()
+
+    def test_a_move_that_fails_tells_nobody(self):
+        with mock.patch.object(telegram, 'deliver') as sent, \
+                mock.patch.object(OrderStatusChange.objects, 'create', side_effect=RuntimeError):
+            with self.captureOnCommitCallbacks(execute=True):
+                with self.assertRaises(RuntimeError):
+                    set_status(self.order, Order.Status.PAID, by=make_staff())
+        sent.assert_not_called()
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.Status.PAYING)
 
     def test_the_panel_offers_paid_for_an_order_that_waits(self):
         self.client.force_login(make_staff())
