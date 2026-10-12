@@ -1975,10 +1975,14 @@ msgstr "Размеры в сантиметрах, сняты с самой ве�
 msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 msgstr "Таблица размеров футболок GRAPHIX"
 
-#: .\templates\core\size_guide.html:50 .\templates\core\size_guide.html:60
-#: .\templates\product\item.html:277 .\templates\product\item.html:289
-msgid "Koʻkrak, sm"
-msgstr "Грудь, см"
+#: .\templates\core\size_guide.html:44 .\templates\product\item.html:269
+msgid "Kiyim oʻlchamlari"
+msgstr "Замеры изделия"
+
+#: .\templates\core\size_guide.html:58 .\templates\core\size_guide.html:70
+#: .\templates\product\item.html:276 .\templates\product\item.html:288
+msgid "Koʻkrak aylanasi, sm"
+msgstr "Обхват груди, см"
 
 #: .\templates\core\size_guide.html:51 .\templates\core\size_guide.html:61
 #: .\templates\product\item.html:278 .\templates\product\item.html:290
@@ -2570,6 +2574,28 @@ msgstr "%(current)s / %(total)s"
 msgid "Keyingi"
 msgstr "Вперёд"
 
+#: .\templates\product\_size_fit.html:11
+msgid "Oʻlchamni tanlash"
+msgstr "Подбор размера"
+
+#: .\templates\product\_size_fit.html:16
+msgid "Boʻy, sm"
+msgstr "Рост, см"
+
+#: .\templates\product\_size_fit.html:17
+msgid "Vazn, kg"
+msgstr "Вес, кг"
+
+#: .\templates\product\_size_fit.html:30
+msgid ""
+"Tavsiyalar taxminiy. Agar ikki oʻlcham oraligʻida boʻlsangiz, ixchamroq "
+"fason uchun kichikrogʻini, erkinroq oversize fason uchun kattarogʻini "
+"tanlang."
+msgstr ""
+"Рекомендации ориентировочные. Если вы между двумя размерами, выбирайте "
+"меньший размер для более аккуратной посадки и больший — для более свободной "
+"oversize-посадки."
+
 #: .\templates\product\item.html:7 .\templates\product\item.html:8
 #, python-format
 msgid ""
@@ -2615,10 +2641,6 @@ msgstr "Печать"
 #: .\templates\product\item.html:316
 msgid "Sizga yoqishi mumkin"
 msgstr "Вам может понравиться"
-
-#: .\templates\product\item.html:335
-msgid "Savatga"
-msgstr "В корзину"
 
 #: .\templates\product\liked.html:26
 msgid "Hali hech narsa saqlanmagan"
@@ -2735,6 +2757,18 @@ msgstr "Цена: по возрастанию"
 #: .\templates\product\shop.html:128
 msgid "Narx: qimmatdan"
 msgstr "Цена: по убыванию"
+
+#: .\templates\product\shop.html:134
+msgid "Yana dizaynlar koʻrsatildi."
+msgstr "Показаны ещё дизайны."
+
+#: .\templates\product\shop.html:136
+msgid "Dizaynlarni yuklab boʻlmadi. Qayta urinib koʻring."
+msgstr "Не удалось загрузить дизайны. Попробуйте ещё раз."
+
+#: .\templates\product\shop.html:137
+msgid "Yana koʻrsatish"
+msgstr "Показать ещё"
 
 #: .\templates\product\shop.html:152
 msgid "Hech narsa topilmadi"
@@ -3005,6 +3039,12 @@ msgstr "Изображение не выбрано."
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Изображение сохранено."
+
+#~ msgid "Koʻkrak, sm"
+#~ msgstr "Грудь, см"
+
+#~ msgid "Savatga"
+#~ msgstr "В корзину"
 
 #~ msgid "Telefon raqamingizni tasdiqlaymiz — buyurtma yetkazish uchun kerak."
 #~ msgstr "Подтвердим номер телефона — он нужен для доставки заказа."
