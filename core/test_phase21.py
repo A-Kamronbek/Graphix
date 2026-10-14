@@ -10,7 +10,8 @@ Each class is one of those, written as what a customer sees or as what the
 gateway is asked for.
 
 Then a fifth, asked the same day: an order nobody paid for waited forever.
-It is cancelled now three days after it was placed (§17 #373).
+It is cancelled now three days after it was placed (§17 #373). And a sixth:
+the checkout starts with the account's own name and number (§17 #374).
 """
 import base64
 import copy
@@ -367,3 +368,54 @@ class UnpaidOrdersCancelTests(CheckoutCase):
         self.assertIn('OnCalendar=*-*-* 04:40:00 Asia/Tashkent', timer)
         self.assertIn('Persistent=true', timer)
         self.assertIn('Unit=graphix-cancel-unpaid.service', timer)
+
+
+class ContactPrefillTests(CheckoutCase):
+    """The checkout opens with the account's name and number, both editable."""
+
+    def field_value(self, html, name):
+        """The ``value`` the page gives the input called ``name``."""
+        tag = re.search(r'<input[^>]*name="%s"[^>]*>' % name, html).group(0)
+        return re.search(r'value="([^"]*)"', tag).group(1)
+
+    def opened(self):
+        return self.client.get(reverse('checkout')).content.decode()
+
+    def test_the_name_and_the_number_are_the_accounts(self):
+        self.user.first_name = 'Dilnoza'
+        self.user.last_name = 'Karimova'
+        self.user.save()
+        html = self.opened()
+        self.assertEqual(self.field_value(html, 'name'), 'Dilnoza Karimova')
+        # As the field shows a number: the nine digits after its +998.
+        self.assertEqual(self.field_value(html, 'phone'), '90 122 00 03')
+
+    def test_a_first_name_alone_is_the_name(self):
+        self.user.first_name = 'Dilnoza'
+        self.user.save()
+        self.assertEqual(self.field_value(self.opened(), 'name'), 'Dilnoza')
+
+    def test_no_name_given_leaves_the_field_blank(self):
+        """Not "Xaridor", and not the username, which is the number again."""
+        self.assertEqual(self.user.first_name, '')
+        html = self.opened()
+        self.assertEqual(self.field_value(html, 'name'), '')
+        self.assertEqual(self.field_value(html, 'phone'), '90 122 00 03')
+
+    def test_what_was_typed_comes_back_and_not_the_accounts(self):
+        """A form sent back to be put right shows the customer's own words."""
+        self.user.first_name = 'Dilnoza'
+        self.user.save()
+        response = self.post(name='Aziza Rahimova', phone='93 555 66 77', region=None)
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertEqual(self.field_value(html, 'name'), 'Aziza Rahimova')
+        self.assertEqual(self.field_value(html, 'phone'), '93 555 66 77')
+
+    def test_an_order_is_placed_with_what_the_form_sends(self):
+        self.user.first_name = 'Dilnoza'
+        self.user.save()
+        self.post(name='Aziza Rahimova', phone='93 555 66 77')
+        order = Order.objects.get()
+        self.assertEqual(order.recipient_name, 'Aziza Rahimova')
+        self.assertEqual(order.phone, '+998 93 555 66 77')
