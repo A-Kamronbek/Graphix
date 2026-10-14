@@ -1205,6 +1205,10 @@ msgstr "Change status"
 msgid "Tarix"
 msgstr "History"
 
+#: .\templates\boshqaruv\order.html:148
+msgid "avtomatik"
+msgstr "automatic"
+
 #: .\templates\boshqaruv\order.html:133
 msgid "oʻchirilgan hisob"
 msgstr "deleted account"
@@ -2406,6 +2410,10 @@ msgstr "Track it"
 #: .\templates\payment\order_detail.html:107 .\templates\payment\status.html:51
 msgid "Toʻlovni yakunlash"
 msgstr "Finish paying"
+
+#: .\templates\payment\order_detail.html:120
+msgid "Buyurtmani bekor qilish"
+msgstr "Cancel order"
 
 #: .\templates\payment\order_detail.html:113
 #: .\templates\product\review_form.html:3

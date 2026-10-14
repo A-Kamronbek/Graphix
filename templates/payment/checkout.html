@@ -69,22 +69,10 @@
                  autocomplete="name" value="{{ form_data.name|default:'' }}">
           <small class="field__hint">{% trans "Joʻnatma shu ismga yuboriladi." %}</small>
         </div>
-        {% comment %}
-          The country code is written in the field and is not typed: the
-          customer writes the nine digits after it. A number typed or pasted
-          whole, with its +998, is read the same way. The frame is a label,
-          so a tap on +998 lands in the field, and +998 is part of the
-          field's name for a screen reader.
-        {% endcomment %}
+        {# +998 is written in the field; the customer types the rest. #}
         <div class="field">
           <label class="label" for="id_phone">{% trans "Telefon" %} <span class="req" aria-hidden="true">*</span></label>
-          <label class="tel" for="id_phone">
-            <span class="tel__code">+998</span>
-            <input class="tel__input" type="tel" name="phone" id="id_phone" required
-                   inputmode="tel" autocomplete="tel-national" placeholder="90 123 45 67"
-                   aria-describedby="id_phone_hint"
-                   value="{{ form_data.phone|default:''|cut:'+998 ' }}">
-          </label>
+          {% include "partials/_tel.html" with value=form_data.phone describedby="id_phone_hint" %}
           <small class="field__hint" id="id_phone_hint">{% trans "Kuryer shu raqamga qoʻngʻiroq qiladi." %}</small>
         </div>
       </section>
@@ -364,6 +352,39 @@
 
       <button class="btn btn--primary btn--lg btn--block" type="submit"
               {% if not payment_options %}disabled{% endif %}>{% trans "Buyurtma berish" %}</button>
+
+      {% comment %}
+        The address sheet. Empty on purpose: `checkout.js` MOVES the region,
+        district, street and note fields into it when the map is the chosen
+        source, and moves them back when it is not. Moved, not copied: two
+        copies of a field called `region` is two values posted under one
+        name, and the second one wins. It is also why this works with the
+        script off: nothing moves, so everything is still inline (§17 #252).
+
+        It is inside the form, and has to be. A field is sent with the form it
+        sits in, so a field moved into a sheet outside the form was not sent
+        at all: an order whose address came from the map arrived with no
+        region, no district and no street, and was refused (§17 #369).
+      {% endcomment %}
+      <div class="picker-drawer" data-address-sheet hidden role="dialog"
+           aria-modal="true" aria-labelledby="addr-sheet-title">
+        <div class="picker-drawer__panel">
+          <div class="picker-drawer__hd">
+            <h2 class="h3" id="addr-sheet-title">{% trans "Manzil" %}</h2>
+            <button type="button" class="modal__close" data-address-sheet-close
+                    aria-label="{% trans 'Yopish' %}">
+              <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
+            </button>
+          </div>
+          <div class="stack addr-sheet__body" data-address-sheet-body></div>
+          {% comment %} Closes the sheet and nothing else. The fields write straight through
+             to the form, so there is nothing here to save — the button exists
+             because a sheet with no obvious way out reads as a trap. {% endcomment %}
+          <button type="button" class="btn btn--primary" data-address-sheet-close>
+            {% trans "Tayyor" %}
+          </button>
+        </div>
+      </div>
     </form>
 
     <aside class="checkout__summary panel stack">
@@ -412,31 +433,6 @@
 </div>
 
 
-{% comment %} The address sheet. Empty on purpose: `checkout.js` MOVES the region,
-   district, street and note fields into it when the map is the chosen
-   source, and moves them back when it is not. Moved, not copied — two
-   copies of a field called `region` is two values posted under one name,
-   and the second one wins. It is also why this works with the script off:
-   nothing moves, so everything is still inline (§17 #252). {% endcomment %}
-<div class="picker-drawer" data-address-sheet hidden role="dialog"
-     aria-modal="true" aria-labelledby="addr-sheet-title">
-  <div class="picker-drawer__panel">
-    <div class="picker-drawer__hd">
-      <h2 class="h3" id="addr-sheet-title">{% trans "Manzil" %}</h2>
-      <button type="button" class="modal__close" data-address-sheet-close
-              aria-label="{% trans 'Yopish' %}">
-        <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
-      </button>
-    </div>
-    <div class="stack addr-sheet__body" data-address-sheet-body></div>
-    {% comment %} Closes the sheet and nothing else. The fields write straight through
-       to the form, so there is nothing here to save — the button exists
-       because a sheet with no obvious way out reads as a trap. {% endcomment %}
-    <button type="button" class="btn btn--primary" data-address-sheet-close>
-      {% trans "Tayyor" %}
-    </button>
-  </div>
-</div>
 
 {# The drawer the region and district fields become. One piece of markup for #}
 {# both, filled by checkout.js and never rendered with JavaScript off. #}

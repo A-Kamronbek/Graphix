@@ -113,6 +113,12 @@
       <a class="btn btn--secondary btn--block" href="{% url 'order_status' order.id %}">{% trans "Holatini kuzatish" %}</a>
       {% if order.status == 'paying' %}
         <a class="btn btn--primary btn--block" href="{% url 'payment' order.id %}">{% trans "Toʻlovni yakunlash" %}</a>
+        {# Under the pay button, where an unpaid order is decided on. It was #}
+        {# only on the status page, which a customer had to find first. #}
+        <form method="post" action="{% url 'order_cancel' order.id %}">
+          {% csrf_token %}
+          <button class="btn btn--secondary btn--block" type="submit">{% trans "Buyurtmani bekor qilish" %}</button>
+        </form>
       {% endif %}
       {# Only on a delivered order, because that is the only state in which the #}
       {# form would accept anything (§9 Phase 12 item 2). Offering it earlier #}

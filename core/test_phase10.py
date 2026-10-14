@@ -756,7 +756,8 @@ class ConsentRecordTests(TestCase):
         self.assertFalse(User.objects.filter(phone='+998 90 111 99 56').exists())
         self.assertEqual(inbox.messages, [])
         self.assertContains(response, 'maxfiylik siyosatiga rozilik bering')
-        self.assertContains(response, 'value="+998901119956"')
+        # The field shows +998 itself and holds the rest (§17 #367).
+        self.assertContains(response, 'value="90 111 99 56"')
 
     def test_the_refusal_is_written_in_each_language(self):
         """Read off the page rather than the catalogue: a msgid that drifts by

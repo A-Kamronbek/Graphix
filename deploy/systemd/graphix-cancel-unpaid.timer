@@ -1,0 +1,18 @@
+# Daily, at a quiet hour in the timezone the shop actually operates in, and
+# twenty minutes after the guest-cart prune so the two do not start together.
+#
+# Persistent=true so a run missed while the machine was off happens at the next
+# boot. A missed day costs nothing but a day: the job takes every order past
+# the line, not only the ones that crossed it since yesterday.
+
+[Unit]
+Description=GRAPHIX - cancel orders left unpaid, daily
+
+[Timer]
+OnCalendar=*-*-* 04:40:00 Asia/Tashkent
+Persistent=true
+RandomizedDelaySec=600
+Unit=graphix-cancel-unpaid.service
+
+[Install]
+WantedBy=timers.target

@@ -88,9 +88,12 @@ class DeliveryOption(models.Model):
 #:
 #: Click's is its own drawing, the one its site and its developer pages
 #: carry, so it is sharp at any size. Telegram's is the one telegram.org
-#: carries.
+#: carries. Payme's is the icon payme.uz and its app carry, "pay" over "me"
+#: on the cyan tag, drawn from the vector payme.uz serves: Payme has no mark
+#: without its name in it.
 PAYMENT_LOGOS = {
     'click': {'src': 'img/pay/click.svg', 'width': 24, 'height': 24},
+    'payme': {'src': 'img/pay/payme.svg', 'width': 24, 'height': 24},
     'telegram': {'src': 'img/pay/telegram.svg', 'width': 24, 'height': 24},
 }
 

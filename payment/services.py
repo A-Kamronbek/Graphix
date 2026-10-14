@@ -21,6 +21,7 @@ gateway having a bad day has to cost the customer a retry rather than a 500
 """
 import logging
 import re
+from datetime import timedelta
 from decimal import Decimal
 from urllib.parse import quote
 
@@ -325,11 +326,12 @@ def _build_paylink(order, return_url, method):
     if method == Order.PaymentMethod.PAYME:
         gateway = PaymeGateway(payme_id=settings.PAYME_ID,
                                payme_key=settings.PAYME_KEY)
-        # Payme quotes tiyin, so'm * 100. tolov does this multiplication for
-        # us when it *checks* a callback, and not when it builds a link.
+        # Given in so'm. Payme counts in tiyin, so'm * 100, and tolov does the
+        # multiplying itself, both when it builds the link and when it checks
+        # Payme's callback against `total_price`. This multiplied by 100 as
+        # well, so every link asked for a hundred times the order (§17 #370).
         return gateway.create_payment(
-            id=order.id, amount=int(order.total_price) * 100,
-            return_url=return_url)
+            id=order.id, amount=order.total_price, return_url=return_url)
 
     # `octo_shop_id` is typed int. The setting comes from the environment as
     # text and is blank until the owner has one, so it is coerced here rather
@@ -582,6 +584,34 @@ def cancel_order(order):
     already paid for is a staff action — see :func:`cancel_paid_order`.
     """
     return _cancel_if_unpaid(order)
+
+
+#: How long an order is kept waiting for its payment, in days from when it
+#: was placed. After that the daily job cancels it (§17 #373). Nothing is held
+#: for an unpaid order - no stock, no use of a code - so the reason is the
+#: shop's lists, not its shelves: an order nobody paid for stops reading as
+#: one to chase up. The job runs once a day, so an order goes between three
+#: and four days after it was placed.
+UNPAID_ORDER_DAYS = 3
+
+
+def stale_unpaid_orders(days=UNPAID_ORDER_DAYS, now=None):
+    """Orders still awaiting payment more than ``days`` days after they were placed.
+
+    Oldest first. Cash is left out whatever its age: a cash order is paid
+    when the parcel is handed over, so "not paid yet" is what it reads all
+    the way to the door, not a sign that nobody is coming. Cash is switched
+    off today; this is so switching it back on cannot have the job cancel
+    parcels on their way.
+
+    Returns a queryset rather than a list, so the caller can ask it again of
+    one row, under a lock, before it cancels anything.
+    """
+    cutoff = (now or timezone.now()) - timedelta(days=days)
+    return (Order.objects
+            .filter(status=Order.Status.PAYING, created_at__lt=cutoff)
+            .exclude(payment_method=Order.PaymentMethod.CASH)
+            .order_by('created_at', 'pk'))
 
 
 def cancel_paid_order(order):

@@ -1199,6 +1199,10 @@ msgstr "Holatni oʻzgartirish"
 msgid "Tarix"
 msgstr "Tarix"
 
+#: .\templates\boshqaruv\order.html:148
+msgid "avtomatik"
+msgstr ""
+
 #: .\templates\boshqaruv\order.html:133
 msgid "oʻchirilgan hisob"
 msgstr "oʻchirilgan hisob"
@@ -2378,6 +2382,10 @@ msgstr ""
 
 #: .\templates\payment\order_detail.html:107 .\templates\payment\status.html:51
 msgid "Toʻlovni yakunlash"
+msgstr ""
+
+#: .\templates\payment\order_detail.html:120
+msgid "Buyurtmani bekor qilish"
 msgstr ""
 
 #: .\templates\payment\order_detail.html:113

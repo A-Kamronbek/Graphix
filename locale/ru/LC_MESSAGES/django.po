@@ -1216,6 +1216,10 @@ msgstr "Изменить статус"
 msgid "Tarix"
 msgstr "История"
 
+#: .\templates\boshqaruv\order.html:148
+msgid "avtomatik"
+msgstr "автоматически"
+
 #: .\templates\boshqaruv\order.html:133
 msgid "oʻchirilgan hisob"
 msgstr "удалённый аккаунт"
@@ -2430,6 +2434,10 @@ msgstr "Отследить статус"
 #: .\templates\payment\order_detail.html:107 .\templates\payment\status.html:51
 msgid "Toʻlovni yakunlash"
 msgstr "Завершить оплату"
+
+#: .\templates\payment\order_detail.html:120
+msgid "Buyurtmani bekor qilish"
+msgstr "Отменить заказ"
 
 #: .\templates\payment\order_detail.html:113
 #: .\templates\product\review_form.html:3

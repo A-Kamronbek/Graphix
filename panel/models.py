@@ -16,6 +16,13 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+#: The note on a move nobody made by hand: the daily job that cancels an order
+#: left unpaid (§17 #373). A row with no author meant one thing until then,
+#: an account since deleted, and the trail said so; this note is how the two
+#: are told apart. Stored as it is written, and matched exactly, so it is not
+#: translated - the trail shows its own translated word instead.
+AUTO_CANCEL_NOTE = 'Avtomatik: muddatida toʻlanmagan'
+
 
 class OrderStatusChange(models.Model):
     """A single move from one status to another, with its author.
@@ -60,6 +67,11 @@ class OrderStatusChange(models.Model):
     @property
     def to_label(self):
         return self._label(self.to_status)
+
+    @property
+    def is_automatic(self):
+        """Whether the site made this move itself, with nobody pressing anything."""
+        return self.changed_by_id is None and self.note == AUTO_CANCEL_NOTE
 
     class Meta:
         verbose_name = _('Holat oʻzgarishi')
