@@ -2407,6 +2407,10 @@ msgstr "Track it"
 msgid "Toʻlovni yakunlash"
 msgstr "Finish paying"
 
+#: .\templates\payment\order_detail.html:120
+msgid "Buyurtmani bekor qilish"
+msgstr "Cancel order"
+
 #: .\templates\payment\order_detail.html:113
 #: .\templates\product\review_form.html:3
 #: .\templates\product\review_form.html:27

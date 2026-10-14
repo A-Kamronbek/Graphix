@@ -2380,6 +2380,10 @@ msgstr ""
 msgid "Toʻlovni yakunlash"
 msgstr ""
 
+#: .\templates\payment\order_detail.html:120
+msgid "Buyurtmani bekor qilish"
+msgstr ""
+
 #: .\templates\payment\order_detail.html:113
 #: .\templates\product\review_form.html:3
 #: .\templates\product\review_form.html:27

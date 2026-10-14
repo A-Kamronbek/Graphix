@@ -2431,6 +2431,10 @@ msgstr "Отследить статус"
 msgid "Toʻlovni yakunlash"
 msgstr "Завершить оплату"
 
+#: .\templates\payment\order_detail.html:120
+msgid "Buyurtmani bekor qilish"
+msgstr "Отменить заказ"
+
 #: .\templates\payment\order_detail.html:113
 #: .\templates\product\review_form.html:3
 #: .\templates\product\review_form.html:27
