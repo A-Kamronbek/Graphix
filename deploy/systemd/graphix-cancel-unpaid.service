@@ -1,0 +1,23 @@
+# GRAPHIX - cancel orders left unpaid for three days (plan §17 #373).
+#
+# An unpaid order holds nothing - no stock, no use of a code - so this is about
+# the shop's lists: an order nobody paid for stops reading "Toʻlanmoqda" in the
+# panel as though someone still might. The number of days is
+# payment.services.UNPAID_ORDER_DAYS; change it there, not here.
+
+[Unit]
+Description=GRAPHIX - cancel orders left unpaid
+Wants=postgresql.service
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=graphix
+Group=www-data
+WorkingDirectory=/srv/graphix
+ExecStart=/srv/graphix/.venv/bin/python manage.py cancel_unpaid_orders
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/graphix/logs

@@ -1205,6 +1205,10 @@ msgstr "Change status"
 msgid "Tarix"
 msgstr "History"
 
+#: .\templates\boshqaruv\order.html:148
+msgid "avtomatik"
+msgstr "automatic"
+
 #: .\templates\boshqaruv\order.html:133
 msgid "oʻchirilgan hisob"
 msgstr "deleted account"

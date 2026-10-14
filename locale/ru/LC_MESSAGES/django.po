@@ -1216,6 +1216,10 @@ msgstr "Изменить статус"
 msgid "Tarix"
 msgstr "История"
 
+#: .\templates\boshqaruv\order.html:148
+msgid "avtomatik"
+msgstr "автоматически"
+
 #: .\templates\boshqaruv\order.html:133
 msgid "oʻchirilgan hisob"
 msgstr "удалённый аккаунт"

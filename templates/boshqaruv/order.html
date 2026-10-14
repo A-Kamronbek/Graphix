@@ -143,7 +143,9 @@
         {% for change in trail %}
           <div class="trail__row">
             <span>{{ change.from_label|default:"—" }} → <strong>{{ change.to_label }}</strong></span>
-            <span>{% if change.changed_by %}{{ change.changed_by.username }}{% else %}{% trans "oʻchirilgan hisob" %}{% endif %}</span>
+            {# No author means an account since deleted, or the daily job that #}
+            {# cancels an order left unpaid (§17 #373), and the note tells which. #}
+            <span>{% if change.changed_by %}{{ change.changed_by.username }}{% elif change.is_automatic %}{% trans "avtomatik" %}{% else %}{% trans "oʻchirilgan hisob" %}{% endif %}</span>
             <time datetime="{{ change.changed_at|date:'c' }}">{{ change.changed_at|date:"j E, H:i"|month_case }}</time>
           </div>
         {% empty %}

@@ -8,23 +8,33 @@ only from its status page, which a customer had to find first.
 
 Each class is one of those, written as what a customer sees or as what the
 gateway is asked for.
+
+Then a fifth, asked the same day: an order nobody paid for waited forever.
+It is cancelled now three days after it was placed (§17 #373).
 """
 import base64
 import copy
 import json
 import re
+from datetime import timedelta
+from io import StringIO
 from pathlib import Path
+from unittest import mock
 from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
+from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
+from panel.models import AUTO_CANCEL_NOTE, OrderStatusChange
 from payment import services
 from payment.models import PAYMENT_LOGOS, Order, PaymentOption
 
-from .test_phase16 import CheckoutCase, order_of
+from .test_phase7 import make_staff
+from .test_phase16 import CheckoutCase, order_of, stock_of
 
 #: A Payme cashbox id has this shape: 24 hex digits. Not a real one.
 PAYME_ID = '5e730e8e0b852a417aa49ceb'
@@ -214,3 +224,146 @@ class CancelOnOrderPageTests(CheckoutCase):
                 with translation.override(lang):
                     address = reverse('order_detail', args=[order.pk])
                 self.assertContains(self.client.get(address), words)
+
+
+class UnpaidOrdersCancelTests(CheckoutCase):
+    """An order still unpaid three days after it was placed is cancelled."""
+
+    def aged(self, days, hours=0, **fields):
+        """An order placed ``days`` days and ``hours`` hours ago."""
+        order = order_of(self.user, (self.shirt_m, 1), **fields)
+        placed = timezone.now() - timedelta(days=days, hours=hours)
+        # `created_at` is auto_now_add, so it is set after the fact.
+        Order.objects.filter(pk=order.pk).update(created_at=placed)
+        return order
+
+    def run_job(self, *args):
+        """The daily job, as the timer runs it; what it printed."""
+        out = StringIO()
+        call_command('cancel_unpaid_orders', *args, stdout=out)
+        return out.getvalue()
+
+    def status(self, order):
+        order.refresh_from_db()
+        return order.status
+
+    def test_three_days_is_the_line(self):
+        self.assertEqual(services.UNPAID_ORDER_DAYS, 3)
+        old = self.aged(3, hours=1)
+        young = self.aged(2, hours=23)
+        printed = self.run_job()
+        self.assertEqual(self.status(old), Order.Status.CANCELLED)
+        self.assertEqual(self.status(young), Order.Status.PAYING)
+        self.assertIn(old.order_no, printed)
+        self.assertNotIn(young.order_no, printed)
+
+    def test_an_order_that_is_a_sale_is_never_touched(self):
+        for status in (Order.Status.PAID, Order.Status.PROCESSING,
+                       Order.Status.ON_THE_WAY, Order.Status.DONE):
+            with self.subTest(status=status):
+                order = self.aged(30, status=status)
+                self.run_job()
+                self.assertEqual(self.status(order), status)
+
+    def test_a_cash_order_waits_for_its_door(self):
+        """Paid when the parcel is handed over, so unpaid is not abandoned."""
+        order = self.aged(10)
+        Order.objects.filter(pk=order.pk).update(payment_method=Order.PaymentMethod.CASH)
+        self.run_job()
+        self.assertEqual(self.status(order), Order.Status.PAYING)
+
+    def test_a_telegram_order_goes_as_any_other(self):
+        order = self.aged(4)
+        Order.objects.filter(pk=order.pk).update(payment_method=Order.PaymentMethod.TELEGRAM)
+        self.run_job()
+        self.assertEqual(self.status(order), Order.Status.CANCELLED)
+
+    def test_the_move_is_in_the_trail_by_nobody(self):
+        order = self.aged(5)
+        self.run_job()
+        change = OrderStatusChange.objects.get(order=order)
+        self.assertEqual((change.from_status, change.to_status),
+                         (Order.Status.PAYING, Order.Status.CANCELLED))
+        self.assertIsNone(change.changed_by)
+        self.assertEqual(change.note, AUTO_CANCEL_NOTE)
+        self.assertTrue(change.is_automatic)
+
+    def test_the_panel_says_avtomatik_and_not_a_deleted_account(self):
+        order = self.aged(5)
+        self.run_job()
+        self.client.force_login(make_staff())
+        html = self.client.get(reverse('panel_order', args=[order.order_no])).content.decode()
+        trail = html.split('class="trail"', 1)[1]
+        self.assertIn('avtomatik', trail)
+        self.assertNotIn('oʻchirilgan hisob', trail)
+
+    def test_a_row_with_no_author_and_another_note_is_still_a_deleted_account(self):
+        order = self.aged(5)
+        change = OrderStatusChange.objects.create(
+            order=order, from_status='paying', to_status='paid', note='Django admin')
+        self.assertFalse(change.is_automatic)
+
+    def test_nothing_is_given_back_because_nothing_was_held(self):
+        before = stock_of(self.shirt_m)
+        self.aged(5)
+        self.run_job()
+        self.assertEqual(stock_of(self.shirt_m), before)
+
+    def test_a_second_run_changes_nothing_and_writes_nothing(self):
+        order = self.aged(5)
+        self.run_job()
+        printed = self.run_job()
+        self.assertEqual(OrderStatusChange.objects.filter(order=order).count(), 1)
+        self.assertIn('Cancelled 0 ', printed)
+
+    def test_a_dry_run_lists_and_changes_nothing(self):
+        order = self.aged(5)
+        printed = self.run_job('--dry-run')
+        self.assertIn(order.order_no, printed)
+        self.assertIn('1 unpaid order(s) older than 3 days', printed)
+        self.assertEqual(self.status(order), Order.Status.PAYING)
+        self.assertFalse(OrderStatusChange.objects.exists())
+
+    def test_days_can_be_given_but_not_nought(self):
+        order = self.aged(5)
+        self.run_job('--days', '7')
+        self.assertEqual(self.status(order), Order.Status.PAYING)
+        with self.assertRaises(CommandError):
+            self.run_job('--days', '0')
+        self.assertEqual(self.status(order), Order.Status.PAYING)
+
+    def test_an_order_paid_after_the_list_was_read_is_not_cancelled(self):
+        """The row is asked again, locked, before anything is moved."""
+        order = self.aged(5)
+        real = services.stale_unpaid_orders
+
+        class PaidOnceListed:
+            """The job's list, with a payment landing the moment it is read."""
+
+            def __init__(self, *args, **kwargs):
+                self.stale = real(*args, **kwargs)
+
+            def values_list(self, *args, **kwargs):
+                listed = list(self.stale.values_list(*args, **kwargs))
+                services.apply_successful_payment(order)
+                return listed
+
+            def select_for_update(self):
+                return self.stale.select_for_update()
+
+        with mock.patch('panel.management.commands.cancel_unpaid_orders.stale_unpaid_orders',
+                        PaidOnceListed):
+            printed = self.run_job()
+        self.assertIn('Cancelled 0 ', printed)
+        self.assertEqual(self.status(order), Order.Status.PAID)
+        self.assertFalse(OrderStatusChange.objects.filter(to_status='cancelled').exists())
+
+    def test_the_timer_runs_this_command_daily(self):
+        units = Path(settings.BASE_DIR) / 'deploy' / 'systemd'
+        service = (units / 'graphix-cancel-unpaid.service').read_text(encoding='utf-8')
+        timer = (units / 'graphix-cancel-unpaid.timer').read_text(encoding='utf-8')
+        self.assertIn('manage.py cancel_unpaid_orders\n', service)
+        self.assertIn('User=graphix', service)
+        self.assertIn('OnCalendar=*-*-* 04:40:00 Asia/Tashkent', timer)
+        self.assertIn('Persistent=true', timer)
+        self.assertIn('Unit=graphix-cancel-unpaid.service', timer)

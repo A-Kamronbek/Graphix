@@ -420,13 +420,37 @@ backups** — until it returns 0, the backup is a file of unknown value.
 ## 16. Timers
 
 ```bash
-sudo systemctl enable --now graphix-backup.timer graphix-prune-carts.timer
+sudo systemctl enable --now graphix-backup.timer graphix-prune-carts.timer \
+        graphix-cancel-unpaid.timer
 systemctl list-timers 'graphix*' --no-pager
+```
+
+§10 copied every unit in `deploy/systemd/`. A machine set up before a timer
+was added has to be given that one by name - copy only what is new, because
+the same `cp` with a wildcard would also overwrite `graphix.service`:
+
+```bash
+sudo cp /srv/graphix/deploy/systemd/graphix-cancel-unpaid.service \
+        /srv/graphix/deploy/systemd/graphix-cancel-unpaid.timer /etc/systemd/system/
+sudo systemctl daemon-reload
 ```
 
 `prune_guest_carts` is not housekeeping: the privacy policy tells the customer
 an abandoned guest cart is deleted after thirty days, and nothing else on the
 site deletes one. Without this timer that sentence is false.
+
+`cancel_unpaid_orders` cancels every order still unpaid three days after it
+was placed (plan §17 #373). Nothing is given back because an unpaid order holds
+nothing; a late payment still makes the order paid. Before enabling it on a
+machine with history, see what the first run will take:
+
+```bash
+sudo -u graphix /srv/graphix/.venv/bin/python /srv/graphix/manage.py \
+        cancel_unpaid_orders --dry-run
+```
+
+Each cancellation is in the order's trail in the panel, by "avtomatik", and
+its number is in `journalctl -u graphix-cancel-unpaid.service`.
 
 ---
 

@@ -1199,6 +1199,10 @@ msgstr "Holatni oʻzgartirish"
 msgid "Tarix"
 msgstr "Tarix"
 
+#: .\templates\boshqaruv\order.html:148
+msgid "avtomatik"
+msgstr ""
+
 #: .\templates\boshqaruv\order.html:133
 msgid "oʻchirilgan hisob"
 msgstr "oʻchirilgan hisob"
