@@ -69,8 +69,9 @@ class AddressSheetTests(CheckoutCase):
         # the script put the fields.
         self.assertEqual(html.count('data-address-sheet-body'), 1)
 
-    def test_nothing_in_the_sheet_sends_the_form_by_itself(self):
-        """Its buttons close it. Only the order button places the order."""
+    def test_no_button_in_the_sheet_sends_the_form(self):
+        """Its buttons close it. Enter in its one-line field closes it too,
+        which `checkout.js` does and the browser check covered."""
         html = self.client.get(reverse('checkout')).content.decode()
         sheet = html.split('data-address-sheet ', 1)[1].split('data-address-sheet-body', 1)[0]
         tail = html.split('data-address-sheet-body', 1)[1].split('</form>', 1)[0]
@@ -80,7 +81,11 @@ class AddressSheetTests(CheckoutCase):
                     self.assertIn('type="button"', tag)
 
     def test_an_order_from_the_map_with_its_fields_sent_is_placed(self):
-        """What the form sends now that the fields go with it."""
+        """What the form sends now that the fields go with it.
+
+        The server's side only: it always took such an order. The test that
+        would have caught the fault is the one above, on where the sheet is.
+        """
         response = self.post(delivery_option='uzpost_door', postal_index=None,
                              address="O'zbekiston shoh ko'chasi 9", address_source='map',
                              latitude='41.311100', longitude='69.279700')
@@ -103,6 +108,8 @@ class PaymeLinkTests(CheckoutCase):
         order.payment_method = Order.PaymentMethod.PAYME
         order.total_price = total
         order.save()
+        # As the pay button reads it: a Decimal, from the database.
+        order.refresh_from_db()
         return order
 
     def test_the_link_asks_for_the_total_in_tiyin(self):

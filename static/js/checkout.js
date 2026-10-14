@@ -934,6 +934,15 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') closeSheet();
     });
+    /* The sheet is inside the form, so Enter in one of its one-line fields
+     * would place the order, as it does on the page. Inside the sheet it
+     * means "done with this", which is what "Tayyor" does. A textarea keeps
+     * its Enter for a new line. */
+    sheet.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+      e.preventDefault();
+      closeSheet();
+    });
   }
   /* The line under the map is a summary of three fields, so it follows all
    * three — including the pin, which writes into them and fires `change`. */
