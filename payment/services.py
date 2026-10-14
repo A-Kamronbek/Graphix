@@ -325,11 +325,12 @@ def _build_paylink(order, return_url, method):
     if method == Order.PaymentMethod.PAYME:
         gateway = PaymeGateway(payme_id=settings.PAYME_ID,
                                payme_key=settings.PAYME_KEY)
-        # Payme quotes tiyin, so'm * 100. tolov does this multiplication for
-        # us when it *checks* a callback, and not when it builds a link.
+        # Given in so'm. Payme counts in tiyin, so'm * 100, and tolov does the
+        # multiplying itself, both when it builds the link and when it checks
+        # Payme's callback against `total_price`. This multiplied by 100 as
+        # well, so every link asked for a hundred times the order (§17 #370).
         return gateway.create_payment(
-            id=order.id, amount=int(order.total_price) * 100,
-            return_url=return_url)
+            id=order.id, amount=order.total_price, return_url=return_url)
 
     # `octo_shop_id` is typed int. The setting comes from the environment as
     # text and is blank until the owner has one, so it is coerced here rather
