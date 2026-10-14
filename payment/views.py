@@ -381,7 +381,14 @@ def checkout(request):
     if request.method != 'POST':
         default = next((o for o in context['delivery_options']), None)
         delivery = Decimal(default.price_for_items(item_count)) if default else Decimal('0')
-        return again({'delivery_option': default.code if default else ''}, delivery)
+        # The account's own name and number to start from, both editable: a
+        # parcel is often for someone else. Every customer has a number, since
+        # the checkout needs a sign-in. A name they never gave stays blank -
+        # never "Xaridor", and never the username, which is the number again
+        # (§17 #374).
+        return again({'delivery_option': default.code if default else '',
+                      'name': request.user.get_full_name(),
+                      'phone': request.user.phone}, delivery)
 
     post = request.POST
     name = post.get('name', '').strip()

@@ -440,7 +440,10 @@ class PhoneFieldTests(CheckoutCase):
         self.assertIn('autocomplete="tel-national"', tag)
         self.assertIn('inputmode="tel"', tag)
         self.assertIn('required', tag)
-        self.assertIn('value=""', tag)
+        # The account's number, as the nine digits after the +998 already in
+        # the frame. It opened empty until the checkout began taking the
+        # account's own number (§17 #374).
+        self.assertIn('value="90 122 00 03"', tag)
 
     def test_the_rest_of_the_number_is_enough(self):
         for typed in ('90 122 00 03', '901220003', '90-122-00-03'):
