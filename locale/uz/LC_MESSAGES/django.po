@@ -410,6 +410,10 @@ msgid "Joʻnatma %(number)s yaratildi."
 msgstr ""
 
 #: .\panel\views.py:330
+msgid "Soʻrov olib tashlandi. Joʻnatmani qayta yaratish mumkin."
+msgstr ""
+
+#: .\panel\views.py:330
 msgid "Bu buyurtmaning joʻnatmasi yoʻq."
 msgstr ""
 
@@ -670,6 +674,10 @@ msgstr ""
 msgid "Telefon: %(phone)s"
 msgstr ""
 
+#: .\payment\shipments.py:41
+msgid "Soʻrov yuborilgan"
+msgstr ""
+
 #: .\payment\shipments.py:39
 msgid "Rasmiylashtirildi"
 msgstr ""
@@ -723,6 +731,10 @@ msgstr ""
 msgid "Uzpost bu yoʻnalish narxini bermadi: %(error)s"
 msgstr ""
 
+#: .\payment\shipments.py:257
+msgid "Uzpost sekin javob bermoqda. Birozdan keyin qayta urinib koʻring."
+msgstr ""
+
 #: .\payment\shipments.py:207
 msgid ""
 "Uzpost javob bermadi. Joʻnatma yaratilgan boʻlishi mumkin: qayta bosishdan "
@@ -737,6 +749,12 @@ msgstr ""
 #: .\payment\shipments.py:238
 #, python-format
 msgid "Uzpost yorliqni bermadi: %(error)s"
+msgstr ""
+
+#: .\payment\shipments.py:320
+msgid ""
+"Buyurtma bekor qilindi. Uzpost joʻnatma soʻroviga javob bermagan edi: "
+"my.pochta.uz kabinetini tekshiring."
 msgstr ""
 
 #: .\payment\shipments.py:261
@@ -1287,6 +1305,17 @@ msgstr ""
 #: .\templates\payment\order_detail.html:51 .\templates\payment\payment.html:3
 #: .\templates\payment\status.html:23
 msgid "Toʻlov"
+msgstr ""
+
+#: .\templates\boshqaruv\order.html:126
+msgid ""
+"Uzpost joʻnatma soʻroviga javob bermadi: joʻnatma yaratilgan boʻlishi "
+"mumkin. my.pochta.uz kabinetini tekshiring. Joʻnatma yoʻq boʻlsa, soʻrovni "
+"olib tashlang va qayta yarating."
+msgstr ""
+
+#: .\templates\boshqaruv\order.html:129
+msgid "Soʻrovni olib tashlash"
 msgstr ""
 
 #: .\templates\boshqaruv\order.html:125

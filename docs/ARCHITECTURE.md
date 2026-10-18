@@ -191,7 +191,11 @@ because a shipment is addressed by Uzpost's district id. Three layers:
 - `payment/shipments.py` is the shop's side: what an order is sent as, the
   panel's "Joʻnatma yaratish" (`create`), the label, calling a shipment back
   when its order is cancelled, and `follow`, which moves an order forward
-  with its parcel through `panel.services.set_status`.
+  with its parcel through `panel.services.set_status`. `create` writes and
+  commits the shipment as a request before Uzpost is asked, with no lock
+  held during the calls: an answer that never comes, or a worker killed
+  mid-call, leaves the request, which stops a second press from making a
+  second paid shipment until staff withdraw it.
 - `manage.py uzpost_sync`, run every 30 minutes by `graphix-uzpost.timer`,
   calls `follow` for each live shipment. Pages read the database; nothing a
   customer does waits on Uzpost.

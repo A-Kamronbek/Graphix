@@ -12,7 +12,9 @@ down for a while is a run that ends early, not a run that asks a hundred times
 and fills the log. Pages never wait on this; they read the database.
 
 A delivered shipment is not read again: nothing after delivery moves an
-order.
+order. Nor is one older than ``payment.shipments.FOLLOW_DAYS``: a parcel
+stuck that long in a status the shop does not act on is the owner's to
+follow, and he was told about the status when it came.
 
 Run every 30 minutes by ``deploy/systemd/graphix-uzpost.timer``. Usage::
 
@@ -25,7 +27,6 @@ from django.core.management.base import BaseCommand
 
 from core import uzpost
 from payment import shipments
-from payment.models import Shipment
 
 #: Seconds between two calls to Uzpost.
 PAUSE = 0.5
@@ -42,8 +43,7 @@ class Command(BaseCommand):
                             help='List the shipments that would be read, and read none.')
 
     def handle(self, *args, **options):
-        live = (Shipment.objects.filter(cancelled_at__isnull=True)
-                .exclude(status__in=shipments.DELIVERED)
+        live = (shipments.to_follow()
                 .select_related('order__delivery_option')
                 .order_by('read_at', 'id'))
         if options['dry_run']:

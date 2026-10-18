@@ -120,7 +120,15 @@
     {% if order.delivery_option %}
       <section class="panel-card stack" id="uzpost">
         <h2>Uzpost</h2>
-        {% if shipment %}
+        {% if shipment and shipment.is_request %}
+          {# Asked for, and Uzpost's answer never came: it may have made the #}
+          {# shipment. Staff look in the cabinet before withdrawing it. #}
+          <p class="small">{% trans "Uzpost joʻnatma soʻroviga javob bermadi: joʻnatma yaratilgan boʻlishi mumkin. my.pochta.uz kabinetini tekshiring. Joʻnatma yoʻq boʻlsa, soʻrovni olib tashlang va qayta yarating." %}</p>
+          <form method="post" action="{% url 'panel_order_shipment_withdraw' order_no=order.order_no %}">
+            {% csrf_token %}
+            <button class="btn btn--secondary" type="submit">{% trans "Soʻrovni olib tashlash" %}</button>
+          </form>
+        {% elif shipment %}
           <dl class="facts">
             <dt>{% trans "Joʻnatma" %}</dt><dd class="num">{{ shipment.number }}</dd>
             <dt>{% trans "Holati" %}</dt><dd>{{ shipment.status_label }}</dd>

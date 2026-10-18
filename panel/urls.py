@@ -27,6 +27,8 @@ urlpatterns = [
          name='panel_order_shipment'),
     path('boshqaruv/buyurtmalar/<str:order_no>/yorliq/', views.order_label,
          name='panel_order_label'),
+    path('boshqaruv/buyurtmalar/<str:order_no>/jonatma/olib-tashlash/',
+         views.order_shipment_withdraw, name='panel_order_shipment_withdraw'),
 
     # Products. By slug, like the storefront's own product URLs, so a page open
     # in the panel and the same product open on the site are recognisably the

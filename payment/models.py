@@ -634,10 +634,15 @@ class Shipment(models.Model):
     about on Telegram, so he is told once. A shipment is live until
     ``cancelled_at`` is set, by the shop or because Uzpost cancelled it, and
     an order has at most one live shipment.
+
+    The row is written before Uzpost is asked, as a request with no Uzpost id
+    and the status ``requested``, and the answer is written onto it. A request
+    that is never answered stays, so a second press cannot make a second
+    shipment; staff withdraw it once the cabinet shows nothing was made.
     """
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='shipments')
-    uzpost_id = models.PositiveBigIntegerField(unique=True)
-    number = models.CharField(max_length=40, db_index=True)
+    uzpost_id = models.PositiveBigIntegerField(unique=True, null=True, blank=True)
+    number = models.CharField(max_length=40, blank=True, default='', db_index=True)
     service = models.CharField(max_length=40)
     weight = models.DecimalField(max_digits=6, decimal_places=3)
     transportation = models.CharField(max_length=12, blank=True, default='')
@@ -666,6 +671,11 @@ class Shipment(models.Model):
     def is_live(self):
         """Not cancelled, by the shop or by Uzpost."""
         return self.cancelled_at is None
+
+    @property
+    def is_request(self):
+        """Asked for and never answered: Uzpost may or may not have made it."""
+        return self.uzpost_id is None
 
     @property
     def status_label(self):

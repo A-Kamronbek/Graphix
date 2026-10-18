@@ -12,7 +12,9 @@ above it against the client's own answers.
 """
 import csv
 import json
+import shutil
 import tempfile
+from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
 from pathlib import Path
@@ -76,7 +78,10 @@ class ClientTests(TestCase):
     """``core.uzpost``: the token, the answers it reads, and never a raise."""
 
     def setUp(self):
-        cache.clear()
+        # Only the token: the cache is Redis and shared with the other workers
+        # of a parallel run, whose rate-limit counters a clear() would wipe.
+        cache.delete(uzpost._TOKEN_KEY)
+        self.addCleanup(cache.delete, uzpost._TOKEN_KEY)
         self.login = mock.patch('core.uzpost.requests.post',
                                 return_value=Reply(200, ANSWERS['authenticate']))
         self.post = self.login.start()
@@ -160,6 +165,26 @@ class ClientTests(TestCase):
         answer = uzpost.create_order({})
         self.assertFalse(answer.ok)
         self.assertTrue(answer.unknown)
+
+    def test_a_gateway_error_on_a_write_is_unknown_too(self):
+        """A 504 can come from a gateway after Uzpost did the work."""
+        self.calls(Reply(504, None))
+        answer = uzpost.create_order({})
+        self.assertFalse(answer.ok)
+        self.assertTrue(answer.unknown)
+
+    def test_an_answer_without_success_is_not_taken_for_one(self):
+        """An HTML maintenance page with a 200 is not a cancelled shipment."""
+        page = Reply(200, None)
+        page.text = '<html>Texnik ishlar</html>'
+        self.calls(page)
+        answer = uzpost.cancel('MM216886699UZ')
+        self.assertFalse(answer.ok)
+        self.assertTrue(answer.unknown)
+        self.calls(Reply(200, {'data': {'list': []}}))
+        answer = uzpost.transportation_type(1076362452, 273)
+        self.assertFalse(answer.ok)
+        self.assertFalse(answer.unknown)
 
     def test_a_read_that_times_out_is_simply_failed(self):
         self.calls(requests.Timeout('slow'))
@@ -308,6 +333,46 @@ class SyncRegionsTests(TestCase):
         self.assertFalse(Region.objects.filter(uzpost_id__isnull=False).exists())
         self.assertTrue(District.objects.get(code='1726900').is_active)
 
+    def edited(self, *pairs):
+        """The real file with ``pairs`` replaced, in a temporary folder. Returns its path."""
+        text = (Path(settings.BASE_DIR) / 'data' / 'uzpost-regions.csv').read_text(encoding='utf-8')
+        for old, new in pairs:
+            self.assertIn(old, text)
+            text = text.replace(old, new)
+        folder = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, folder)
+        path = Path(folder) / 'uzpost-regions.csv'
+        path.write_text(text, encoding='utf-8')
+        return str(path)
+
+    def test_a_match_corrected_in_the_file_takes_effect(self):
+        self.load()
+        # Gagarin is Mirzachoʻl's centre: a person writes the official row in.
+        self.load('--file', self.edited((',Gagarin,district,40.698624,68.026584,,',
+                                         ',Gagarin,district,40.698624,68.026584,1708223,')))
+        mirzachol = District.objects.get(code='1708223')
+        self.assertEqual((mirzachol.uzpost_id, mirzachol.name, mirzachol.is_active),
+                         (361, 'Gagarin', True))
+        left = District.objects.get(code='U361')
+        self.assertEqual((left.is_active, left.uzpost_id, left.name),
+                         (False, None, 'Gagarin (U361)'))
+
+    def test_a_row_made_before_is_taken_again(self):
+        self.load()
+        District.objects.filter(code='U361').update(uzpost_id=None, is_active=False)
+        self.load()
+        self.assertEqual(District.objects.filter(code='U361', uzpost_id=361, is_active=True).count(), 1)
+
+    def test_an_official_row_from_another_region_is_refused(self):
+        with self.assertRaises(CommandError):
+            self.load('--file', self.edited((',Chilanzar,district,41.267426,69.191946,1726294,',
+                                             ',Chilanzar,district,41.267426,69.191946,1718401,')))
+        self.assertFalse(Region.objects.filter(uzpost_id__isnull=False).exists())
+
+    def test_a_point_that_is_not_a_number_is_refused_in_words(self):
+        with self.assertRaises(CommandError):
+            self.load('--file', self.edited((',Chilanzar,district,41.267426,', ',Chilanzar,district,nan,')))
+
     def test_the_file_itself(self):
         """Every row is usable, and every name is written as §4.3 asks."""
         with (Path(settings.BASE_DIR) / 'data' / 'uzpost-regions.csv').open(encoding='utf-8') as fh:
@@ -436,7 +501,6 @@ class ShipmentCase(TestCase):
     """A paid office order, staff in the panel, and Uzpost answering as it did."""
 
     def setUp(self):
-        cache.clear()
         self.geo = make_regions()
         self.customer = make_user('mijoz', '+998901220003')
         self.staff = make_staff()
@@ -556,13 +620,53 @@ class CreateTests(ShipmentCase):
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, Order.Status.PAID)
 
-    def test_a_lost_answer_says_to_look_before_pressing_again(self):
+    def test_a_lost_answer_leaves_the_request_and_says_to_look(self):
         self.create_call.side_effect = None
         self.create_call.return_value = uzpost.Answer(False, None, 'timeout', True)
         with self.assertRaises(shipments.ShipmentError) as raised:
             self.ship()
         self.assertIn('my.pochta.uz', raised.exception.message)
+        request = Shipment.objects.get()
+        self.assertTrue(request.is_request)
+        self.assertEqual(request.status, shipments.REQUESTED)
+        # A second press makes nothing until staff withdraw the request.
+        self.assertFalse(shipments.can_create(self.order))
+        with self.assertRaises(shipments.ShipmentError):
+            self.ship()
+        self.assertEqual(self.create_call.call_count, 1)
+        self.assertTrue(shipments.withdraw_request(self.order))
+        self.create_call.side_effect = self.made
+        self.assertEqual(self.ship().number, 'MM216886699UZ')
+
+    def test_the_request_is_written_before_uzpost_is_asked(self):
+        """A worker killed while Uzpost answers leaves the mark behind."""
+        def killed(payload):
+            self.assertTrue(Shipment.objects.get().is_request)
+            raise RuntimeError('worker killed')
+        self.create_call.side_effect = killed
+        with self.assertRaises(RuntimeError):
+            self.ship()
+        self.assertTrue(Shipment.objects.get().is_request)
+        with self.assertRaises(shipments.ShipmentError):
+            self.ship()
+
+    def test_a_slow_route_call_does_not_ask_for_the_shipment(self):
+        """Past the deadline the create call could outlast the request."""
+        clock = iter([0.0, shipments.DEADLINE + 1.0])
+        with mock.patch('payment.shipments.time.monotonic', side_effect=lambda: next(clock)):
+            with self.assertRaises(shipments.ShipmentError):
+                self.ship()
+        self.create_call.assert_not_called()
         self.assertFalse(Shipment.objects.exists())
+
+    def test_an_office_order_with_a_typed_index_is_made_by_hand(self):
+        """Placed before Phase 22: Uzpost would not send it to the branch chosen."""
+        Order.objects.filter(pk=self.order.pk).update(postal_index='100011')
+        self.order.refresh_from_db()
+        self.assertFalse(shipments.can_create(self.order))
+        with self.assertRaises(shipments.ShipmentError):
+            self.ship()
+        self.route_call.assert_not_called()
 
     def test_no_price_for_the_route_makes_nothing(self):
         self.route_call.return_value = uzpost.Answer(False, None, 'no price for this route', False)
@@ -666,6 +770,31 @@ class PanelTests(ShipmentCase):
         self.assertFalse(data['notice_ok'])
         self.assertIsNotNone(shipments.live_shipment(self.order))
 
+    def test_a_failed_call_back_can_be_tried_again(self):
+        self.ship()
+        with mock.patch('payment.shipments.uzpost.cancel',
+                        return_value=uzpost.Answer(False, None, 'timeout', True)):
+            self.cancel()
+        with mock.patch('payment.shipments.uzpost.cancel', return_value=OK) as cancel:
+            self.cancel()
+        cancel.assert_called_once_with('MM216886699UZ')
+        self.assertIsNone(shipments.live_shipment(self.order))
+
+    def test_an_unanswered_request_is_shown_and_can_be_withdrawn(self):
+        self.create_call.side_effect = None
+        self.create_call.return_value = uzpost.Answer(False, None, 'timeout', True)
+        url = reverse('panel_order_shipment', kwargs={'order_no': self.order.order_no})
+        page = self.client.post(url, follow=True).content.decode()
+        withdraw = reverse('panel_order_shipment_withdraw', kwargs={'order_no': self.order.order_no})
+        self.assertIn(withdraw, page)
+        self.assertNotIn(reverse('panel_order_label', kwargs={'order_no': self.order.order_no}), page)
+        with mock.patch('payment.shipments.uzpost.cancel') as cancel:
+            response = self.cancel(follow=True)
+        cancel.assert_not_called()
+        self.assertContains(response, 'my.pochta.uz')
+        self.client.post(withdraw)
+        self.assertIsNone(shipments.live_shipment(self.order))
+
     def test_cancelling_an_order_without_a_shipment_asks_uzpost_nothing(self):
         with mock.patch('payment.shipments.uzpost.cancel') as cancel:
             self.cancel()
@@ -685,7 +814,8 @@ class PanelTests(ShipmentCase):
         request._messages = FallbackStorage(request)
         self.order.refresh_from_db()
         self.order.status = Order.Status.CANCELLED
-        with mock.patch('payment.shipments.uzpost.cancel', return_value=OK) as cancel:
+        with mock.patch('payment.shipments.uzpost.cancel', return_value=OK) as cancel, \
+                self.captureOnCommitCallbacks(execute=True):
             OrderAdmin(Order, site).save_model(
                 request, self.order, mock.Mock(changed_data=['status']), change=True)
         cancel.assert_called_once_with('MM216886699UZ')
@@ -798,6 +928,13 @@ class FollowTests(ShipmentCase):
         self.assertEqual(self.status(), Order.Status.ON_THE_WAY)
 
     @override_settings(UZPOST_ARRIVAL_STATUSES=['at_office'])
+    def test_no_sms_for_an_order_staff_cancelled(self):
+        """Uzpost kept the parcel; the customer is not sent to collect it."""
+        Order.objects.filter(pk=self.order.pk).update(status=Order.Status.CANCELLED)
+        self.read('at_office')
+        self.sms.assert_not_called()
+
+    @override_settings(UZPOST_ARRIVAL_STATUSES=['at_office'])
     def test_a_failed_send_is_tried_again_three_times_at_most(self):
         self.sms.return_value = False
         for _ in range(5):
@@ -840,6 +977,16 @@ class SyncCommandTests(ShipmentCase):
 
     def test_a_delivered_or_cancelled_shipment_is_not_read_again(self):
         Shipment.objects.filter(pk=self.shipment.pk).update(status='completed')
+        with mock.patch('payment.shipments.follow') as follow:
+            call_command('uzpost_sync', stdout=StringIO())
+        follow.assert_not_called()
+
+    def test_an_old_shipment_or_an_unanswered_request_is_not_read(self):
+        Shipment.objects.filter(pk=self.shipment.pk).update(
+            created_at=timezone.now() - timedelta(days=shipments.FOLLOW_DAYS + 1))
+        order = placed(self.customer, self.variant, self.geo)
+        Shipment.objects.create(order=order, service='ONE_STEP_WITHOUT_BAG',
+                                weight=Decimal('0.170'), status=shipments.REQUESTED)
         with mock.patch('payment.shipments.follow') as follow:
             call_command('uzpost_sync', stdout=StringIO())
         follow.assert_not_called()

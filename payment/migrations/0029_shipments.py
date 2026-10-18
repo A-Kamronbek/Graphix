@@ -28,8 +28,8 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("uzpost_id", models.PositiveBigIntegerField(unique=True)),
-                ("number", models.CharField(db_index=True, max_length=40)),
+                ("uzpost_id", models.PositiveBigIntegerField(blank=True, null=True, unique=True)),
+                ("number", models.CharField(blank=True, db_index=True, default="", max_length=40)),
                 ("service", models.CharField(max_length=40)),
                 ("weight", models.DecimalField(decimal_places=3, max_digits=6)),
                 (

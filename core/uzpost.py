@@ -34,10 +34,10 @@ logger = logging.getLogger(__name__)
 BASE = "https://prodapi.pochta.uz/api/"
 
 #: Seconds to connect and seconds to wait for an answer. A panel request that
-#: makes a shipment calls Uzpost up to three times (a token, the price, the
-#: shipment), and the three together stay under the 60 seconds gunicorn and
-#: nginx give a request.
-TIMEOUT = (5, 12)
+#: makes a shipment calls Uzpost a few times (a token, the price, the
+#: shipment), and ``payment.shipments`` keeps them inside the 60 seconds
+#: gunicorn and nginx give a request.
+TIMEOUT = (4, 10)
 
 _TOKEN_KEY = "uzpost_token"
 #: Uzpost's token lasts 24 hours; one kept for 23 is never sent stale.
@@ -146,7 +146,13 @@ def _call(method, path, *, params=None, body=None, writes=False):
 
     ``writes`` says the call changes something at Uzpost: if its answer is
     lost on the way back, the Answer says the outcome is unknown rather than
-    that it failed, so nobody is told to press the button again blindly.
+    that it failed, so nobody is told to press the button again blindly. A
+    5xx is such an answer too: a gateway in front of Uzpost can time out
+    after Uzpost has done the work.
+
+    Every answer Uzpost was seen to give says ``"status": "success"`` when it
+    worked. Anything else with a 2xx, an HTML maintenance page for one, is
+    not taken for success: a failure for a read, unknown for a write.
     """
     if not configured():
         return _failed("not configured")
@@ -177,9 +183,12 @@ def _call(method, path, *, params=None, body=None, writes=False):
             error = _message(payload, response)
             logger.error("Uzpost %s %s refused (%s): %s",
                          method, path, response.status_code, error)
-            return _failed(error)
-        data = payload.get('data') if isinstance(payload, dict) else None
-        return Answer(True, data, '', False)
+            return _failed(error, unknown=writes and response.status_code >= 500)
+        if not isinstance(payload, dict) or payload.get('status') != 'success':
+            logger.error("Uzpost %s %s answered %s without success: %r",
+                         method, path, response.status_code, (response.text or '')[:200])
+            return _failed("unexpected answer", unknown=writes)
+        return Answer(True, payload.get('data'), '', False)
     except requests.ConnectionError as e:
         # Refused or unreachable before anything was sent: nothing happened.
         # A connection dropped after sending reads the same, so a write still

@@ -322,11 +322,21 @@ def order_shipment(request, order_no):
 
 
 @staff_only
+@require_POST
+def order_shipment_withdraw(request, order_no):
+    """Drop a shipment request Uzpost never answered, once staff have checked the cabinet."""
+    order = get_object_or_404(Order, order_no=order_no)
+    if shipments.withdraw_request(order):
+        messages.success(request, _('Soʻrov olib tashlandi. Joʻnatmani qayta yaratish mumkin.'))
+    return redirect('panel_order', order_no=order.order_no)
+
+
+@staff_only
 def order_label(request, order_no):
     """Send staff to the shipment's label, from a link Uzpost makes afresh each time."""
     order = get_object_or_404(Order, order_no=order_no)
     shipment = shipments.live_shipment(order)
-    if shipment is None:
+    if shipment is None or shipment.is_request:
         messages.error(request, _('Bu buyurtmaning joʻnatmasi yoʻq.'))
         return redirect('panel_order', order_no=order.order_no)
     try:
@@ -368,8 +378,10 @@ def order_status(request, order_no):
 
     # A cancelled order's parcel is called back from Uzpost, which agrees only
     # while it has not been handed over; either way staff are told (§17 #380).
+    # Asked again when "cancelled" is chosen again, so a call back that
+    # failed can be retried.
     called_back = (shipments.cancel_for_order(order)
-                   if change is not None and wanted == Order.Status.CANCELLED else None)
+                   if wanted == Order.Status.CANCELLED else None)
 
     if wants_json:
         order.refresh_from_db(fields=['status'])

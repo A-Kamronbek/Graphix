@@ -775,7 +775,8 @@ def order_detail(request, pk):
         it.line_total = (it.price_stat or Decimal('0')) * it.quantity
     # The parcel at Uzpost, as the shop last read it: pages read the database,
     # never Uzpost (§9 Phase 22 item 13).
-    shipment = order.shipments.filter(cancelled_at__isnull=True).first()
+    shipment = order.shipments.filter(cancelled_at__isnull=True,
+                                      uzpost_id__isnull=False).first()
     return render(request, 'payment/order_detail.html', {
         'order': order,
         'shipment': shipment,

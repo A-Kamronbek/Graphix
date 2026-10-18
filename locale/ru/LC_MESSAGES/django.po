@@ -414,6 +414,10 @@ msgid "Joʻnatma %(number)s yaratildi."
 msgstr "Отправление %(number)s создано."
 
 #: .\panel\views.py:330
+msgid "Soʻrov olib tashlandi. Joʻnatmani qayta yaratish mumkin."
+msgstr "Запрос снят. Отправление можно создать заново."
+
+#: .\panel\views.py:330
 msgid "Bu buyurtmaning joʻnatmasi yoʻq."
 msgstr "У этого заказа нет отправления."
 
@@ -678,6 +682,10 @@ msgstr "Имя: %(name)s"
 msgid "Telefon: %(phone)s"
 msgstr "Телефон: %(phone)s"
 
+#: .\payment\shipments.py:41
+msgid "Soʻrov yuborilgan"
+msgstr "Запрос отправлен"
+
 #: .\payment\shipments.py:39
 msgid "Rasmiylashtirildi"
 msgstr "Отправление оформлено"
@@ -737,6 +745,10 @@ msgstr ""
 msgid "Uzpost bu yoʻnalish narxini bermadi: %(error)s"
 msgstr "Почта не назвала цену для этого направления: %(error)s"
 
+#: .\payment\shipments.py:257
+msgid "Uzpost sekin javob bermoqda. Birozdan keyin qayta urinib koʻring."
+msgstr "Почта отвечает медленно. Попробуйте ещё раз чуть позже."
+
 #: .\payment\shipments.py:207
 msgid ""
 "Uzpost javob bermadi. Joʻnatma yaratilgan boʻlishi mumkin: qayta bosishdan "
@@ -754,6 +766,14 @@ msgstr "Почта не приняла отправление: %(error)s"
 #, python-format
 msgid "Uzpost yorliqni bermadi: %(error)s"
 msgstr "Почта не выдала этикетку: %(error)s"
+
+#: .\payment\shipments.py:320
+msgid ""
+"Buyurtma bekor qilindi. Uzpost joʻnatma soʻroviga javob bermagan edi: "
+"my.pochta.uz kabinetini tekshiring."
+msgstr ""
+"Заказ отменён. Почта так и не ответила на запрос отправления: проверьте "
+"кабинет my.pochta.uz."
 
 #: .\payment\shipments.py:261
 #, python-format
@@ -1319,6 +1339,20 @@ msgstr "Дата"
 #: .\templates\payment\status.html:23
 msgid "Toʻlov"
 msgstr "Оплата"
+
+#: .\templates\boshqaruv\order.html:126
+msgid ""
+"Uzpost joʻnatma soʻroviga javob bermadi: joʻnatma yaratilgan boʻlishi "
+"mumkin. my.pochta.uz kabinetini tekshiring. Joʻnatma yoʻq boʻlsa, soʻrovni "
+"olib tashlang va qayta yarating."
+msgstr ""
+"Почта не ответила на запрос отправления: оно могло быть создано. Проверьте "
+"кабинет my.pochta.uz. Если отправления там нет, снимите запрос и создайте "
+"его заново."
+
+#: .\templates\boshqaruv\order.html:129
+msgid "Soʻrovni olib tashlash"
+msgstr "Снять запрос"
 
 #: .\templates\boshqaruv\order.html:125
 msgid "Joʻnatma"

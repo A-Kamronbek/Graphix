@@ -410,6 +410,10 @@ msgid "Joʻnatma %(number)s yaratildi."
 msgstr "Shipment %(number)s created."
 
 #: .\panel\views.py:330
+msgid "Soʻrov olib tashlandi. Joʻnatmani qayta yaratish mumkin."
+msgstr "Request withdrawn. The shipment can be created again."
+
+#: .\panel\views.py:330
 msgid "Bu buyurtmaning joʻnatmasi yoʻq."
 msgstr "This order has no shipment."
 
@@ -673,6 +677,10 @@ msgstr "Name: %(name)s"
 msgid "Telefon: %(phone)s"
 msgstr "Phone: %(phone)s"
 
+#: .\payment\shipments.py:41
+msgid "Soʻrov yuborilgan"
+msgstr "Requested"
+
 #: .\payment\shipments.py:39
 msgid "Rasmiylashtirildi"
 msgstr "Shipment registered"
@@ -730,6 +738,10 @@ msgstr ""
 msgid "Uzpost bu yoʻnalish narxini bermadi: %(error)s"
 msgstr "Uzpost gave no price for this route: %(error)s"
 
+#: .\payment\shipments.py:257
+msgid "Uzpost sekin javob bermoqda. Birozdan keyin qayta urinib koʻring."
+msgstr "Uzpost is answering slowly. Try again in a little while."
+
 #: .\payment\shipments.py:207
 msgid ""
 "Uzpost javob bermadi. Joʻnatma yaratilgan boʻlishi mumkin: qayta bosishdan "
@@ -747,6 +759,14 @@ msgstr "Uzpost did not accept the shipment: %(error)s"
 #, python-format
 msgid "Uzpost yorliqni bermadi: %(error)s"
 msgstr "Uzpost did not give the label: %(error)s"
+
+#: .\payment\shipments.py:320
+msgid ""
+"Buyurtma bekor qilindi. Uzpost joʻnatma soʻroviga javob bermagan edi: "
+"my.pochta.uz kabinetini tekshiring."
+msgstr ""
+"The order is cancelled. Uzpost never answered the shipment request: check "
+"the my.pochta.uz cabinet."
 
 #: .\payment\shipments.py:261
 #, python-format
@@ -1305,6 +1325,20 @@ msgstr "Date"
 #: .\templates\payment\status.html:23
 msgid "Toʻlov"
 msgstr "Payment"
+
+#: .\templates\boshqaruv\order.html:126
+msgid ""
+"Uzpost joʻnatma soʻroviga javob bermadi: joʻnatma yaratilgan boʻlishi "
+"mumkin. my.pochta.uz kabinetini tekshiring. Joʻnatma yoʻq boʻlsa, soʻrovni "
+"olib tashlang va qayta yarating."
+msgstr ""
+"Uzpost did not answer the shipment request: the shipment may have been "
+"created. Check the my.pochta.uz cabinet. If it is not there, withdraw the "
+"request and create it again."
+
+#: .\templates\boshqaruv\order.html:129
+msgid "Soʻrovni olib tashlash"
+msgstr "Withdraw the request"
 
 #: .\templates\boshqaruv\order.html:125
 msgid "Joʻnatma"

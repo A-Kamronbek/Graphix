@@ -184,7 +184,10 @@ def propose_matches(districts, official, region_soato, region_words, taken=()):
 def _point(value):
     """A coordinate from the file or from Uzpost, to six places, or None."""
     try:
-        return Decimal(str(value).strip()).quantize(Decimal('0.000001'))
+        number = Decimal(str(value).strip())
+        if not number.is_finite():
+            return None
+        return number.quantize(Decimal('0.000001'))
     except (InvalidOperation, ValueError):
         return None
 
@@ -289,8 +292,14 @@ class Command(BaseCommand):
         """Decide which row each line becomes, against the database. Returns (plan, errors).
 
         Everything that could stop the load is found here, before a write:
-        a soato the database does not have, two lines wanting one row, and
-        two districts of one region ending up with one name.
+        a soato the database does not have or that sits in another region,
+        two lines wanting one row, and two districts of one region ending up
+        with one name.
+
+        The file is the authority: a line's ``soato`` names the row it takes
+        over, whatever row Uzpost's id was on before, so a match corrected by
+        hand takes effect. A line with no ``soato`` keeps the row its id is
+        on, or the ``U`` row made for it before, or gets a new one.
         """
         errors = []
         region_rows = {r.code: r for r in Region.objects.all()}
@@ -299,7 +308,7 @@ class Command(BaseCommand):
         region_for = {}
         claimed = set()
         for row in regions:
-            obj = region_by_uzpost.get(row['uzpost_id']) or region_rows.get(row['soato'])
+            obj = region_rows.get(row['soato']) or region_by_uzpost.get(row['uzpost_id'])
             if obj is None:
                 errors.append((row['line'], f"no region {row['soato']} in the database; "
                                             "run seed_regions first"))
@@ -318,13 +327,19 @@ class Command(BaseCommand):
             region = region_for.get(row['parent_id'])
             if region is None:
                 continue
-            obj = district_by_uzpost.get(row['uzpost_id'])
-            if obj is None and row['soato']:
+            if row['soato']:
                 obj = district_rows.get(row['soato'])
                 if obj is None:
                     errors.append((row['line'], f"no district {row['soato']} in the database; "
                                                 "run seed_regions first"))
                     continue
+                if not obj.code.startswith('U') and obj.region_id != region.pk:
+                    errors.append((row['line'], f"district {row['soato']} is not in region "
+                                                f"{region.code}"))
+                    continue
+            else:
+                obj = (district_by_uzpost.get(row['uzpost_id'])
+                       or district_rows.get(f"U{row['uzpost_id']}"))
             if obj is not None:
                 if obj.pk in claimed:
                     errors.append((row['line'], f"district {obj.code} is claimed twice"))
@@ -334,13 +349,27 @@ class Command(BaseCommand):
 
         # unique_together (region, name) holds over the whole table, rows
         # switched off included, so the names are checked as they will stand.
+        # A ``U`` row a corrected match leaves behind gives up its name: it
+        # is switched off, and it was the loader's own row, not an official
+        # one, so it takes its code beside the name.
         final = {d.pk: (d.region_id, d.name) for d in district_rows.values()}
         new_names = []
+        taken = set()
         for obj, region, row in plan['districts']:
             if obj is None:
                 new_names.append((region.pk, row['name'], row['line']))
+                taken.add((region.pk, row['name']))
             else:
                 final[obj.pk] = (region.pk, row['name'])
+                taken.add((region.pk, row['name']))
+        kept = {obj.pk for obj, _region, _row in plan['districts'] if obj is not None}
+        plan['renamed'] = {}
+        for district in district_rows.values():
+            if (district.pk not in kept and district.code.startswith('U')
+                    and (district.region_id, district.name) in taken):
+                renamed = f"{district.name} ({district.code})"[:80]
+                plan['renamed'][district.pk] = renamed
+                final[district.pk] = (district.region_id, renamed)
         seen = collections.Counter(final.values())
         seen.update((r, n) for r, n, _line in new_names)
         for (region_pk, name), count in seen.items():
@@ -367,6 +396,8 @@ class Command(BaseCommand):
             linked.append(obj.pk)
             counts['r_linked'] += 1
 
+        for pk, name in plan.get('renamed', {}).items():
+            District.objects.filter(pk=pk).update(name=name, is_active=False)
         planned = {obj.pk: row['uzpost_id'] for obj, _region, row in plan['districts'] if obj}
         for district in District.objects.filter(uzpost_id__isnull=False):
             if planned.get(district.pk) != district.uzpost_id:

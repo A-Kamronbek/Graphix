@@ -149,6 +149,7 @@ PANEL = (
 
     Page('panel_order_status', {'order_no': 'order_no'}, STAFF_DOOR, 403, 405),
     Page('panel_order_shipment', {'order_no': 'order_no'}, STAFF_DOOR, 403, 405),
+    Page('panel_order_shipment_withdraw', {'order_no': 'order_no'}, STAFF_DOOR, 403, 405),
     Page('panel_product_inline', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
     Page('panel_product_images', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
     Page('panel_review_moderate', {'pk': 'review_pk'}, STAFF_DOOR, 403, 405),

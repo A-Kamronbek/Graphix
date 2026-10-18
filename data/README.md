@@ -49,6 +49,13 @@ and commit it. A fetch keeps every `soato` and `note` already in the file. A
 new district gets a `soato` proposed by name within its region, and every
 proposal that is not an exact match is printed as `check:` to be read.
 
+The file is the authority at every load. A `soato` written in by hand (say,
+Mirzachoʻl's for Uzpost's `Gagarin`) moves Uzpost's id to that official row,
+which keeps its Russian and English; the `U` row left behind is switched off
+and takes its code beside its name, since two districts of one region cannot
+share a name. A `soato` from another region is refused. Only the Uzbek name
+comes from the file: Russian and English written in the panel stay.
+
 Of the 198 districts, 164 took over an official row: 150 by name and 14 by a
 spelling a letter or two apart (`Chilanzar` for Chilonzor, `Honobod` for
 Xonobod), each checked by eye. The other 34 have no official row by name.
