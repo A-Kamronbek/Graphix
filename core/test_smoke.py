@@ -142,8 +142,13 @@ PANEL = (
     # 302 to /admin/login/ for a signed-in customer until Phase 10 gave it the
     # same guard as its neighbours (§17 #268).
     Page('style_guide', {}, STAFF_DOOR, 403, 200),
+    # The label opens Uzpost's PDF; an order with no shipment has none, and
+    # the screen says so (§9 Phase 22 item 8).
+    Page('panel_order_label', {'order_no': 'order_no'}, STAFF_DOOR, 403,
+         (302, '/boshqaruv/buyurtmalar/')),
 
     Page('panel_order_status', {'order_no': 'order_no'}, STAFF_DOOR, 403, 405),
+    Page('panel_order_shipment', {'order_no': 'order_no'}, STAFF_DOOR, 403, 405),
     Page('panel_product_inline', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
     Page('panel_product_images', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
     Page('panel_review_moderate', {'pk': 'review_pk'}, STAFF_DOOR, 403, 405),

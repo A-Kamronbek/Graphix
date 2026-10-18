@@ -1,6 +1,6 @@
 """Order model: a checked-out cart with delivery details and payment status,
-plus the delivery options and Uzpost pickup points an order can point at,
-and the promo codes an order can be placed with.
+plus the delivery options, regions and districts an order can point at, the
+promo codes an order can be placed with, and its Uzpost shipment.
 
 Translation follows the project convention: Uzbek lives in the base field,
 Russian and English in ``_ru`` / ``_en`` (plan §7, §17 #8).
@@ -148,12 +148,19 @@ class Region(models.Model):
     fixed slice. The escape row has no prefix, which is what switches the check
     off for an address the classifier does not cover while the six-digit format
     check still applies (§17 #86).
+
+    From Phase 22 the active rows are the fourteen Uzpost knows, each with
+    Uzpost's id for it (``uzpost_id``), loaded by ``sync_uzpost_regions``
+    (§17 #378). A region keeps its own name and translations; the escape has
+    no Uzpost id and is switched off. The prefix stays for the orders placed
+    with a typed index before then.
     """
     code = models.CharField(max_length=4, unique=True)      # SOATO code
     name = models.CharField(max_length=80, help_text="Oʻzbekcha — asosiy matn")
     name_ru = models.CharField(max_length=80, blank=True, default='')
     name_en = models.CharField(max_length=80, blank=True, default='')
     postal_prefix = models.CharField(max_length=3, blank=True, default='', db_index=True)
+    uzpost_id = models.PositiveBigIntegerField(null=True, blank=True, unique=True)
     is_active = models.BooleanField(default=True, db_index=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 
@@ -182,6 +189,16 @@ class District(models.Model):
     they are — and someone in Angren is looking for a city, not scanning an
     alphabetical mix of districts. ``kind`` is what lets the drawer group them
     under separate headings rather than flatten them (§17 #87).
+
+    From Phase 22 the active rows are Uzpost's districts, loaded by
+    ``sync_uzpost_regions`` from ``data/uzpost-regions.csv`` (§17 #378): a
+    shipment is addressed by Uzpost's id for the district (``uzpost_id``), so
+    a district Uzpost does not know cannot be sent to and is switched off.
+    ``latitude`` and ``longitude`` are the district's centre as Uzpost gives
+    it, corrected by hand in that file where Uzpost's is plainly wrong; they
+    are the district's pin on the office map (§17 #381). A row created for a
+    Uzpost district with no official counterpart has the code ``U`` and
+    Uzpost's id, since it has no SOATO code.
     """
     class Kind(models.TextChoices):
         DISTRICT = 'district', _('Tuman')
@@ -199,6 +216,9 @@ class District(models.Model):
     kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.DISTRICT)
     is_active = models.BooleanField(default=True, db_index=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
+    uzpost_id = models.PositiveBigIntegerField(null=True, blank=True, unique=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     def __str__(self):
         return f"{self.region.name} — {self.name}"
@@ -498,21 +518,22 @@ class Order(models.Model):
         as in the checkout view because the view will not always be the only
         thing that builds an order.
 
-        Four checks, in order of what they cost the customer:
+        The checks, in order of what they cost the customer:
 
         * **both** methods must carry a region and a district. A courier needs
           the province and the district as much as the post office does, and a
-          customer who picks them from a drawer cannot misspell them — which is
-          why the home form stopped asking for them inside a free-text address
-          (§17 #106);
+          customer who picks them from a drawer cannot misspell them (§17 #106);
         * the district must belong to the chosen region;
-        * for a branch order the index must be six digits, whatever region it is
-          for, because a five-digit index is wrong everywhere; a home order must
-          not carry one at all;
-        * the index's leading digits must match the chosen region's prefix.
-          That is the one error worth catching automatically: it is the typo
-          that sends a real parcel to another province, and the customer finds
-          out at the form rather than three weeks later.
+        * a new order's district must be one Uzpost knows, with Uzpost's id,
+          because the shipment is addressed by it (§17 #377). An order placed
+          before Phase 22 keeps the row it was placed with, so the Django
+          admin can still save it;
+        * a home order needs a street and carries no postal index. An office
+          order needs neither: since Phase 22 it goes to the district's Bir
+          Qadam office and nobody types an index (§17 #378). One placed before
+          carries the index that was typed, and that is still held to six
+          digits and the region's prefix, the typo that sends a parcel to
+          another province.
         """
         super().clean()
         if not self.delivery_option_id:
@@ -527,10 +548,14 @@ class Order(models.Model):
             errors['district'] = _('Tuman yoki shaharni tanlang.')
         elif self.region_id and self.district.region_id != self.region_id:
             errors['district'] = _('Tanlangan tuman bu viloyatga tegishli emas.')
+        elif self._state.adding and not self.district.uzpost_id:
+            errors['district'] = _('Bu tumanga Uzpost orqali yuborib boʻlmaydi. '
+                                   'Roʻyxatdan boshqasini tanlang.')
 
         if branch:
             if not self.postal_index:
-                errors['postal_index'] = _('Pochta indeksini kiriting.')
+                # An office order since Phase 22: the district is the address.
+                pass
             elif not (self.postal_index.isdigit() and len(self.postal_index) == 6):
                 errors['postal_index'] = _('Pochta indeksi 6 ta raqamdan iborat boʻlishi kerak.')
             elif self.region_id and not self.region.index_matches(self.postal_index):
@@ -592,3 +617,95 @@ class Order(models.Model):
 #: money moved first (§17 #57, #297).
 SOLD = (Order.Status.PAID, Order.Status.PROCESSING,
         Order.Status.ON_THE_WAY, Order.Status.DONE)
+
+
+class Shipment(models.Model):
+    """An order's parcel at Uzpost: what Uzpost was asked to carry, and where it is.
+
+    Made by staff from the panel, by one button, once the order is paid
+    (§17 #379); ``payment.shipments`` is the one place that makes one. The
+    shop keeps what it needs to print the label, follow the status and answer
+    the customer; Uzpost keeps the rest.
+
+    ``number`` is Uzpost's ``order_number``, which is also the barcode on the
+    label. ``status`` is Uzpost's own word for where the parcel is, kept as
+    Uzpost wrote it so that a status the code does not know is still recorded
+    rather than lost; ``reported_status`` is the last one the owner was told
+    about on Telegram, so he is told once. A shipment is live until
+    ``cancelled_at`` is set, by the shop or because Uzpost cancelled it, and
+    an order has at most one live shipment.
+    """
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='shipments')
+    uzpost_id = models.PositiveBigIntegerField(unique=True)
+    number = models.CharField(max_length=40, db_index=True)
+    service = models.CharField(max_length=40)
+    weight = models.DecimalField(max_digits=6, decimal_places=3)
+    transportation = models.CharField(max_length=12, blank=True, default='')
+    # The office Uzpost assigned: its index, and its name as Uzpost writes it,
+    # in Russian.
+    office_index = models.CharField(max_length=10, blank=True, default='')
+    office_name = models.CharField(max_length=200, blank=True, default='')
+    status = models.CharField(max_length=40, blank=True, default='')
+    status_at = models.DateTimeField(null=True, blank=True)
+    # When Uzpost was last asked, whatever it answered.
+    read_at = models.DateTimeField(null=True, blank=True)
+    reported_status = models.CharField(max_length=40, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                   null=True, blank=True, related_name='+')
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    # The SMS that the parcel is waiting at the office: when it went, and how
+    # many sends failed before it did (§9 Phase 22 item 12).
+    arrival_sms_at = models.DateTimeField(null=True, blank=True)
+    arrival_sms_tries = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.number} ({self.status or '—'})"
+
+    @property
+    def is_live(self):
+        """Not cancelled, by the shop or by Uzpost."""
+        return self.cancelled_at is None
+
+    @property
+    def status_label(self):
+        """Uzpost's status in the reader's language, or as Uzpost wrote it."""
+        from .shipments import status_label
+        return status_label(self.status)
+
+    @property
+    def tracking_url(self):
+        """Uzpost's own tracking page for this parcel, with its full history."""
+        return f"https://uz.post/uz/tracking/{self.number}/"
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        constraints = [
+            models.UniqueConstraint(fields=['order'], condition=models.Q(cancelled_at__isnull=True),
+                                    name='payment_one_live_shipment_per_order'),
+        ]
+
+
+class ShipmentStatus(models.Model):
+    """One status a shipment was seen in, and when Uzpost says it began.
+
+    The shop's own record of the parcel's way, shown to the customer and in
+    the panel. It is what the shop saw, every 30 minutes at best; Uzpost's
+    tracking page has the full history.
+    """
+    shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='history')
+    status = models.CharField(max_length=40)
+    at = models.DateTimeField()
+    seen_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.shipment_id}: {self.status}"
+
+    @property
+    def label(self):
+        """The status in the reader's language."""
+        from .shipments import status_label
+        return status_label(self.status)
+
+    class Meta:
+        ordering = ['-at', '-id']

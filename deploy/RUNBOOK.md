@@ -178,6 +178,7 @@ a breakage.
 cd /srv/graphix
 sudo -u graphix .venv/bin/python manage.py migrate
 sudo -u graphix .venv/bin/python manage.py seed_regions
+sudo -u graphix .venv/bin/python manage.py sync_uzpost_regions
 sudo -u graphix .venv/bin/python manage.py compilemessages
 sudo -u graphix .venv/bin/python manage.py collectstatic --noinput
 sudo -u graphix .venv/bin/python manage.py check --deploy
@@ -186,6 +187,10 @@ sudo -u graphix .venv/bin/python manage.py check --deploy
 `seed_regions` is not a migration — no migration loads the fourteen regions and
 their two hundred districts, so a fresh database has an empty delivery picker
 until this runs. It is idempotent and deactivates rather than deletes.
+`sync_uzpost_regions` then puts Uzpost's lists over them (plan §17 #378): the
+regions take Uzpost's ids and the districts become Uzpost's 198, from
+`data/uzpost-regions.csv`. The checkout offers only what it loaded. Once it
+has run, `seed_regions` refuses to run again without `--force`.
 
 `check --deploy` must report **no issues**. It does with `DEBUG=False`; if it
 lists anything, stop and read it rather than continuing.
@@ -421,7 +426,7 @@ backups** — until it returns 0, the backup is a file of unknown value.
 
 ```bash
 sudo systemctl enable --now graphix-backup.timer graphix-prune-carts.timer \
-        graphix-cancel-unpaid.timer
+        graphix-cancel-unpaid.timer graphix-uzpost.timer
 systemctl list-timers 'graphix*' --no-pager
 ```
 
@@ -451,6 +456,21 @@ sudo -u graphix /srv/graphix/.venv/bin/python /srv/graphix/manage.py \
 
 Each cancellation is in the order's trail in the panel, by "avtomatik", and
 its number is in `journalctl -u graphix-cancel-unpaid.service`.
+
+`uzpost_sync` reads every live Uzpost shipment's status every 30 minutes
+(plan §9 Phase 22). A parcel on its way moves its order to "Yetkazilmoqda" and
+a delivered one to "Bajarildi", forward only, and the trail names Uzpost; a
+status the shop does not act on is sent to the owner on Telegram once. With
+`UZPOST_LOGIN` blank it reads nothing. Installing it on a machine set up
+before Phase 22:
+
+```bash
+sudo cp /srv/graphix/deploy/systemd/graphix-uzpost.service \
+        /srv/graphix/deploy/systemd/graphix-uzpost.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo -u graphix /srv/graphix/.venv/bin/python /srv/graphix/manage.py uzpost_sync --dry-run
+sudo systemctl enable --now graphix-uzpost.timer
+```
 
 ---
 
@@ -529,6 +549,12 @@ service, and this is the reason (§17 #267).
   through your own bot service — the first one set wins. **§19 Q33 is open**:
   if that service runs anywhere but this server, the privacy policy has to name
   that country too.
+- `UZPOST_LOGIN`, `UZPOST_PASSWORD`: the owner's own `my.pochta.uz` login.
+  With them the panel makes an order's shipment and prints its label, and
+  `uzpost_sync` follows it (§16). `UZPOST_ARRIVAL_STATUSES` stays out until
+  the status of a parcel waiting at its office has been seen on a real one and
+  Eskiz has approved the arrival SMS (`payment/shipments.py`, `arrival_text`);
+  then it is that status, and the SMS goes from the next run.
 - `GOOGLE_MAPS_API_KEY`: enable billing (the Geocoding API answers
   `REQUEST_DENIED` without it, so a dropped pin cannot fill the address),
   restrict the key to `https://graphix.uz/*` and `https://www.graphix.uz/*`,
@@ -580,8 +606,11 @@ sudo -u graphix git checkout main && sudo -u graphix git pull
 #    most updates do not need it and nothing reminds you when one does.
 sudo -u graphix .venv/bin/pip install -r requirements.txt
 
-# 3. Schema, then the compiled catalogues, then the static files.
+# 3. Schema, Uzpost's regions and districts, then the compiled catalogues,
+#    then the static files. The second line is idempotent, and a pull that
+#    brings a new data/uzpost-regions.csv needs it.
 sudo -u graphix .venv/bin/python manage.py migrate
+sudo -u graphix .venv/bin/python manage.py sync_uzpost_regions
 sudo -u graphix .venv/bin/python manage.py compilemessages --ignore .venv
 sudo -u graphix .venv/bin/python manage.py collectstatic --noinput
 sudo -u graphix .venv/bin/python manage.py check --deploy

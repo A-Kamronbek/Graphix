@@ -408,6 +408,15 @@ msgstr "С даты"
 msgid "Sanagacha"
 msgstr "По дату"
 
+#: .\panel\views.py:319
+#, python-format
+msgid "Joʻnatma %(number)s yaratildi."
+msgstr "Отправление %(number)s создано."
+
+#: .\panel\views.py:330
+msgid "Bu buyurtmaning joʻnatmasi yoʻq."
+msgstr "У этого заказа нет отправления."
+
 #: .\panel\views.py:306 .\panel\views.py:308
 msgid "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
 msgstr "Этот статус нельзя установить вручную."
@@ -590,9 +599,12 @@ msgstr "Выберите район или город."
 msgid "Tanlangan tuman bu viloyatga tegishli emas."
 msgstr "Выбранный район не относится к этой области."
 
-#: .\payment\models.py:363
-msgid "Pochta indeksini kiriting."
-msgstr "Укажите почтовый индекс."
+#: .\payment\models.py:552
+msgid ""
+"Bu tumanga Uzpost orqali yuborib boʻlmaydi. Roʻyxatdan boshqasini tanlang."
+msgstr ""
+"В этот район нельзя отправить посылку через «Узбекистон почтаси». Выберите "
+"другой район из списка."
 
 #: .\payment\models.py:365
 msgid "Pochta indeksi 6 ta raqamdan iborat boʻlishi kerak."
@@ -665,6 +677,106 @@ msgstr "Имя: %(name)s"
 #, python-format
 msgid "Telefon: %(phone)s"
 msgstr "Телефон: %(phone)s"
+
+#: .\payment\shipments.py:39
+msgid "Rasmiylashtirildi"
+msgstr "Отправление оформлено"
+
+#: .\payment\shipments.py:40
+msgid "Saralash markazida"
+msgstr "В сортировочном центре"
+
+#: .\payment\shipments.py:41
+msgid "Yoʻlda"
+msgstr "В пути"
+
+#: .\payment\shipments.py:42
+msgid "Joʻnatildi"
+msgstr "Отправлено"
+
+#: .\payment\shipments.py:43
+msgid "Yetkazib berishga chiqarildi"
+msgstr "Передано на доставку"
+
+#: .\payment\shipments.py:44
+msgid "Topshirildi"
+msgstr "Вручено"
+
+#: .\payment\shipments.py:182 .\templates\boshqaruv\order.html:158
+msgid ""
+"Uzpost sozlanmagan: serverdagi .env faylida UZPOST_LOGIN va UZPOST_PASSWORD "
+"yoʻq."
+msgstr ""
+"«Узбекистон почтаси» не подключена: в файле .env на сервере нет UZPOST_LOGIN "
+"и UZPOST_PASSWORD."
+
+#: .\payment\shipments.py:189
+msgid "Joʻnatma faqat toʻlangan yoki jarayondagi buyurtmaga yaratiladi."
+msgstr ""
+"Отправление создаётся только для заказа, который оплачен или находится в "
+"обработке."
+
+#: .\payment\shipments.py:192
+msgid "Bu buyurtmaning joʻnatmasi allaqachon bor."
+msgstr "У этого заказа уже есть отправление."
+
+#: .\payment\shipments.py:195
+msgid "Bu yetkazib berish usuli uchun Uzpost xizmati belgilanmagan."
+msgstr "Для этого способа доставки не задана услуга «Узбекистон почтаси»."
+
+#: .\payment\shipments.py:197
+msgid ""
+"Buyurtmaning tumani Uzpost roʻyxatida yoʻq. Joʻnatmani my.pochta.uz "
+"kabinetida yarating."
+msgstr ""
+"Района этого заказа нет в списке «Узбекистон почтаси». Создайте отправление "
+"в кабинете my.pochta.uz."
+
+#: .\payment\shipments.py:202
+#, python-format
+msgid "Uzpost bu yoʻnalish narxini bermadi: %(error)s"
+msgstr "Почта не назвала цену для этого направления: %(error)s"
+
+#: .\payment\shipments.py:207
+msgid ""
+"Uzpost javob bermadi. Joʻnatma yaratilgan boʻlishi mumkin: qayta bosishdan "
+"oldin my.pochta.uz kabinetini tekshiring."
+msgstr ""
+"Почта не ответила. Отправление могло быть создано: прежде чем нажать снова, "
+"проверьте кабинет my.pochta.uz."
+
+#: .\payment\shipments.py:210
+#, python-format
+msgid "Uzpost joʻnatmani qabul qilmadi: %(error)s"
+msgstr "Почта не приняла отправление: %(error)s"
+
+#: .\payment\shipments.py:238
+#, python-format
+msgid "Uzpost yorliqni bermadi: %(error)s"
+msgstr "Почта не выдала этикетку: %(error)s"
+
+#: .\payment\shipments.py:261
+#, python-format
+msgid "Uzpost joʻnatmasi %(number)s bekor qilindi."
+msgstr "Отправление %(number)s отменено на почте."
+
+#: .\payment\shipments.py:264
+#, python-format
+msgid ""
+"Buyurtma bekor qilindi, lekin Uzpost javob bermadi: %(number)s joʻnatmasi "
+"bekor boʻlganini my.pochta.uz kabinetida tekshiring."
+msgstr ""
+"Заказ отменён, но почта не ответила: проверьте в кабинете my.pochta.uz, "
+"отменено ли отправление %(number)s."
+
+#: .\payment\shipments.py:267
+#, python-format
+msgid ""
+"Buyurtma bekor qilindi, lekin Uzpost %(number)s joʻnatmasini bekor qilmadi: "
+"posilka allaqachon Uzpostda (%(error)s)."
+msgstr ""
+"Заказ отменён, но почта не отменила отправление %(number)s: посылка уже у "
+"почты (%(error)s)."
 
 #: .\payment\views.py:183
 #, python-format
@@ -1207,6 +1319,10 @@ msgstr "Дата"
 #: .\templates\payment\status.html:23
 msgid "Toʻlov"
 msgstr "Оплата"
+
+#: .\templates\boshqaruv\order.html:125
+msgid "Joʻnatma"
+msgstr "Отправление"
 
 #: .\templates\boshqaruv\order.html:105
 msgid "Holatni oʻzgartirish"
@@ -2229,25 +2345,33 @@ msgstr "Название района или города"
 msgid "Qoʻlda yozing"
 msgstr "Впишите вручную"
 
-#: .\templates\payment\checkout.html:137
-msgid "Pochta indeksi"
-msgstr "Почтовый индекс"
+#: .\templates\payment\checkout.html:161
+msgid ""
+"Joʻnatma tanlangan tumandagi Bir Qadam pochta boʻlimiga keladi. Boʻlim "
+"manzili joʻnatma yuborilgach buyurtma sahifasida koʻrinadi."
+msgstr ""
+"Посылка придёт в отделение Bir Qadam в выбранном районе. Адрес отделения "
+"появится на странице заказа, когда посылка будет отправлена."
 
-#: .\templates\payment\checkout.html:143
-msgid "Indeks 6 ta raqamdan iborat boʻlishi kerak."
-msgstr "Индекс состоит из 6 цифр."
+#: .\templates\payment\checkout.html:171
+msgid "Xaritadan tanlash"
+msgstr "Выбрать на карте"
 
-#: .\templates\payment\checkout.html:144
-msgid "Bu indeks tanlangan viloyatga toʻgʻri kelmadi."
-msgstr "Этот индекс не относится к выбранной области."
+#: .\templates\payment\checkout.html:175
+msgid "Tumanlar xaritasi"
+msgstr "Карта районов"
 
-#: .\templates\payment\checkout.html:146
-msgid "Oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksi."
-msgstr "Шестизначный индекс отделения, где вы заберёте заказ."
+#: .\templates\payment\checkout.html:178
+msgid "Menga yaqin"
+msgstr "Рядом со мной"
 
-#: .\templates\payment\checkout.html:153
-msgid "Indeksni bilmaysizmi? Pochta boʻlimlari xaritasi"
-msgstr "Не знаете индекс? Карта почтовых отделений"
+#: .\templates\payment\checkout.html:181
+msgid "Tumaningiz belgisini bosing: viloyat va tuman yuqorida tanlanadi."
+msgstr "Нажмите на метку своего района — область и район выберутся выше."
+
+#: .\templates\payment\checkout.html:184
+msgid "Xaritani yuklab boʻlmadi. Tumanni roʻyxatdan tanlang."
+msgstr "Карту не удалось загрузить. Выберите район из списка."
 
 #: .\templates\payment\checkout.html:163
 msgid "Manzilni kiritish usuli"
@@ -2396,36 +2520,66 @@ msgstr "Детали"
 msgid "Yetkazib berish narxi"
 msgstr "Стоимость доставки"
 
+#: .\templates\payment\order_detail.html:94
+#, python-format
+msgid ""
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+msgid_plural ""
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+msgstr[0] "Отделение хранит посылку %(hold)s день. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+msgstr[1] "Отделение хранит посылку %(hold)s дня. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+msgstr[2] "Отделение хранит посылку %(hold)s дней. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+msgstr[3] "Отделение хранит посылку %(hold)s дня. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+
+#: .\templates\payment\order_detail.html:111
+msgid "Uzpost joʻnatmasi"
+msgstr "Отправление «Узбекистон почтаси»"
+
+#: .\templates\payment\order_detail.html:113
+msgid "Raqami"
+msgstr "Номер"
+
+#: .\templates\payment\order_detail.html:124
+msgid "Uzpost saytida kuzatish"
+msgstr "Отследить на сайте почты"
+
 #: .\templates\payment\order_detail.html:76
 msgid "Pochta boʻlimi"
 msgstr "Почтовое отделение"
 
-#: .\templates\payment\order_detail.html:87
+#: .\templates\boshqaruv\order.html:131
+msgid "Ogʻirligi"
+msgstr "Вес"
+
+#: .\templates\boshqaruv\order.html:133
+msgid "Tekshirildi"
+msgstr "Проверено"
+
+#: .\templates\boshqaruv\order.html:137
+msgid "Yorliqni chop etish"
+msgstr "Распечатать этикетку"
+
+#: .\templates\boshqaruv\order.html:148
 #, python-format
-msgid ""
-"Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
-msgid_plural ""
-"Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
-msgstr[0] ""
-"Отделение хранит посылку %(months)s месяц. Если её не забрать, она вернётся "
-"к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. "
-"Если индекс указан неверно, сразу напишите нам."
-msgstr[1] ""
-"Отделение хранит посылку %(months)s месяца. Если её не забрать, она вернётся "
-"к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. "
-"Если индекс указан неверно, сразу напишите нам."
-msgstr[2] ""
-"Отделение хранит посылку %(months)s месяцев. Если её не забрать, она "
-"вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение "
-"%(days)s дн. Если индекс указан неверно, сразу напишите нам."
-msgstr[3] ""
-"Отделение хранит посылку %(months)s месяца. Если её не забрать, она вернётся "
-"к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. "
-"Если индекс указан неверно, сразу напишите нам."
+msgid "Ogʻirligi: %(weight)s kg."
+msgstr "Вес: %(weight)s кг."
+
+#: .\templates\boshqaruv\order.html:151
+msgid "Joʻnatma yaratilgach buyurtma «Jarayonda» boʻladi."
+msgstr "Когда отправление будет создано, заказ перейдёт в статус «В обработке»."
+
+#: .\templates\boshqaruv\order.html:155
+msgid "Joʻnatma yaratish"
+msgstr "Создать отправление"
+
+#: .\templates\boshqaruv\order.html:160
+msgid "Joʻnatma toʻlangan yoki jarayondagi buyurtmaga yaratiladi."
+msgstr ""
+"Отправление создаётся для заказа, который оплачен или находится в обработке."
 
 #: .\templates\payment\order_detail.html:105
 msgid "Holatini kuzatish"
@@ -3106,6 +3260,49 @@ msgstr "Изображение не выбрано."
 msgid "Rasm saqlandi."
 msgstr "Изображение сохранено."
 
+#~ msgid "Pochta indeksini kiriting."
+#~ msgstr "Укажите почтовый индекс."
+
+#~ msgid "Pochta indeksi"
+#~ msgstr "Почтовый индекс"
+
+#~ msgid "Indeks 6 ta raqamdan iborat boʻlishi kerak."
+#~ msgstr "Индекс состоит из 6 цифр."
+
+#~ msgid "Bu indeks tanlangan viloyatga toʻgʻri kelmadi."
+#~ msgstr "Этот индекс не относится к выбранной области."
+
+#~ msgid "Oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksi."
+#~ msgstr "Шестизначный индекс отделения, где вы заберёте заказ."
+
+#~ msgid "Indeksni bilmaysizmi? Pochta boʻlimlari xaritasi"
+#~ msgstr "Не знаете индекс? Карта почтовых отделений"
+
+#~ msgid ""
+#~ "Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+#~ "toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+#~ "qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
+#~ msgid_plural ""
+#~ "Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+#~ "toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+#~ "qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
+#~ msgstr[0] ""
+#~ "Отделение хранит посылку %(months)s месяц. Если её не забрать, она вернётся "
+#~ "к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. "
+#~ "Если индекс указан неверно, сразу напишите нам."
+#~ msgstr[1] ""
+#~ "Отделение хранит посылку %(months)s месяца. Если её не забрать, она вернётся "
+#~ "к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. "
+#~ "Если индекс указан неверно, сразу напишите нам."
+#~ msgstr[2] ""
+#~ "Отделение хранит посылку %(months)s месяцев. Если её не забрать, она "
+#~ "вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение "
+#~ "%(days)s дн. Если индекс указан неверно, сразу напишите нам."
+#~ msgstr[3] ""
+#~ "Отделение хранит посылку %(months)s месяца. Если её не забрать, она вернётся "
+#~ "к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. "
+#~ "Если индекс указан неверно, сразу напишите нам."
+
 #~ msgid ""
 #~ "Tugmani bosing: Telegramda adminimiz bilan suhbat ochiladi, xabar esa tayyor "
 #~ "turadi. Uni yuboring, admin qanday toʻlashni aytadi. Toʻlov tasdiqlangach, "
@@ -3245,9 +3442,6 @@ msgstr "Изображение сохранено."
 
 #~ msgid "Premium sifat · 100+ dizayn · Oʻzbekiston boʻylab yetkazib berish"
 #~ msgstr "Премиальное качество · 100+ дизайнов · Доставка по Узбекистану"
-
-#~ msgid "Yoʻlda"
-#~ msgstr "В пути"
 
 #~ msgid ""
 #~ "Maʼlum bir grafika yoki dizayndagi futbolkani izlash qancha vaqt olishini "

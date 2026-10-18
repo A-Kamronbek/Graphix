@@ -15,7 +15,7 @@
   <h3>Hisob</h3>
   <p>Telefon raqami va u tasdiqlanganmi-yoʻqligi, ism (ixtiyoriy), hisob ochilgan va oxirgi marta kirilgan vaqt. Hisobda foydalanuvchi nomi ham, parol ham yoʻq: har safar telefon raqamingizga SMS orqali keladigan bir martalik kod bilan kirasiz. Kodning oʻzini saqlamaymiz — faqat uning qaytarib boʻlmaydigan xeshini.</p>
   <h3>Buyurtmalar</h3>
-  <p>Qabul qiluvchining ism-familiyasi va telefon raqami; viloyat va tuman yoki shahar; pochta boʻlimi indeksi yoki koʻcha va uy raqami; xaritada belgi qoʻysangiz — uning koordinatalari; buyurtmaga yozgan izohingiz; mahsulotlar, narxlar, yetkazib berish usuli va narxi, toʻlov usuli, buyurtma holati va uning oʻzgarish tarixi.</p>
+  <p>Qabul qiluvchining ism-familiyasi va telefon raqami; viloyat va tuman yoki shahar; eshikkacha yetkazishda — koʻcha va uy raqami; xaritada belgi qoʻysangiz — uning koordinatalari; buyurtmaga yozgan izohingiz; mahsulotlar, narxlar, yetkazib berish usuli va narxi, toʻlov usuli, buyurtma holati va uning oʻzgarish tarixi; Pochta joʻnatmasining raqami va u boʻlgan holatlar.</p>
   <h3>Toʻlov</h3>
   <p>Click orqali toʻlaganingizda biz faqat buyurtma raqami, summa va toʻlov holatini olamiz. Karta raqami va boshqa karta maʼlumotlari Click tizimida kiritiladi va bizga kelmaydi.</p>
   <h3>Sharhlar va xabarlar</h3>
@@ -38,17 +38,17 @@
     <li><strong>Qonun talablari</strong> — buxgalteriya va soliq hisobini yuritish.</li>
   </ul>
   <p>Ishlov berish asoslari — sizning roziligingiz (u roʻyxatdan oʻtishda beriladi), siz tomon boʻlgan shartnomani bajarish va Sotuvchining qonunda belgilangan majburiyatlari.</p>
-  <p>Biz reklama SMS-xabarlarini yubormaymiz. Telefon raqamingizga faqat xizmat xabarlari — kirish va roʻyxatdan oʻtish kodlari keladi.</p>
+  <p>Biz reklama SMS-xabarlarini yubormaymiz. Telefon raqamingizga faqat xizmat xabarlari — kirish va roʻyxatdan oʻtish kodlari{% if legal.arrival_sms %}, buyurtmangiz pochta boʻlimiga yetib kelganda esa shu haqda xabar{% endif %} keladi.</p>
 </section>
 
 <section class="legal__sec" id="recipients">
   <h2>4. Maʼlumotlar kimga beriladi</h2>
   <p>Maʼlumotlaringizni sotmaymiz va reklama uchun hech kimga bermaymiz. Ular faqat quyidagilarga, faqat ular oʻz vazifasini bajarishi uchun zarur hajmda beriladi:</p>
   <ul>
-    <li><strong>Eskiz</strong> (eskiz.uz) — SMS yuborish xizmati: telefon raqami va kod yozilgan xabar matni;</li>
+    <li><strong>Eskiz</strong> (eskiz.uz) — SMS yuborish xizmati: telefon raqami va xabar matni;</li>
     <li><strong>Click</strong> (click.uz) — toʻlov tizimi: buyurtma raqami va summasi; karta maʼlumotlarini Click oʻzi qabul qiladi;</li>
-    <li><strong>«Oʻzbekiston pochtasi» AJ</strong> — yetkazib berish: qabul qiluvchining ism-familiyasi, telefon raqami va manzili yoki pochta boʻlimi;</li>
-    <li><strong>Google</strong> — Google Maps xaritasi: xarita sahifa ochilganda yuklanmaydi. Siz «Xaritadan» tugmasini bosgan paytdagina brauzeringiz Google skriptini yuklaydi va faqat shundagina Google IP-manzilingiz hamda brauzeringiz haqidagi texnik maʼlumotlarni oladi. Xaritada belgi qoʻysangiz, manzilni aniqlash uchun uning koordinatalari Googlega yuboriladi. Xaritani ochmasangiz, Googlega hech narsa yuborilmaydi;</li>
+    <li><strong>«Oʻzbekiston pochtasi» AJ</strong> — yetkazib berish: joʻnatma yaratilganda Pochta tizimiga qabul qiluvchining ism-familiyasi, telefon raqami, viloyati va tumani, eshikkacha yetkazishda esa koʻcha va uy raqami hamda xaritada belgi qoʻyilgan boʻlsa — uning koordinatalari yuboriladi;</li>
+    <li><strong>Google</strong> — Google Maps xaritasi: xarita sahifa ochilganda yuklanmaydi. Siz «Xaritadan» yoki «Xaritadan tanlash» tugmasini bosgan paytdagina brauzeringiz Google skriptini yuklaydi va faqat shundagina Google IP-manzilingiz hamda brauzeringiz haqidagi texnik maʼlumotlarni oladi. Xaritada belgi qoʻysangiz, manzilni aniqlash uchun uning koordinatalari Googlega yuboriladi. «Menga yaqin» tugmasi joylashuvingizni faqat xaritani siz turgan joyga surish uchun ishlatadi: u bizga yuborilmaydi. Xaritani ochmasangiz, Googlega hech narsa yuborilmaydi;</li>
     <li><strong>Telegram</strong> — yangi buyurtma, toʻlov, xabar va sharh haqidagi bildirishnomalar doʻkonning Telegram boti orqali doʻkon xodimlariga yuboriladi. Buyurtma haqidagi bildirishnomada qabul qiluvchining ismi, telefon raqami, manzili (xaritada belgi qoʻyilgan boʻlsa — uning koordinatalari), buyurtma tarkibi va izohi, xabar haqidagisida esa yuboruvchining ismi, telefon raqami va xabar matni boʻladi;</li>
     <li><strong>Server provayderi</strong> — Sayt va uning maʼlumotlar bazasi Polshadagi (Varshava) ijaraga olingan serverda ishlaydi: biz saqlaydigan barcha maʼlumotlar oʻsha serverda joylashgan (<a class="link" href="#abroad">5-boʻlim</a>).</li>
   </ul>
@@ -85,7 +85,7 @@
     <li><code>graphix_lang</code> — tanlagan tilingizni eslab qoladi; bir yil;</li>
     <li><code>messages</code> — «Savatga qoʻshildi» kabi bir martalik xabarni keyingi sahifaga yetkazadi va u koʻrsatilishi bilan oʻchadi.</li>
   </ul>
-  <p>Brauzerning vaqtinchalik xotirasida (<code>sessionStorage</code>) ikki qoralama saqlanadi: roʻyxatdan oʻtish shakliga yozgan telefon raqamingiz — shartlarni oʻqib qaytganingizda yoʻqolmasligi uchun, va rasmiylashtirish shakli — pochta boʻlimlari xaritasiga oʻtib qaytganingizda. Bu xotira brauzer varagʻi yopilishi bilan tozalanadi va bizga yuborilmaydi.</p>
+  <p>Brauzerning vaqtinchalik xotirasida (<code>sessionStorage</code>) bitta qoralama saqlanadi: roʻyxatdan oʻtish shakliga yozgan telefon raqamingiz — shartlarni oʻqib qaytganingizda yoʻqolmasligi uchun. Bu xotira brauzer varagʻi yopilishi bilan tozalanadi va bizga yuborilmaydi.</p>
   <p>Reklama va kuzatuv cookie-fayllari ishlatilmaydi. Siz xaritani ochsangiz, Google oʻz qoidalariga koʻra texnik maʼlumotlarni olishi mumkin — <a class="link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google maxfiylik siyosati</a>.</p>
   <p>Cookie-fayllarni brauzer sozlamalarida oʻchirib qoʻyishingiz mumkin, ammo unda hisobga kirish va savat ishlamaydi.</p>
 </section>

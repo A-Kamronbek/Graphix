@@ -23,6 +23,11 @@ from django.utils.translation import gettext_lazy as _
 #: translated - the trail shows its own translated word instead.
 AUTO_CANCEL_NOTE = 'Avtomatik: muddatida toʻlanmagan'
 
+#: The start of the note on a move Uzpost's status made, followed by that
+#: status: the order following its shipment (§17 #380). The trail names
+#: Uzpost as the author of such a move.
+UZPOST_NOTE = 'Uzpost: '
+
 
 class OrderStatusChange(models.Model):
     """A single move from one status to another, with its author.
@@ -72,6 +77,11 @@ class OrderStatusChange(models.Model):
     def is_automatic(self):
         """Whether the site made this move itself, with nobody pressing anything."""
         return self.changed_by_id is None and self.note == AUTO_CANCEL_NOTE
+
+    @property
+    def is_uzpost(self):
+        """Whether Uzpost's status for the shipment made this move."""
+        return self.changed_by_id is None and self.note.startswith(UZPOST_NOTE)
 
     class Meta:
         verbose_name = _('Holat oʻzgarishi')

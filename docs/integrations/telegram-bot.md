@@ -28,6 +28,10 @@ identified by `name` and `phone`, as before. There is one new event,
 simply does not show that one, so the bot has to be taught it for the owner to
 see it.
 
+**Changed 2026-10-18 (Phase 22):** one new event, `uzpost.status`, for an
+Uzpost shipment in a status the shop does not act on by itself. The bot has to
+be taught it for the owner to see it.
+
 ## How it fits together
 
 ```
@@ -150,8 +154,9 @@ Refuse anything that fails with `401` and do nothing with it.
 
 ## The events
 
-Four: a paid order, a contact message, a review waiting for moderation, and
-the ceiling on sign-in codes being reached.
+Five: a paid order, a contact message, a review waiting for moderation, the
+ceiling on sign-in codes being reached, and an Uzpost shipment in a status the
+shop does not act on.
 
 Amounts are whole so'm, as integers. Dates are ISO 8601 with a time zone.
 `admin_url` links to the staff panel — the order's own screen, or the list the
@@ -238,6 +243,24 @@ open.
 ```json
 {"signin": {"codes_sent": 150, "window_minutes": 60}}
 ```
+
+### `uzpost.status`
+
+The site reads each Uzpost shipment's status every 30 minutes and moves the
+order along with it. Some statuses it does not act on: a shipment Uzpost
+cancelled, a parcel sent back, a status it has never seen. Then the order is
+left as it is and this is sent, once for each shipment and status, for a
+person to decide.
+
+```json
+{"shipment": {"order": "GX-261018-0001", "number": "MM216886699UZ",
+              "status": "returned_to_origin",
+              "status_at": "2026-10-20T09:12:00Z",
+              "admin_url": "https://graphix.uz/uz/boshqaruv/buyurtmalar/GX-261018-0001/"}}
+```
+
+- `status` is Uzpost's own word, as Uzpost wrote it.
+- `status_at` is when Uzpost says the status began, or `null`.
 
 ## The bot's own commands
 

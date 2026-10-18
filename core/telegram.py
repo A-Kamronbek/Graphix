@@ -4,9 +4,10 @@ Structured exactly like :mod:`core.sms`, and for the same reason: module
 logger, catch everything, log, return a boolean, **never raise**. A Telegram
 outage degrades a feature; it must never fail a checkout (§4, §12 risk #17).
 
-There are four events - a paid order, a contact message, a review waiting
-for moderation, and the hourly ceiling on sign-in codes being reached - and
-each is sent once, when it happens. An order is notified
+There are five events - a paid order, a contact message, a review waiting
+for moderation, the hourly ceiling on sign-in codes being reached, and an
+Uzpost shipment in a status the shop does not act on - and each is sent once,
+when it happens. An order is notified
 when the money arrives and not when it is placed (§17 #237): an abandoned
 checkout and a cancelled payment are not parcels, and the owner should not
 have to work out which of his notifications are.
@@ -397,3 +398,28 @@ def notify_code_ceiling(limit):
         "oʻta olmaydi.",
         event='signin.ceiling',
         data={'signin': {'codes_sent': limit, 'window_minutes': 60}})
+
+
+def notify_shipment_status(shipment):
+    """Uzpost put a shipment in a status the shop does not act on by itself.
+
+    Cancelled by Uzpost, sent back, or a status the code has never seen: the
+    order is left as it is, and the owner is told once, because only a person
+    can decide what it means for the order (§17 #380, §12 risk #35).
+    """
+    order = shipment.order
+    link = panel_url('panel_order', order_no=order.order_no) if order.order_no else ''
+    lines = [
+        f"📦 <b>Uzpost: joʻnatma holati</b> {esc(order.order_no or order.pk)}",
+        f"{esc(shipment.number)} — <b>{esc(shipment.status)}</b>",
+        "Buyurtma holati oʻzgartirilmadi.",
+    ]
+    if link:
+        lines.append(f'\n<a href="{link}">Buyurtmani ochish</a>')
+    notify('\n'.join(lines), event='uzpost.status', data={'shipment': {
+        'order': order.order_no or str(order.pk),
+        'number': shipment.number,
+        'status': shipment.status,
+        'status_at': shipment.status_at,
+        'admin_url': link,
+    }})

@@ -404,6 +404,15 @@ msgstr "From"
 msgid "Sanagacha"
 msgstr "To"
 
+#: .\panel\views.py:319
+#, python-format
+msgid "Joʻnatma %(number)s yaratildi."
+msgstr "Shipment %(number)s created."
+
+#: .\panel\views.py:330
+msgid "Bu buyurtmaning joʻnatmasi yoʻq."
+msgstr "This order has no shipment."
+
 #: .\panel\views.py:306 .\panel\views.py:308
 msgid "Bu holatni qoʻlda oʻrnatib boʻlmaydi."
 msgstr "That status cannot be set by hand."
@@ -586,9 +595,11 @@ msgstr "Choose a district or city."
 msgid "Tanlangan tuman bu viloyatga tegishli emas."
 msgstr "That district is not in this region."
 
-#: .\payment\models.py:363
-msgid "Pochta indeksini kiriting."
-msgstr "Enter the postal index."
+#: .\payment\models.py:552
+msgid ""
+"Bu tumanga Uzpost orqali yuborib boʻlmaydi. Roʻyxatdan boshqasini tanlang."
+msgstr ""
+"Uzpost cannot deliver to this district. Choose another one from the list."
 
 #: .\payment\models.py:365
 msgid "Pochta indeksi 6 ta raqamdan iborat boʻlishi kerak."
@@ -661,6 +672,104 @@ msgstr "Name: %(name)s"
 #, python-format
 msgid "Telefon: %(phone)s"
 msgstr "Phone: %(phone)s"
+
+#: .\payment\shipments.py:39
+msgid "Rasmiylashtirildi"
+msgstr "Shipment registered"
+
+#: .\payment\shipments.py:40
+msgid "Saralash markazida"
+msgstr "At the sorting centre"
+
+#: .\payment\shipments.py:41
+msgid "Yoʻlda"
+msgstr "On the way"
+
+#: .\payment\shipments.py:42
+msgid "Joʻnatildi"
+msgstr "Dispatched"
+
+#: .\payment\shipments.py:43
+msgid "Yetkazib berishga chiqarildi"
+msgstr "Out for delivery"
+
+#: .\payment\shipments.py:44
+msgid "Topshirildi"
+msgstr "Delivered"
+
+#: .\payment\shipments.py:182 .\templates\boshqaruv\order.html:158
+msgid ""
+"Uzpost sozlanmagan: serverdagi .env faylida UZPOST_LOGIN va UZPOST_PASSWORD "
+"yoʻq."
+msgstr ""
+"Uzpost is not set up: the server’s .env file has no UZPOST_LOGIN and "
+"UZPOST_PASSWORD."
+
+#: .\payment\shipments.py:189
+msgid "Joʻnatma faqat toʻlangan yoki jarayondagi buyurtmaga yaratiladi."
+msgstr "A shipment is made only for an order that is paid or being processed."
+
+#: .\payment\shipments.py:192
+msgid "Bu buyurtmaning joʻnatmasi allaqachon bor."
+msgstr "This order already has a shipment."
+
+#: .\payment\shipments.py:195
+msgid "Bu yetkazib berish usuli uchun Uzpost xizmati belgilanmagan."
+msgstr "No Uzpost service is set for this delivery method."
+
+#: .\payment\shipments.py:197
+msgid ""
+"Buyurtmaning tumani Uzpost roʻyxatida yoʻq. Joʻnatmani my.pochta.uz "
+"kabinetida yarating."
+msgstr ""
+"The order’s district is not on Uzpost’s list. Create the shipment in the "
+"my.pochta.uz cabinet."
+
+#: .\payment\shipments.py:202
+#, python-format
+msgid "Uzpost bu yoʻnalish narxini bermadi: %(error)s"
+msgstr "Uzpost gave no price for this route: %(error)s"
+
+#: .\payment\shipments.py:207
+msgid ""
+"Uzpost javob bermadi. Joʻnatma yaratilgan boʻlishi mumkin: qayta bosishdan "
+"oldin my.pochta.uz kabinetini tekshiring."
+msgstr ""
+"Uzpost did not answer. The shipment may have been created: check the "
+"my.pochta.uz cabinet before pressing again."
+
+#: .\payment\shipments.py:210
+#, python-format
+msgid "Uzpost joʻnatmani qabul qilmadi: %(error)s"
+msgstr "Uzpost did not accept the shipment: %(error)s"
+
+#: .\payment\shipments.py:238
+#, python-format
+msgid "Uzpost yorliqni bermadi: %(error)s"
+msgstr "Uzpost did not give the label: %(error)s"
+
+#: .\payment\shipments.py:261
+#, python-format
+msgid "Uzpost joʻnatmasi %(number)s bekor qilindi."
+msgstr "Uzpost shipment %(number)s cancelled."
+
+#: .\payment\shipments.py:264
+#, python-format
+msgid ""
+"Buyurtma bekor qilindi, lekin Uzpost javob bermadi: %(number)s joʻnatmasi "
+"bekor boʻlganini my.pochta.uz kabinetida tekshiring."
+msgstr ""
+"The order is cancelled, but Uzpost did not answer: check in the my.pochta.uz "
+"cabinet that shipment %(number)s was cancelled."
+
+#: .\payment\shipments.py:267
+#, python-format
+msgid ""
+"Buyurtma bekor qilindi, lekin Uzpost %(number)s joʻnatmasini bekor qilmadi: "
+"posilka allaqachon Uzpostda (%(error)s)."
+msgstr ""
+"The order is cancelled, but Uzpost did not cancel shipment %(number)s: the "
+"parcel is already with Uzpost (%(error)s)."
 
 #: .\payment\views.py:183
 #, python-format
@@ -1196,6 +1305,10 @@ msgstr "Date"
 #: .\templates\payment\status.html:23
 msgid "Toʻlov"
 msgstr "Payment"
+
+#: .\templates\boshqaruv\order.html:125
+msgid "Joʻnatma"
+msgstr "Shipment"
 
 #: .\templates\boshqaruv\order.html:105
 msgid "Holatni oʻzgartirish"
@@ -2212,25 +2325,33 @@ msgstr "District or city name"
 msgid "Qoʻlda yozing"
 msgstr "Type it in"
 
-#: .\templates\payment\checkout.html:137
-msgid "Pochta indeksi"
-msgstr "Postal index"
+#: .\templates\payment\checkout.html:161
+msgid ""
+"Joʻnatma tanlangan tumandagi Bir Qadam pochta boʻlimiga keladi. Boʻlim "
+"manzili joʻnatma yuborilgach buyurtma sahifasida koʻrinadi."
+msgstr ""
+"The parcel goes to the Bir Qadam post office in the district you choose. Its "
+"address appears on the order page once the parcel is on its way."
 
-#: .\templates\payment\checkout.html:143
-msgid "Indeks 6 ta raqamdan iborat boʻlishi kerak."
-msgstr "An index is six digits."
+#: .\templates\payment\checkout.html:171
+msgid "Xaritadan tanlash"
+msgstr "Choose on the map"
 
-#: .\templates\payment\checkout.html:144
-msgid "Bu indeks tanlangan viloyatga toʻgʻri kelmadi."
-msgstr "That index does not belong to the region you chose."
+#: .\templates\payment\checkout.html:175
+msgid "Tumanlar xaritasi"
+msgstr "Map of districts"
 
-#: .\templates\payment\checkout.html:146
-msgid "Oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksi."
-msgstr "The six-digit index of the branch you will collect from."
+#: .\templates\payment\checkout.html:178
+msgid "Menga yaqin"
+msgstr "Near me"
 
-#: .\templates\payment\checkout.html:153
-msgid "Indeksni bilmaysizmi? Pochta boʻlimlari xaritasi"
-msgstr "Do not know your index? Branch map"
+#: .\templates\payment\checkout.html:181
+msgid "Tumaningiz belgisini bosing: viloyat va tuman yuqorida tanlanadi."
+msgstr "Tap your district’s pin and the region and district are chosen above."
+
+#: .\templates\payment\checkout.html:184
+msgid "Xaritani yuklab boʻlmadi. Tumanni roʻyxatdan tanlang."
+msgstr "The map could not be loaded. Choose the district from the list."
 
 #: .\templates\payment\checkout.html:163
 msgid "Manzilni kiritish usuli"
@@ -2380,28 +2501,69 @@ msgstr "Details"
 msgid "Yetkazib berish narxi"
 msgstr "Delivery cost"
 
+#: .\templates\payment\order_detail.html:94
+#, python-format
+msgid ""
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+msgid_plural ""
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+msgstr[0] ""
+"The office holds the parcel for %(hold)s day. If it isn’t collected, it "
+"comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
+"within %(days)s days. If the district is wrong, write to us straight away."
+msgstr[1] ""
+"The office holds the parcel for %(hold)s days. If it isn’t collected, it "
+"comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
+"within %(days)s days. If the district is wrong, write to us straight away."
+
+#: .\templates\payment\order_detail.html:111
+msgid "Uzpost joʻnatmasi"
+msgstr "Uzpost shipment"
+
+#: .\templates\payment\order_detail.html:113
+msgid "Raqami"
+msgstr "Number"
+
+#: .\templates\payment\order_detail.html:124
+msgid "Uzpost saytida kuzatish"
+msgstr "Track it on Uzpost’s site"
+
 #: .\templates\payment\order_detail.html:76
 msgid "Pochta boʻlimi"
 msgstr "Post office branch"
 
-#: .\templates\payment\order_detail.html:87
+#: .\templates\boshqaruv\order.html:131
+msgid "Ogʻirligi"
+msgstr "Weight"
+
+#: .\templates\boshqaruv\order.html:133
+msgid "Tekshirildi"
+msgstr "Checked"
+
+#: .\templates\boshqaruv\order.html:137
+msgid "Yorliqni chop etish"
+msgstr "Print the label"
+
+#: .\templates\boshqaruv\order.html:148
 #, python-format
-msgid ""
-"Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
-msgid_plural ""
-"Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
-msgstr[0] ""
-"The branch holds the parcel for %(months)s month. If it isn’t collected, it "
-"comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
-"within %(days)s days. If the postcode is wrong, write to us straight away."
-msgstr[1] ""
-"The branch holds the parcel for %(months)s months. If it isn’t collected, it "
-"comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
-"within %(days)s days. If the postcode is wrong, write to us straight away."
+msgid "Ogʻirligi: %(weight)s kg."
+msgstr "Weight: %(weight)s kg."
+
+#: .\templates\boshqaruv\order.html:151
+msgid "Joʻnatma yaratilgach buyurtma «Jarayonda» boʻladi."
+msgstr "Once the shipment is made, the order becomes “Processing”."
+
+#: .\templates\boshqaruv\order.html:155
+msgid "Joʻnatma yaratish"
+msgstr "Create the shipment"
+
+#: .\templates\boshqaruv\order.html:160
+msgid "Joʻnatma toʻlangan yoki jarayondagi buyurtmaga yaratiladi."
+msgstr "A shipment is made for an order that is paid or being processed."
 
 #: .\templates\payment\order_detail.html:105
 msgid "Holatini kuzatish"
@@ -3073,6 +3235,41 @@ msgstr "No picture was chosen."
 msgid "Rasm saqlandi."
 msgstr "Picture saved."
 
+#~ msgid "Pochta indeksini kiriting."
+#~ msgstr "Enter the postal index."
+
+#~ msgid "Pochta indeksi"
+#~ msgstr "Postal index"
+
+#~ msgid "Indeks 6 ta raqamdan iborat boʻlishi kerak."
+#~ msgstr "An index is six digits."
+
+#~ msgid "Bu indeks tanlangan viloyatga toʻgʻri kelmadi."
+#~ msgstr "That index does not belong to the region you chose."
+
+#~ msgid "Oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksi."
+#~ msgstr "The six-digit index of the branch you will collect from."
+
+#~ msgid "Indeksni bilmaysizmi? Pochta boʻlimlari xaritasi"
+#~ msgstr "Do not know your index? Branch map"
+
+#~ msgid ""
+#~ "Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+#~ "toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+#~ "qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
+#~ msgid_plural ""
+#~ "Joʻnatma boʻlimda %(months)s oy saqlanadi. Olib ketilmasa, u bizga qaytadi: "
+#~ "toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
+#~ "qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing."
+#~ msgstr[0] ""
+#~ "The branch holds the parcel for %(months)s month. If it isn’t collected, it "
+#~ "comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
+#~ "within %(days)s days. If the postcode is wrong, write to us straight away."
+#~ msgstr[1] ""
+#~ "The branch holds the parcel for %(months)s months. If it isn’t collected, it "
+#~ "comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
+#~ "within %(days)s days. If the postcode is wrong, write to us straight away."
+
 #~ msgid ""
 #~ "Tugmani bosing: Telegramda adminimiz bilan suhbat ochiladi, xabar esa tayyor "
 #~ "turadi. Uni yuboring, admin qanday toʻlashni aytadi. Toʻlov tasdiqlangach, "
@@ -3208,9 +3405,6 @@ msgstr "Picture saved."
 
 #~ msgid "Premium sifat · 100+ dizayn · Oʻzbekiston boʻylab yetkazib berish"
 #~ msgstr "Premium quality · 100+ designs · Delivery across Uzbekistan"
-
-#~ msgid "Yoʻlda"
-#~ msgstr "On the way"
 
 #~ msgid ""
 #~ "Maʼlum bir grafika yoki dizayndagi futbolkani izlash qancha vaqt olishini "

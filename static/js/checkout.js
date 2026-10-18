@@ -1,12 +1,12 @@
 /* Checkout behaviour: the delivery branch, the two drawers, and the map.
  *
  * Every control here already works without JavaScript. The delivery choice is
- * radios; the region and district are real <select>s that submit; the postal
- * index is a text field the server validates; the address is a textarea. This
- * file only makes them nicer — it hides the half of the form that does not
- * apply, turns the two selects into drawers that can group and search, and
- * offers a pin. Nothing here is load-bearing, which is the rule the checkout
- * depends on (§3, §17 #91).
+ * radios; the region and district are real <select>s that submit; the address
+ * is a textarea. This file only makes them nicer — it hides the half of the
+ * form that does not apply, turns the two selects into drawers that can group
+ * and search, offers a pin for a home order and a map of Uzpost's districts
+ * for an office order. Nothing here is load-bearing, which is the rule the
+ * checkout depends on (§3, §17 #91).
  */
 (function () {
   'use strict';
@@ -29,8 +29,6 @@
   var regionSelect = $('[data-region]');
   var districtSelect = $('[data-district]');
   var noteField = $('[data-location-note-field]');
-  var indexInput = $('[data-postal-index]');
-  var indexHint = $('[data-postal-hint]');
   /* Up here with the other field handles rather than down in the map section
    * where it used to live: `syncBranch` reads it, and leaning on `var`
    * hoisting plus the order the file happens to run in is not a thing to
@@ -53,13 +51,12 @@
     if (locationFields) locationFields.hidden = !choice;
     if (branchFields) branchFields.hidden = !choice || !branch;
     if (homeFields) homeFields.hidden = !choice || branch;
-    /* The index and the street address are each required by one method and
-     * refused by the other, so which of them is required is only knowable
-     * once a method is chosen — and with the script blocked, neither is, on
-     * its own. That is why this is set here rather than in the markup: the
-     * star beside the label is static and travels with its half of the form,
-     * the promise made to a screen reader is not. */
-    requireWhen(indexInput, !!choice && branch);
+    /* The street address is required by one method and refused by the
+     * other, so whether it is required is only knowable once a method is
+     * chosen — and with the script blocked, it is not, on its own. That is
+     * why this is set here rather than in the markup: the star beside the
+     * label is static and travels with its half of the form, the promise
+     * made to a screen reader is not. */
     requireWhen(addressInput, !!choice && !branch);
     /* The sheet belongs to home delivery alone, so switching to the post
      * office has to hand the region and district back to the page. */
@@ -393,7 +390,7 @@
        * previous region submits silently, and a wrong address that looks
        * completely plausible is the worst kind there is (§17 #87). */
       fillDistricts(false);
-      validateIndex();
+      fitOfficeMap();
     });
   }
 
@@ -415,82 +412,6 @@
       if (noteField) noteField.hidden = chosenDistrictKind() !== 'other';
     });
   }
-
-  /* ------------------------------------------------- the postal index */
-  /* The same check the server makes, said sooner. The server is still the
-   * authority — this only saves the customer a round trip. */
-
-  function regionPrefix() {
-    var opt = regionSelect && regionSelect.options[regionSelect.selectedIndex];
-    return opt ? (opt.dataset.prefix || '') : '';
-  }
-
-  function validateIndex() {
-    if (!indexInput || !indexHint) return;
-    var value = indexInput.value.trim();
-    indexHint.classList.remove('field__error');
-    if (!value) { indexHint.textContent = indexHint.dataset.default || ''; return; }
-
-    if (!/^\d{6}$/.test(value)) {
-      indexHint.textContent = indexInput.dataset.errorFormat;
-      indexHint.classList.add('field__error');
-      return;
-    }
-    var prefix = regionPrefix();
-    if (prefix && value.indexOf(prefix) !== 0) {
-      indexHint.textContent = indexInput.dataset.errorRegion;
-      indexHint.classList.add('field__error');
-      return;
-    }
-    indexHint.textContent = indexHint.dataset.default || '';
-  }
-
-  if (indexInput && indexHint) {
-    indexHint.dataset.default = indexHint.textContent.trim();
-    indexInput.addEventListener('input', validateIndex);
-    indexInput.addEventListener('blur', validateIndex);
-  }
-
-  /* --------------------------------- leaving for Uzpost's own branch map */
-  /* Sending someone off-site in the middle of checkout is a real drop-off
-   * risk, so the form is saved before they go and restored if they come back
-   * through history rather than through the new tab (§17 #92). */
-
-  var KEY = 'gx-checkout-draft';
-
-  function saveDraft() {
-    try {
-      var draft = {};
-      $$('input, select, textarea', form).forEach(function (el) {
-        if (!el.name || el.type === 'hidden' && !el.dataset.keep) {
-          if (el.type !== 'hidden') return;
-        }
-        if (el.type === 'radio') { if (el.checked) draft[el.name] = el.value; }
-        else if (el.name) draft[el.name] = el.value;
-      });
-      sessionStorage.setItem(KEY, JSON.stringify(draft));
-    } catch (e) { /* private window, or storage is full — not worth failing for */ }
-  }
-
-  function restoreDraft() {
-    var draft;
-    try {
-      draft = JSON.parse(sessionStorage.getItem(KEY) || 'null');
-      sessionStorage.removeItem(KEY);
-    } catch (e) { return; }
-    if (!draft) return;
-    Object.keys(draft).forEach(function (name) {
-      var fields = $$('[name="' + name + '"]', form);
-      fields.forEach(function (el) {
-        if (el.type === 'radio') el.checked = el.value === draft[name];
-        else el.value = draft[name];
-      });
-    });
-  }
-
-  $$('[data-leave-checkout]').forEach(function (link) {
-    link.addEventListener('click', saveDraft);
-  });
 
   /* --------------------------------- matching a place name to one of ours */
   /* Google names a place in its own words: Chilonzor comes back as
@@ -909,9 +830,103 @@
     }
   }
 
+  /* ------------------------------------------------------ the office map */
+  /* For an office order the map is a way to choose the district: Uzpost's
+   * districts, each a pin at its centre, and a tap on one chooses its region
+   * and district in the two drawers above, which stay what submits
+   * (§17 #381). "Menga yaqin" moves the map to where the customer is and
+   * chooses nothing; the position goes nowhere but the map. Google is
+   * fetched on the first tap of the button, as for the home map (§18 #34). */
+
+  var officeOpen = $('[data-office-map-open]');
+  var officeBlock = $('[data-office-map]');
+  var officeError = officeBlock && $('[data-office-map-error]', officeBlock);
+  var officeMap = null;
+
+  function officePlaces() {
+    var out = [];
+    Object.keys(DISTRICTS).forEach(function (regionId) {
+      ['district', 'city', 'other'].forEach(function (kind) {
+        (DISTRICTS[regionId][kind] || []).forEach(function (it) {
+          if (typeof it.lat !== 'number' || typeof it.lng !== 'number') return;
+          out.push({ id: String(it.id), region: regionId, lat: it.lat, lng: it.lng,
+                     name: it.name });
+        });
+      });
+    });
+    return out;
+  }
+
+  /* The chosen region's districts, or the whole country before one is
+   * chosen; and the chosen district's name, so the map says what is chosen. */
+  function fitOfficeMap() {
+    if (!officeMap || !regionSelect) return;
+    var ids = null;
+    if (regionSelect.value) {
+      ids = districtOptions(regionSelect.value).map(function (o) { return o.value; });
+    }
+    officeMap.fit(ids);
+    if (districtSelect && districtSelect.value) officeMap.name(districtSelect.value);
+  }
+
+  function pickOffice(place) {
+    if (!regionSelect || !districtSelect) return;
+    if (regionSelect.value !== place.region) {
+      regionSelect.value = place.region;
+      /* The real change event: it clears the district, refills the list for
+       * the new region and relabels the drawer, as a choice by hand does. */
+      regionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    districtSelect.value = place.id;
+    districtSelect.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function showOfficeMap() {
+    if (!GX.map || !officeBlock) return;
+    officeBlock.hidden = false;
+    officeOpen.setAttribute('aria-expanded', 'true');
+    if (officeError) officeError.hidden = true;
+    GX.map.load(officeBlock.dataset.mapSrc, function (ok) {
+      if (!ok) {
+        officeBlock.hidden = true;
+        officeOpen.setAttribute('aria-expanded', 'false');
+        /* Said beside the button, which stays: the lists above still work. */
+        if (officeError) {
+          officeError.hidden = false;
+          officeBlock.parentNode.insertBefore(officeError, officeBlock);
+        }
+        return;
+      }
+      if (!officeMap) {
+        officeMap = GX.map.places($('[data-office-map-canvas]', officeBlock),
+                                  officePlaces(), pickOffice);
+      }
+      fitOfficeMap();
+    });
+  }
+
+  if (officeOpen && officeBlock && officeBlock.dataset.mapSrc && GX.map) {
+    officeOpen.hidden = false;
+    officeOpen.addEventListener('click', function () {
+      if (officeBlock.hidden) showOfficeMap();
+      else {
+        officeBlock.hidden = true;
+        officeOpen.setAttribute('aria-expanded', 'false');
+      }
+    });
+    var near = $('[data-office-map-near]', officeBlock);
+    if (near) near.addEventListener('click', function () {
+      GX.map.position(function (pos) {
+        if (pos && officeMap) officeMap.centre(pos);
+      });
+    });
+    if (districtSelect) districtSelect.addEventListener('change', function () {
+      if (officeMap && districtSelect.value) officeMap.name(districtSelect.value);
+    });
+  }
+
   /* ------------------------------------------------------------- startup */
 
-  restoreDraft();
   if (regionSelect && districtSelect) fillDistricts(true);
   drawerise(regionSelect, regionSelect && regionSelect.dataset.title, function () {
     return [{ label: '', items: $$('option', regionSelect).slice(1).map(function (o) {
@@ -953,6 +968,5 @@
   });
 
   syncBranch();
-  validateIndex();
   if (noteField && districtSelect) noteField.hidden = chosenDistrictKind() !== 'other';
 })();

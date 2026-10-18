@@ -1,0 +1,26 @@
+# GRAPHIX - follow every live Uzpost shipment's status (plan §9 Phase 22).
+#
+# Uzpost does not call the shop when a parcel moves, so this asks: the order
+# moves forward with its parcel, the owner hears about a status the shop does
+# not act on, and an office order's customer gets one SMS when the parcel is
+# at the office. With UZPOST_LOGIN or UZPOST_PASSWORD blank it reads nothing.
+
+[Unit]
+Description=GRAPHIX - follow Uzpost shipments
+Wants=postgresql.service
+After=postgresql.service network-online.target
+
+[Service]
+Type=oneshot
+User=graphix
+Group=www-data
+WorkingDirectory=/srv/graphix
+ExecStart=/srv/graphix/.venv/bin/python manage.py uzpost_sync
+# A run that has Uzpost hanging on every call gives up after a few failures;
+# this is the ceiling on one that hangs some other way.
+TimeoutStartSec=15min
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/graphix/logs

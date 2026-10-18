@@ -3,9 +3,67 @@
 Input files for the `seed_*` management commands. Tracked in git so a fresh
 deploy can populate reference tables without a database dump.
 
+## `uzpost-regions.csv`
+
+What a customer picks from at checkout since Phase 22: Uzpost's 14 regions and
+198 districts, each with Uzpost's id and, for a district, its centre, the pin
+on the office map (plan §17 #378, #381). A shipment is addressed by Uzpost's
+district id, so these are the places that can be sent to. Loaded on top of
+`regions.csv` by:
+
+```
+python manage.py seed_regions                 # a fresh database: the official rows first
+python manage.py sync_uzpost_regions          # then Uzpost's, checked whole before writing
+python manage.py sync_uzpost_regions --dry-run
+```
+
+The load switches off every official row Uzpost has no district for, and
+every `Boshqa`; it deletes nothing. Once it has run, `seed_regions` refuses
+without `--force`, since it would bring the official rows back.
+
+### Columns
+
+| Column | Applies to | Notes |
+|---|---|---|
+| `level` | all | `region` or `district`. |
+| `uzpost_id` | all | Uzpost's jurisdiction id. The key the load matches on first. |
+| `parent_id` | district | The `uzpost_id` of its region. |
+| `name` | all | Uzpost's name with the typography put right: `oʻ` and `gʻ` with U+02BB, the tutuq belgisi with U+02BC, Cyrillic look-alike letters made Latin, spaces trimmed, *tumani* and *shahri* in lower case. Nothing else is changed (§17 #378). A region keeps its own name; this column is only a record of Uzpost's. |
+| `kind` | district | `district` or `city`: the official row's kind where it matched one, else what the name says. |
+| `lat`, `lng` | district | The centre Uzpost gives, to six places, unless `note` says it was corrected. |
+| `soato` | all | The official row this one takes over: its region, or its district, whose Russian and English names it keeps. Blank for a district with no official counterpart, which is created with the code `U` and its Uzpost id. |
+| `note` | all | Written by hand. A district with a note keeps its `lat` and `lng` when the file is fetched again. |
+
+### Where it came from
+
+Fetched from Uzpost's API on 2026-10-18 with the owner's account (levels 2
+and 3 of `v2/jurisdiction/choose/list`). To fetch again, on the server, where
+the login is:
+
+```
+sudo -u graphix .venv/bin/python manage.py sync_uzpost_regions --fetch --file /tmp/uzpost-regions.csv
+```
+
+then copy the file over this one, read the diff and what the command printed,
+and commit it. A fetch keeps every `soato` and `note` already in the file. A
+new district gets a `soato` proposed by name within its region, and every
+proposal that is not an exact match is printed as `check:` to be read.
+
+Of the 198 districts, 164 took over an official row: 150 by name and 14 by a
+spelling a letter or two apart (`Chilanzar` for Chilonzor, `Honobod` for
+Xonobod), each checked by eye. The other 34 have no official row by name.
+Many are the district's centre town (`Gagarin` for Mirzachoʻl, `Galaosiyo` for
+Buxoro tumani); they were not matched by hand, so they start with Russian and
+English blank, to be written in the panel.
+
+Two centres are corrected by hand, each with a note saying what Uzpost gave:
+Romitan, which Uzpost puts in the Qizilqum, and Jizzax's `Uchtepa tumani`,
+which it puts in Sirdaryo. The rest are Uzpost's and are not checked one by
+one; some look like the middle of the district rather than its town.
+
 ## `regions.csv`
 
-The administrative divisions a customer picks from at checkout: 15 regions
+The official administrative divisions, from before Phase 22: 15 regions
 (14 real plus one escape) and 221 districts, cities and escapes. Loaded by:
 
 ```

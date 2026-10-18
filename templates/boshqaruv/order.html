@@ -114,6 +114,54 @@
       </dl>
     </section>
 
+    {# The parcel at Uzpost (§17 #379). The button is staff accepting a #}
+    {# paid order: it makes the shipment, and a paid order moves to #}
+    {# Jarayonda with it. The label is a fresh link from Uzpost each time. #}
+    {% if order.delivery_option %}
+      <section class="panel-card stack" id="uzpost">
+        <h2>Uzpost</h2>
+        {% if shipment %}
+          <dl class="facts">
+            <dt>{% trans "Joʻnatma" %}</dt><dd class="num">{{ shipment.number }}</dd>
+            <dt>{% trans "Holati" %}</dt><dd>{{ shipment.status_label }}</dd>
+            {% if shipment.office_index or shipment.office_name %}
+              <dt>{% trans "Pochta boʻlimi" %}</dt>
+              <dd>{{ shipment.office_index }}{% if shipment.office_index and shipment.office_name %} · {% endif %}{{ shipment.office_name }}</dd>
+            {% endif %}
+            <dt>{% trans "Ogʻirligi" %}</dt><dd class="num">{{ shipment.weight|floatformat:2 }} kg</dd>
+            {% if shipment.read_at %}
+              <dt>{% trans "Tekshirildi" %}</dt><dd>{{ shipment.read_at|date:"j E, H:i"|month_case }}</dd>
+            {% endif %}
+          </dl>
+          <a class="btn btn--primary" href="{% url 'panel_order_label' order_no=order.order_no %}"
+             target="_blank" rel="noopener">{% trans "Yorliqni chop etish" %}</a>
+          <div class="trail">
+            {% for seen in shipment_history %}
+              <div class="trail__row">
+                <span>{{ seen.label }}</span>
+                <time datetime="{{ seen.at|date:'c' }}">{{ seen.at|date:"j E, H:i"|month_case }}</time>
+              </div>
+            {% endfor %}
+          </div>
+        {% elif can_ship and uzpost_ready %}
+          <p class="small muted">
+            {% blocktrans trimmed with weight=ship_weight|floatformat:2 %}
+              Ogʻirligi: {{ weight }} kg.
+            {% endblocktrans %}
+            {% if order.status == 'paid' %}{% trans "Joʻnatma yaratilgach buyurtma «Jarayonda» boʻladi." %}{% endif %}
+          </p>
+          <form method="post" action="{% url 'panel_order_shipment' order_no=order.order_no %}">
+            {% csrf_token %}
+            <button class="btn btn--primary" type="submit">{% trans "Joʻnatma yaratish" %}</button>
+          </form>
+        {% elif can_ship %}
+          <p class="small muted">{% trans "Uzpost sozlanmagan: serverdagi .env faylida UZPOST_LOGIN va UZPOST_PASSWORD yoʻq." %}</p>
+        {% else %}
+          <p class="small muted">{% trans "Joʻnatma toʻlangan yoki jarayondagi buyurtmaga yaratiladi." %}</p>
+        {% endif %}
+      </section>
+    {% endif %}
+
     <section class="panel-card">
       <h2>{% trans "Holatni oʻzgartirish" %}</h2>
       <form method="post" action="{% url 'panel_order_status' order_no=order.order_no %}"
@@ -143,9 +191,10 @@
         {% for change in trail %}
           <div class="trail__row">
             <span>{{ change.from_label|default:"—" }} → <strong>{{ change.to_label }}</strong></span>
-            {# No author means an account since deleted, or the daily job that #}
-            {# cancels an order left unpaid (§17 #373), and the note tells which. #}
-            <span>{% if change.changed_by %}{{ change.changed_by.username }}{% elif change.is_automatic %}{% trans "avtomatik" %}{% else %}{% trans "oʻchirilgan hisob" %}{% endif %}</span>
+            {# No author means an account since deleted, the daily job that #}
+            {# cancels an order left unpaid (§17 #373), or the parcel's status #}
+            {# at Uzpost (§17 #380), and the note tells which. #}
+            <span>{% if change.changed_by %}{{ change.changed_by.username }}{% elif change.is_automatic %}{% trans "avtomatik" %}{% elif change.is_uzpost %}Uzpost{% else %}{% trans "oʻchirilgan hisob" %}{% endif %}</span>
             <time datetime="{{ change.changed_at|date:'c' }}">{{ change.changed_at|date:"j E, H:i"|month_case }}</time>
           </div>
         {% empty %}

@@ -584,8 +584,9 @@ html.js .otp__timer { display: block; }
    apart. Only its body differs: real fields rather than a list of choices. */
 .addr-sheet__body { overflow-y: auto; }
 
-/* The map, on the home half of checkout only. It is never rendered when the
-   API key is blank, so there is no grey box to explain (§17 #93). */
+/* The maps at checkout: the pin for a home order, and Uzpost's districts for
+   an office order (§17 #381). Neither is rendered when the API key is blank,
+   so there is no grey box to explain (§17 #93). */
 .map { display: flex; flex-direction: column; gap: var(--s-3); }
 .map[hidden] { display: none; }
 .map__canvas { aspect-ratio: 4 / 3; max-height: 360px;

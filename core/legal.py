@@ -79,12 +79,11 @@ DEFECT_REPLACE_DAYS = 7
 #: Uzpost's own figures (§19 Q10): 1-6 days anywhere in Uzbekistan.
 TRANSIT_DAYS = (1, 6)
 
-#: How long a branch holds a parcel for collection, in months. Parcels go as
-#: ordinary parcels, which the Postal Service Rules hold
-#: for one month (¶190; Bir Qadam's is 14 days, §17 #186). Kept in months, the
-#: Rules' own unit: "30 days" would promise two days that February does not
-#: have (§17 #210).
-BRANCH_HOLD_MONTHS = 1
+#: How long an office holds a parcel for collection, in days. Since Phase 22
+#: an office order goes by Bir Qadam, which Uzpost holds for 14 days; an
+#: ordinary parcel was held a month (¶190 of the Postal Service Rules,
+#: §17 #186, #377).
+BRANCH_HOLD_DAYS = 14
 
 #: The E-commerce Law's delivery term when none was agreed.
 DELIVERY_DEADLINE_DAYS = 30
@@ -218,7 +217,11 @@ def facts():
         defect_replace_days=DEFECT_REPLACE_DAYS,
         transit_min=TRANSIT_DAYS[0],
         transit_max=TRANSIT_DAYS[1],
-        hold_months=BRANCH_HOLD_MONTHS,
+        hold_days=BRANCH_HOLD_DAYS,
+        # Whether an office order's customer is sent an SMS when the parcel
+        # reaches the office: on once the status is known and Eskiz has
+        # approved the text (§9 Phase 22 item 12). The pages say so only then.
+        arrival_sms=bool(settings.UZPOST_ARRIVAL_STATUSES),
         delivery_deadline_days=DELIVERY_DEADLINE_DAYS,
         size_tolerance_cm=SIZE_TOLERANCE_CM,
         data_request_days=DATA_REQUEST_DAYS,

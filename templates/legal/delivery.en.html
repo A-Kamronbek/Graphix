@@ -22,24 +22,24 @@
 
 <section class="legal__sec" id="branch">
   <h2>2. To a post office</h2>
-  <p>At checkout you choose your region and district and enter the six-digit postcode of the branch where you want to collect the order. If you don’t know it, look it up on Uzpost’s <a class="link" href="https://uz.post/uz/map" target="_blank" rel="noopener">branch map</a>.</p>
-  <p>Uzpost lets you know when the parcel arrives. Take your passport or ID card with you: the parcel is handed to the recipient named on the order.</p>
+  <p>At checkout you choose your region and district, from the list or on the map. The order goes by Uzpost’s Bir Qadam service to the Bir Qadam office of that district. Where a district has more than one, Uzpost decides which the parcel goes to. The office’s address appears on the order page once the parcel is on its way.</p>
+  <p>{% if legal.arrival_sms %}We send you a text message when the parcel reaches the office. {% endif %}Take your passport or ID card with you: the parcel is handed to the recipient named on the order.</p>
 </section>
 
 <section class="legal__sec" id="home">
   <h2>3. To your door</h2>
-  <p>A courier brings the order to the address you gave and calls ahead. You can type the address or mark it on the map — the pin makes it more precise, but the street and house number are still needed.</p>
+  <p>An Uzpost courier brings the order to the address you gave and calls ahead. You can type the address or mark it on the map — the pin makes it more precise, but the street and house number are still needed.</p>
 </section>
 
 <section class="legal__sec" id="timing">
   <h2>4. How long it takes</h2>
-  <p>Once your payment is confirmed, we pack the order and hand it to Uzpost — you can follow it on the “My orders” page. How long each method usually takes is shown above, next to its price. In any case your order must arrive no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
+  <p>Once your payment is confirmed, we pack the order and hand it to Uzpost. The parcel’s number and where it is now are shown on the order page. How long each method usually takes is shown above, next to its price. In any case your order must arrive no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
 </section>
 
 <section class="legal__sec" id="uncollected">
   <h2>5. If you don’t collect it</h2>
-  <p>The branch holds the parcel for {{ legal.hold_months }} month{{ legal.hold_months|pluralize }}. Collect it soon after the notice arrives: after the second notice Uzpost may charge a storage fee.</p>
-  <p>A parcel that is not collected in time, or is refused, comes back to us. We then keep <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> of your payment and refund the rest within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. So check the postcode and the address carefully — you can see them again on the order page.</p>
+  <p>The office holds a Bir Qadam parcel for {{ legal.hold_days }} day{{ legal.hold_days|pluralize }}. Collect it soon after it arrives.</p>
+  <p>A parcel that is not collected in time, or is refused, comes back to us. We then keep <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> of your payment and refund the rest within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. So check the district and the address carefully — you can see them again on the order page.</p>
 </section>
 
 <section class="legal__sec" id="exchange">

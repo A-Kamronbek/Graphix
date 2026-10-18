@@ -59,16 +59,16 @@
       <li>{{ tier|t:"name" }} — <span class="num">{{ tier.price|price }}&nbsp;soʻm</span>{% if tier.free_from_items %}; free on orders of {{ tier.free_from_items }} item{{ tier.free_from_items|pluralize }} or more{% endif %}</li>
     {% endfor %}
   </ul>
-  <p><strong>To a post office.</strong> You choose the region and district and enter the six-digit postcode of the branch where you will collect the order. We check that the first digits of the postcode match the region you chose, but choosing the right branch is the Buyer’s responsibility. The parcel is handed to the recipient on production of an identity document.</p>
-  <p><strong>To your door.</strong> You give the region, district, street and house number. Dropping a pin on the map is optional and only makes the address more precise. The courier will call the phone number given.</p>
+  <p><strong>To a post office.</strong> You choose the region and district. The parcel goes by Uzpost’s Bir Qadam service to the Bir Qadam office of that district; where the district has more than one, Uzpost decides which. Choosing the right district is the Buyer’s responsibility. The parcel is handed to the recipient on production of an identity document.</p>
+  <p><strong>To your door.</strong> You give the region, district, street and house number. Dropping a pin on the map is optional and only makes the address more precise. An Uzpost courier brings the parcel and will call the phone number given.</p>
   <p>Uzpost usually delivers anywhere in the country within {{ legal.transit_min|legal_range:legal.transit_max }} day{{ legal.transit_max|pluralize }}; door delivery can take one more day for the courier. These are Uzpost’s published times, not a guarantee. In any case the order must be delivered no later than {{ legal.delivery_deadline_days }} day{{ legal.delivery_deadline_days|pluralize }} after payment.</p>
-  <p>The Seller is not responsible for a parcel that is delayed or goes to the wrong place because the Buyer gave a wrong address, postcode, name or phone number. Check these details on the order page, and if you find a mistake, write to us straight away — before the parcel is sent.</p>
+  <p>The Seller is not responsible for a parcel that is delayed or goes to the wrong place because the Buyer gave a wrong district, address, name or phone number. Check these details on the order page, and if you find a mistake, write to us straight away — before the parcel is sent.</p>
   <p>The risk of accidental loss of or damage to the goods passes to the Buyer when the parcel is handed to the recipient.</p>
 </section>
 
 <section class="legal__sec" id="uncollected">
   <h2>7. Uncollected or refused parcels</h2>
-  <p>When the parcel arrives, Uzpost sends the recipient a notice. Under the postal rules, the branch holds the parcel for {{ legal.hold_months }} month{{ legal.hold_months|pluralize }}. If it is still not collected after the second notice, Uzpost may charge a storage fee at its own rates.</p>
+  <p>The office holds a Bir Qadam parcel for {{ legal.hold_days }} day{{ legal.hold_days|pluralize }}.{% if legal.arrival_sms %} When the parcel reaches the office, the Seller sends the recipient a text message.{% endif %}</p>
   <p>A parcel that is not collected in time, or that the recipient refuses, is returned to the Seller. Under the postal rules, the sender — the Seller — pays for the return.</p>
   <p>Once the parcel is back with us, <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> is kept from the amount paid and the rest is refunded within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }} (<a class="link" href="#refunds">section 10</a>). The amount kept covers part of the cost of sending the parcel and getting it back.</p>
 </section>

@@ -82,10 +82,12 @@ class SmokeTests(TestCase):
         # the courier needs the province and the district, and the address field
         # is only the street and the house number (§17 #106).
         from payment.models import District, Region
+        # Uzpost's, with its ids: since Phase 22 that is all a customer can
+        # choose and all an order can be sent to (§17 #378).
         region = Region.objects.create(code='2600', name='Toshkent shahri',
-                                       postal_prefix='100')
+                                       postal_prefix='100', uzpost_id=270)
         district = District.objects.create(region=region, code='2600401',
-                                           name='Chilonzor tumani')
+                                           name='Chilonzor tumani', uzpost_id=273)
 
         door = DeliveryOption.objects.get(code='uzpost_door')
         response = self.client.post(reverse('checkout'), {

@@ -398,23 +398,32 @@ class SizeChartTests(TestCase):
 # ------------------------------- 6d / 6e: delivery, the index, and payment
 
 def make_regions():
-    """Two real regions plus the escape — enough to test every branch rule."""
+    """Two real regions plus the escape — enough to test every branch rule.
+
+    The two real ones carry Uzpost's ids and a centre, as every region and
+    district a customer can choose has since Phase 22 (§17 #378). The escape
+    has none, as on production, where it is switched off.
+    """
+    from decimal import Decimal
+
     from payment.models import District, Region
 
     tashkent = Region.objects.create(code='1726', name='Toshkent shahri',
-                                     postal_prefix='100', sort_order=10)
+                                     postal_prefix='100', sort_order=10, uzpost_id=270)
     samarqand = Region.objects.create(code='1718', name='Samarqand viloyati',
-                                      postal_prefix='14', sort_order=20)
+                                      postal_prefix='14', sort_order=20, uzpost_id=266)
     other = Region.objects.create(code='0000', name='Boshqa',
                                   postal_prefix='', sort_order=999)
     return {
         'tashkent': tashkent,
         'samarqand': samarqand,
         'other': other,
-        'chilonzor': District.objects.create(region=tashkent, code='1726294',
-                                             name='Chilonzor tumani', kind='district'),
-        'sam_city': District.objects.create(region=samarqand, code='1718401',
-                                            name='Samarqand shahri', kind='city'),
+        'chilonzor': District.objects.create(
+            region=tashkent, code='1726294', name='Chilonzor tumani', kind='district',
+            uzpost_id=273, latitude=Decimal('41.267426'), longitude=Decimal('69.191946')),
+        'sam_city': District.objects.create(
+            region=samarqand, code='1718401', name='Samarqand shahri', kind='city',
+            uzpost_id=457, latitude=Decimal('39.660156'), longitude=Decimal('66.950666')),
         'other_district': District.objects.create(region=other, code='0000900',
                                                   name='Boshqa', kind='other'),
     }
@@ -439,11 +448,11 @@ class DeliveryValidationTests(TestCase):
         return Order(**kwargs)
 
     def _branch_order(self, **over):
+        """An office order as Phase 22 places it: a region and a district, no index."""
         fields = {
             'delivery_option': self.branch,
             'region': self.geo['tashkent'],
             'district': self.geo['chilonzor'],
-            'postal_index': '100011',
         }
         fields.update(over)
         return self._order(**fields)
@@ -459,9 +468,15 @@ class DeliveryValidationTests(TestCase):
         with self.assertRaises(DjangoValidationError):
             self._branch_order(district=None).clean()
 
-    def test_a_branch_order_needs_an_index(self):
-        with self.assertRaises(DjangoValidationError):
-            self._branch_order(postal_index='').clean()
+    def test_an_office_order_needs_no_index(self):
+        """Since Phase 22 the parcel goes to the district's Bir Qadam office
+        and nobody types an index (§17 #377)."""
+        self._branch_order(postal_index='').clean()          # must not raise
+
+    def test_an_index_an_older_order_carries_still_has_to_match(self):
+        """An order placed before Phase 22 carries the index typed then, and it
+        is held to the rules it was placed under."""
+        self._branch_order(postal_index='100011').clean()    # must not raise
 
     def test_a_five_digit_index_is_rejected(self):
         with self.assertRaises(DjangoValidationError):
@@ -481,17 +496,22 @@ class DeliveryValidationTests(TestCase):
         with self.assertRaises(DjangoValidationError):
             self._branch_order(district=self.geo['sam_city']).clean()
 
-    def test_the_escape_region_skips_the_prefix_check(self):
-        self._branch_order(region=self.geo['other'],
-                           district=self.geo['other_district'],
-                           postal_index='140216').clean()
-
-    def test_the_escape_region_still_requires_six_digits(self):
-        """A four-digit index is wrong no matter where it is (§17 #86)."""
-        with self.assertRaises(DjangoValidationError):
+    def test_a_new_order_to_a_district_uzpost_does_not_know_is_refused(self):
+        """The escape has no Uzpost id, and a shipment is addressed by it
+        (§17 #377): a new order cannot be sent there."""
+        with self.assertRaises(DjangoValidationError) as raised:
             self._branch_order(region=self.geo['other'],
-                               district=self.geo['other_district'],
-                               postal_index='1402').clean()
+                               district=self.geo['other_district']).clean()
+        self.assertIn('district', raised.exception.message_dict)
+
+    def test_an_older_order_keeps_the_district_it_was_placed_with(self):
+        """Saved before Phase 22, it still validates, so the Django admin can
+        still save it."""
+        order = self._branch_order(region=self.geo['other'],
+                                   district=self.geo['other_district'],
+                                   postal_index='140216')
+        order._state.adding = False
+        order.clean()                                         # must not raise
 
     def _home_order(self, **over):
         """A home order carries the same region and district a branch one does
@@ -585,14 +605,13 @@ class CheckoutTests(TestCase):
     def test_a_branch_order_charges_15000_and_freezes_where_it_is_going(self):
         self._post(delivery_option='uzpost_office',
                    region=self.geo['tashkent'].pk,
-                   district=self.geo['chilonzor'].pk,
-                   postal_index='100011')
+                   district=self.geo['chilonzor'].pk)
         order = self._order()
         self.assertIsNotNone(order)
         self.assertEqual(order.delivery_price, Decimal('15000'))
         self.assertEqual(order.total_price, self.variant.price + Decimal('15000'))
-        self.assertIn('100011', order.location_snapshot)
-        self.assertIn('Chilonzor', order.location_snapshot)
+        self.assertEqual(order.location_snapshot, 'Toshkent shahri · Chilonzor tumani')
+        self.assertEqual(order.postal_index, '')
         self.assertIsNone(order.latitude)
 
     def test_a_home_order_charges_40000_and_freezes_where_it_is_going(self):
@@ -638,7 +657,6 @@ class CheckoutTests(TestCase):
         self._post(delivery_option='uzpost_office',
                    region=self.geo['tashkent'].pk,
                    district=self.geo['chilonzor'].pk,
-                   postal_index='100011',
                    address='Bu manzil saqlanmasligi kerak',
                    latitude='41.3', longitude='69.2', address_source='map')
         order = self._order()
@@ -649,29 +667,32 @@ class CheckoutTests(TestCase):
         self.assertEqual(order.address, '')
         self.assertNotIn('saqlanmasligi', order.location_snapshot)
 
-    def test_an_index_that_contradicts_the_region_does_not_create_an_order(self):
+    def test_an_index_posted_with_an_office_order_is_not_kept(self):
+        """Nothing is typed for an office order since Phase 22; a stale index
+        from an old page is not read (§17 #377)."""
+        self._post(delivery_option='uzpost_office',
+                   region=self.geo['tashkent'].pk,
+                   district=self.geo['chilonzor'].pk,
+                   postal_index='140216')
+        order = self._order()
+        self.assertIsNotNone(order)
+        self.assertEqual(order.postal_index, '')
+        self.assertNotIn('140216', order.location_snapshot)
+
+    def test_the_boshqa_escape_is_refused(self):
+        """Uzpost cannot be sent to a district it does not know (§17 #378)."""
         response = self._post(delivery_option='uzpost_office',
-                              region=self.geo['tashkent'].pk,
-                              district=self.geo['chilonzor'].pk,
-                              postal_index='140216')
+                              region=self.geo['other'].pk,
+                              district=self.geo['other_district'].pk,
+                              location_note='Yangi tuman')
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(self._order())
-
-    def test_the_boshqa_escape_records_what_the_customer_typed(self):
-        self._post(delivery_option='uzpost_office',
-                   region=self.geo['other'].pk,
-                   district=self.geo['other_district'].pk,
-                   postal_index='150300',
-                   location_note='Yangi tuman')
-        order = self._order()
-        self.assertEqual(order.location_note, 'Yangi tuman')
-        self.assertIn('Yangi tuman', order.location_snapshot)
 
     def test_a_note_on_an_ordinary_district_is_ignored(self):
         self._post(delivery_option='uzpost_office',
                    region=self.geo['tashkent'].pk,
                    district=self.geo['chilonzor'].pk,
-                   postal_index='100011', location_note='qaydan keldi')
+                   location_note='qaydan keldi')
         self.assertEqual(self._order().location_note, '')
 
     def test_the_frozen_price_survives_a_later_price_change(self):
@@ -685,8 +706,7 @@ class CheckoutTests(TestCase):
     def test_the_snapshot_survives_the_district_being_deactivated(self):
         self._post(delivery_option='uzpost_office',
                    region=self.geo['tashkent'].pk,
-                   district=self.geo['chilonzor'].pk,
-                   postal_index='100011')
+                   district=self.geo['chilonzor'].pk)
         order = self._order()
         frozen = order.location_snapshot
         self.geo['chilonzor'].is_active = False

@@ -74,8 +74,8 @@
       </dl>
 
       {# The snapshot, not the live rows: it is what was actually agreed, and #}
-      {# it is shown back so the customer can check their own index before the #}
-      {# parcel goes (§12 risk #10). #}
+      {# it is shown back so the customer can check where the parcel is going #}
+      {# before it goes (§12 risk #10). #}
       {# Branch or door is the delivery option's to say. `region_id` said it #}
       {# until §17 #106 gave home orders a region too, and from then on every #}
       {# order called its address a post office (§17 #191). #}
@@ -84,23 +84,46 @@
         <span class="label">{% if branch %}{% trans "Pochta boʻlimi" %}{% else %}{% trans "Manzil" %}{% endif %}</span>
         <address class="small">{{ order.location_snapshot|default:order.address|linebreaksbr }}</address>
         {% if branch %}
-          {# The plain-language version of terms §7, where the customer checks #}
-          {# their index: how long the branch holds it, and what an uncollected #}
-          {# parcel costs (§19 Q11). The figures come from core/legal.py; the #}
-          {# hold is counted, so Russian and English name the month in the form #}
-          {# its number takes (§17 #210). Uzbek does not inflect, so its two #}
-          {# forms are the same sentence. #}
+          {# The plain-language version of terms §7: how long the office holds #}
+          {# a Bir Qadam parcel, and what an uncollected one costs (§19 Q11). #}
+          {# The figures come from core/legal.py; the hold is counted, so #}
+          {# Russian and English name the day in the form its number takes. #}
+          {# Uzbek does not inflect, so its two forms are the same sentence. #}
           {% get_legal as legal %}
           <p class="small muted">
-            {% blocktrans trimmed with fee=legal.uncollected_fee|price days=legal.refund_days count months=legal.hold_months %}
-              Joʻnatma boʻlimda {{ months }} oy saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing.
+            {% blocktrans trimmed with fee=legal.uncollected_fee|price days=legal.refund_days count hold=legal.hold_days %}
+              Joʻnatma boʻlimda {{ hold }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing.
             {% plural %}
-              Joʻnatma boʻlimda {{ months }} oy saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Indeks notoʻgʻri boʻlsa, darhol bizga yozing.
+              Joʻnatma boʻlimda {{ hold }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing.
             {% endblocktrans %}
             <a class="link" href="{% url 'delivery' %}#uncollected">{% trans "Batafsil" %}</a>
           </p>
         {% endif %}
       </div>
+
+      {# The parcel at Uzpost, once the shop has sent it: its number, where #}
+      {# it is as the shop last read it, and every change the shop has seen. #}
+      {# Uzpost's own page has the full history. The number is shown here and #}
+      {# in the panel and nowhere else: anyone who has it can read both ends' #}
+      {# addresses from Uzpost (§9 Phase 22 item 13). #}
+      {% if shipment %}
+        <div class="stack stack--sm" id="uzpost">
+          <span class="label">{% trans "Uzpost joʻnatmasi" %}</span>
+          <dl class="spec">
+            <div class="spec__row"><dt>{% trans "Raqami" %}</dt><dd class="num">{{ shipment.number }}</dd></div>
+            <div class="spec__row"><dt>{% trans "Holati" %}</dt><dd>{{ shipment.status_label }}</dd></div>
+            {% if branch and shipment.office_name %}
+              <div class="spec__row"><dt>{% trans "Pochta boʻlimi" %}</dt><dd>{{ shipment.office_name }}</dd></div>
+            {% elif branch and shipment.office_index %}
+              <div class="spec__row"><dt>{% trans "Pochta boʻlimi" %}</dt><dd class="num">{{ shipment.office_index }}</dd></div>
+            {% endif %}
+            {% for seen in shipment_history %}
+              <div class="spec__row"><dt>{{ seen.label }}</dt><dd>{{ seen.at|date:"j E, H:i"|month_case }}</dd></div>
+            {% endfor %}
+          </dl>
+          <a class="link small" href="{{ shipment.tracking_url }}" target="_blank" rel="noopener">{% trans "Uzpost saytida kuzatish" %}</a>
+        </div>
+      {% endif %}
       {% endwith %}
 
       {% if order.notes %}
