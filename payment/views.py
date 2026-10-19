@@ -9,6 +9,7 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -19,7 +20,8 @@ from django.utils.translation import gettext as _, gettext_lazy, ngettext
 # `...django.views`, not `...django.webhooks`. The two modules hold the
 # same handlers; only these are wrapped in `csrf_exempt`, and a payment
 # gateway has no CSRF token to send (§17 #270).
-from tolov.core.exceptions import AccountNotFound
+from tolov.core.exceptions import AccountNotFound, PermissionDenied
+from tolov.integrations.django.models import PaymentTransaction
 from tolov.integrations.django.views import (BaseClickWebhookView,
                                              BaseOctoWebhookView,
                                              BasePaymeWebhookView)
@@ -28,7 +30,7 @@ from core.i18n import tfield
 from core.ratelimit import (RATE_LIMIT_MESSAGE, is_currently_limited,
                             is_rate_limited)
 from product.templatetags.price_format import price
-from .models import (DeliveryOption, District, Order, PaymentOption, Region,
+from .models import (SOLD, DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX)
 from user.models import normalize_uz_phone, phone_regex
 from . import promos, services
@@ -716,6 +718,112 @@ class ClickWebhookAPIView(PaidByWebhook, BaseClickWebhookView):
     click-pkg did not mean telling Click anything (§17 #253). The path is
     asserted by a test, because breaking it fails silently (§12 risk #2).
     """
+
+    def post(self, request, *args, **kwargs):
+        """Click's callback, with the answers tolov gets wrong put right.
+
+        tolov answers Click's Prepare for an order already paid with success,
+        and so lets Click charge the card a second time; and its Complete for
+        a second charge on such an order with success, so the second sum is
+        kept with nothing to show for it. Click's own code for both is -4,
+        "already paid", and an error at Complete is what makes Click give the
+        money back (§17 #395).
+
+        tolov also fails on a Complete that reports a failed payment: it
+        writes "Error code: ..." into an integer column, raises, and answers
+        -7. Click asks for the transaction to be cancelled and -9 answered,
+        which is done here (§17 #396).
+
+        All of it is asked only once the signature holds, so an unsigned
+        caller learns nothing about an order. A successful Complete also
+        carries ``merchant_confirm_id``, which Click's protocol lists in that
+        answer and click-pkg sent.
+        """
+        answered = self._answer_first(request.POST.dict())
+        if answered is not None:
+            return answered
+        response = super().post(request, *args, **kwargs)
+        return self._with_confirm_id(request.POST.get('action'), response)
+
+    def _answer_first(self, params):
+        """Click's answer where tolov's would be wrong, or None to let tolov answer."""
+        try:
+            self._check_auth(params)
+            order = super()._find_account(params.get('merchant_trans_id'))
+            error = int(params.get('error') or 0)
+        except (PermissionDenied, AccountNotFound, ValueError):
+            return None          # tolov answers these itself: -1, -5, -8
+        action = params.get('action')
+        if action == '1' and error < 0:
+            return self._failed(params, order, error)
+        if action == '0':
+            paid = order.status in SOLD
+        elif action == '1':
+            # Another charge already paid this order. Click retrying the same
+            # Complete is not that: it is answered as before.
+            paid = (PaymentTransaction._default_manager
+                    .filter(gateway=PaymentTransaction.CLICK,
+                            account_id=str(order.pk),
+                            state=PaymentTransaction.SUCCESSFULLY)
+                    .exclude(transaction_id=params.get('click_trans_id'))
+                    .exists())
+        else:
+            return None
+        if not paid:
+            return None
+        logger.warning('Click charge %s refused: order %s is already paid',
+                       params.get('click_trans_id'), order.order_no or order.pk)
+        return self._answer(params, -4, 'Already paid')
+
+    def _failed(self, params, order, error):
+        """A Complete in which Click reports that the payment failed.
+
+        Nothing was charged. The transaction Prepare made is cancelled with
+        Click's error code as its reason, and Click is told -9, as its
+        protocol asks. The order is left as it is: still awaiting payment, so
+        the customer can try again from the same page, and cancelled after
+        three days if nobody pays (§17 #373), as before. A transaction that
+        was already completed is Click's -4, and one Click never prepared is
+        its -6.
+        """
+        click_trans_id = params.get('click_trans_id')
+        with transaction.atomic():
+            charge = (PaymentTransaction._default_manager.select_for_update()
+                      .filter(gateway=PaymentTransaction.CLICK,
+                              transaction_id=click_trans_id)
+                      .first())
+            if charge is None:
+                return self._answer(params, -6, 'Transaction does not exist')
+            if charge.state == PaymentTransaction.SUCCESSFULLY:
+                return self._answer(params, -4, 'Already paid')
+            charge.mark_as_cancelled(reason=error)
+        logger.info('Click payment %s for order %s failed at Click (error %s)',
+                    click_trans_id, order.order_no or order.pk, error)
+        return self._answer(params, -9, 'Transaction cancelled')
+
+    @staticmethod
+    def _answer(params, error, note):
+        """One of Click's error answers, naming the transaction and the order."""
+        return JsonResponse({
+            'click_trans_id': params.get('click_trans_id'),
+            'merchant_trans_id': params.get('merchant_trans_id'),
+            'error': error,
+            'error_note': note,
+        })
+
+    @staticmethod
+    def _with_confirm_id(action, response):
+        """The Complete answer with ``merchant_confirm_id``, when it succeeded."""
+        if action != '1':
+            return response
+        try:
+            body = json.loads(response.content)
+        except ValueError:
+            return response
+        if body.get('error') != 0 or 'merchant_prepare_id' not in body:
+            return response
+        body['merchant_confirm_id'] = body['merchant_prepare_id']
+        return JsonResponse(body, status=response.status_code)
 
     def _find_account(self, merchant_trans_id):
         """The order, unless Click is asking to start a payment for a cancelled one.
