@@ -20,21 +20,27 @@ key and its ``location_snapshot`` keeps what it said (§17 #14, #165).
 * A region row names the official region it is (``soato``). That region takes
   Uzpost's id and keeps its own name and translations.
 * A district row with a ``soato`` takes over that official district: it gets
-  Uzpost's id and Uzpost's name, and keeps its Russian and English. One
+  Uzpost's id and the file's name, and keeps its Russian and English. One
   without is created, with the code ``U`` and Uzpost's id and the Russian and
   English blank until somebody writes them in the panel; blank falls back to
   Uzbek (§17 #8).
+* The file's names are Uzbek spellings: the official name where the district
+  has an official row, and Uzbek in place of Uzpost's Russian-style spelling
+  (``Chilonzor tumani``, not ``Chilanzar``) where it has none (§19 Q63).
 * Every other district and region, the *Boshqa* escapes among them, is
   switched off.
 
 **Fetching** asks Uzpost for both levels and writes the file. It needs the
 owner's login, which only the server's ``.env`` holds, so on the server it is
 given a ``--file`` outside the checkout and the result is copied back into the
-repository. What a person wrote in the file survives a fetch: the ``soato``
-of a known row, its ``note``, and the centre of any row with a note, which is
-how a centre is corrected by hand (§17 #381). A new district gets a ``soato``
-proposed by name, within its region, and the command lists every proposal
-that was not an exact match, to be read before the file is committed.
+repository. What a person wrote in the file survives a fetch: the name, the
+``soato`` and the ``note`` of a known district, and the centre of any row with
+a note, which is how a centre is corrected by hand (§17 #381). A new district
+gets a ``soato`` proposed by name within its region and, with it, the official
+name; one with no official row gets Uzpost's name, cleaned. The command lists
+every proposal that was not an exact match and every district with no
+official row, to be read, and written in Uzbek, before the file is
+committed.
 """
 import collections
 import csv
@@ -454,8 +460,9 @@ class Command(BaseCommand):
 def build_rows(level2, level3, previous, official):
     """The file's rows from Uzpost's two levels. Returns (rows, report lines).
 
-    ``previous`` is what the file held, so a person's ``soato`` and ``note``
-    and a corrected centre survive. Only Uzbekistan's regions are taken.
+    ``previous`` is what the file held, so a person's name, ``soato`` and
+    ``note`` and a corrected centre survive. Only Uzbekistan's regions are
+    taken.
     """
     before = {(row['level'], str(row['uzpost_id'])): row for row in previous}
     report = []
@@ -480,19 +487,26 @@ def build_rows(level2, level3, previous, official):
     proposals = propose_matches(fresh, official, region_soato, region_words, taken)
     kinds = {row['code']: row['kind'] for row in official}
     names = {row['code']: row['name'] for row in official}
+    kept = 0
 
     for item in sorted(known, key=lambda r: (r['parent_id'], clean_name(r['name']))):
         old = before.get(('district', str(item['id'])))
         name = clean_name(item['name'])
         if old is not None:
             soato, note = old['soato'], old['note']
+            if old['name'] != name:
+                kept += 1
+            name = old['name'] or name
         else:
             soato, exact = proposals.get(item['id'], ('', True))
             note = ''
             if soato and not exact:
                 report.append(f"  check: {name!r} proposed as {names[soato]!r} ({soato})")
             elif not soato:
-                report.append(f"  new: {name!r} has no official district")
+                report.append(f"  new: {name!r} has no official district; "
+                              "write its Uzbek spelling")
+            if soato:
+                name = clean_name(names[soato])
         kind = kinds.get(soato) or name_kind(name) or District.Kind.DISTRICT
         lat, lng = _point(item.get('lat')), _point(item.get('lng'))
         if old is not None and note:
@@ -501,6 +515,8 @@ def build_rows(level2, level3, previous, official):
                      'parent_id': item['parent_id'], 'name': name, 'kind': kind,
                      'lat': lat, 'lng': lng, 'soato': soato, 'note': note})
 
+    if kept:
+        report.append(f"  {kept} name(s) kept from the file where Uzpost writes otherwise")
     gone = {key for key in before} - {(row['level'], str(row['uzpost_id'])) for row in rows}
     for level, uzpost_id in sorted(gone):
         report.append(f"  gone: {level} {uzpost_id} {before[(level, uzpost_id)]['name']!r} "

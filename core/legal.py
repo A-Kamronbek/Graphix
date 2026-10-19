@@ -218,10 +218,6 @@ def facts():
         transit_min=TRANSIT_DAYS[0],
         transit_max=TRANSIT_DAYS[1],
         hold_days=BRANCH_HOLD_DAYS,
-        # Whether an office order's customer is sent an SMS when the parcel
-        # reaches the office: on once the status is known and Eskiz has
-        # approved the text (§9 Phase 22 item 12). The pages say so only then.
-        arrival_sms=bool(settings.UZPOST_ARRIVAL_STATUSES),
         delivery_deadline_days=DELIVERY_DEADLINE_DAYS,
         size_tolerance_cm=SIZE_TOLERANCE_CM,
         data_request_days=DATA_REQUEST_DAYS,

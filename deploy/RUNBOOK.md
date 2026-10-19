@@ -551,10 +551,10 @@ service, and this is the reason (§17 #267).
   that country too.
 - `UZPOST_LOGIN`, `UZPOST_PASSWORD`: the owner's own `my.pochta.uz` login.
   With them the panel makes an order's shipment and prints its label, and
-  `uzpost_sync` follows it (§16). `UZPOST_ARRIVAL_STATUSES` stays out until
-  the status of a parcel waiting at its office has been seen on a real one and
-  Eskiz has approved the arrival SMS (`payment/shipments.py`, `arrival_text`);
-  then it is that status, and the SMS goes from the next run.
+  `uzpost_sync` follows it (§16). No SMS goes when a parcel reaches its
+  office: that is a draft until the status is known (plan §17 #394). The first
+  office parcel to wait at its office tells the owner its status on Telegram
+  as a status the shop does not know.
 - `GOOGLE_MAPS_API_KEY`: enable billing (the Geocoding API answers
   `REQUEST_DENIED` without it, so a dropped pin cannot fill the address),
   restrict the key to `https://graphix.uz/*` and `https://www.graphix.uz/*`,

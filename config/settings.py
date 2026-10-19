@@ -328,14 +328,6 @@ UZPOST_SENDER_JURISDICTION = 339
 # What one item weighs on Uzpost's scales, in kilograms (§17 #379).
 UZPOST_ITEM_KG = "0.17"
 
-# The Uzpost statuses that mean an office order's parcel is waiting at the
-# office, comma-separated. The arrival SMS goes when a shipment first reaches
-# one of them (§9 Phase 22 item 12). Blank until that status has been seen on
-# a real parcel and Eskiz has approved the text: until then no SMS is sent.
-UZPOST_ARRIVAL_STATUSES = [s for s in (
-    part.strip() for part in os.environ.get("UZPOST_ARRIVAL_STATUSES", "").split(",")
-) if s]
-
 # --- Telegram ---
 # Order, payment, message and review notifications to the shop's staff. Blank
 # for the same reason: core/telegram.py logs a warning and sends nothing rather

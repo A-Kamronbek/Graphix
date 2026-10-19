@@ -3,8 +3,8 @@
 The one place that turns an order into a shipment and a shipment's status
 into the order's. ``core.uzpost`` knows Uzpost's addresses and answers; this
 module knows the shop: which service a delivery method is, what is written on
-the label, which of Uzpost's statuses moves an order, and when the customer is
-sent an SMS.
+the label, and which of Uzpost's statuses moves an order. The SMS when a parcel
+reaches its office is a draft, not built (§17 #394).
 
 Three callers. The panel's "Joʻnatma yaratish" calls :func:`create`, which is
 staff accepting a paid order (§17 #379). A staff cancellation calls
@@ -25,13 +25,12 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext as _, gettext_lazy
 
-from core import legal, sms, telegram, uzpost
+from core import legal, telegram, uzpost
 from panel.models import UZPOST_NOTE
-from .models import SOLD, Order, Shipment, ShipmentStatus
+from .models import Order, Shipment, ShipmentStatus
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +73,6 @@ FOLLOW_DAYS = 45
 _RANK = {Order.Status.PAID: 1, Order.Status.PROCESSING: 2,
          Order.Status.ON_THE_WAY: 3, Order.Status.DONE: 4}
 
-#: Sends of the arrival SMS that may fail before it is given up.
-SMS_TRIES = 3
-
 
 class ShipmentError(Exception):
     """Something staff are to be told, in words, when a shipment is not made."""
@@ -96,14 +92,9 @@ def status_label(status):
     return STATUS_LABELS.get(status) or status
 
 
-def arrived_statuses():
-    """The statuses that mean an office order's parcel waits at the office."""
-    return frozenset(settings.UZPOST_ARRIVAL_STATUSES)
-
-
 def known_statuses():
     """Every status that has a meaning here; any other is reported."""
-    return WAITING | MOVING | DELIVERED | arrived_statuses() | {CANCELLED}
+    return WAITING | MOVING | DELIVERED | {CANCELLED}
 
 
 def live_shipment(order):
@@ -356,7 +347,7 @@ def _move_order(shipment):
     status = shipment.status
     if status in DELIVERED:
         target = Order.Status.DONE
-    elif status in MOVING or status in arrived_statuses():
+    elif status in MOVING:
         target = Order.Status.ON_THE_WAY
     else:
         return
@@ -384,7 +375,9 @@ def follow(shipment):
     Returns True when Uzpost answered. A new status is recorded with its time,
     and the order moves forward if it says so; a status Uzpost cancelled
     or one the code does not know is reported to the owner once, and a
-    cancelled shipment stops being live. Then the arrival SMS, if it is due.
+    cancelled shipment stops being live. A parcel waiting at its office is
+    one the code does not know yet, so its status reaches the owner this way
+    (§17 #394).
     """
     if not shipment.uzpost_id:
         return False
@@ -412,57 +405,12 @@ def follow(shipment):
         if current.status == CANCELLED:
             current.cancelled_at = now
         _report(current)
-        # Only these: the arrival SMS's fields are claimed elsewhere, and a
-        # whole-row save could write an old copy over them.
+        # Only what this read can change.
         current.save(update_fields=['read_at', 'status', 'status_at', 'office_index',
                                     'office_name', 'cancelled_at', 'reported_status'])
         # Only on a change: an order staff moved by hand stays where they put
         # it until Uzpost has something new to say.
         if changed:
             _move_order(current)
-    send_arrival_sms(current)
     return True
 
-
-def arrival_text(shipment):
-    """The SMS that an office order's parcel is waiting at the office.
-
-    Uzbek only, with a plain apostrophe, one SMS (§17 #292). Eskiz sends only
-    a text it has approved (§17 #104).
-    """
-    index = f" (indeks {shipment.office_index})" if shipment.office_index else ''
-    return (f"GRAPHIX: {shipment.order.order_no} buyurtmangiz pochta bo'limiga yetib "
-            f"keldi{index}. Pasport bilan olib keting.")
-
-
-def send_arrival_sms(shipment):
-    """Send the arrival SMS once, if the shipment is an office order's and waits there.
-
-    Only for an order still a sale: a parcel Uzpost would not call back from
-    an order staff cancelled is not one to send the customer for. Marked sent
-    in the same step that claims it, so two runs cannot both send it. A
-    failed send is given back and tried again on a later run, up to
-    :data:`SMS_TRIES` times. Returns True when it was sent now.
-    """
-    arrived = arrived_statuses()
-    if not arrived or shipment.status not in arrived or shipment.cancelled_at is not None:
-        return False
-    order = Order.objects.select_related('delivery_option').get(pk=shipment.order_id)
-    if not order.delivery_option_id or not order.delivery_option.requires_branch:
-        return False
-    if order.status not in SOLD:
-        return False
-    now = timezone.now()
-    claimed = (Shipment.objects
-               .filter(pk=shipment.pk, arrival_sms_at__isnull=True,
-                       arrival_sms_tries__lt=SMS_TRIES)
-               .update(arrival_sms_at=now))
-    if not claimed:
-        return False
-    if sms.send_sms(order.phone, arrival_text(shipment)):
-        shipment.arrival_sms_at = now
-        return True
-    Shipment.objects.filter(pk=shipment.pk).update(
-        arrival_sms_at=None, arrival_sms_tries=F('arrival_sms_tries') + 1)
-    logger.warning("Arrival SMS for %s not sent; will try again", order.order_no)
-    return False

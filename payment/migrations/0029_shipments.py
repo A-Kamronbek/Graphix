@@ -53,8 +53,6 @@ class Migration(migrations.Migration):
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("cancelled_at", models.DateTimeField(blank=True, null=True)),
-                ("arrival_sms_at", models.DateTimeField(blank=True, null=True)),
-                ("arrival_sms_tries", models.PositiveSmallIntegerField(default=0)),
                 (
                     "created_by",
                     models.ForeignKey(

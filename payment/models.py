@@ -659,10 +659,6 @@ class Shipment(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
                                    null=True, blank=True, related_name='+')
     cancelled_at = models.DateTimeField(null=True, blank=True)
-    # The SMS that the parcel is waiting at the office: when it went, and how
-    # many sends failed before it did (§9 Phase 22 item 12).
-    arrival_sms_at = models.DateTimeField(null=True, blank=True)
-    arrival_sms_tries = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return f"{self.number} ({self.status or '—'})"

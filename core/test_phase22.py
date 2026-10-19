@@ -280,11 +280,11 @@ class SyncRegionsTests(TestCase):
         self.assertFalse(District.objects.filter(kind='other', is_active=True).exists())
         self.assertEqual(District.objects.filter(code__in=['1726900', '1706240']).count(), 2)
 
-    def test_a_matched_row_takes_uzposts_name_and_keeps_its_translations(self):
+    def test_a_matched_row_takes_the_files_uzbek_name_and_keeps_its_translations(self):
         self.load()
         chilonzor = District.objects.get(code='1726294')
         self.assertEqual(chilonzor.uzpost_id, 273)
-        self.assertEqual(chilonzor.name, 'Chilanzar')
+        self.assertEqual(chilonzor.name, 'Chilonzor tumani')
         self.assertEqual(chilonzor.name_ru, 'Чиланзарский район')
 
     def test_a_region_keeps_its_own_name(self):
@@ -320,7 +320,7 @@ class SyncRegionsTests(TestCase):
         self.load()
         with self.assertRaises(CommandError):
             call_command('seed_regions', stdout=StringIO())
-        self.assertEqual(District.objects.get(code='1726294').name, 'Chilanzar')
+        self.assertEqual(District.objects.get(code='1726294').name, 'Chilonzor tumani')
 
     def test_a_bad_file_writes_nothing(self):
         source = Path(settings.BASE_DIR) / 'data' / 'uzpost-regions.csv'
@@ -365,13 +365,15 @@ class SyncRegionsTests(TestCase):
 
     def test_an_official_row_from_another_region_is_refused(self):
         with self.assertRaises(CommandError):
-            self.load('--file', self.edited((',Chilanzar,district,41.267426,69.191946,1726294,',
-                                             ',Chilanzar,district,41.267426,69.191946,1718401,')))
+            self.load('--file', self.edited(
+                (',Chilonzor tumani,district,41.267426,69.191946,1726294,',
+                 ',Chilonzor tumani,district,41.267426,69.191946,1718401,')))
         self.assertFalse(Region.objects.filter(uzpost_id__isnull=False).exists())
 
     def test_a_point_that_is_not_a_number_is_refused_in_words(self):
         with self.assertRaises(CommandError):
-            self.load('--file', self.edited((',Chilanzar,district,41.267426,', ',Chilanzar,district,nan,')))
+            self.load('--file', self.edited((',Chilonzor tumani,district,41.267426,',
+                                             ',Chilonzor tumani,district,nan,')))
 
     def test_the_file_itself(self):
         """Every row is usable, and every name is written as §4.3 asks."""
@@ -390,6 +392,26 @@ class SyncRegionsTests(TestCase):
         notes = [r for r in districts if r['note']]
         self.assertEqual({r['uzpost_id'] for r in notes}, {'326', '363'})
 
+    def test_the_files_names_are_uzbek(self):
+        """A district with an official row carries its official name; none keeps
+        a Russian-style spelling of Uzpost's (§19 Q63)."""
+        data = Path(settings.BASE_DIR) / 'data'
+        with (data / 'regions.csv').open(encoding='utf-8-sig') as fh:
+            official = {r['code']: r['name'] for r in csv.DictReader(fh)}
+        with (data / 'uzpost-regions.csv').open(encoding='utf-8') as fh:
+            districts = [r for r in csv.DictReader(fh) if r['level'] == 'district']
+        for row in districts:
+            if row['soato'] and row['soato'] != '1735250':      # Ellikqalʼa keeps its tutuq
+                with self.subTest(name=row['name']):
+                    self.assertEqual(row['name'], sync.clean_name(official[row['soato']]))
+        names = {row['name'] for row in districts}
+        for russian in ('Chilanzar', 'Mirabad', 'Yunusabad', 'Yashnabad', 'Yakkasaray',
+                        'Shayhontohur', 'Mirzo Ulugbek', 'Chimbay', 'Chinaz', 'Zarafshan',
+                        'Gazgon', 'Honobod', 'Jalolquduq', 'Toyloq', 'Yangiyul shahri',
+                        'Ziaddin', 'Paxtabod'):
+            with self.subTest(russian=russian):
+                self.assertFalse(any(name.startswith(russian) for name in names))
+
     @override_settings(UZPOST_LOGIN='shop', UZPOST_PASSWORD='not-the-password')
     def test_a_fetch_keeps_what_a_person_wrote(self):
         def answer(level, parent_id=None):
@@ -403,6 +425,9 @@ class SyncRegionsTests(TestCase):
                 {'level': 'district', 'uzpost_id': 279, 'parent_id': 270, 'name': 'Uchtepa',
                  'kind': 'district', 'lat': '41.300000', 'lng': '69.170000', 'soato': '1726262',
                  'note': 'centre corrected by hand'},
+                {'level': 'district', 'uzpost_id': 273, 'parent_id': 270,
+                 'name': 'Chilonzor tumani', 'kind': 'district', 'lat': '41.267426',
+                 'lng': '69.191946', 'soato': '1726294', 'note': ''},
             ])
             with mock.patch('core.uzpost.jurisdictions', side_effect=answer):
                 call_command('sync_uzpost_regions', '--fetch', '--file', str(path),
@@ -413,6 +438,10 @@ class SyncRegionsTests(TestCase):
         self.assertEqual((uchtepa['lat'], uchtepa['lng']), ('41.300000', '69.170000'))
         self.assertEqual(uchtepa['soato'], '1726262')
         self.assertEqual(rows[('district', '273')]['soato'], '1726294')
+        # The name the file had stays, though Uzpost writes "Chilanzar" (§19 Q63);
+        # a new match takes the official name, and one with none Uzpost's, cleaned.
+        self.assertEqual(rows[('district', '273')]['name'], 'Chilonzor tumani')
+        self.assertEqual(rows[('district', '313')]['name'], 'Paxtaobod tumani')
         self.assertEqual(rows[('district', '900')]['name'], 'Qorashina')
         self.assertEqual(rows[('district', '901')]['name'], 'Mugʻlon')
         self.assertNotIn(('district', '999'), rows)
@@ -835,7 +864,6 @@ class FollowTests(ShipmentCase):
         self.shipment = self.ship()
         self.order.refresh_from_db()
         self.notify = mock.patch('payment.shipments.telegram.notify_shipment_status').start()
-        self.sms = mock.patch('payment.shipments.sms.send_sms', return_value=True).start()
 
     def read(self, status, **over):
         with mock.patch('payment.shipments.uzpost.details', return_value=uzpost.Answer(
@@ -911,46 +939,15 @@ class FollowTests(ShipmentCase):
             self.assertFalse(shipments.follow(self.shipment))
         self.assertEqual(self.status(), Order.Status.PROCESSING)
 
-    def test_no_arrival_sms_until_the_status_is_named(self):
-        self.read('at_office')
-        self.sms.assert_not_called()
-
-    @override_settings(UZPOST_ARRIVAL_STATUSES=['at_office'])
-    def test_an_office_order_is_sent_one_sms_when_the_parcel_waits(self):
-        self.read('at_office')
-        self.read('at_office')
-        self.assertEqual(self.sms.call_count, 1)
-        phone, text = self.sms.call_args.args
-        self.assertEqual(phone, self.order.phone)
-        self.assertIn(self.order.order_no, text)
-        self.assertIn('150700', text)
-        self.assertNotIn('ʻ', text)
-        self.assertEqual(self.status(), Order.Status.ON_THE_WAY)
-
-    @override_settings(UZPOST_ARRIVAL_STATUSES=['at_office'])
-    def test_no_sms_for_an_order_staff_cancelled(self):
-        """Uzpost kept the parcel; the customer is not sent to collect it."""
-        Order.objects.filter(pk=self.order.pk).update(status=Order.Status.CANCELLED)
-        self.read('at_office')
-        self.sms.assert_not_called()
-
-    @override_settings(UZPOST_ARRIVAL_STATUSES=['at_office'])
-    def test_a_failed_send_is_tried_again_three_times_at_most(self):
-        self.sms.return_value = False
-        for _ in range(5):
+    def test_a_parcel_waiting_at_its_office_reaches_the_owner_and_no_sms_goes(self):
+        """The arrival SMS is a draft (§17 #394): the status it needs is learnt
+        from the owner's message about a status the shop does not know."""
+        with mock.patch('core.sms.send_sms') as send:
             self.read('at_office')
-        self.assertEqual(self.sms.call_count, shipments.SMS_TRIES)
-        self.shipment.refresh_from_db()
-        self.assertIsNone(self.shipment.arrival_sms_at)
-
-    @override_settings(UZPOST_ARRIVAL_STATUSES=['at_office'])
-    def test_a_home_order_is_sent_none(self):
-        order = placed(self.customer, self.variant, self.geo, option='uzpost_door')
-        shipment = self.ship(order)
-        with mock.patch('payment.shipments.uzpost.details', return_value=uzpost.Answer(
-                True, facts(status='at_office'), '', False)):
-            shipments.follow(shipment)
-        self.sms.assert_not_called()
+            self.read('at_office')
+        send.assert_not_called()
+        self.assertEqual(self.notify.call_count, 1)
+        self.assertEqual(self.status(), Order.Status.PROCESSING)
 
 
 @SET_UP
@@ -1087,10 +1084,13 @@ class WordsTests(TestCase):
                     self.assertNotIn('uz.post/uz/map', self.page(name, lang))
                     self.assertNotIn('uz.post/ru/map', self.page(name, lang))
 
-    def test_the_sms_is_promised_only_once_it_is_on(self):
-        self.assertNotIn('SMS yuboramiz', self.page('delivery', 'uz'))
-        with override_settings(UZPOST_ARRIVAL_STATUSES=['at_office']):
-            self.assertIn('SMS yuboramiz', self.page('delivery', 'uz'))
+    def test_no_page_promises_an_sms_when_the_parcel_arrives(self):
+        """Not sent, so not promised (§17 #394)."""
+        unsent = {'uz': 'SMS yuboramiz', 'ru': 'пришлём вам SMS', 'en': 'text message when'}
+        for lang, words in unsent.items():
+            for name in ('delivery', 'terms', 'privacy'):
+                with self.subTest(lang=lang, page=name):
+                    self.assertNotIn(words, self.page(name, lang))
 
     def test_the_privacy_policy_names_what_goes_to_uzpost(self):
         page = self.page('privacy', 'uz')
