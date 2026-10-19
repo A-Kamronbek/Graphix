@@ -1,4 +1,5 @@
-"""Click is told "already paid" when it would charge a paid order again.
+"""Click is told "already paid" when it would charge a paid order again, and
+"cancelled" when it reports that a payment failed.
 
 tolov answers Click's Prepare for an order that is already paid with success,
 so Click goes on to charge the card a second time; and it answers the Complete
@@ -6,6 +7,10 @@ of such a second charge with success too, so the money is kept and nothing in
 the shop shows it. Click's code for both is -4. Its successful Complete also
 lacked ``merchant_confirm_id``, which Click's protocol lists in that answer and
 click-pkg sent (plan §17 #395).
+
+A Complete that reports a failed payment made tolov write "Error code: ..."
+into an integer column, raise, and answer -7. Click's protocol asks for the
+transaction to be cancelled and -9 answered (plan §17 #396).
 """
 import hashlib
 
@@ -26,11 +31,11 @@ class ClickAnswerTests(PromoCase):
 
     PRICE = 165000          # one shirt and the delivery fee, no code
 
-    def click(self, order, action, charge='1', prepare_id='', secret='sir'):
+    def click(self, order, action, charge='1', prepare_id='', secret='sir', error='0'):
         """Post one Click callback for ``order``, for Click's charge ``charge``."""
         params = {'click_trans_id': '900%s%d' % (charge, order.pk), 'service_id': '111',
                   'merchant_trans_id': str(order.pk), 'amount': str(self.PRICE),
-                  'action': str(action), 'error': '0', 'sign_time': '2026-10-19 12:00:00'}
+                  'action': str(action), 'error': error, 'sign_time': '2026-10-19 12:00:00'}
         if prepare_id:
             params['merchant_prepare_id'] = str(prepare_id)
         signed = (params['click_trans_id'] + '111' + secret + params['merchant_trans_id']
@@ -109,3 +114,60 @@ class ClickAnswerTests(PromoCase):
         order = self.order(None)
         services.cancel_order(order)
         self.assertEqual(self.click(order, 0)['error'], -5)
+
+    # ------------------------------------------------ a payment that failed at Click
+
+    def charge(self, order, charge='1'):
+        return PaymentTransaction.objects.get(gateway=PaymentTransaction.CLICK,
+                                              transaction_id='900%s%d' % (charge, order.pk))
+
+    def test_a_failed_payment_is_cancelled_and_answered_minus_nine(self):
+        order = self.order(None)
+        prepared = self.click(order, 0)
+        failed = self.click(order, 1, prepare_id=prepared['merchant_prepare_id'], error='-5017')
+        self.assertEqual(failed['error'], -9, failed)
+        charge = self.charge(order)
+        self.assertEqual(charge.state, PaymentTransaction.CANCELLED)
+        self.assertEqual(charge.reason, -5017)
+        # The order waits for payment as before, so the customer can try again.
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAYING)
+
+    def test_the_customer_can_pay_after_a_failed_attempt(self):
+        order = self.order(None)
+        prepared = self.click(order, 0)
+        self.click(order, 1, prepare_id=prepared['merchant_prepare_id'], error='-5017')
+        _prepared, done = self.pay(order, charge='2')
+        self.assertEqual(done['error'], 0, done)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
+
+    def test_click_repeating_the_failure_is_answered_the_same(self):
+        order = self.order(None)
+        prepared = self.click(order, 0)
+        for _ in range(2):
+            failed = self.click(order, 1, prepare_id=prepared['merchant_prepare_id'],
+                                error='-5017')
+            self.assertEqual(failed['error'], -9, failed)
+
+    def test_a_failure_reported_for_a_completed_charge_is_minus_four(self):
+        order = self.order(None)
+        prepared, _done = self.pay(order)
+        late = self.click(order, 1, prepare_id=prepared['merchant_prepare_id'], error='-1')
+        self.assertEqual(late['error'], -4, late)
+        self.assertEqual(self.charge(order).state, PaymentTransaction.SUCCESSFULLY)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
+
+    def test_a_failure_reported_for_a_charge_never_prepared_is_minus_six(self):
+        order = self.order(None)
+        self.assertEqual(self.click(order, 1, prepare_id='1', error='-5017')['error'], -6)
+        self.assertFalse(PaymentTransaction.objects.exists())
+
+    def test_an_unsigned_failure_changes_nothing(self):
+        order = self.order(None)
+        prepared = self.click(order, 0)
+        forged = self.click(order, 1, prepare_id=prepared['merchant_prepare_id'],
+                            error='-5017', secret='wrong')
+        self.assertEqual(forged['error'], -1)
+        self.assertEqual(self.charge(order).state, PaymentTransaction.INITIATING)
