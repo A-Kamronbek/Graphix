@@ -499,6 +499,20 @@ sudo journalctl -u graphix --since '10 min ago' | grep -i click
 This is the highest-risk step in the project. A wrong webhook URL fails
 silently: the customer pays, Click is happy, and the order sits unpaid forever.
 
+**When Click's app says "Yetkazib beruvchidan javob kelmadi"** (the supplier
+did not answer), look first for Click in nginx's log:
+
+```bash
+sudo zgrep -h 'payment/click/update' /var/log/nginx/*access*.log* | grep -v 57.128.240.51
+```
+
+No POST from Click there means Click never reached the server, and nothing in
+the code can be the cause: a Prepare signed with the server's own key and sent
+to the public address is answered `-5` for an order that does not exist and
+`-1` for a bad signature (plan §12 risk 1). Then it is Click's to say which
+address it called: service id, merchant id, the Click payment numbers and the
+time, to Click's support.
+
 ### 17.2 Payme and Octo
 
 **[Manual]** — both ship **switched off** in Boshqaruv > Toʻlov usullari,
