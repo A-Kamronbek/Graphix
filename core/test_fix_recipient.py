@@ -45,7 +45,6 @@ class CheckoutKeepsTheNameTests(TestCase):
             'delivery_option': 'uzpost_office',
             'region': self.geo['tashkent'].pk,
             'district': self.geo['chilonzor'].pk,
-            'postal_index': '100011',
             'payment_method': 'click', 'notes': '',
         })
 
@@ -66,7 +65,7 @@ class CheckoutKeepsTheNameTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Order.objects.filter(cart=self.cart).exists())
         # The form comes back as it was sent (§17 #118, #133).
-        self.assertContains(response, 'value="100011"')
+        self.assertContains(response, 'value="%d" selected' % self.geo['chilonzor'].pk)
         self.assertContains(response, 'A' * (RECIPIENT_NAME_MAX + 1))
 
     def test_the_field_carries_the_same_limit_as_the_column(self):

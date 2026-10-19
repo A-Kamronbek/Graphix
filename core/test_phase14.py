@@ -317,8 +317,9 @@ class RequiredFieldMarksTests(TestCase):
     by removing that field from an otherwise valid order and watching the
     order fail to appear.
     """
-    #: What `Order.clean` and the checkout view between them insist on.
-    REQUIRED = {'name', 'phone', 'region', 'district', 'postal_index', 'address'}
+    #: What `Order.clean` and the checkout view between them insist on. An
+    #: office order has no index to type since Phase 22 (§17 #377).
+    REQUIRED = {'name', 'phone', 'region', 'district', 'address'}
     #: Asked for, never insisted on. `location_note` is the Boshqa escape.
     OPTIONAL = {'notes', 'location_note'}
 
@@ -391,7 +392,7 @@ class RequiredFieldMarksTests(TestCase):
                           % field)
 
     # The two halves of the form. Each marked field belongs to one of them.
-    BRANCH = {'delivery_option': 'uzpost_office', 'postal_index': '100011'}
+    BRANCH = {'delivery_option': 'uzpost_office'}
     HOME = {'delivery_option': 'uzpost_door', 'address': 'Amir Temur koʻchasi 1',
             'address_source': 'manual'}
 
@@ -425,7 +426,7 @@ class RequiredFieldMarksTests(TestCase):
         """
         halves = {'name': self.BRANCH, 'phone': self.BRANCH,
                   'region': self.BRANCH, 'district': self.BRANCH,
-                  'postal_index': self.BRANCH, 'address': self.HOME}
+                  'address': self.HOME}
         self.assertEqual(set(halves), self.REQUIRED)
         for field, half in halves.items():
             with self.subTest(field=field):

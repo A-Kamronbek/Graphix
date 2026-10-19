@@ -6,7 +6,8 @@
  * 2GIS or Leaflet stay one file away.
  *
  * The interface is deliberately small: init, setPin, getPin, onPinMove,
- * locate, reverseGeocode. No page ever touches a `google.*` global.
+ * locate, reverseGeocode for the home address's pin; places and position for
+ * the office map's districts. No page ever touches a `google.*` global.
  *
  * Everything here is optional to the checkout. If the key is blank there is no
  * address to load from; if the script is blocked or fails, `ready` answers
@@ -143,6 +144,83 @@
         clickableIcons: false,
       });
       new google.maps.Marker({ position: pos, map: shown });
+    },
+
+    /* A map of many places to choose one from: Uzpost's districts, each a
+     * pin at its centre, on the office half of checkout (§17 #381). Its own
+     * instance, like `show`, so it never disturbs the home address's pin.
+     *
+     * `places` is [{ id, lat, lng, name }]. Tapping a pin names it and calls
+     * `onPick` with the place. Returns a handle: `fit(ids)` frames those
+     * places, or all of them; `centre(pos)` moves to a point; `name(id)`
+     * opens the label of that place without choosing it. Null when the
+     * provider is not there. */
+    places: function (el, places, onPick) {
+      if (!loaded || !el) return null;
+      var shown = new google.maps.Map(el, {
+        center: DEFAULT,
+        zoom: 6,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        clickableIcons: false,
+      });
+      var label = new google.maps.InfoWindow();
+      var markers = {};
+      function open(place) {
+        var marker = markers[place.id];
+        if (!marker) return;
+        /* A node, not a string: a string here is read as HTML. */
+        var text = document.createElement('strong');
+        text.textContent = place.name;
+        label.setContent(text);
+        label.open({ map: shown, anchor: marker });
+      }
+      places.forEach(function (place) {
+        var marker = new google.maps.Marker({
+          position: { lat: place.lat, lng: place.lng }, map: shown, title: place.name,
+        });
+        marker.addListener('click', function () {
+          open(place);
+          if (onPick) onPick(place);
+        });
+        markers[place.id] = marker;
+      });
+      return {
+        fit: function (ids) {
+          var bounds = new google.maps.LatLngBounds();
+          var count = 0;
+          places.forEach(function (place) {
+            if (ids && ids.indexOf(String(place.id)) === -1) return;
+            bounds.extend({ lat: place.lat, lng: place.lng });
+            count += 1;
+          });
+          if (!count) return;
+          if (count === 1) { shown.setCenter(bounds.getCenter()); shown.setZoom(11); }
+          else shown.fitBounds(bounds, 24);
+        },
+        centre: function (pos) {
+          if (!pos) return;
+          shown.setCenter(pos);
+          shown.setZoom(10);
+        },
+        name: function (id) {
+          places.forEach(function (place) {
+            if (String(place.id) === String(id)) open(place);
+          });
+        },
+      };
+    },
+
+    /* The browser's position and nothing else: no pin moves and nothing is
+     * chosen. Behind an explicit tap, like `locate`. */
+    position: function (onDone) {
+      if (!navigator.geolocation) { onDone(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        function (p) { onDone({ lat: p.coords.latitude, lng: p.coords.longitude }); },
+        function () { onDone(null); },
+        { enableHighAccuracy: false, timeout: 8000 }
+      );
     },
 
     setPin: function (pos) {

@@ -40,7 +40,9 @@ from product.models import (Category, PrintMethod, Product, Review, Size,
                             slide_link)
 
 from payment import promos as promo_rules
+from payment import shipments
 from payment.models import PromoCode
+from core import uzpost
 
 from . import catalogue, reference
 from .promos import PromoForm
@@ -269,6 +271,7 @@ def order_detail(request, order_no):
     order = get_object_or_404(
         _order_list().prefetch_related('status_changes__changed_by'),
         order_no=order_no)
+    shipment = shipments.live_shipment(order)
     return render(request, 'boshqaruv/order.html', {
         'screen': 'orders',
         'order': order,
@@ -288,7 +291,59 @@ def order_detail(request, order_no):
         'map_url': (f'https://www.google.com/maps/search/?api=1'
                     f'&query={order.latitude},{order.longitude}')
         if order.latitude is not None and order.longitude is not None else '',
+        # The Uzpost section (§17 #379): the live shipment with what the shop
+        # has seen of it, or the button that makes one, and whether Uzpost is
+        # set up at all.
+        'shipment': shipment,
+        'shipment_history': shipment.history.all() if shipment else (),
+        'can_ship': shipments.can_create(order),
+        'ship_weight': shipments.weight_for(order) if shipment is None else None,
+        'uzpost_ready': uzpost.configured(),
     })
+
+
+@staff_only
+@require_POST
+def order_shipment(request, order_no):
+    """Make the order's Uzpost shipment: staff accepting a paid order (§17 #379).
+
+    A refusal or an outage is said in words and leaves the button where it
+    was; nothing is half made.
+    """
+    order = get_object_or_404(Order, order_no=order_no)
+    try:
+        shipment = shipments.create(order, by=request.user)
+    except shipments.ShipmentError as e:
+        messages.error(request, e.message)
+    else:
+        messages.success(request, _('Joʻnatma %(number)s yaratildi.')
+                         % {'number': shipment.number})
+    return redirect('panel_order', order_no=order.order_no)
+
+
+@staff_only
+@require_POST
+def order_shipment_withdraw(request, order_no):
+    """Drop a shipment request Uzpost never answered, once staff have checked the cabinet."""
+    order = get_object_or_404(Order, order_no=order_no)
+    if shipments.withdraw_request(order):
+        messages.success(request, _('Soʻrov olib tashlandi. Joʻnatmani qayta yaratish mumkin.'))
+    return redirect('panel_order', order_no=order.order_no)
+
+
+@staff_only
+def order_label(request, order_no):
+    """Send staff to the shipment's label, from a link Uzpost makes afresh each time."""
+    order = get_object_or_404(Order, order_no=order_no)
+    shipment = shipments.live_shipment(order)
+    if shipment is None or shipment.is_request:
+        messages.error(request, _('Bu buyurtmaning joʻnatmasi yoʻq.'))
+        return redirect('panel_order', order_no=order.order_no)
+    try:
+        return redirect(shipments.label_url(shipment))
+    except shipments.ShipmentError as e:
+        messages.error(request, e.message)
+        return redirect('panel_order', order_no=order.order_no)
 
 
 @staff_only
@@ -321,6 +376,13 @@ def order_status(request, order_no):
         messages.error(request, _('Notoʻgʻri holat.'))
         return redirect(_safe_next(request, 'panel_orders'))
 
+    # A cancelled order's parcel is called back from Uzpost, which agrees only
+    # while it has not been handed over; either way staff are told (§17 #380).
+    # Asked again when "cancelled" is chosen again, so a call back that
+    # failed can be retried.
+    called_back = (shipments.cancel_for_order(order)
+                   if wanted == Order.Status.CANCELLED else None)
+
     if wants_json:
         order.refresh_from_db(fields=['status'])
         return JsonResponse({
@@ -328,10 +390,14 @@ def order_status(request, order_no):
             'status': order.status,
             'label': order.get_status_display(),
             'changed': change is not None,
+            'notice': called_back.message if called_back else '',
+            'notice_ok': bool(called_back and called_back.ok),
         })
 
     if change is not None:
         messages.success(request, _('%(no)s — holat yangilandi.') % {'no': order.order_no})
+    if called_back is not None:
+        (messages.success if called_back.ok else messages.error)(request, called_back.message)
     return redirect(_safe_next(request, 'panel_orders'))
 
 

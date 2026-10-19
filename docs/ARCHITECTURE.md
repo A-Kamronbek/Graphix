@@ -15,20 +15,20 @@ and the fastest page is the one that is already HTML when it arrives.
 
 ```
 config/      settings, the root URL conf, wsgi and asgi
-core/        site pages, the legal documents, the contact form, the Eskiz and
-             Telegram clients, the rate limiter, the sitemaps, the test runner
-             — and the whole test suite
+core/        site pages, the legal documents, the contact form, the Eskiz,
+             Telegram and Uzpost clients, the rate limiter, the sitemaps, the
+             test runner — and the whole test suite
 user/        the phone-based User, sign-in and sign-up by SMS code
 product/     the catalogue: products, variants, tags, photographs, likes,
              reviews, size charts, and the image pipeline
 cart/        carts, for guests and for signed-in customers
 payment/     checkout, delivery options, regions and districts, orders, promo
-             codes, Click
+             codes, the gateways, and Uzpost shipments
 panel/       the staff panel at /boshqaruv/
 templates/   every template, including robots.txt and site.webmanifest
 static/      CSS, JS, fonts, icons
 locale/      uz, ru, en
-data/        regions.csv and a note on how it was built
+data/        regions.csv, uzpost-regions.csv, and a note on how each was built
 deploy/      what the server runs: nginx, systemd units, backups, the runbook
 docs/        this, the plan, the integration contracts, brand and design
 ```
@@ -172,12 +172,33 @@ and the intrinsic `width`/`height` that keep layout shift at zero.
 
 ### Outside services
 
-Eskiz, Telegram, Google Maps and Click all follow the pattern in
+Eskiz, Telegram, Google Maps, Uzpost and Click all follow the pattern in
 `core/sms.py`: a module-level logger, catch everything, log it, return
 something falsy. **An outage degrades a feature; it never 500s a page.** Every
 one of them also ships with its credential blank and the feature fully built
 around the blank (§17 #93), so switching one on is a paste into `.env` rather
 than a deploy.
+
+### Uzpost
+
+Every order goes to Uzpost (Phase 22). The checkout's regions and districts
+are Uzpost's, loaded from `data/uzpost-regions.csv` by `sync_uzpost_regions`,
+because a shipment is addressed by Uzpost's district id. Three layers:
+
+- `core/uzpost.py` talks to Uzpost: the owner's login turned into a cached
+  token, one call per thing the shop asks, each answering an `Answer` and
+  never raising. It knows nothing about orders.
+- `payment/shipments.py` is the shop's side: what an order is sent as, the
+  panel's "Joʻnatma yaratish" (`create`), the label, calling a shipment back
+  when its order is cancelled, and `follow`, which moves an order forward
+  with its parcel through `panel.services.set_status`. `create` writes and
+  commits the shipment as a request before Uzpost is asked, with no lock
+  held during the calls: an answer that never comes, or a worker killed
+  mid-call, leaves the request, which stops a second press from making a
+  second paid shipment until staff withdraw it.
+- `manage.py uzpost_sync`, run every 30 minutes by `graphix-uzpost.timer`,
+  calls `follow` for each live shipment. Pages read the database; nothing a
+  customer does waits on Uzpost.
 
 ### Rate limiting
 

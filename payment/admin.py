@@ -6,7 +6,7 @@ frozen ``delivery_price`` and ``location_snapshot`` only mean something if nobod
 edits them afterwards. Status is the one editable field. The full admin pass is
 Phase 7.
 """
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.sites import NotRegistered
 from django.utils.html import format_html_join
 from tolov.integrations.django.models import PaymentTransaction
@@ -201,6 +201,21 @@ class OrderAdmin(admin.ModelAdmin):
         changed = getattr(form, 'changed_data', []) if form is not None else []
         if change and 'status' in changed:
             set_status(obj, obj.status, by=request.user, note='Django admin')
+            # A cancelled order's parcel is called back from Uzpost, as the
+            # panel does it, and the answer is said (§17 #380). Once the save
+            # has committed: the admin's save is one transaction, and Uzpost
+            # should not be asked while it holds the order's row, nor told to
+            # cancel for a save that then rolls back.
+            if obj.status == Order.Status.CANCELLED:
+                from django.db import transaction
+                from payment import shipments
+
+                def call_back():
+                    outcome = shipments.cancel_for_order(obj)
+                    if outcome is not None:
+                        self.message_user(request, outcome.message,
+                                          messages.SUCCESS if outcome.ok else messages.WARNING)
+                transaction.on_commit(call_back)
             return
         super().save_model(request, obj, form, change)
 

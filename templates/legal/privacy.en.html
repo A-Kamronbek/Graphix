@@ -17,7 +17,7 @@
   <h3>Your account</h3>
   <p>Phone number and whether it has been confirmed, first name (optional), and when the account was created and last signed into. An account has no username and no password: you sign in each time with a one-time code sent to your phone by SMS. We do not store the code itself — only a one-way hash of it.</p>
   <h3>Orders</h3>
-  <p>The recipient’s full name and phone number; the region and district or city; the post office postcode or the street and house number; the coordinates of the pin, if you drop one on the map; your note to the order; the products, prices, delivery method and charge, payment method, the order’s status and the history of its changes.</p>
+  <p>The recipient’s full name and phone number; the region and district or city; for door delivery, the street and house number; the coordinates of the pin, if you drop one on the map; your note to the order; the products, prices, delivery method and charge, payment method, the order’s status and the history of its changes; the number of the Uzpost parcel and the statuses it has been in.</p>
   <h3>Payment</h3>
   <p>When you pay with Click, we receive only the order number, the amount and whether the payment went through. Your card number and other card details are entered with Click and never reach us.</p>
   <h3>Reviews and messages</h3>
@@ -49,8 +49,8 @@
   <ul>
     <li><strong>Eskiz</strong> (eskiz.uz) — SMS delivery: your phone number and the text of the message that carries the code;</li>
     <li><strong>Click</strong> (click.uz) — payments: the order number and amount; Click takes your card details itself;</li>
-    <li><strong>Uzpost</strong> (Oʻzbekiston pochtasi JSC) — delivery: the recipient’s full name, phone number and address or post office;</li>
-    <li><strong>Google</strong> — Google Maps: the map does not load when the page opens. Your browser loads Google’s script only when you press “From the map”, and only then does Google receive your IP address and technical details about your browser. If you drop a pin, its coordinates are sent to Google to look up the address. If you never open the map, nothing is sent to Google at all;</li>
+    <li><strong>Uzpost</strong> (Oʻzbekiston pochtasi JSC) — delivery: when the parcel is booked, Uzpost’s system is sent the recipient’s full name, phone number, region and district, and for door delivery the street and house number and, if you dropped a pin, its coordinates;</li>
+    <li><strong>Google</strong> — Google Maps: the map does not load when the page opens. Your browser loads Google’s script only when you press “From the map” or “Choose on the map”, and only then does Google receive your IP address and technical details about your browser. If you drop a pin, its coordinates are sent to Google to look up the address. “Near me” uses your location only to move the map to where you are: it is not sent to us. If you never open the map, nothing is sent to Google at all;</li>
     <li><strong>Telegram</strong> — notices of new orders, payments, messages and reviews reach the store’s staff through the store’s Telegram bot. An order notice contains the recipient’s name, phone number and address (with the pin’s coordinates, if one was dropped on the map), the items and the order note; a message notice contains the sender’s name, phone number and message;</li>
     <li><strong>Our hosting provider</strong> — the Site and its database run on a rented server in Warsaw, Poland: everything we keep is stored there (<a class="link" href="#abroad">section 5</a>).</li>
   </ul>
@@ -87,7 +87,7 @@
     <li><code>graphix_lang</code> — remembers the language you chose; one year;</li>
     <li><code>messages</code> — carries a one-off notice such as “Added to cart” to the next page and disappears once it has been shown.</li>
   </ul>
-  <p>Your browser’s temporary storage (<code>sessionStorage</code>) holds two drafts: the phone number typed into the sign-up form, so it is not lost while you read the terms, and the checkout form, while you look at the post office map. This storage is cleared when you close the tab and is never sent to us.</p>
+  <p>Your browser’s temporary storage (<code>sessionStorage</code>) holds one draft: the phone number typed into the sign-up form, so it is not lost while you read the terms. This storage is cleared when you close the tab and is never sent to us.</p>
   <p>No advertising or tracking cookies are used. If you open the map, Google may collect technical data under its own rules — see <a class="link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google’s privacy policy</a>.</p>
   <p>You can turn cookies off in your browser settings, but signing in and the cart will then stop working.</p>
 </section>

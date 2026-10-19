@@ -1,0 +1,83 @@
+{
+  "_about": "Uzpost's answers as recorded on 2026-10-18 with the owner's account (plan §9 Phase 22), trimmed to what the shop reads, with the account's own names and ids replaced. The shipment was a test, created and cancelled the same night. No test calls Uzpost; these are replayed.",
+  "authenticate": {
+    "status": "success",
+    "data": {"id_token": "recorded-token", "user": {"id": 1, "login": "shop"}}
+  },
+  "tariff": {
+    "status": "success",
+    "request_id": "c632996a-ffb9-4f1f-9847-871ffdc63046",
+    "data": {"total": 1, "list": [{
+      "id": 1076362452,
+      "name": "Bir Qadam - Qopsiz - Viloyatlar bo'ylab",
+      "price": {"base": 15000.0, "per_weight": 3000.0, "notification_fee": 3700.0,
+                "total": 15000.0, "chargeable_weight": 1.0},
+      "with_notification": true,
+      "transportation_type": "terrestrial",
+      "type": "service_main"
+    }]}
+  },
+  "create": {
+    "status": "success",
+    "data": {
+      "id": 5696260512,
+      "order_number": "MM216886699UZ",
+      "status": "unassigned",
+      "last_status_date": "2026-10-17T23:58:20.756Z",
+      "created_date": "2026-10-17T23:58:20.139Z",
+      "total_charge": 15000.0,
+      "paid": false,
+      "payment_type": "credit_balance",
+      "chargeable_weight": 1.0,
+      "dimensions": {"weight": 0.17, "unit": "metric", "domestic": true},
+      "sender_data": {"name": "GRAPHIX", "phone": "998507888436",
+                      "address": "Qo?qon shahri, Sharq dahasi, 5-uy, 27-xonadon",
+                      "jurisdiction": {"id": 339, "name": "Qo'qon Shahri", "parent_id": 260},
+                      "postcode": {"id": 403, "name": "150700", "code": null},
+                      "customer": {"id": 1, "name": "GRAPHIX"}},
+      "recipient_data": {"name": "GRAPHIX", "phone": "998507888436",
+                         "address": "Qo?qon shahri, Sharq dahasi, 5-uy, 27-xonadon",
+                         "jurisdiction": {"id": 339, "name": "Qo'qon Shahri", "parent_id": 260},
+                         "postcode": {"id": 403, "name": "150700", "code": null},
+                         "customer": {"id": 1, "name": "GRAPHIX"}},
+      "to_warehouse": {"id": 3350920, "name": "Коканд ОПС - г.Каканд - 150700",
+                       "lat": 40.5395143815544, "lon": 70.9347621608705},
+      "notification": null,
+      "transportation_type": null,
+      "service_type": null
+    }
+  },
+  "cancel": {"request_id": "ec69b7d1-cca6-448e-87df-d75e272b0c98", "status": "success"},
+  "label": {
+    "status": "success",
+    "request_id": "60eef47c-a8b0-423a-acc6-61c1820cb421",
+    "data": "https://prodapi.pochta.uz/api/v2/pdf/url?key=00000000-0000-0000-0000-000000000000"
+  },
+  "refused": {
+    "code": "error.validation",
+    "message": "Invalid argument type",
+    "data": {"from_date_time": "Invalid argument type"},
+    "request_id": "c7a36af7-cafa-43ea-a5e0-d73f5a18e57f",
+    "status": "error"
+  },
+  "level2": {
+    "status": "success",
+    "data": [
+      {"id": 258, "name": "Andijon", "parent_id": 246, "lat": 40.72963785, "lng": 72.3012575590642},
+      {"id": 270, "name": "Toshkent shahar", "parent_id": 246, "lat": 41.3, "lng": 69.27},
+      {"id": 271, "name": "Xorazm", "parent_id": 246, "lat": 41.4, "lng": 60.9}
+    ]
+  },
+  "level3": {
+    "status": "success",
+    "data": [
+      {"id": 313, "name": "Paxtaobod Andijon", "parent_id": 258, "lat": 40.970968, "lng": 72.40347},
+      {"id": 300, "name": "Andijon Shahri ", "parent_id": 258, "lat": 40.7821, "lng": 72.3442},
+      {"id": 273, "name": "Chilanzar", "parent_id": 270, "lat": 41.267426, "lng": 69.191946},
+      {"id": 279, "name": "Uchtepa", "parent_id": 270, "lat": 41.296287, "lng": 69.167041},
+      {"id": 900, "name": "Qоrashina", "parent_id": 271, "lat": 41.5, "lng": 60.6},
+      {"id": 901, "name": "Mug`lon", "parent_id": 271, "lat": 41.6, "lng": 60.7},
+      {"id": 999, "name": "Somewhere", "parent_id": 1, "lat": 1.0, "lng": 1.0}
+    ]
+  }
+}

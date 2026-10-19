@@ -139,6 +139,8 @@ function TELL(message, kind) {
         badge.className = classFor(data.status);
         badge.textContent = data.label;
       }
+      /* What cancelling did to the order's Uzpost parcel, when it had one. */
+      if (data.notice) TELL(data.notice, data.notice_ok ? 'success' : 'danger');
       select.disabled = false;
     }).catch(function () {
       /* Offline, or the session expired. The full post will either work or

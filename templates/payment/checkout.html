@@ -12,17 +12,19 @@
                               |
                 +-------------+-------------+
                 |                           |
-              HOME                        UZPOST
+              HOME                        OFFICE
                 |                           |
-        +-------+-------+                   |
-        |               |                   |
-      MAP           MANUAL           POSTAL INDEX
-     lat/lng     street + house           index
+        +-------+-------+            the district's
+        |               |            Bir Qadam office
+      MAP           MANUAL
+     lat/lng     street + house
 
   The province and the district come from the same two drawers whichever method
   is chosen — a courier needs them as much as a post office does, and a drawer
-  cannot be misspelt. Only the last step differs: a branch order ends in a
-  six-digit index, a home order in a street and a house number.
+  cannot be misspelt. Both are Uzpost's, and a shipment is addressed by them
+  (§17 #377). An office order ends there: the parcel goes to the district's Bir
+  Qadam office, and the district can be chosen from a pin on a map as well. A
+  home order adds a street and a house number.
 
   Nothing from the step the customer did not take is submitted, validated or
   stored. Everything works with JavaScript off: the drawers fall back to the
@@ -102,8 +104,6 @@
             {# A plain select with JavaScript off; checkout.js replaces it with #}
             {# a drawer that can group Tumanlar and Shaharlar and search a long #}
             {# list, neither of which a native select can do (§17 #87). #}
-            {# data-prefix is what lets the page say "that index is not in this #}
-            {# region" before the round trip. The server checks it again. #}
             <select class="select" name="region" id="id_region" data-region
                     aria-required="true"
                     data-title="{% trans 'Viloyat' %}">
@@ -111,7 +111,7 @@
               {% for r in regions %}
                 {# data-match carries all three spellings so a dropped pin can #}
                 {# be matched against whichever one Google returns (§17 #116). #}
-                <option value="{{ r.pk }}" data-prefix="{{ r.postal_prefix }}"
+                <option value="{{ r.pk }}"
                         data-match="{{ r.name }}|{{ r.name_ru }}|{{ r.name_en }}"
                         {% if form_data.region == r.pk %}selected{% endif %}>{{ r|t:"name" }}</option>
               {% endfor %}
@@ -152,28 +152,39 @@
           </div>
         </div>
 
-        {# ------------------------------------------------- Uzpost branch #}
+        {# ------------------------------------------------- Uzpost office #}
+        {# Nothing to type: the parcel goes by Bir Qadam to the office of the #}
+        {# district chosen above, and Uzpost says which office once the #}
+        {# shipment exists (§17 #377). #}
         <div class="stack" data-branch-fields>
-          <div class="field">
-            <label class="label" for="id_postal_index">{% trans "Pochta indeksi" %} <span class="req" aria-hidden="true">*</span></label>
-            <input class="input num" type="text" name="postal_index" id="id_postal_index"
-                   inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
-                   autocomplete="postal-code" placeholder="100011"
-                   value="{{ form_data.postal_index|default:'' }}"
-                   data-postal-index
-                   data-error-format="{% trans 'Indeks 6 ta raqamdan iborat boʻlishi kerak.' %}"
-                   data-error-region="{% trans 'Bu indeks tanlangan viloyatga toʻgʻri kelmadi.' %}">
-            <small class="field__hint" data-postal-hint>
-              {% trans "Oʻzingiz buyurtmani oladigan pochta boʻlimining 6 xonali indeksi." %}
-            </small>
-            {# A customer who does not know their index is sent to Uzpost's own #}
-            {# branch map — in a new tab, with the form saved first, because #}
-            {# leaving checkout mid-order is a real drop-off risk (§17 #92). #}
-            <a class="link small" href="https://uz.post/uz/map" target="_blank"
-               rel="noopener" data-leave-checkout>
-              {% trans "Indeksni bilmaysizmi? Pochta boʻlimlari xaritasi" %}
-            </a>
-          </div>
+          <p class="field__hint">
+            {% trans "Joʻnatma tanlangan tumandagi Bir Qadam pochta boʻlimiga keladi. Boʻlim manzili joʻnatma yuborilgach buyurtma sahifasida koʻrinadi." %}
+          </p>
+          {% if google_maps_src %}
+            {# Uzpost's districts as pins, each at its centre; tapping one #}
+            {# chooses its region and district above (§17 #381). Shown by the #}
+            {# script, and like the home map nothing is fetched from Google #}
+            {# until the button is pressed (§18 #34). #}
+            <button type="button" class="btn btn--secondary btn--sm"
+                    data-office-map-open aria-expanded="false" hidden>
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-pin"></use></svg>
+              {% trans "Xaritadan tanlash" %}
+            </button>
+            <div class="map" data-office-map data-map-src="{{ google_maps_src }}" hidden>
+              <div class="map__canvas" data-office-map-canvas
+                   aria-label="{% trans 'Tumanlar xaritasi' %}"></div>
+              <button type="button" class="btn btn--secondary btn--sm" data-office-map-near>
+                <svg class="i i--sm" aria-hidden="true"><use href="#i-pin"></use></svg>
+                {% trans "Menga yaqin" %}
+              </button>
+              <small class="field__hint">
+                {% trans "Tumaningiz belgisini bosing: viloyat va tuman yuqorida tanlanadi." %}
+              </small>
+              <p class="field__error" data-office-map-error hidden>
+                {% trans "Xaritani yuklab boʻlmadi. Tumanni roʻyxatdan tanlang." %}
+              </p>
+            </div>
+          {% endif %}
         </div>
 
         {# --------------------------------------------------- home delivery #}

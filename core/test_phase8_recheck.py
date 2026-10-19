@@ -398,12 +398,16 @@ class SellerFormTests(TestCase):
 
 
 class HoldPeriodTests(TestCase):
-    """§17 #210: an ordinary parcel waits a month, and the pages say one month."""
+    """A Bir Qadam parcel waits 14 days at the office, and the pages say so.
+
+    It was an ordinary parcel's month (§17 #210) until Phase 22 sent office
+    orders by Bir Qadam (§9 Phase 22 item 14).
+    """
 
     EXPECTED = {
-        'uz': ('joʻnatmani 1 oy saqlaydi', 'Joʻnatma boʻlimda 1 oy saqlanadi.'),
-        'ru': ('хранит посылку 1 месяц.', 'Отделение хранит посылку 1 месяц.'),
-        'en': ('holds the parcel for 1 month.', 'The branch holds the parcel for 1 month.'),
+        'uz': ('joʻnatmasini 14 kun saqlaydi', 'Joʻnatma boʻlimda 14 kun saqlanadi.'),
+        'ru': ('хранит посылку «Bir Qadam» 14 дней.', 'Отделение хранит посылку 14 дней.'),
+        'en': ('holds a Bir Qadam parcel for 14 days.', 'The office holds the parcel for 14 days.'),
     }
 
     def setUp(self):
@@ -419,16 +423,17 @@ class HoldPeriodTests(TestCase):
     def order_page(self, lang):
         return text(self.client, f'/{lang}/order/{self.order.pk}/')
 
-    def test_the_rule_is_one_month_and_nothing_asks_for_a_range(self):
-        self.assertEqual(legal.BRANCH_HOLD_MONTHS, 1)
+    def test_the_rule_is_fourteen_days_and_nothing_asks_for_a_range(self):
+        self.assertEqual(legal.BRANCH_HOLD_DAYS, 14)
         facts = legal.facts()
-        self.assertEqual(facts.hold_months, 1)
+        self.assertEqual(facts.hold_days, 14)
+        self.assertFalse(hasattr(facts, 'hold_months'))
         self.assertFalse(hasattr(facts, 'hold_min') or hasattr(facts, 'hold_max'))
         stale = [p.name for p in TEMPLATES.rglob('*.html')
                  if re.search(r'hold_(min|max)', p.read_text(encoding='utf-8'))]
         self.assertEqual(stale, [])
 
-    def test_every_page_that_states_it_says_one_month(self):
+    def test_every_page_that_states_it_says_fourteen_days(self):
         for lang, (document, order) in self.EXPECTED.items():
             with self.subTest(lang=lang):
                 self.assertIn(document, section(text(self.client, f'/{lang}/terms/'),
@@ -438,14 +443,15 @@ class HoldPeriodTests(TestCase):
                 self.assertIn(order, self.order_page(lang))
 
     def test_the_word_follows_the_number(self):
-        for months, ru, en in ((2, '2 месяца', '2 months'), (5, '5 месяцев', '5 months')):
-            with self.subTest(months=months), \
-                    mock.patch.object(legal, 'BRANCH_HOLD_MONTHS', months):
+        for days, ru, en in ((1, '1 день', '1 day'), (3, '3 дня', '3 days'),
+                             (5, '5 дней', '5 days')):
+            with self.subTest(days=days), \
+                    mock.patch.object(legal, 'BRANCH_HOLD_DAYS', days):
                 self.assertIn(f'Отделение хранит посылку {ru}.', self.order_page('ru'))
-                self.assertIn(f'The branch holds the parcel for {en}.', self.order_page('en'))
-                self.assertIn(f'хранит посылку {ru}.',
+                self.assertIn(f'The office holds the parcel for {en}.', self.order_page('en'))
+                self.assertIn(f'хранит посылку «Bir Qadam» {ru}.',
                               text(self.client, '/ru/yetkazib-berish/'))
-                self.assertIn(f'holds the parcel for {en}.',
+                self.assertIn(f'holds a Bir Qadam parcel for {en}.',
                               text(self.client, '/en/yetkazib-berish/'))
 
 

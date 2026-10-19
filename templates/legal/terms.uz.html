@@ -58,16 +58,16 @@
       <li>{{ tier|t:"name" }} — <span class="num">{{ tier.price|price }}&nbsp;soʻm</span>{% if tier.free_from_items %}; {{ tier.free_from_items }} ta va undan koʻp mahsulot uchun — bepul{% endif %}</li>
     {% endfor %}
   </ul>
-  <p><strong>Pochta boʻlimiga.</strong> Viloyat va tumanni tanlab, buyurtmani oladigan pochta boʻlimining 6 xonali indeksini kiritasiz. Indeksning boshidagi raqamlar tanlangan viloyatga mos kelishi tekshiriladi, ammo boʻlimning toʻgʻri tanlanganiga Xaridor javob beradi. Joʻnatma qabul qiluvchiga shaxsini tasdiqlovchi hujjat asosida topshiriladi.</p>
-  <p><strong>Eshikkacha.</strong> Viloyat, tuman hamda koʻcha va uy raqamini kiritasiz. Xaritada belgi qoʻyish ixtiyoriy — u manzilni faqat aniqlashtiradi. Kuryer koʻrsatilgan telefon raqamiga qoʻngʻiroq qiladi.</p>
+  <p><strong>Pochta boʻlimiga.</strong> Viloyat va tumanni tanlaysiz. Joʻnatma Pochtaning «Bir Qadam» xizmati bilan shu tumandagi «Bir Qadam» pochta boʻlimiga yuboriladi; tumanda bunday boʻlim bir nechta boʻlsa, qaysi biriga borishini Pochta belgilaydi. Tumanning toʻgʻri tanlanganiga Xaridor javob beradi. Joʻnatma qabul qiluvchiga shaxsini tasdiqlovchi hujjat asosida topshiriladi.</p>
+  <p><strong>Eshikkacha.</strong> Viloyat, tuman hamda koʻcha va uy raqamini kiritasiz. Xaritada belgi qoʻyish ixtiyoriy — u manzilni faqat aniqlashtiradi. Joʻnatmani Pochtaning kuryeri olib boradi va koʻrsatilgan telefon raqamiga qoʻngʻiroq qiladi.</p>
   <p>Pochta joʻnatmani mamlakat boʻylab odatda {{ legal.transit_min|legal_range:legal.transit_max }} kunda yetkazadi, eshikkacha yetkazishda kuryer uchun yana bir kun ketishi mumkin. Bu — Pochta eʼlon qilgan muddatlar, kafolat emas. Har qanday holatda buyurtma toʻlovdan keyin {{ legal.delivery_deadline_days }} kundan kechiktirmay yetkazilishi kerak.</p>
-  <p>Xaridor notoʻgʻri manzil, indeks, ism yoki telefon raqamini koʻrsatgani sababli kechikkan yoki boshqa joyga borgan joʻnatma uchun Sotuvchi javob bermaydi. Maʼlumotlarni buyurtma sahifasida tekshiring; xato boʻlsa, joʻnatma yuborilgunga qadar darhol bizga yozing.</p>
+  <p>Xaridor notoʻgʻri tuman, manzil, ism yoki telefon raqamini koʻrsatgani sababli kechikkan yoki boshqa joyga borgan joʻnatma uchun Sotuvchi javob bermaydi. Maʼlumotlarni buyurtma sahifasida tekshiring; xato boʻlsa, joʻnatma yuborilgunga qadar darhol bizga yozing.</p>
   <p>Mahsulotning tasodifan yoʻqolishi yoki shikastlanishi xavfi joʻnatma qabul qiluvchiga topshirilgan paytdan boshlab Xaridorga oʻtadi.</p>
 </section>
 
 <section class="legal__sec" id="uncollected">
   <h2>7. Olib ketilmagan yoki rad etilgan joʻnatma</h2>
-  <p>Joʻnatma yetib kelgach, Pochta qabul qiluvchiga xabarnoma yuboradi. Pochta qoidalariga koʻra, pochta boʻlimi joʻnatmani {{ legal.hold_months }} oy saqlaydi. Ikkinchi xabarnomadan keyin ham olib ketilmagan joʻnatma uchun Pochta oʻz tariflari boʻyicha saqlash haqi olishi mumkin.</p>
+  <p>Pochta boʻlimi «Bir Qadam» joʻnatmasini {{ legal.hold_days }} kun saqlaydi.</p>
   <p>Saqlash muddatida olib ketilmagan yoki qabul qiluvchi rad etgan joʻnatma Sotuvchiga qaytariladi. Pochta qoidalariga koʻra, qaytarish xarajatini joʻnatuvchi — Sotuvchi toʻlaydi.</p>
   <p>Joʻnatma bizga qaytib kelgach, toʻlangan summadan <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> ushlab qolinadi va qolgan qismi {{ legal.refund_days }} kun ichida qaytariladi (<a class="link" href="#refunds">10-boʻlim</a>). Ushlab qolingan summa joʻnatish va qaytarish xarajatlarining bir qismini qoplaydi.</p>
 </section>

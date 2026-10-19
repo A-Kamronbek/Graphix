@@ -15,11 +15,19 @@ the thing it replaces:
   order points at a district through a PROTECT foreign key, and its
   ``location_snapshot`` should stay explainable.
 
+From Phase 22 the checkout's lists are Uzpost's, loaded on top of these by
+``sync_uzpost_regions`` (§17 #378). This file stays the record of the official
+divisions, and a fresh database is seeded from it first. Once Uzpost's lists
+are loaded, running this again would bring back the official names and the
+rows Uzpost does not have, so it refuses without ``--force``, and after a
+forced run ``sync_uzpost_regions`` is run again.
+
 Usage::
 
     python manage.py seed_regions                  # data/regions.csv
     python manage.py seed_regions --file other.csv
     python manage.py seed_regions --dry-run
+    python manage.py seed_regions --force          # over Uzpost's lists
 """
 import csv
 import re
@@ -46,6 +54,8 @@ class Command(BaseCommand):
                             help='CSV to read. Defaults to data/regions.csv.')
         parser.add_argument('--dry-run', action='store_true',
                             help='Validate and report, but write nothing.')
+        parser.add_argument('--force', action='store_true',
+                            help="Write even though Uzpost's lists are loaded.")
 
     def handle(self, *args, **options):
         path = Path(options['file'])
@@ -65,6 +75,12 @@ class Command(BaseCommand):
             self.stdout.write(f"{len(regions)} region(s), {len(districts)} "
                               f"district(s)/city(ies). Dry run: nothing written.")
             return
+
+        if not options['force'] and Region.objects.filter(uzpost_id__isnull=False).exists():
+            raise CommandError(
+                "Uzpost's regions and districts are loaded (sync_uzpost_regions), and this "
+                "would put the official ones back. Nothing was written. Use --force, then "
+                "run sync_uzpost_regions again.")
 
         counts = self._write(regions, districts)
         self.stdout.write(self.style.SUCCESS(

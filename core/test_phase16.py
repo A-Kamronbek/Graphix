@@ -769,7 +769,7 @@ class CheckoutTests(CheckoutCase):
         html = self.apply('kod', notes='Qoʻngʻiroq qiling').content.decode()
         self.assertIn('value="Dilnoza Karimova"', html)
         self.assertIn('Qoʻngʻiroq qiling', html)
-        self.assertIn('value="100011"', html)
+        self.assertIn('value="%d" selected' % self.geo['chilonzor'].pk, html)
 
     def test_a_refused_code_comes_back_as_typed_with_the_reason(self):
         response = self.apply('yoq 123')
@@ -913,8 +913,7 @@ class WithoutScriptsTests(CheckoutCase):
                    for label, rows in self.districts(html)}
         self.assertEqual(shipped, {
             'Toshkent shahri': [self.geo['chilonzor'].pk],
-            'Samarqand viloyati': [self.geo['sam_city'].pk],
-            'Boshqa': [self.geo['other_district'].pk]})
+            'Samarqand viloyati': [self.geo['sam_city'].pk]})
 
     def test_a_form_sent_back_keeps_its_district(self):
         """Under the chosen region's own headings, with the choice still made."""

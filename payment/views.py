@@ -57,8 +57,12 @@ def _delivery_context():
     instantly and still works with the network gone. It also keeps the checkout
     free of an endpoint that could fail mid-order.
     """
-    regions = list(Region.objects.filter(is_active=True))
-    districts = (District.objects.filter(is_active=True, region__is_active=True)
+    # Only what Uzpost can be sent to: its regions and districts, each with
+    # Uzpost's id (§17 #378). A row switched on by hand without one would only
+    # be refused by `Order.clean` after the customer had chosen it.
+    regions = list(Region.objects.filter(is_active=True, uzpost_id__isnull=False))
+    districts = (District.objects.filter(is_active=True, uzpost_id__isnull=False,
+                                         region__is_active=True)
                  .select_related('region'))
 
     by_region = {r.pk: {'district': [], 'city': [], 'other': []} for r in regions}
@@ -73,6 +77,10 @@ def _delivery_context():
                 # Google's Uzbek for Chilonzor is "Chilanzar" in English and
                 # "Чиланзар" in Russian; one column would match one of those.
                 'match': [n for n in (d.name, d.name_ru, d.name_en) if n],
+                # The district's pin on the office map: its centre as Uzpost
+                # gives it (§17 #381). Absent when the row has none.
+                'lat': float(d.latitude) if d.latitude is not None else None,
+                'lng': float(d.longitude) if d.longitude is not None else None,
             })
 
     return {
@@ -136,11 +144,11 @@ def _read_delivery(post):
     """Pull the delivery fields out of a POST. Returns (kwargs, option).
 
     Region and district are read for **both** methods (§17 #106) — the courier
-    needs them as much as the post office does. Everything below them still
-    belongs to one branch only: a home order keeps no postal index, and a branch
-    order keeps no address and no coordinates. That is what stops a stale value
-    from the hidden half of the form reaching the database and quietly
-    contradicting the rest of the order.
+    needs them as much as the post office does, and since Phase 22 an office
+    order is addressed by its district alone and nothing else is read for it
+    (§17 #377). A home order adds the street and, from the map, the pin. That
+    is what stops a stale value from the hidden half of the form reaching the
+    database and quietly contradicting the rest of the order.
     """
     option = DeliveryOption.objects.filter(
         code=post.get('delivery_option', '').strip(), is_active=True
@@ -164,9 +172,7 @@ def _read_delivery(post):
     if kwargs['district'] is not None and kwargs['district'].kind == District.Kind.OTHER:
         kwargs['location_note'] = post.get('location_note', '').strip()[:160]
 
-    if option.requires_branch:
-        kwargs['postal_index'] = post.get('postal_index', '').strip()
-    else:
+    if not option.requires_branch:
         kwargs['address'] = post.get('address', '').strip()
         source = post.get('address_source', '').strip()
         kwargs['address_source'] = source if source in ('map', 'manual') else 'manual'
@@ -411,7 +417,6 @@ def checkout(request):
         'delivery_option': option.code if option else '',
         'region': delivery_kwargs['region'].pk if delivery_kwargs['region'] else '',
         'district': delivery_kwargs['district'].pk if delivery_kwargs['district'] else '',
-        'postal_index': delivery_kwargs['postal_index'],
         'location_note': delivery_kwargs['location_note'],
         'address_source': delivery_kwargs['address_source'],
         'latitude': delivery_kwargs['latitude'],
@@ -768,7 +773,15 @@ def order_detail(request, pk):
     )
     for it in order.cart.cart_items.all():
         it.line_total = (it.price_stat or Decimal('0')) * it.quantity
-    return render(request, 'payment/order_detail.html', {'order': order})
+    # The parcel at Uzpost, as the shop last read it: pages read the database,
+    # never Uzpost (§9 Phase 22 item 13).
+    shipment = order.shipments.filter(cancelled_at__isnull=True,
+                                      uzpost_id__isnull=False).first()
+    return render(request, 'payment/order_detail.html', {
+        'order': order,
+        'shipment': shipment,
+        'shipment_history': shipment.history.all() if shipment else (),
+    })
 
 
 @login_required

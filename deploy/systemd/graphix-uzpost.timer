@@ -1,0 +1,17 @@
+# Every 30 minutes. A parcel takes days, and an SMS half an hour late is still
+# news; asking more often would only ask Uzpost more often.
+#
+# Persistent=true so a run missed while the machine was off happens at the next
+# boot.
+
+[Unit]
+Description=GRAPHIX - follow Uzpost shipments, every 30 minutes
+
+[Timer]
+OnCalendar=*:00/30
+Persistent=true
+RandomizedDelaySec=120
+Unit=graphix-uzpost.service
+
+[Install]
+WantedBy=timers.target

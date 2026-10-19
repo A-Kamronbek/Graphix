@@ -304,6 +304,30 @@ ESKIZ_FROM = os.environ.get("ESKIZ_FROM", "4546")
 # Turning the map on is a paste into the server .env, not a deploy.
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "")
 
+# --- Uzpost ---
+# The owner's own my.pochta.uz login, which core/uzpost.py turns into a token
+# for Uzpost's partner API (§9 Phase 22). Blank takes the degraded path
+# (§17 #93): the checkout works as before and the panel says Uzpost is not set
+# up, so a shipment cannot be created from it.
+UZPOST_LOGIN = os.environ.get("UZPOST_LOGIN", "")
+UZPOST_PASSWORD = os.environ.get("UZPOST_PASSWORD", "")
+
+# What Uzpost is asked to carry, by delivery method: an office order goes by
+# Bir Qadam and a home order by Kuryerlik joʻnatmasi, both the kind without a
+# bag (§17 #377, #382). The code goes into the shipment, the id into the price
+# call that says whether the route goes by land or by air.
+UZPOST_SERVICES = {
+    "uzpost_office": {"code": "ONE_STEP_WITHOUT_BAG", "id": 1076362452},
+    "uzpost_door": {"code": "COURIER_SERVICE_WITHOUT_BAG", "id": 1076353954},
+}
+
+# Where every parcel starts: the shop's own district, Qoʻqon shahri, as
+# Uzpost numbers it.
+UZPOST_SENDER_JURISDICTION = 339
+
+# What one item weighs on Uzpost's scales, in kilograms (§17 #379).
+UZPOST_ITEM_KG = "0.17"
+
 # --- Telegram ---
 # Order, payment, message and review notifications to the shop's staff. Blank
 # for the same reason: core/telegram.py logs a warning and sends nothing rather
