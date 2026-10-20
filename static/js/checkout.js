@@ -15,6 +15,21 @@
   var form = document.querySelector('[data-checkout]');
   if (!form) return;
 
+  /* Back from Telegram or a gateway's page comes here. Restored from the
+   * browser's back-forward cache the page would show the form of an order
+   * already placed; asked for again, the server sends the customer to that
+   * order (§17 #409). Only once the order button was pressed: Back from the
+   * delivery or size page restores the form as it was typed, and a reload
+   * would throw that away. The promo buttons carry a name; the order button
+   * and the hidden one Enter presses do not. */
+  var placing = false;
+  form.addEventListener('submit', function (event) {
+    if (!event.submitter || !event.submitter.name) placing = true;
+  });
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted && placing) window.location.reload();
+  });
+
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) {
     return Array.prototype.slice.call((root || document).querySelectorAll(sel));

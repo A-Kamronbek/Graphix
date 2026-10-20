@@ -35,7 +35,7 @@ from payment import services
 from payment.models import PAYMENT_LOGOS, Order, PaymentOption
 
 from .test_phase7 import make_staff
-from .test_phase16 import CheckoutCase, order_of, stock_of
+from .test_phase16 import CheckoutCase, order_of, sent_to_click, stock_of
 
 #: A Payme cashbox id has this shape: 24 hex digits. Not a real one.
 PAYME_ID = '5e730e8e0b852a417aa49ceb'
@@ -101,8 +101,7 @@ class AddressSheetTests(CheckoutCase):
                              address="O'zbekiston shoh ko'chasi 9", address_source='map',
                              latitude='41.311100', longitude='69.279700')
         order = Order.objects.get()
-        self.assertRedirects(response, reverse('payment', args=[order.pk]),
-                             fetch_redirect_response=False)
+        sent_to_click(self, response, order)
         self.assertEqual((order.region_id, order.district_id),
                          (self.geo['tashkent'].pk, self.geo['chilonzor'].pk))
         self.assertEqual(order.address, "O'zbekiston shoh ko'chasi 9")
@@ -194,7 +193,7 @@ class CancelOnOrderPageTests(CheckoutCase):
     def test_the_button_is_under_the_pay_button(self):
         order = order_of(self.user, (self.shirt_m, 1))
         html = self.page(order)
-        pay = html.index('href="%s"' % reverse('payment', args=[order.pk]))
+        pay = html.index('action="%s"' % reverse('payment_start', args=[order.pk]))
         cancel = html.index('action="%s"' % reverse('order_cancel', args=[order.pk]))
         self.assertLess(pay, cancel)
         form = html[cancel:].split('</form>', 1)[0]

@@ -16,6 +16,7 @@ import re
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest import mock
+from urllib.parse import parse_qs, urlsplit
 
 from django.contrib import admin as django_admin
 from django.core.cache import cache
@@ -87,6 +88,25 @@ def place(user, cart, promo=None, delivery=FEE):
     return services.create_order_from_cart(
         user, cart, phone=user.phone, address='Amir Temur 1', notes='',
         payment_method=Order.PaymentMethod.CLICK, delivery=delivery, promo=promo)
+
+
+#: Where Click's pay page lives: the checkout sends a Click order there.
+CLICK_PAGE = 'https://my.click.uz/services/pay?'
+
+
+def sent_to_click(test, response, order):
+    """Assert that the checkout sent ``order`` straight on to Click's own page.
+
+    There is no payment page in between since Phase 23: the order button
+    pays (§17 #405). The link is Click's, for this order, and comes back to
+    the order's details page.
+    """
+    test.assertEqual(response.status_code, 302)
+    location = response['Location']
+    test.assertTrue(location.startswith(CLICK_PAGE), location)
+    query = parse_qs(urlsplit(location).query)
+    test.assertEqual(query['transaction_param'], [str(order.pk)])
+    test.assertTrue(query['return_url'][0].endswith('/order/%d/' % order.pk), location)
 
 
 class PromoCase(TestCase):
@@ -817,7 +837,7 @@ class CheckoutTests(CheckoutCase):
         promo = code(Kind.ORDER_SUM, 30000)
         response = self.post(promo_code='kod')
         order = Order.objects.get()
-        self.assertRedirects(response, reverse('payment', args=[order.pk]))
+        sent_to_click(self, response, order)
         self.assertEqual((order.promo, order.discount), (promo, 30000))
         self.assertEqual(order.total_price, 150000 + self.office.price - 30000)
 
@@ -935,7 +955,7 @@ class WithoutScriptsTests(CheckoutCase):
                 code(Kind.ORDER_SUM, 30000)
                 response = self.post(region=region, district=district, promo_code=typed)
                 order = Order.objects.get()
-                self.assertRedirects(response, reverse('payment', args=[order.pk]))
+                sent_to_click(self, response, order)
                 self.assertEqual(order.discount, 30000 if typed else 0)
 
     def test_a_district_from_another_region_is_still_refused(self):
@@ -1076,12 +1096,15 @@ class ShownTests(CheckoutCase):
         self.other = make_user('boshqa', '+998901220004')
         self.plain = place(self.other, cart_of(self.other, (self.shirt_m, 1)))
 
-    def test_the_payment_page(self):
-        html = self.client.get(reverse('payment', args=[self.order.pk])).content.decode()
-        self.assertIn('Promokod KOD: −20\u00a0000 soʻm', html)
-        self.assertIn('%s soʻm' % '145\u00a0000', html)
+    def test_the_payment_pages_old_address_leads_to_a_page_that_shows_it(self):
+        """The payment page went in Phase 23; its address lands on the order (§17 #405)."""
+        html = self.client.get(reverse('payment', args=[self.order.pk]),
+                               follow=True).content.decode()
+        self.assertIn('−20\u00a0000 soʻm', html)
+        self.assertIn('145\u00a0000', html)
         self.client.force_login(self.other)
-        html = self.client.get(reverse('payment', args=[self.plain.pk])).content.decode()
+        html = self.client.get(reverse('payment', args=[self.plain.pk]),
+                               follow=True).content.decode()
         self.assertNotIn('Promokod', html)
 
     def test_the_customers_order_page_names_the_code_and_the_item(self):

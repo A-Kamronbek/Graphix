@@ -6,12 +6,17 @@ to the gateway. Browsers hold every redirect after a form submission to
 plain click did nothing; ctrl+click worked only because a new tab is not bound
 by the page's policy. Nobody could pay from 25 September, when the policy went
 live, until this fix (§17 #298).
+
+Since Phase 23 two forms lead to a gateway: the order button at the checkout,
+which pays at once, and "Toʻlovni yakunlash" on the order's page, which posts
+to `payment_start` (§17 #405). Both pages are read here.
 """
 from urllib.parse import urlsplit
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from cart.models import Cart, CartItem
 from core.middleware import PAY_PAGES
 from payment import services
 from payment.models import Order
@@ -64,10 +69,21 @@ class PayFormActionTests(TestCase):
         self.client.force_login(self.user)
 
     def served(self):
-        """The form-action the payment page itself is served with."""
-        response = self.client.get(reverse('payment', args=[self.order.id]))
-        self.assertEqual(response.status_code, 200)
-        return form_action(response)
+        """The form-action of the two pages whose forms end at a gateway.
+
+        The checkout's order button and the order page's pay button. Asserted
+        the same on both, then returned once.
+        """
+        cart = Cart.objects.create(user=self.user, status=True)
+        CartItem.objects.create(cart=cart, variant=self.variant, quantity=1,
+                                price_stat=self.variant.price)
+        sources = []
+        for name, args in (('checkout', []), ('order_detail', [self.order.id])):
+            response = self.client.get(reverse(name, args=args))
+            self.assertEqual(response.status_code, 200, name)
+            sources.append(form_action(response))
+        self.assertEqual(sources[0], sources[1])
+        return sources[0]
 
     def link(self, method):
         """A real pay link for this order, built the way payment_start builds it."""

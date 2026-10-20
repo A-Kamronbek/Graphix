@@ -434,7 +434,19 @@
     });
   }
 
+  /* A Telegram order lands on its page straight from the checkout, and the
+   * page opens the chat with the shop's admin at once (§17 #405). In this tab:
+   * a new one opened without a tap is what browsers block. Back from Telegram
+   * comes to the checkout, which sends the customer to the order (§17 #409);
+   * the server marks the link only that once, so it does not open again.
+   * Without scripts the button is there to press. */
+  function openChat() {
+    var link = document.querySelector('a[data-open-chat]');
+    if (link) window.location.assign(link.href);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    openChat();
     sweepBrokenImages();
     initAutoSubmit();
     initDrawer();

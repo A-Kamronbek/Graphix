@@ -1,0 +1,42 @@
+{% load i18n %}
+{% comment %}
+  The one way to pay for an order that waits for it, on the order's page and
+  its status page; there is no payment page in between (§17 #405). A gateway's
+  order is a form posting to payment_start, which goes on to the gateway's own
+  page. A Telegram order is a link that opens the chat with the shop's admin,
+  the message already written; the checkout has the page open it at once
+  (data-open-chat), and the link stays for whoever's browser keeps it from
+  opening. What the payment page said that is still needed is here: the
+  admin's name and the order's number, to write by hand (§17 #362).
+{% endcomment %}
+{% if pay.kind == 'gateway' %}
+  <form method="post" action="{% url 'payment_start' order.id %}">
+    {% csrf_token %}
+    <button class="btn btn--primary btn--block" type="submit">{% trans "Toʻlovni yakunlash" %}</button>
+  </form>
+{% elif pay.kind == 'telegram' %}
+  {% if pay.link %}
+    <p class="small muted">
+      {% blocktrans trimmed %}
+        Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring.
+        Admin buyurtmangiz uchun toʻlovni tasdiqlaydi.
+      {% endblocktrans %}
+    </p>
+    <a class="btn btn--primary btn--block" href="{{ pay.link }}"
+       target="_blank" rel="noopener noreferrer"{% if pay.open %} data-open-chat{% endif %}>
+      {% trans "Telegramda yozish" %}
+      <span class="sr-only">{% trans "(yangi oynada ochiladi)" %}</span>
+    </a>
+    <p class="small muted pay__ref">
+      {% blocktrans trimmed with admin=pay.admin number=order.order_no|default:order.id %}
+        Telegram ochilmasa, bizga oʻzingiz yozing: <strong>@{{ admin }}</strong>.
+        Buyurtma raqami: <strong>{{ number }}</strong>.
+      {% endblocktrans %}
+    </p>
+  {% else %}
+    <p class="msg msg--warn">
+      {% trans "Hozircha toʻlov usuli mavjud emas. Iltimos, biz bilan bogʻlaning." %}
+      <a class="link" href="{% url 'contact' %}">{% trans "Aloqa" %}</a>
+    </p>
+  {% endif %}
+{% endif %}

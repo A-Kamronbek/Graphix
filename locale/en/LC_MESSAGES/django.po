@@ -2617,20 +2617,6 @@ msgstr "Cancel order"
 msgid "Sharh qoldirish"
 msgstr "Write a review"
 
-#: .\templates\payment\payment.html:14
-msgid "Telegram orqali toʻlov"
-msgstr "Pay through Telegram"
-
-#: .\templates\payment\payment.html:15
-#, python-format
-msgid "%(method)s orqali toʻlov"
-msgstr "Pay with %(method)s"
-
-#: .\templates\payment\payment.html:17
-#, python-format
-msgid "Promokod %(code)s: −%(off)s soʻm"
-msgstr "Promo code %(code)s: −%(off)s soʻm"
-
 #: .\templates\payment\payment.html:48
 msgid ""
 "Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
@@ -2655,14 +2641,6 @@ msgid ""
 msgstr ""
 "If Telegram does not open, write to us yourself: "
 "<strong>@%(admin)s</strong>. Order number: <strong>%(number)s</strong>."
-
-#: .\templates\payment\payment.html:27
-msgid "Toʻlovga oʻtish"
-msgstr "Go to payment"
-
-#: .\templates\payment\payment.html:31
-msgid "Buyurtma tafsilotlari"
-msgstr "Order details"
 
 #: .\templates\payment\payment.html:34 .\templates\payment\status.html:54
 #: .\templates\user\verify_phone.html:53
@@ -3679,3 +3657,20 @@ msgstr "Picture saved."
 
 #~ msgid "Nomi (en)"
 #~ msgstr "Name (en)"
+
+#~ msgid "Telegram orqali toʻlov"
+#~ msgstr "Pay through Telegram"
+
+#, python-format
+#~ msgid "%(method)s orqali toʻlov"
+#~ msgstr "Pay with %(method)s"
+
+#, python-format
+#~ msgid "Promokod %(code)s: −%(off)s soʻm"
+#~ msgstr "Promo code %(code)s: −%(off)s soʻm"
+
+#~ msgid "Toʻlovga oʻtish"
+#~ msgstr "Go to payment"
+
+#~ msgid "Buyurtma tafsilotlari"
+#~ msgstr "Order details"

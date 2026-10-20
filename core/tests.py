@@ -15,6 +15,7 @@ from product.models import Category, Colour, Product, Size, Variant
 from user.models import User
 
 from .test_phase15 import catch_sms, enter_by_code
+from .test_phase16 import sent_to_click
 
 
 class SmokeTests(TestCase):
@@ -103,7 +104,7 @@ class SmokeTests(TestCase):
         })
 
         order = Order.objects.get(cart=cart)
-        self.assertRedirects(response, reverse('payment', args=[order.id]))
+        sent_to_click(self, response, order)
         self.assertEqual(order.total_price, Decimal('300000') + door.price)
         self.assertEqual(order.delivery_price, door.price)
         self.assertEqual(order.status, Order.Status.PAYING)

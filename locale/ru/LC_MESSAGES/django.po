@@ -2633,20 +2633,6 @@ msgstr "Отменить заказ"
 msgid "Sharh qoldirish"
 msgstr "Оставить отзыв"
 
-#: .\templates\payment\payment.html:14
-msgid "Telegram orqali toʻlov"
-msgstr "Оплата через Telegram"
-
-#: .\templates\payment\payment.html:15
-#, python-format
-msgid "%(method)s orqali toʻlov"
-msgstr "Оплата через %(method)s"
-
-#: .\templates\payment\payment.html:17
-#, python-format
-msgid "Promokod %(code)s: −%(off)s soʻm"
-msgstr "Промокод %(code)s: −%(off)s сум"
-
 #: .\templates\payment\payment.html:48
 msgid ""
 "Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
@@ -2671,14 +2657,6 @@ msgid ""
 msgstr ""
 "Если Telegram не открылся, напишите нам сами: <strong>@%(admin)s</strong>. "
 "Номер заказа: <strong>%(number)s</strong>."
-
-#: .\templates\payment\payment.html:27
-msgid "Toʻlovga oʻtish"
-msgstr "Перейти к оплате"
-
-#: .\templates\payment\payment.html:31
-msgid "Buyurtma tafsilotlari"
-msgstr "Детали заказа"
 
 #: .\templates\payment\payment.html:34 .\templates\payment\status.html:54
 #: .\templates\user\verify_phone.html:53
@@ -3718,3 +3696,20 @@ msgstr "Изображение сохранено."
 
 #~ msgid "Nomi (en)"
 #~ msgstr "Название (en)"
+
+#~ msgid "Telegram orqali toʻlov"
+#~ msgstr "Оплата через Telegram"
+
+#, python-format
+#~ msgid "%(method)s orqali toʻlov"
+#~ msgstr "Оплата через %(method)s"
+
+#, python-format
+#~ msgid "Promokod %(code)s: −%(off)s soʻm"
+#~ msgstr "Промокод %(code)s: −%(off)s сум"
+
+#~ msgid "Toʻlovga oʻtish"
+#~ msgstr "Перейти к оплате"
+
+#~ msgid "Buyurtma tafsilotlari"
+#~ msgstr "Детали заказа"

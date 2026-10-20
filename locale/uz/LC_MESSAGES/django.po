@@ -2569,20 +2569,6 @@ msgstr ""
 msgid "Sharh qoldirish"
 msgstr "Sharh qoldirish"
 
-#: .\templates\payment\payment.html:14
-msgid "Telegram orqali toʻlov"
-msgstr ""
-
-#: .\templates\payment\payment.html:15
-#, python-format
-msgid "%(method)s orqali toʻlov"
-msgstr ""
-
-#: .\templates\payment\payment.html:17
-#, python-format
-msgid "Promokod %(code)s: −%(off)s soʻm"
-msgstr ""
-
 #: .\templates\payment\payment.html:48
 msgid ""
 "Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
@@ -2602,14 +2588,6 @@ msgstr ""
 msgid ""
 "Telegram ochilmasa, bizga oʻzingiz yozing: <strong>@%(admin)s</strong>. "
 "Buyurtma raqami: <strong>%(number)s</strong>."
-msgstr ""
-
-#: .\templates\payment\payment.html:27
-msgid "Toʻlovga oʻtish"
-msgstr ""
-
-#: .\templates\payment\payment.html:31
-msgid "Buyurtma tafsilotlari"
 msgstr ""
 
 #: .\templates\payment\payment.html:34 .\templates\payment\status.html:54
@@ -3430,3 +3408,20 @@ msgstr ""
 
 #~ msgid "Nomi (en)"
 #~ msgstr "Nomi (en)"
+
+#~ msgid "Telegram orqali toʻlov"
+#~ msgstr ""
+
+#, python-format
+#~ msgid "%(method)s orqali toʻlov"
+#~ msgstr ""
+
+#, python-format
+#~ msgid "Promokod %(code)s: −%(off)s soʻm"
+#~ msgstr ""
+
+#~ msgid "Toʻlovga oʻtish"
+#~ msgstr ""
+
+#~ msgid "Buyurtma tafsilotlari"
+#~ msgstr ""
