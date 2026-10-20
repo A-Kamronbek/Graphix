@@ -1,20 +1,14 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields image_tags %}
+{% load i18n %}
 {% block title %}{% trans "Oʻlcham jadvali" %}{% endblock %}
 {% block meta_description %}{% trans "GRAPHIX futbolkalarining oʻlchamlari: koʻkrak, uzunlik, yelka va yeng — santimetrda, kiyimning oʻzidan olingan." %}{% endblock %}
 {% block og_description %}{% trans "GRAPHIX futbolkalarining oʻlchamlari: koʻkrak, uzunlik, yelka va yeng — santimetrda, kiyimning oʻzidan olingan." %}{% endblock %}
-{% block extra_js %}<script src="{% static 'js/viewer.js' %}" defer></script>{% endblock %}
 
 {% comment %}
-  Reached only when there is something to show - the view 404s otherwise - so
-  this template has no empty state and says nothing about a guide that does not
-  exist yet. The owner's image comes first because it is the thing people
-  actually read; the structured charts are the machine-readable version behind
-  it and arrive with Phase 6.
-
-  A chart's own name is a heading only when there is more than one chart to
-  tell apart. The shop has one (§17 #357), and its name is the owner's label
-  for it in the panel, in Uzbek alone.
+  Reached only when a chart has rows - the view 404s otherwise - so this
+  template has no empty state. The guide itself is the partial the product
+  page's size viewer shows too (§17 #400): the drawing, each chart's table,
+  and the table for choosing a size.
 {% endcomment %}
 
 {% block content %}
@@ -23,64 +17,7 @@
     <h1 class="h1">{% trans "Oʻlcham jadvali" %}</h1>
     <p class="lede">{% trans "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan." %}</p>
 
-    {# data-zoom opens the same full-screen viewer the product page uses: the #}
-    {# numbers on a chart are small, and a phone should be able to get at them. #}
-    {% if size_guide_image %}
-      <img class="sizeguide__img" src="{{ size_guide_image }}" data-zoom
-           width="{{ size_guide_size.0 }}" height="{{ size_guide_size.1 }}"
-           alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
-           loading="lazy" decoding="async">
-    {% endif %}
-
-    {% for chart in charts %}
-      <section class="stack">
-        {# Only when there is one. A chart whose name was cleared put an empty #}
-        {# heading on this page — the panel refuses that now, but the Django #}
-        {# admin can still write one and a heading with nothing in it is worse #}
-        {# than no heading at all. #}
-        {% if charts|length > 1 %}
-          {% if chart.name %}<h2 class="h3">{{ chart.name }}</h2>{% endif %}
-        {% else %}
-          <h2 class="h3">{% trans "Kiyim oʻlchamlari" %}</h2>
-        {% endif %}
-        {% if chart.image %}
-          <img class="sizeguide__img" {% photo_attrs chart 'chart' %}
-               alt="{{ chart.name }}" loading="lazy" decoding="async">
-        {% endif %}
-        {% if chart|t:"note" %}<p class="body">{{ chart|t:"note" }}</p>{% endif %}
-
-        {% if chart.rows.exists %}
-          <div class="scroll-x">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th scope="col">{% trans "Oʻlcham" %}</th>
-                  <th scope="col" class="num">{% trans "Koʻkrak aylanasi, sm" %}</th>
-                  <th scope="col" class="num">{% trans "Yelka, sm" %}</th>
-                  <th scope="col" class="num">{% trans "Yeng, sm" %}</th>
-                  <th scope="col" class="num">{% trans "Uzunlik, sm" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in chart.rows.all %}
-                  <tr>
-                    {# A whole number of centimetres is printed as one; #}
-                    {# a half keeps its half. #}
-                    <td data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</td>
-                    <td data-label="{% trans 'Koʻkrak aylanasi, sm' %}" class="num">{{ row.chest_cm|floatformat:"-1" }}</td>
-                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{% if row.shoulder_cm is None %}—{% else %}{{ row.shoulder_cm|floatformat:"-1" }}{% endif %}</td>
-                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{% if row.sleeve_cm is None %}—{% else %}{{ row.sleeve_cm|floatformat:"-1" }}{% endif %}</td>
-                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm|floatformat:"-1" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% endif %}
-      </section>
-    {% endfor %}
-
-    {% include "product/_size_fit.html" %}
+    {% include "product/_size_guide.html" %}
 
     <p class="body">{% trans "Ikkilansangiz, bizga yozing — mahsulotning aniq oʻlchamlarini aytamiz." %}</p>
     <a class="btn btn--primary" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>

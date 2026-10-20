@@ -14,13 +14,20 @@ Part F: "Siz uchun" on the home page is a shelf that scrolls sideways, twelve
 of the most liked designs where there were four (§17 #403, §9 Phase 23 item
 29).
 
-Each class is one of those, written as what a customer sees.
+Part C: the size guide is drawn by the site from the charts' rows: a drawing
+of the shirt with the measures numbered on it and no words in it, one table,
+then the table for choosing a size, every word in the page's language. No
+picture; a chart with no rows shows nowhere; the panel fills rows in
+(§17 #400, §9 Phase 23 items 14-18).
+
+Each class is one of those, written as what a customer, or the owner, sees.
 """
 import re
 from pathlib import Path
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase, override_settings
@@ -31,11 +38,14 @@ from django.utils.translation import gettext as _
 
 from payment import services, views
 from payment.models import Order
-from product.models import Product
+from panel import reference
+from product import size_charts
+from product.models import Product, Size, SizeChart, SizeChartRow
 
 from .test_phase6 import make_user
 from .test_backlog import TempMedia
 from .test_phase4 import make_product
+from .test_phase7 import make_staff
 from .test_phase9 import with_photo
 from .test_phase16 import CheckoutCase, order_of, sent_to_click
 from .test_phase20 import ADMIN, link_in
@@ -381,3 +391,192 @@ class ForYouShelfAssetTests(SimpleTestCase):
         self.assertIn("arrows.classList.toggle('is-idle', end <= 1);", body)
         ready = body.split("document.addEventListener('DOMContentLoaded'", 1)[1]
         self.assertIn('initShelves();', ready)
+
+
+# ------------------------------------------------------- part C: the size guide
+
+def guide_of(html):
+    """The page's article: the guide and the words around it, without the chrome."""
+    return html.split('<article', 1)[1].split('</article>', 1)[0]
+
+
+class DrawnGuideTests(TestCase):
+    """`/olcham-jadvali/` drawn from the rows: one drawing, one table, said once."""
+
+    def setUp(self):
+        self.chart = SizeChart.objects.get(name=size_charts.NAME)
+
+    def page(self, language='uz'):
+        return self.client.get('/%s/olcham-jadvali/' % language)
+
+    def test_there_is_no_picture_only_the_drawing(self):
+        guide = guide_of(self.page().content.decode())
+        self.assertNotIn('<img', guide)
+        self.assertEqual(guide.count('<svg class="tee"'), 1)
+        self.assertIsNone(finders.find('img/size_guide.png'))
+        self.assertFalse((Path(settings.BASE_DIR) / 'docs' / 'brand' / 'size-guide.html').exists())
+
+    def test_the_drawing_numbers_the_four_measures_and_has_no_words(self):
+        drawing = guide_of(self.page().content.decode()).split('<svg class="tee"', 1)[1]
+        drawing = drawing.split('</svg>', 1)[0]
+        self.assertEqual(re.findall(r'<text[^>]*>([^<]*)</text>', drawing), ['1', '2', '3', '4'])
+        self.assertIn('aria-hidden="true"', drawing.split('>', 1)[0])
+
+    def test_each_heading_carries_the_number_it_has_on_the_drawing(self):
+        guide = guide_of(self.page().content.decode())
+        head = guide.split('<thead>', 1)[1].split('</thead>', 1)[0]
+        marks = re.findall(r'<span class="sizeguide__mark" aria-hidden="true">(\d)</span>([^<]*)</th>', head)
+        self.assertEqual(marks, [('1', 'Koʻkrak aylanasi, sm'), ('2', 'Yelka, sm'),
+                                 ('3', 'Yeng, sm'), ('4', 'Uzunlik, sm')])
+
+    def test_each_figure_is_said_once(self):
+        guide = guide_of(self.page().content.decode())
+        for size, (chest, length, shoulder, sleeve) in size_charts.MEASURES.items():
+            with self.subTest(size=size):
+                row = re.search(r'<th scope="row">%s</th>(.*?)</tr>' % size, guide, re.S).group(1)
+                self.assertEqual(re.findall(r'>([\d.]+)</td>', row),
+                                 [str(int(float(v))) for v in (chest, shoulder, sleeve, length)])
+        # The chest of the largest size, which no other table on the page has.
+        self.assertEqual(guide.count('>126<'), 1)
+
+    def test_a_russian_or_english_page_shows_no_uzbek(self):
+        self.chart.name_ru, self.chart.name_en = 'Футболка', 'T-shirt'
+        self.chart.save()
+        for language in ('ru', 'en'):
+            with self.subTest(language=language):
+                guide = guide_of(self.page(language).content.decode())
+                # The letter every Uzbek word here carries, and Latin Uzbek that has none.
+                self.assertNotIn('\u02bb', guide)
+                for word in ('Kiyim', 'Oʻlcham', 'Koʻkrak', 'Uzunlik', 'santimetrda'):
+                    self.assertNotIn(word, guide)
+
+    def test_a_chart_with_no_rows_is_not_shown(self):
+        SizeChart.objects.create(name='Longsliv', name_ru='Лонгслив')
+        guide = guide_of(self.page().content.decode())
+        self.assertNotIn('Longsliv', guide)
+        # One chart shown, so no chart's own name is a heading.
+        self.assertIn('Kiyim oʻlchamlari', guide)
+
+    def test_with_no_rows_anywhere_there_is_no_guide_and_no_link_to_one(self):
+        SizeChartRow.objects.all().delete()
+        self.assertEqual(self.page().status_code, 404)
+        home = self.client.get(reverse('home')).content.decode()
+        self.assertNotIn(reverse('size_guide'), home)
+
+
+class ProductGuideTests(TestCase):
+    """The product page's size viewer: its own chart, drawn the same way."""
+
+    def setUp(self):
+        self.chart = SizeChart.objects.get(name=size_charts.NAME)
+        self.empty = SizeChart.objects.create(name='Longsliv')
+
+    def page(self, chart):
+        product, _variant = make_product('Kiyim %s' % chart.pk, size_chart=chart)
+        return self.client.get(reverse('item', kwargs={'slug': product.slug})).content.decode()
+
+    def test_its_own_chart_drawn_as_the_guide_page_draws_it(self):
+        html = self.page(self.chart)
+        self.assertIn('data-size-guide', html)
+        block = html.split('data-sizeguide-content hidden>', 1)[1].split('{# The anchor', 1)[0]
+        self.assertIn('<svg class="tee"', block)
+        self.assertEqual(block.count('<table class="table table--keep sizeguide__table sizeguide__measures">'), 1)
+        self.assertIn('Oʻlchamni tanlash', block)
+        self.assertNotIn('<img', block)
+
+    def test_a_product_whose_chart_has_no_rows_offers_no_guide(self):
+        html = self.page(self.empty)
+        self.assertNotIn('data-size-guide', html)
+        self.assertNotIn('data-sizeguide-content', html)
+
+    def test_a_product_with_no_chart_offers_no_guide(self):
+        product, _variant = make_product('Jadvalsiz')
+        html = self.client.get(reverse('item', kwargs={'slug': product.slug})).content.decode()
+        self.assertNotIn('data-sizeguide-content', html)
+
+
+class PanelChartTests(TestCase):
+    """The owner fills a chart in from its card in "Oʻlcham jadvallari"."""
+
+    def setUp(self):
+        self.client.force_login(make_staff('jadval', '+998901230099'))
+        self.chart = SizeChart.objects.create(name='Longsliv')
+        self.sizes = {size.size: size for size in Size.objects.all()}
+
+    def save(self, **boxes):
+        """Post the chart's form with ``boxes``, named as the form names them."""
+        data = {}
+        for name, value in boxes.items():
+            field, label = name.rsplit('_', 1)
+            data['%s-%d' % (field, self.sizes[label].pk)] = value
+        return self.client.post(reverse('panel_chart_rows', args=[self.chart.pk]), data, follow=True)
+
+    def said(self, response):
+        return [str(m) for m in response.context['messages']]
+
+    def rows(self):
+        return [(r.size.size, str(r.chest_cm), r.shoulder_cm and str(r.shoulder_cm),
+                 r.sleeve_cm and str(r.sleeve_cm), str(r.length_cm))
+                for r in self.chart.rows.select_related('size').order_by('order')]
+
+    def test_the_card_has_a_line_for_every_size_and_no_picture(self):
+        html = self.client.get(reverse('panel_settings')).content.decode()
+        card = html.split('id="jadvallar"', 1)[1].split('id="olchamlar"', 1)[0]
+        self.assertNotIn('type="file"', card)
+        self.assertNotIn('<img', card)
+        self.assertIn('Qatorlari yoʻq: saytda koʻrinmaydi.', card)
+        for label, size in self.sizes.items():
+            self.assertIn('name="chest-%d"' % size.pk, card)
+        # The shop's chart shows its own figures in its boxes.
+        shop = SizeChart.objects.get(name=size_charts.NAME)
+        self.assertIn('name="chest-%d" value="110"' % self.sizes['XS'].pk, card)
+        self.assertIn('action="%s"' % reverse('panel_chart_rows', args=[shop.pk]), card)
+
+    def test_rows_are_saved_and_shown_on_the_guide(self):
+        response = self.save(chest_M='130', shoulder_M='64,5', sleeve_M='60', length_M='72',
+                             chest_L='134', length_L='74')
+        self.assertEqual(self.said(response), ['Jadval saqlandi.'])
+        self.assertEqual(self.rows(), [('M', '130.0', '64.5', '60.0', '72.0'),
+                                       ('L', '134.0', None, None, '74.0')])
+        html = self.client.get(reverse('size_guide')).content.decode()
+        self.assertIn('>Longsliv</h2>', html)
+        # A half in the page's own way of writing one.
+        self.assertIn('>64,5</td>', html)
+
+    def test_emptying_a_line_removes_its_row(self):
+        self.save(chest_M='130', length_M='72', chest_L='134', length_L='74')
+        self.save(chest_L='134', length_L='74')
+        self.assertEqual([row[0] for row in self.rows()], ['L'])
+
+    def test_a_line_without_its_chest_or_length_saves_nothing(self):
+        self.save(chest_M='130', length_M='72')
+        response = self.save(chest_M='131', length_M='72', chest_L='134')
+        self.assertEqual(self.said(response), ['L: koʻkrak aylanasi va uzunlik kerak.'])
+        # Nothing at all: not even the line that was right.
+        self.assertEqual(self.rows(), [('M', '130.0', None, None, '72.0')])
+
+    def test_what_is_not_a_measure_is_refused(self):
+        for typed in ('abc', '0', '1000', '-5', 'NaN', 'Infinity'):
+            with self.subTest(typed=typed):
+                response = self.save(chest_M=typed, length_M='72')
+                self.assertEqual(self.said(response),
+                                 ['M: oʻlchovni santimetrda, 1 dan 999,9 gacha son bilan yozing.'])
+                self.assertEqual(self.rows(), [])
+
+    def test_the_names_in_three_languages_are_edited_on_the_card(self):
+        reference.set_field('chart', self.chart.pk, 'name_ru', 'Лонгслив')
+        reference.set_field('chart', self.chart.pk, 'name_en', 'Longsleeve')
+        self.chart.refresh_from_db()
+        self.assertEqual((self.chart.name_ru, self.chart.name_en), ('Лонгслив', 'Longsleeve'))
+
+    def test_a_chart_is_made_from_a_name(self):
+        self.client.post(reverse('panel_chart_new'), {'name': 'Xudi'})
+        self.assertTrue(SizeChart.objects.filter(name='Xudi', image='').exists()
+                        or SizeChart.objects.filter(name='Xudi', image__isnull=True).exists())
+
+    def test_a_customer_cannot_save_a_chart(self):
+        self.client.force_login(make_user('mijoz', '+998901230098'))
+        response = self.client.post(reverse('panel_chart_rows', args=[self.chart.pk]),
+                                    {'chest-%d' % self.sizes['M'].pk: '130'})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.rows(), [])

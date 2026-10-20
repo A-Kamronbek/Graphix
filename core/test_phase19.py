@@ -191,7 +191,8 @@ class PaletteTests(SimpleTestCase):
                 self.assertEqual(self.c[name].upper(), value.upper())
 
     def test_the_pictures_drawn_for_the_site_are_on_the_white_ground(self):
-        for name in ('og-image.png', 'size_guide.png'):
+        # The size guide's picture went in Phase 23 (§17 #400).
+        for name in ('og-image.png',):
             with self.subTest(picture=name), Image.open(ROOT / 'static' / 'img' / name) as im:
                 corner = im.convert('RGB').getpixel((2, 2))
                 self.assertEqual(corner, (255, 255, 255))
@@ -463,10 +464,16 @@ class SizeChartTests(TestCase):
         self.assertIn('Kiyim oʻlchamlari', html)
 
     def test_two_charts_are_told_apart_by_their_names(self):
-        SizeChart.objects.create(name='Xudi')
+        xudi = SizeChart.objects.create(name='Xudi', name_ru='Худи')
+        # A chart with no rows is not shown (§17 #400), so it is given one.
+        SizeChartRow.objects.create(chart=xudi, size=Size.objects.get(size='M'),
+                                    chest_cm='120.0', length_cm='72.0')
         html = self.client.get(reverse('size_guide')).content.decode()
         self.assertIn('>%s</h2>' % size_charts.NAME, html)
         self.assertIn('>Xudi</h2>', html)
+        # In the page's language (§17 #400).
+        html = self.client.get('/ru/olcham-jadvali/').content.decode()
+        self.assertIn('>Худи</h2>', html)
 
     def test_the_columns_are_in_the_owners_order(self):
         html = self.client.get(reverse('size_guide')).content.decode()
@@ -475,7 +482,8 @@ class SizeChartTests(TestCase):
                  ('Koʻkrak aylanasi, sm', 'Yelka, sm', 'Yeng, sm', 'Uzunlik, sm')]
         self.assertEqual(order, sorted(order))
         # XS: chest, shoulder, sleeve, length.
-        row = re.search(r'<tr>\s*(?:\{#.*?#\}\s*)*<td[^>]*>XS</td>(.*?)</tr>', html, re.S).group(1)
+        row = re.search(r'<tr data-row-size="\d+">\s*<th scope="row">XS</th>(.*?)</tr>',
+                        html, re.S).group(1)
         self.assertEqual(re.findall(r'>(\d+)</td>', row), ['110', '60', '17', '65'])
 
     def test_the_rebuild_makes_the_same_rows(self):
@@ -596,7 +604,9 @@ class ChoosingTableTests(TestCase):
 
     def test_on_a_product_each_row_knows_its_size(self):
         """So the viewer can mark the row for the size the customer picked."""
-        product = Product.objects.create(name='Tanlovli')
+        # A product shows its own chart's guide, and only that (§17 #400).
+        product = Product.objects.create(name='Tanlovli', size_chart=SizeChart.objects.get(
+            name=size_charts.NAME))
         colour = Colour.objects.create(colour='Qora')
         large = Size.objects.filter(size='L').first() or Size.objects.create(size='L')
         Variant.objects.create(product=product, size=large, colour=colour,

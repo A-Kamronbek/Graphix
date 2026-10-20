@@ -1,21 +1,9 @@
 """Template context shared by every page's chrome."""
-import os
-
 from django.conf import settings
-from django.contrib.staticfiles import finders
-from django.templatetags.static import static
 from django.urls import translate_url
 from django.utils.translation import get_language
 
 from . import seo as seo_module
-
-SIZE_GUIDE_IMAGE = 'img/size_guide.png'
-
-#: The drawn guide's pixel size, remembered against the file's modification
-#: time. Reading it costs a file open, the product page renders the chart on
-#: every request, and the owner may still drop a new picture in without a
-#: restart (§17 #69) - the stat call is what keeps both true.
-_GUIDE_SIZE = {}
 
 
 def languages(request):
@@ -49,40 +37,18 @@ def languages(request):
     return {'languages': items, 'active_language': active}
 
 
-def size_guide_image():
-    """``(url, (width, height))`` for the drawn size guide, or ``(None, None)``.
-
-    One lookup for the three places that need it - the product page's hidden
-    chart, the standalone page and this module - so they cannot show different
-    files or different sizes (§17 #111).
-    """
-    path = finders.find(SIZE_GUIDE_IMAGE)
-    if not path:
-        return None, None
-    try:
-        stamp = os.path.getmtime(path)
-    except OSError:
-        return None, None
-    cached = _GUIDE_SIZE.get(path)
-    if not cached or cached[0] != stamp:
-        from product import images
-        cached = (stamp, images.measure_path(path))
-        _GUIDE_SIZE[path] = cached
-    return static(SIZE_GUIDE_IMAGE), cached[1]
-
-
 def has_size_guide():
-    """Is there a size guide at all - a drawn one, or structured rows?
+    """Is there a size guide at all: a chart with at least one measured row?
 
-    The page, the footer link, the product page's link and the sitemap all ask
-    this one question, so none of them can advertise a guide another one 404s.
+    The page, the footer link and the sitemap all ask this one question, so
+    none of them can advertise a guide another one 404s. The site draws the
+    guide from the rows (§17 #400), so a chart with none is nothing to show:
+    production's "Longsliv" printed its name over nothing until Phase 23.
     """
-    if finders.find(SIZE_GUIDE_IMAGE):
-        return True
     # Imported here rather than at module scope: this module is loaded while the
     # app registry is still being populated.
-    from product.models import SizeChart
-    return SizeChart.objects.exists()
+    from product import size_charts
+    return size_charts.shown().exists()
 
 
 def seo(request):
@@ -116,30 +82,13 @@ def seo(request):
 def size_guide(request):
     """Whether there is a size guide to link to at all.
 
-    There are two ways for one to exist and either is enough: the image at
-    ``static/img/size_guide.png``, which the owner can overwrite with no deploy
-    (§17 #69), and the structured ``SizeChart`` rows, which Phase 6a seeds.
-    Until neither exists the site says nothing about a guide at all — the footer
-    link is hidden, the product page's link is hidden and the page itself 404s.
-    A link to a page that apologises for being empty is worse than no link: the
-    visitor learns only that something is missing.
-
-    The image lookup goes through the staticfiles finders, which is what
-    ``{% static %}`` uses, so it answers the same before and after
-    ``collectstatic``. The owner drops the file in and the site picks it up
-    without a restart.
-
-    The URL and the picture's size come with it, so the product page and the
-    standalone page no longer each work them out (§9 Phase 9 item 4 wants a
-    ``width`` and a ``height`` on every image, and an image the template is
-    handed as a bare URL has neither).
+    Until a chart has rows the site says nothing about a guide: the footer
+    link is hidden and the page itself 404s. A link to a page that apologises
+    for being empty is worse than no link (§17 #69). The product page asks a
+    narrower question of its own, whether its product's chart has rows
+    (§9 Phase 23 item 18).
     """
-    url, size = size_guide_image()
-    return {
-        'has_size_guide': bool(url) or has_size_guide(),
-        'size_guide_image': url,
-        'size_guide_size': size or ('', ''),
-    }
+    return {'has_size_guide': has_size_guide()}
 
 
 def delivery_tiers(request):

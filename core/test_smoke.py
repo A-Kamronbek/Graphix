@@ -160,6 +160,7 @@ PANEL = (
     Page('panel_message_read', {'pk': 'msg_pk'}, STAFF_DOOR, 403, 405),
     Page('panel_lookup_new', {'kind': 'kind'}, STAFF_DOOR, 403, 405),
     Page('panel_chart_new', {}, STAFF_DOOR, 403, 405),
+    Page('panel_chart_rows', {'pk': 'chart_pk'}, STAFF_DOOR, 403, 405),
     Page('panel_size_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_slide_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_slide_picture', {'pk': 'slide_pk', 'which': 'which'},
@@ -234,6 +235,8 @@ class SmokeMatrix(TestCase):
             # A slide need not exist: every answer in the matrix comes before
             # the view looks one up (§17 #302).
             'slide_pk': 1, 'which': 'phone',
+            # Nor a chart, for the same reason (§17 #400).
+            'chart_pk': 1,
             'promo_pk': PromoCode.objects.create(
                 code='SMOKE', kind=PromoCode.Kind.ORDER_SUM, value=1000).pk,
         }

@@ -111,10 +111,11 @@
           <div class="stack stack--sm">
             <div class="row row--between">
               <span class="label">{% trans "Oʻlcham" %}</span>
-              {% if has_size_guide %}
+              {% if size_chart %}
                 {# Opens the full-screen viewer. The href is not decoration: #}
                 {# with JavaScript off it is a plain link to the real page, #}
-                {# which shows the same chart and the same table. #}
+                {# which shows the same chart and the same table. Only when #}
+                {# this product's own chart has rows (§9 Phase 23 item 18). #}
                 <a class="link small" href="{% url 'size_guide' %}" data-size-guide>
                   {% trans "Oʻlcham jadvali" %}
                 </a>
@@ -253,52 +254,11 @@
   {# The size chart the viewer shows. Rendered here, hidden, so the overlay has #}
   {# real markup to clone rather than a second copy built in JavaScript that #}
   {# could drift from this one — and so a screen reader and a search engine can #}
-  {# read the measurements even if the viewer is never opened. #}
-  {% if has_size_guide %}
-    <div class="sizeguide stack" data-sizeguide-content hidden>
-      {% if size_guide_image %}
-        <img class="sizeguide__img" src="{{ size_guide_image }}"
-             width="{{ size_guide_size.0 }}" height="{{ size_guide_size.1 }}"
-             alt="{% trans 'GRAPHIX futbolkalari oʻlcham jadvali' %}"
-             loading="lazy" decoding="async">
-      {% endif %}
-
-      {% if size_chart %}
-        {# Not the chart's own name: that is the owner's label for it in the #}
-        {# panel, in Uzbek alone, and this page shows one chart (§17 #357). #}
-        <h2 class="h3">{% trans "Kiyim oʻlchamlari" %}</h2>
-        {% if size_chart.rows.exists %}
-          <div class="scroll-x">
-            <table class="table sizeguide__table">
-              <thead>
-                <tr>
-                  <th scope="col">{% trans "Oʻlcham" %}</th>
-                  <th scope="col" class="num">{% trans "Koʻkrak aylanasi, sm" %}</th>
-                  <th scope="col" class="num">{% trans "Yelka, sm" %}</th>
-                  <th scope="col" class="num">{% trans "Yeng, sm" %}</th>
-                  <th scope="col" class="num">{% trans "Uzunlik, sm" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in size_chart.rows.all %}
-                  {# data-row-size is how the viewer finds the row for the size #}
-                  {# the customer has actually picked. #}
-                  <tr data-row-size="{{ row.size_id }}">
-                    <th scope="row" data-label="{% trans 'Oʻlcham' %}">{{ row.size.size }}</th>
-                    <td data-label="{% trans 'Koʻkrak aylanasi, sm' %}" class="num">{{ row.chest_cm|floatformat:"-1" }}</td>
-                    <td data-label="{% trans 'Yelka, sm' %}" class="num">{% if row.shoulder_cm is None %}—{% else %}{{ row.shoulder_cm|floatformat:"-1" }}{% endif %}</td>
-                    <td data-label="{% trans 'Yeng, sm' %}" class="num">{% if row.sleeve_cm is None %}—{% else %}{{ row.sleeve_cm|floatformat:"-1" }}{% endif %}</td>
-                    <td data-label="{% trans 'Uzunlik, sm' %}" class="num">{{ row.length_cm|floatformat:"-1" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% endif %}
-        {% if size_chart|t:"note" %}<p class="small muted">{{ size_chart|t:"note" }}</p>{% endif %}
-      {% endif %}
-
-      {% include "product/_size_fit.html" %}
+  {# read the measurements even if the viewer is never opened. The product's #}
+  {# own chart alone, drawn as the guide page draws it (§17 #400). #}
+  {% if size_chart %}
+    <div data-sizeguide-content hidden>
+      {% include "product/_size_guide.html" with charts=size_guide_charts %}
     </div>
   {% endif %}
 

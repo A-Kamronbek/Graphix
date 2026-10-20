@@ -195,22 +195,30 @@ class Photograph(Measured):
 
 
 class SizeChart(Measured):
-    """A sizing guide, image first.
+    """A sizing guide: a name in three languages and its measured rows.
 
-    The uploaded chart is the primary content and the only thing the owner has
-    to supply; :class:`SizeChartRow` is optional structured data that, when
-    present, renders as a table *in addition to* the image — better for screen
-    readers and for search engines (§17 #15).
+    The site draws the guide from the rows (§17 #400): a drawing of the shirt
+    with the measures numbered on it, a table of the rows, and the table for
+    choosing a size. A chart with no rows is not shown anywhere. It was the
+    other way round until Phase 23: an uploaded picture was the chart and the
+    rows were optional (§17 #15).
 
-    A name and a picture is the whole of it. There was a ``fit`` here that let
-    a chart find its own products, and the cut it keyed on is gone (§17 #172):
-    a chart now reaches a product because somebody chose it on the product, or
-    because it is the category's, and nothing else.
+    ``image`` stays as a column and is neither asked for nor shown. A picture
+    already uploaded is kept rather than dropped with its column.
+
+    A chart reaches a product because somebody chose it on the product, or
+    because it is the category's, and nothing else (§17 #172).
     """
     #: The chart's own column, not `picture` - see :class:`Measured`.
     image_field = 'image'
 
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=120, help_text="Oʻzbekcha — asosiy matn")
+    # Shown only where there are several charts to tell apart, in the page's
+    # language, falling back to Uzbek like every translated field (§17 #8).
+    # A default in the database as well: older migrations make charts from
+    # models that have never heard of these columns.
+    name_ru = models.CharField(max_length=120, blank=True, default='', db_default='')
+    name_en = models.CharField(max_length=120, blank=True, default='', db_default='')
     image = models.ImageField(upload_to='size-charts/', null=True, blank=True)
     note = models.TextField(blank=True, default='', help_text="Oʻzbekcha — asosiy matn")
     note_ru = models.TextField(blank=True, default='')
@@ -535,7 +543,7 @@ class Variant(models.Model):
 
 
 class SizeChartRow(models.Model):
-    """One measured row of a size chart. Optional — the chart image is the source.
+    """One measured row of a size chart: what the garment measures in one size.
 
     Centimetres, taken from the garment. ``chest_cm`` is the measure all the
     way round the chest, as the owner's own chart gives it; until that chart

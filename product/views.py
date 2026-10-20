@@ -290,6 +290,11 @@ def item(request, slug):
     is_liked = (request.user.is_authenticated
                 and ProductLike.objects.filter(user=request.user, product=product).exists())
 
+    chart = product.resolve_size_chart()
+    # Read off the prefetched rows, so asking costs no query.
+    if chart is not None and not chart.rows.all():
+        chart = None
+
     return render(request, 'product/item.html', {
         'product': product,
         'is_liked': is_liked,
@@ -301,13 +306,14 @@ def item(request, slug):
         'selected_variant': selected_variant,
         'is_purchasable': is_purchasable,
         'variants_json': json.dumps(variants_map),
-        'size_chart': product.resolve_size_chart(),
+        # The product's own chart, and only while it has rows: the site draws
+        # the guide from them, and a chart with none shows nowhere
+        # (§9 Phase 23 items 17 and 18). The partial takes a list.
+        'size_chart': chart,
+        'size_guide_charts': [chart] if chart else [],
         # The choosing table, each row tied to the size it is for so the
         # viewer can mark the one the customer has picked.
         'size_fit': size_charts.fit_rows(sizes),
-        # The drawn chart comes from the context processor, which is also what
-        # the standalone page and the footer link read - so the two pages can
-        # never show different files (§17 #111).
         # The delivery line reads from the rows, so the page and the checkout can
         # never quote different prices (§18 #18). Imported here rather than at
         # module scope to keep product from taking a startup import on payment.

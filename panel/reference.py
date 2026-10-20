@@ -56,11 +56,13 @@ EDITABLE = {
     'category': (Category, {
         'name': 'text', 'name_ru': 'text', 'name_en': 'text',
     }),
-    # A name and a picture is the whole of a chart (§17 #172). The picture is
-    # not here because it is a file: it is set when the chart is created and
-    # replaced by creating another, which is one upload path rather than two.
+    # A chart's name in three languages and its note. Its rows have a form of
+    # their own (`panel.views.chart_rows`): a size's four measures are saved
+    # together or not at all. Its picture is neither asked for nor shown since
+    # the site draws the guide from the rows (§17 #400).
     'chart': (SizeChart, {
-        'name': 'text', 'note': 'text', 'note_ru': 'text', 'note_en': 'text',
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text',
+        'note': 'text', 'note_ru': 'text', 'note_en': 'text',
     }),
     # One field, and it is the axis of every product's price-and-stock grid:
     # renaming a size here renames it on every product at once, which is the

@@ -13,6 +13,7 @@ submit button that `panel.js` upgrades.
 """
 import re
 from datetime import datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -20,6 +21,7 @@ from django.db.models import Count, F, IntegerField, Q, Sum, Value
 from django.db.models.functions import Replace
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
@@ -36,8 +38,8 @@ from product import images as image_pipeline
 from payment import services as payment_services
 from product import services as product_services
 from product.models import (Category, PrintMethod, Product, Review, Size,
-                            SizeChart, Slide, SlidePhone, Tag, TagKind, Variant,
-                            slide_link)
+                            SizeChart, SizeChartRow, Slide, SlidePhone, Tag,
+                            TagKind, Variant, slide_link)
 
 from payment import promos as promo_rules
 from payment import shipments
@@ -786,7 +788,7 @@ def settings_screen(request):
         'payments': _payment_rows(),
         'sizes': Size.objects.all(),
         'tags': Tag.objects.select_related('kind'),
-        'charts': SizeChart.objects.all(),
+        'charts': _chart_cards(),
         'kinds': TagKind.objects.all(),
         'methods': PrintMethod.objects.all(),
         'categories': Category.objects.all(),
@@ -1070,26 +1072,104 @@ def slide_picture(request, pk, which):
     return redirect('panel_slides')
 
 
+#: A chart's four measures, in the order the guide's table shows them: the
+#: form field each is read from, and the row's column it is written to.
+CHART_MEASURES = (('chest', 'chest_cm'), ('shoulder', 'shoulder_cm'),
+                  ('sleeve', 'sleeve_cm'), ('length', 'length_cm'))
+
+#: The largest measure a row's column holds: four digits, one after the point.
+MEASURE_MAX = Decimal('999.9')
+
+
+def _chart_cards():
+    """Every chart, each with a line per size the shop has and its measures.
+
+    Every size, not only those the chart has rows for: a size with no row is
+    an empty line to fill in, which is how a chart with no rows gets its first
+    (§9 Phase 23 item 17).
+    """
+    sizes = list(Size.objects.all())
+    charts = list(SizeChart.objects.prefetch_related('rows'))
+    for chart in charts:
+        rows = {row.size_id: row for row in chart.rows.all()}
+        chart.lines = [{'size': size, 'row': rows.get(size.pk)} for size in sizes]
+        chart.has_rows = bool(rows)
+    return charts
+
+
+def _centimetres(raw):
+    """A measure typed in the panel, or None when the box is empty.
+
+    A comma is a decimal point, as people in Uzbekistan write one. Rounded to
+    the half a row keeps; anything not a number between 1 and 999.9 raises.
+    """
+    text = (raw or '').strip().replace(',', '.').replace(' ', '')
+    if not text:
+        return None
+    try:
+        value = Decimal(text).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)
+    except (InvalidOperation, ValueError):
+        raise ValidationError('not a number')
+    if not value.is_finite() or value < 1 or value > MEASURE_MAX:
+        raise ValidationError('out of range')
+    return value
+
+
 @staff_only
 @require_POST
 def chart_new(request):
-    """Upload a size chart. The image is the chart; the rows are optional (§17 #15)."""
-    name = (request.POST.get('name') or '').strip()
-    upload = request.FILES.get('image')
-    if not name or not upload:
-        messages.error(request, _('Nomi va rasm kerak.'))
-        return redirect('panel_settings')
+    """Add a size chart: a name, and its rows filled in on its card (§17 #400).
 
-    try:
-        clean = image_pipeline.sanitise(upload, name_hint='chart',
-                                        max_edge=image_pipeline.PRODUCT_MAX_EDGE)
-    except ValidationError as exc:
-        messages.error(request, exc.messages[0])
+    It used to take a picture, which was the chart (§17 #15). The site draws
+    the guide from the rows now, and a picture is neither asked for nor shown.
+    """
+    name = (request.POST.get('name') or '').strip()[:120]
+    if not name:
+        messages.error(request, _('Jadvalning nomi kerak.'))
         return redirect('panel_settings')
-
-    SizeChart.objects.create(name=name, image=clean)
+    SizeChart.objects.create(name=name)
     messages.success(request, _('Jadval qoʻshildi.'))
-    return redirect('panel_settings')
+    return redirect(reverse('panel_settings') + '#jadvallar')
+
+
+@staff_only
+@require_POST
+def chart_rows(request, pk):
+    """Save a chart's rows: for each size, its four measures (§9 Phase 23 item 17).
+
+    One form for the whole chart, saved together or not at all, so a chart is
+    never left half-changed by a typo in its last line. A size whose four
+    boxes are empty has no row. One with any measure needs its chest and its
+    length, which every row has; its shoulder and sleeve may be left out and
+    print as a dash.
+    """
+    chart = get_object_or_404(SizeChart, pk=pk)
+    sizes = list(Size.objects.all())
+    keep, drop = [], []
+    for order, size in enumerate(sizes):
+        try:
+            values = {column: _centimetres(request.POST.get('%s-%d' % (field, size.pk)))
+                      for field, column in CHART_MEASURES}
+        except ValidationError:
+            messages.error(request, _('%(size)s: oʻlchovni santimetrda, 1 dan '
+                                      '999,9 gacha son bilan yozing.') % {'size': size.size})
+            return redirect(reverse('panel_settings') + '#jadvallar')
+        if all(value is None for value in values.values()):
+            drop.append(size.pk)
+            continue
+        if values['chest_cm'] is None or values['length_cm'] is None:
+            messages.error(request, _('%(size)s: koʻkrak aylanasi va uzunlik '
+                                      'kerak.') % {'size': size.size})
+            return redirect(reverse('panel_settings') + '#jadvallar')
+        keep.append((size, order, values))
+
+    with transaction.atomic():
+        SizeChartRow.objects.filter(chart=chart, size_id__in=drop).delete()
+        for size, order, values in keep:
+            SizeChartRow.objects.update_or_create(
+                chart=chart, size=size, defaults={**values, 'order': order})
+    messages.success(request, _('Jadval saqlandi.'))
+    return redirect(reverse('panel_settings') + '#jadvallar')
 
 
 # -------------------------------------------------------------- promo codes

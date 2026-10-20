@@ -99,32 +99,13 @@ class PicturesTests(SimpleTestCase):
     IMG = ROOT / 'static' / 'img'
 
     def test_each_picture_source_draws_with_the_site_file(self):
-        for name in ('og-card.html', 'size-guide.html'):
+        # The size chart's source went with its picture in Phase 23: the site
+        # draws the guide itself (§17 #400).
+        for name in ('og-card.html',):
             with self.subTest(source=name):
                 text = (self.BRAND / name).read_text(encoding='utf-8')
                 self.assertIn('static/fonts/inter-var.woff2', text)
                 self.assertIsNone(RETIRED.search(text))
-
-    def test_the_size_chart_source_names_its_picture(self):
-        text = (self.BRAND / 'size-guide.html').read_text(encoding='utf-8')
-        self.assertIn('size_guide.png', text)
-        self.assertIn('--window-size=1200,1480', text)
-
-    def test_the_size_chart_carries_the_seeded_measurements(self):
-        """The picture's numbers and the rows the site seeds are one table."""
-        from product import size_charts
-        text = (self.BRAND / 'size-guide.html').read_text(encoding='utf-8')
-        block = re.search(r'data-sizes.*?</table>', text, re.S).group(0)
-        rows = re.findall(r'<tr>((?:<td>[^<]*</td>)+)</tr>', block)
-        drawn = {cells[0]: tuple(cells[1:]) for cells in
-                 (re.findall(r'<td>([^<]*)</td>', row) for row in rows)}
-        # The picture's columns are in the owner's order: chest, shoulder,
-        # sleeve, length. The table's are chest, length, shoulder, sleeve.
-        seeded = {}
-        for size, (chest, length, shoulder, sleeve) in size_charts.MEASURES.items():
-            seeded[size] = tuple(str(int(float(value)))
-                                 for value in (chest, shoulder, sleeve, length))
-        self.assertEqual(drawn, seeded)
 
     def test_the_lockups_are_outlines(self):
         """Paths only, so they need no font where they are used."""

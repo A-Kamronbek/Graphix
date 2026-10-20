@@ -225,42 +225,87 @@
 
 <section class="pnl__section" id="jadvallar">
   <h2>{% trans "Oʻlcham jadvallari" %}</h2>
-  <p class="field__hint">{% trans "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi." %}</p>
+  <p class="field__hint">{% trans "Har bir oʻlcham uchun santimetrdagi oʻlchovlar. Sayt jadvalni shulardan chizadi; qatori yoʻq jadval saytda koʻrinmaydi. Jadval mahsulot sahifasida tanlanadi." %}</p>
 
+  {% comment %}
+    A chart is a name in three languages and its rows (§17 #400). The names
+    save as they are typed, like every row on this screen; the rows are one
+    form, saved together, because a size's four measures belong together and
+    a typo in the last line should not leave the chart half-changed. Every
+    size the shop has is a line here, so a chart with no rows - production's
+    "Longsliv" - is filled in from its own card.
+  {% endcomment %}
   {% for chart in charts %}
-    <div class="panel-card chart" data-ref="chart" data-id="{{ chart.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='chart' pk=chart.pk %}">
-      {# The image IS the chart (§17 #15), so it is shown at a size somebody #}
-      {# can recognise rather than as a 64 px square — and when there is none, #}
-      {# the row says so instead of leaving a gap. #}
-      {% if chart.image %}
-        <a class="chart__shot" href="{{ chart.image.url }}" target="_blank" rel="noopener">
-          <img {% photo_attrs chart 'panel' %} alt="{{ chart.name }}" loading="lazy" decoding="async">
-        </a>
-      {% else %}
-        <span class="chart__shot chart__shot--empty">
-          <svg class="i" aria-hidden="true"><use href="#i-image"></use></svg>
-          <span class="small">{% trans "Rasm yoʻq" %}</span>
-        </span>
-      {% endif %}
-      <div class="chart__body stack stack--sm">
+    <div class="panel-card sizechart stack" data-ref="chart" data-id="{{ chart.pk }}" data-ref-url="{% url 'panel_reference_inline' kind='chart' pk=chart.pk %}">
+      <div class="row--fields">
         <label class="field">
-          <span class="label">{% trans "Nomi" %}</span>
+          <span class="label">{% trans "Nomi" %} (uz)</span>
           <input class="input" type="text" value="{{ chart.name }}" maxlength="120" data-ref-field="name">
         </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (ru)</span>
+          <input class="input" type="text" value="{{ chart.name_ru }}" maxlength="120" data-ref-field="name_ru">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (en)</span>
+          <input class="input" type="text" value="{{ chart.name_en }}" maxlength="120" data-ref-field="name_en">
+        </label>
+        <button type="button" class="btn btn--ghost btn--sm ref__x"
+                data-ref-delete="{% url 'panel_reference_delete' kind='chart' pk=chart.pk %}"
+                data-ref-name="{{ chart.name }}">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+          <span class="sr-only">{% trans "Oʻchirish" %}</span>
+        </button>
       </div>
-      <button type="button" class="btn btn--ghost btn--sm ref__x"
-              data-ref-delete="{% url 'panel_reference_delete' kind='chart' pk=chart.pk %}"
-              data-ref-name="{{ chart.name }}">
-        <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
-        <span class="sr-only">{% trans "Oʻchirish" %}</span>
-      </button>
+
+      {% if not chart.has_rows %}
+        <p class="small muted">{% trans "Qatorlari yoʻq: saytda koʻrinmaydi." %}</p>
+      {% endif %}
+
+      <form class="stack stack--sm" method="post" action="{% url 'panel_chart_rows' chart.pk %}">
+        {% csrf_token %}
+        <div class="scroll-x">
+          <table class="table table--keep sizechart__rows">
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Oʻlcham" %}</th>
+                <th scope="col">{% trans "Koʻkrak aylanasi, sm" %}</th>
+                <th scope="col">{% trans "Yelka, sm" %}</th>
+                <th scope="col">{% trans "Yeng, sm" %}</th>
+                <th scope="col">{% trans "Uzunlik, sm" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for line in chart.lines %}
+                <tr>
+                  <th scope="row">{{ line.size.size }}</th>
+                  {# Each box is named by its size and its column, so a screen #}
+                  {# reader says which of the twenty it is in. #}
+                  <td><input class="input sizechart__cm" type="text" inputmode="decimal" maxlength="6"
+                             name="chest-{{ line.size.pk }}" value="{{ line.row.chest_cm|default_if_none:''|floatformat:'-1' }}"
+                             aria-label="{{ line.size.size }}: {% trans 'Koʻkrak aylanasi, sm' %}"></td>
+                  <td><input class="input sizechart__cm" type="text" inputmode="decimal" maxlength="6"
+                             name="shoulder-{{ line.size.pk }}" value="{{ line.row.shoulder_cm|default_if_none:''|floatformat:'-1' }}"
+                             aria-label="{{ line.size.size }}: {% trans 'Yelka, sm' %}"></td>
+                  <td><input class="input sizechart__cm" type="text" inputmode="decimal" maxlength="6"
+                             name="sleeve-{{ line.size.pk }}" value="{{ line.row.sleeve_cm|default_if_none:''|floatformat:'-1' }}"
+                             aria-label="{{ line.size.size }}: {% trans 'Yeng, sm' %}"></td>
+                  <td><input class="input sizechart__cm" type="text" inputmode="decimal" maxlength="6"
+                             name="length-{{ line.size.pk }}" value="{{ line.row.length_cm|default_if_none:''|floatformat:'-1' }}"
+                             aria-label="{{ line.size.size }}: {% trans 'Uzunlik, sm' %}"></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <button class="btn btn--primary btn--sm" type="submit">{% trans "Jadvalni saqlash" %}</button>
+      </form>
     </div>
   {% empty %}
     <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
   {% endfor %}
 
-  <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_chart_new' %}"
-        enctype="multipart/form-data">
+  <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_chart_new' %}">
     {% csrf_token %}
     <h3 class="label">{% trans "Yangi jadval" %}</h3>
     <div class="row--fields">
@@ -268,21 +313,6 @@
         <span class="label">{% trans "Nomi" %}</span>
         <input class="input" type="text" name="name" required maxlength="120">
       </label>
-      {# A styled label driving a hidden input, so the control does not wear #}
-      {# the browser's own English "Choose File" on an Uzbek screen. #}
-      {# The button and the file name sit on one line, so this field is two #}
-      {# lines like the box beside it and the two captions line up. Three #}
-      {# lines against two put "Rasm" a row above "Nomi" and left the chosen #}
-      {# file name floating beside the name box. #}
-      <div class="field field--wide">
-        <span class="label">{% trans "Rasm" %}</span>
-        <span class="field__file">
-          <label class="btn btn--secondary" for="chart-image">{% trans "Rasm tanlash" %}</label>
-          <input class="sr-only" type="file" id="chart-image" name="image" required
-                 accept="image/jpeg,image/png,image/webp,image/avif" data-file-name>
-          <span class="small muted" data-file-label>{% trans "Tanlanmagan" %}</span>
-        </span>
-      </div>
       <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
     </div>
   </form>

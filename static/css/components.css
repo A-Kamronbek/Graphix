@@ -391,9 +391,35 @@ html.js .otp__timer { display: block; }
 .viewer__stage img { max-width: 100%; height: auto; border-radius: var(--r-sm); }
 .viewer__stage > * { width: 100%; max-width: 900px; }
 
-/* The chart block the viewer clones. Present in the document so the viewer has
-   real markup to show, and hidden until it is asked for. */
-.sizeguide[hidden] { display: none; }
+/* The size guide the site draws (§17 #400): a T-shirt laid flat with the
+   four measures numbered on it, then the tables. The same partial on the
+   guide page and in the viewer. The drawing's strokes and the numbers' type
+   are its own geometry, in its viewBox, so they scale with it; its colours
+   are the system's. The product page keeps a copy hidden for the viewer to
+   clone (`[data-sizeguide-content]`), which the browser's own `[hidden]`
+   rule keeps off the page. */
+.tee { display: block; width: 100%; max-width: 360px; height: auto;
+  margin-inline: auto; }
+.tee__cloth { fill: var(--c-surface); stroke: var(--c-fg); stroke-width: 3;
+  stroke-linejoin: round; }
+.tee__seam { fill: none; stroke: var(--c-fg); stroke-width: 1.5; }
+.tee__rule { fill: none; stroke: var(--c-brand); stroke-width: 3; stroke-dasharray: 10 8; }
+.tee__tick { fill: none; stroke: var(--c-brand); stroke-width: 3; }
+.tee__dot { fill: var(--c-fg); }
+.tee__num { fill: var(--c-bg); font-weight: var(--fw-bold); }
+/* The guide's headings in their own case: four measures across a phone, and
+   "KOʻKRAK AYLANASI, SM" in spaced capitals is wider than its column. The
+   choosing table under it reads the same way. */
+.sizeguide__table thead th { text-transform: none; letter-spacing: var(--ls-normal);
+  vertical-align: bottom; hyphens: auto; }
+@media (max-width: 719px) {
+  .sizeguide__measures th, .sizeguide__measures td { padding-inline: var(--s-1); }
+}
+/* The number a column heading carries, as it is on the drawing. */
+.sizeguide__mark { display: grid; place-items: center; width: 24px; height: 24px;
+  margin: 0 0 var(--s-1) auto; border-radius: var(--r-full);
+  background: var(--c-fg); color: var(--c-bg);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: 0; }
 /* A row's own heading is its size, and is read as one: the small capitals a
    column heading is set in would make "XS" the quietest thing in its row. */
 .sizeguide__table tbody th { font-size: inherit; font-weight: var(--fw-semibold);

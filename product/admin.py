@@ -261,7 +261,7 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class SizeChartRowInline(admin.TabularInline):
-    """Optional measured rows for a chart. The uploaded image is the real content."""
+    """A chart's measured rows, from which the site draws the guide (§17 #400)."""
     model = SizeChartRow
     extra = 0
     autocomplete_fields = ('size',)
@@ -304,31 +304,25 @@ class SlideAdmin(admin.ModelAdmin):
 
 @admin.register(SizeChart)
 class SizeChartAdmin(admin.ModelAdmin):
-    """Size-guide admin. Image first; the table is optional (§17 #15)."""
+    """Size-guide admin: a name in three languages, a note, and the rows.
+
+    The site draws the guide from the rows (§17 #400), so they are the chart
+    and a picture is neither asked for nor shown. The panel's "Oʻlcham
+    jadvallari" is the real screen. The form stays the one that cleans an
+    upload, for a picture already on a row.
+    """
     form = ChartImageForm
-    list_display = ('preview', 'name', 'row_count')
-    list_display_links = ('preview', 'name')
-    search_fields = ('name',)
+    list_display = ('name', 'row_count')
+    search_fields = ('name', 'name_ru', 'name_en')
     inlines = [SizeChartRowInline]
-    readonly_fields = ('big_preview',)
     fieldsets = (
-        (None, {'fields': ('name', 'image', 'big_preview'),
-                'description': "Rasm asosiy mazmun. Jadval majburiy emas."}),
-        ('Oʻzbekcha', {'fields': ('note',)}),
-        ('Русский', {'fields': ('note_ru',)}),
-        ('English', {'fields': ('note_en',)}),
+        ('Oʻzbekcha', {'fields': ('name', 'note')}),
+        ('Русский', {'fields': ('name_ru', 'note_ru')}),
+        ('English', {'fields': ('name_en', 'note_en')}),
     )
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(_rows=Count('rows'))
-
-    @admin.display(description='Rasm')
-    def preview(self, obj):
-        return _thumb(obj.image, size=48)
-
-    @admin.display(description='Ko\'rinishi')
-    def big_preview(self, obj):
-        return _thumb(obj.image, size=260)
 
     @admin.display(description='Qatorlar', ordering='_rows')
     def row_count(self, obj):

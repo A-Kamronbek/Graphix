@@ -289,17 +289,24 @@ class MarkupTests(TestCase):
         self.assertNotContains(response, 'placeholder="Nomi (uz)"')
         self.assertContains(response, '>Nomi (uz)<')
 
-    def test_the_chart_upload_is_named(self):
+    def test_the_slide_upload_is_named(self):
         """It was the one control on the panel with no label of any kind.
 
-        It is now a visually-hidden input driven by a styled `<label for=…>`,
-        which is also what keeps the browser's own English "Choose File" off an
-        Uzbek screen — so the assertion is that the label points at it.
+        The size chart's upload it was written for went in Phase 23, when the
+        site began drawing the guide (§17 #400). A slide's picture is the
+        upload left: a visually-hidden input inside the styled label that
+        names it, which also keeps the browser's own English "Choose File" off
+        an Uzbek screen.
         """
+        from django.conf import settings
+        from pathlib import Path
+        html = (Path(settings.BASE_DIR) / 'templates' / 'boshqaruv' /
+                '_slide_pic.html').read_text(encoding='utf-8')
+        label = html.split('<label class="btn', 1)[1].split('</label>', 1)[0]
+        self.assertIn('{% trans "Rasm tanlash" %}', label)
+        self.assertIn('type="file"', label)
         response = self.client.get(reverse('panel_settings'))
-        self.assertContains(response, 'name="image"')
-        self.assertContains(response, 'for="chart-image"')
-        self.assertContains(response, '>Rasm<')
+        self.assertNotContains(response, 'name="image"')
 
 
 class UnreadCountTests(TestCase):
