@@ -481,9 +481,15 @@ sudo systemctl enable --now graphix-uzpost.timer
 **[Manual]** — in the Click merchant cabinet.
 
 1. Register the webhook as `https://graphix.uz/payment/click/update/`.
-2. Put `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID` and `CLICK_SECRET_KEY` in
+2. Ask Click's support to add the server's public address (now
+   `57.128.240.51`) to the addresses Click calls. Click calls nobody it has
+   not listed, and nothing on either side says so: until it was listed, from
+   2026-09-19 to 2026-10-19, not one callback reached this server (plan §12
+   risk 1). A new server, or a new address for this one, is sent to Click
+   the same way, before Click is switched on there.
+3. Put `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID` and `CLICK_SECRET_KEY` in
    `/srv/graphix/.env`, then `sudo systemctl restart graphix`.
-3. Buy something real for 1 000 so'm and let it complete.
+4. Buy something real for 1 000 so'm and let it complete.
 
 Then confirm all three halves, because a payment can look fine in the app and
 be broken on the server:
@@ -511,7 +517,8 @@ the code can be the cause: a Prepare signed with the server's own key and sent
 to the public address is answered `-5` for an order that does not exist and
 `-1` for a bad signature (plan §12 risk 1). Then it is Click's to say which
 address it called: service id, merchant id, the Click payment numbers and the
-time, to Click's support.
+time, to Click's support. Ask first whether the server's address is on
+Click's list (step 2): that was the cause the one time this happened.
 
 ### 17.2 Payme and Octo
 
