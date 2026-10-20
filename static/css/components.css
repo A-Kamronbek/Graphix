@@ -724,6 +724,61 @@ html.js .otp__timer { display: block; }
 @media (min-width: 720px) { .grid-products { grid-template-columns: repeat(3, 1fr); gap: var(--s-6) var(--s-4); } }
 @media (min-width: 860px) { .grid-products { grid-template-columns: repeat(4, 1fr); } }
 
+/* ======================================================== 21b. product shelf
+   A row of cards that scrolls sideways: "Siz uchun" on the home page (§9
+   Phase 23 part F, §17 #403). A scroll-snap track, as the slides are
+   (§17 #251): the browser does the swiping and the snapping, so the row
+   works with no script at all.
+
+   Below 860 px it runs to the screen's edges, starting at the page's gutter,
+   and the next card shows in part so the row reads as one that moves. From
+   860 it keeps to the page's width, four cards and a cut fifth, and two
+   arrows beside the heading move it by as many cards as fit.
+
+   The arrows are for a pointer, and shown by CSS rather than revealed by the
+   script: `html.js` is set in the head before the first paint, so the
+   heading's height is settled from the start (§17 #276). With nothing to
+   scroll the script makes them invisible but keeps their place. */
+.shelf__track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 62%;
+  gap: var(--s-3);
+  margin: 0 calc(-1 * var(--pad-x)); padding: 0 var(--pad-x);
+  list-style: none;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding-inline: var(--pad-x);
+  scrollbar-width: none;
+}
+.shelf__track::-webkit-scrollbar { display: none; }
+.shelf__item { min-width: 0; scroll-snap-align: start; }
+
+.shelf__arrows { display: none; gap: var(--s-2); }
+.shelf__arrows.is-idle { visibility: hidden; }
+.shelf__arrow {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 0;
+  color: var(--c-fg); background: var(--c-surface);
+  border: 1px solid var(--c-line); border-radius: var(--r-full);
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.shelf__arrow:hover:not([disabled]) { border-color: var(--c-fg-muted); }
+.shelf__arrow[disabled] { opacity: .4; cursor: default; }
+
+@media (min-width: 560px) { .shelf__track { grid-auto-columns: 40%; } }
+@media (min-width: 860px) {
+  .shelf__track {
+    grid-auto-columns: calc((100% - 4 * var(--s-4)) / 4.4);
+    gap: var(--s-4);
+    margin-inline: 0; padding-inline: 0; scroll-padding-inline: 0;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  html.js .shelf__arrows { display: flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shelf__track { scroll-behavior: auto; }
+}
+
 /* ===================================================== 19. touch sizing
    Plan §9 sets the floor at 44 x 44. Most controls already meet it; these are
    the ones that did not, and they are corrected only where a finger is the

@@ -159,8 +159,9 @@ def home(request):
                        .exclude(Q(picture='') & Q(phone__isnull=True))),
         'newest': latest,
         # "Siz uchun" is most-liked until Phase 13 replaces it with the real
-        # recommender — the plan's own stand-in, not a placeholder.
-        'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:4]),
+        # recommender — the plan's own stand-in, not a placeholder. Twelve, a
+        # row that scrolls sideways, where it was a grid of four (§17 #403).
+        'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:12]),
         'categories': Category.objects.all()[:6],
         # The shop itself, and the search box a result may carry. Only on the
         # home page: an Organization repeated on forty pages is the same fact

@@ -10,6 +10,10 @@ to the order's page, and a gateway that cannot make a link leaves the
 customer there, told why, with the button to try again (§17 #405, §9 Phase 23
 items 35–39).
 
+Part F: "Siz uchun" on the home page is a shelf that scrolls sideways, twelve
+of the most liked designs where there were four (§17 #403, §9 Phase 23 item
+29).
+
 Each class is one of those, written as what a customer sees.
 """
 import re
@@ -19,17 +23,25 @@ from unittest import mock
 from django.conf import settings
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
+
+from django.utils import translation
+from django.utils.translation import gettext as _
 
 from payment import services, views
 from payment.models import Order
+from product.models import Product
 
 from .test_phase6 import make_user
+from .test_backlog import TempMedia
+from .test_phase4 import make_product
+from .test_phase9 import with_photo
 from .test_phase16 import CheckoutCase, order_of, sent_to_click
 from .test_phase20 import ADMIN, link_in
 
 MAIN_JS = Path(settings.BASE_DIR) / 'static' / 'js' / 'main.js'
+COMPONENTS_CSS = Path(settings.BASE_DIR) / 'static' / 'css' / 'components.css'
 CHECKOUT_JS = Path(settings.BASE_DIR) / 'static' / 'js' / 'checkout.js'
 
 
@@ -264,3 +276,108 @@ class OpenChatScriptTests(SimpleTestCase):
         self.assertNotIn('window.open(', body)
         ready = body.split("document.addEventListener('DOMContentLoaded'", 1)[1]
         self.assertLess(ready.index('openChat();'), ready.index('sweepBrokenImages();'))
+
+
+# ------------------------------------------------------------ part F: "Siz uchun"
+
+def shelf_of(html):
+    """The "Siz uchun" section of the home page, from its opening tag to its end."""
+    return html.split('data-shelf ', 1)[1].split('</section>', 1)[0]
+
+
+class ForYouShelfTests(TempMedia, TestCase):
+    """The home page's "Siz uchun": twelve of the most liked, in a row that scrolls."""
+
+    def setUp(self):
+        super().setUp()
+        # Fourteen liked designs, the most liked made last, and one nobody
+        # liked; each with a small photograph, so the cards carry `sizes`.
+        self.liked = []
+        for n in range(1, 15):
+            product, _variant = make_product('Dizayn %02d' % n)
+            Product.objects.filter(pk=product.pk).update(likes_count=n)
+            with_photo(product, 400, 500)
+            self.liked.append(product)
+        self.unliked, _variant = make_product('Hech kim')
+        with_photo(self.unliked, 400, 500)
+
+    def page(self, language='uz'):
+        with translation.override(language):
+            return self.client.get(reverse('home')).content.decode()
+
+    def test_twelve_of_the_most_liked_most_liked_first(self):
+        shelf = shelf_of(self.page())
+        names = re.findall(r'<span class="card__name">([^<]*)</span>', shelf)
+        self.assertEqual(names, ['Dizayn %02d' % n for n in range(14, 2, -1)])
+
+    def test_what_fills_it_is_unchanged_a_design_nobody_liked_is_not_on_it(self):
+        self.assertNotIn('Hech kim', shelf_of(self.page()))
+        Product.objects.filter(pk__in=[p.pk for p in self.liked]).update(likes_count=0)
+        self.assertNotIn('data-shelf ', self.page())
+
+    def test_it_is_a_list_that_scrolls_each_card_an_item(self):
+        shelf = shelf_of(self.page())
+        self.assertIn('<ul class="shelf__track" id="shelf-for-you-track" data-shelf-track>', shelf)
+        self.assertEqual(shelf.count('<li class="shelf__item">'), 12)
+        self.assertNotIn('grid-products', shelf)
+        self.assertIn('aria-labelledby="shelf-for-you"', self.page())
+        self.assertIn('<h2 class="h2" id="shelf-for-you">Siz uchun</h2>', shelf)
+
+    def test_its_photographs_ask_for_the_width_the_shelf_draws_them_at(self):
+        shelf = shelf_of(self.page())
+        sizes = re.findall(r'sizes="([^"]*)"', shelf)
+        self.assertEqual(len(sizes), 12)
+        self.assertEqual(set(sizes), {'(min-width: 1280px) 260px, (min-width: 860px) 21vw, '
+                                      '(min-width: 560px) 37vw, 57vw'})
+        # Below the first screen: every one waits to be scrolled to.
+        self.assertEqual(shelf.count('loading="lazy"'), 12)
+
+    def test_the_grid_above_it_keeps_the_grids_widths(self):
+        html = self.page()
+        newest = html.split('Yangi kelganlar', 1)[1].split('</section>', 1)[0]
+        self.assertIn('(min-width: 720px) 31vw, 46vw', newest)
+
+    def test_two_arrows_named_in_each_language_that_move_the_track(self):
+        for language in ('uz', 'ru', 'en'):
+            with self.subTest(language=language):
+                shelf = shelf_of(self.page(language))
+                with translation.override(language):
+                    names = (_('Oldingi dizaynlar'), _('Keyingi dizaynlar'))
+                if language != 'uz':
+                    self.assertNotIn(names[0], ('', 'Oldingi dizaynlar'))
+                for name, mark in zip(names, ('data-shelf-prev', 'data-shelf-next')):
+                    button = shelf.split(mark, 1)[1].split('</button>', 1)[0]
+                    self.assertIn('<span class="sr-only">%s</span>' % name, button)
+                    self.assertIn('aria-controls="shelf-for-you-track"', button)
+                # Not hidden by an attribute: CSS shows them, so the heading's
+                # height is settled before the first paint.
+                self.assertNotRegex(shelf, r'<button[^>]*data-shelf-(prev|next)[^>]*hidden')
+
+
+class ForYouShelfAssetTests(SimpleTestCase):
+    """The stylesheet and the script behind the shelf, read as text."""
+
+    def rule(self, selector):
+        css = COMPONENTS_CSS.read_text(encoding='utf-8')
+        return css.split(selector + ' {', 1)[1].split('}', 1)[0]
+
+    def test_the_track_scrolls_and_snaps_without_a_script(self):
+        track = self.rule('.shelf__track')
+        for declaration in ('overflow-x: auto', 'scroll-snap-type: x mandatory',
+                            'grid-auto-flow: column', 'grid-auto-columns: 62%'):
+            self.assertIn(declaration, track)
+        self.assertIn('scroll-snap-align: start', self.rule('.shelf__item'))
+
+    def test_the_arrows_are_for_a_pointer_and_shown_before_the_first_paint(self):
+        css = COMPONENTS_CSS.read_text(encoding='utf-8')
+        self.assertIn('display: none', self.rule('.shelf__arrows'))
+        self.assertIn('@media (hover: hover) and (pointer: fine) {\n'
+                      '  html.js .shelf__arrows { display: flex; }', css)
+        self.assertIn('.shelf__arrows.is-idle { visibility: hidden; }', css)
+
+    def test_the_script_drives_every_shelf_once_the_page_is_read(self):
+        body = MAIN_JS.read_text(encoding='utf-8')
+        self.assertIn("$$('[data-shelf]').forEach", body)
+        self.assertIn("arrows.classList.toggle('is-idle', end <= 1);", body)
+        ready = body.split("document.addEventListener('DOMContentLoaded'", 1)[1]
+        self.assertIn('initShelves();', ready)

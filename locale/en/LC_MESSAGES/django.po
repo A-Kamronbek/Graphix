@@ -2093,6 +2093,14 @@ msgstr "Previous slide"
 msgid "Keyingi slayd"
 msgstr "Next slide"
 
+#: .\templates\core\home.html:157
+msgid "Oldingi dizaynlar"
+msgstr "Previous designs"
+
+#: .\templates\core\home.html:162
+msgid "Keyingi dizaynlar"
+msgstr "Next designs"
+
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr "Pause"

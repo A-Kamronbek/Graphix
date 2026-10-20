@@ -2056,6 +2056,14 @@ msgstr ""
 msgid "Keyingi slayd"
 msgstr ""
 
+#: .\templates\core\home.html:157
+msgid "Oldingi dizaynlar"
+msgstr ""
+
+#: .\templates\core\home.html:162
+msgid "Keyingi dizaynlar"
+msgstr ""
+
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr ""
