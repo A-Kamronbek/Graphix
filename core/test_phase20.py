@@ -25,6 +25,7 @@ from django.db.migrations.loader import MigrationLoader
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import translation
+from django.utils.translation import gettext as _
 
 from core import telegram
 from core.middleware import PAY_PAGES
@@ -75,9 +76,13 @@ class TelegramOrderCase(CheckoutCase):
         self.order.save()
 
     def page(self, order=None, language='uz'):
-        """The pay page of ``order``, read in ``language``."""
+        """The page ``order`` is paid from, read in ``language``.
+
+        Its details page since Phase 23, when the payment page went and the
+        button came to the order (§17 #405).
+        """
         with translation.override(language):
-            address = reverse('payment', args=[(order or self.order).pk])
+            address = reverse('order_detail', args=[(order or self.order).pk])
         return self.client.get(address)
 
 
@@ -138,13 +143,14 @@ class TelegramOptionTests(CheckoutCase):
         self.assertEqual(len(radios), 1)
         self.assertIn('checked', radios[0])
 
-    def test_an_order_placed_with_it_waits_and_lands_on_its_pay_page(self):
+    def test_an_order_placed_with_it_waits_and_lands_on_its_page(self):
         before = stock_of(self.shirt_m)
         response = self.post(payment_method='telegram')
         order = Order.objects.get()
         self.assertEqual(order.payment_method, Order.PaymentMethod.TELEGRAM)
         self.assertEqual(order.status, Order.Status.PAYING)
-        self.assertRedirects(response, reverse('payment', args=[order.pk]),
+        # The order's own page, which opens the chat (§17 #405).
+        self.assertRedirects(response, reverse('order_detail', args=[order.pk]),
                              fetch_redirect_response=False)
         # Not paid for, so it holds no stock, as any unpaid order holds none.
         self.assertEqual(stock_of(self.shirt_m), before)
@@ -157,7 +163,7 @@ class TelegramOptionTests(CheckoutCase):
 
 
 class TelegramPayPageTests(TelegramOrderCase):
-    """The page the customer is sent to Telegram from."""
+    """The page the customer is sent to Telegram from: the order's own, since Phase 23."""
 
     def test_the_button_opens_a_chat_with_the_admin(self):
         html = self.page().content.decode()
@@ -229,7 +235,7 @@ class TelegramPayPageTests(TelegramOrderCase):
 
     def test_the_page_says_what_happens_and_names_the_admin_for_who_cannot_open_it(self):
         html = self.page().content.decode()
-        self.assertIn('Telegram orqali toʻlov', html)
+        self.assertIn('Telegram admin orqali', html)
         self.assertIn('Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. '
                       'Admin buyurtmangiz uchun toʻlovni tasdiqlaydi.', html)
         self.assertIn('Telegramda yozish', html)
@@ -244,6 +250,7 @@ class TelegramPayPageTests(TelegramOrderCase):
         html = response.content.decode()
         self.assertNotIn(reverse('payment_start', args=[self.order.pk]), html)
         self.assertNotIn('Toʻlovga oʻtish', html)
+        self.assertNotIn('Toʻlovni yakunlash', html)
         self.assertFalse([host for host in PAY_PAGES if 't.me' in host or 'telegram' in host])
         self.assertNotIn('t.me', response.headers['Content-Security-Policy'])
         self.assertNotIn(Order.PaymentMethod.TELEGRAM, services.GATEWAY_CREDENTIALS)
@@ -254,14 +261,14 @@ class TelegramPayPageTests(TelegramOrderCase):
         self.assertNotIn('{% comment', html)
         self.assertNotIn('No gateway', html)
 
-    def test_the_customer_can_still_cancel_or_read_the_order(self):
+    def test_the_customer_can_still_cancel_or_follow_the_order(self):
         html = self.page().content.decode()
         self.assertIn(reverse('order_cancel', args=[self.order.pk]), html)
-        self.assertIn(reverse('order_detail', args=[self.order.pk]), html)
+        self.assertIn(reverse('order_status', args=[self.order.pk]), html)
 
     def test_pressing_start_by_hand_goes_nowhere_outside_the_site(self):
         response = self.client.post(reverse('payment_start', args=[self.order.pk]))
-        self.assertRedirects(response, reverse('order_status', args=[self.order.pk]),
+        self.assertRedirects(response, reverse('order_detail', args=[self.order.pk]),
                              fetch_redirect_response=False)
         with self.assertRaises(services.PaymentMethodUnavailable):
             services.generate_paylink(self.order, 'https://graphix.uz/')
@@ -270,9 +277,10 @@ class TelegramPayPageTests(TelegramOrderCase):
         for status in (Order.Status.PAID, Order.Status.CANCELLED):
             with self.subTest(status=status):
                 Order.objects.filter(pk=self.order.pk).update(status=status)
-                response = self.page()
-                self.assertRedirects(response, reverse('order_status', args=[self.order.pk]),
-                                     fetch_redirect_response=False)
+                html = self.page().content.decode()
+                self.assertIsNone(link_in(html))
+                # The footer's link to the shop's channel stays; the chat goes.
+                self.assertNotIn('t.me/%s?' % ADMIN, html)
 
     def test_another_customers_order_is_not_there(self):
         other = make_user('boshqa', '+998901220009')
@@ -394,33 +402,39 @@ class StaffMarkItPaidTests(TelegramOrderCase):
 
 
 class OtherMethodsTests(TelegramOrderCase):
-    """The pay page of every other method is as it was."""
+    """Every other method's order is paid from the same page, through its gateway."""
 
     def by(self, method):
-        """The pay page of the order, as if it had been placed with ``method``."""
+        """The order's page, as if the order had been placed with ``method``."""
         Order.objects.filter(pk=self.order.pk).update(payment_method=method)
         return self.page().content.decode()
 
-    def test_a_click_order_still_has_its_button_and_its_heading(self):
-        html = self.by('click')
-        self.assertRegex(html, r'<h1 class="h1">\s*Click orqali toʻlov\s*</h1>')
-        self.assertIn('action="%s"' % reverse('payment_start', args=[self.order.pk]), html)
-        self.assertIn('Toʻlovga oʻtish', html)
-        self.assertIsNone(link_in(html))
-        self.assertNotIn('t.me/' + ADMIN, html)
-
-    def test_the_heading_names_the_method_the_order_was_placed_with(self):
-        for method, name in (('payme', 'Payme'), ('octo', 'Octo')):
+    def test_a_gateways_order_has_a_button_that_goes_to_the_gateway(self):
+        for method in ('click', 'payme', 'octo'):
             with self.subTest(method=method):
-                self.assertRegex(self.by(method),
-                                 r'<h1 class="h1">\s*%s orqali toʻlov\s*</h1>' % name)
+                html = self.by(method)
+                form = html.split('action="%s"' % reverse('payment_start', args=[self.order.pk]),
+                                  1)[1].split('</form>', 1)[0]
+                self.assertIn('csrfmiddlewaretoken', form)
+                self.assertIn('Toʻlovni yakunlash', form)
+                self.assertIsNone(link_in(html))
+                self.assertNotIn('t.me/' + ADMIN, html)
 
-    def test_the_heading_reads_in_each_language(self):
+    def test_the_page_names_the_method_the_order_was_placed_with(self):
+        for method, name in (('click', 'Click'), ('payme', 'Payme'), ('octo', 'Octo')):
+            with self.subTest(method=method):
+                self.assertRegex(self.by(method), r'<dd>\s*%s\s*</dd>' % name)
+
+    def test_the_button_reads_in_each_language(self):
         Order.objects.filter(pk=self.order.pk).update(payment_method='click')
-        self.assertRegex(self.page(language='ru').content.decode(),
-                         r'<h1 class="h1">\s*Оплата через Click\s*</h1>')
-        self.assertRegex(self.page(language='en').content.decode(),
-                         r'<h1 class="h1">\s*Pay with Click\s*</h1>')
+        with translation.override('ru'):
+            russian = _('Toʻlovni yakunlash')
+        with translation.override('en'):
+            english = _('Toʻlovni yakunlash')
+        self.assertNotIn(russian, ('', 'Toʻlovni yakunlash'))
+        self.assertNotIn(english, ('', 'Toʻlovni yakunlash'))
+        self.assertIn(russian, self.page(language='ru').content.decode())
+        self.assertIn(english, self.page(language='en').content.decode())
 
 
 class PhoneFieldTests(CheckoutCase):

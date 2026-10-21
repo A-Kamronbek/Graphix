@@ -113,22 +113,22 @@ class QolipIsGoneTests(TestCase):
         self.assertNotIn('Qolip', page)
 
     @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
-    def test_a_chart_is_created_from_a_name_and_a_picture_alone(self):
+    def test_a_chart_is_created_from_a_name_alone(self):
+        """Its rows are filled in on its card; a picture is not asked for (§17 #400)."""
         response = self.client.post(reverse('panel_chart_new'), {
             'name': 'Yangi jadval',
-            # Posted by nothing on the screen; proves an old form cannot revive it.
+            # Posted by nothing on the screen; proves an old form cannot revive them.
             'fit': 'oversize',
             'image': SimpleUploadedFile('chart.jpg', photo().read(),
                                         content_type='image/jpeg'),
         })
         self.assertEqual(response.status_code, 302)
         chart = SizeChart.objects.get(name='Yangi jadval')
-        self.assertTrue(chart.image)
+        self.assertFalse(chart.image)
 
-    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
-    def test_a_chart_still_needs_both(self):
+    def test_a_chart_still_needs_a_name(self):
         before = SizeChart.objects.count()
-        self.client.post(reverse('panel_chart_new'), {'name': 'Rasmsiz'})
+        self.client.post(reverse('panel_chart_new'), {'name': '  '})
         self.assertEqual(SizeChart.objects.count(), before)
 
 

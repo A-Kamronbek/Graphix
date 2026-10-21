@@ -1,0 +1,95 @@
+{% load i18n i18n_fields %}
+{% comment %}
+  The size guide, drawn by the site (§9 Phase 23 part C, §17 #400). One
+  partial for `/olcham-jadvali/` and for the product page's size viewer, so
+  the two cannot drift apart.
+
+  Expects `charts`, the charts to show, each with rows and its rows' sizes
+  fetched; and `size_fit`, the rows product.size_charts.fit_rows() makes. The
+  product page passes its product's own chart alone (item 18).
+
+  A drawing of the shirt with the four measures numbered on it and no words
+  inside it; under it one table, the sizes down and the measures across, each
+  heading carrying the number it has on the drawing; then the table for
+  choosing a size. Every word is in the page's language, and each figure is
+  said once: the picture that stood here said them in three languages at once
+  and the page then said them again.
+
+  The drawing is a T-shirt laid flat. The two short curves are the seams the
+  sleeves hang from: the shoulder is measured between them and the sleeve
+  from one of them down. Its sizes are the drawing's own geometry, in its
+  viewBox, so they scale with it; its colours are the site's tokens. It is
+  hidden from a screen reader, which has the same measures named in the
+  table's headings.
+{% endcomment %}
+<div class="sizeguide stack stack--lg">
+  <svg class="tee" viewBox="-4 -30 508 470" aria-hidden="true" focusable="false">
+    <path class="tee__cloth" d="M190 50Q240 92 290 50L362 78L458 168L408 238L346 180L352 398Q352 410 340 410H140Q128 410 128 398L134 180L72 238L22 168L118 78Z"/>
+    <path class="tee__seam" d="M190 50Q240 66 290 50M362 78Q338 128 346 180M118 78Q142 128 134 180"/>
+    {# 1, the chest: across, below the arms. #}
+    <path class="tee__rule" d="M136 202Q240 236 344 202"/>
+    {# 2, the shoulder: seam to seam, above the shirt. #}
+    <path class="tee__rule" d="M118 26H362"/>
+    <path class="tee__tick" d="M118 12V40M362 12V40"/>
+    {# 3, the sleeve: from its seam to its hem. #}
+    <path class="tee__rule" d="M374 65L470 155"/>
+    <path class="tee__tick" d="M364 76L384 54M460 166L480 144"/>
+    {# 4, the length: from the collar's seam to the hem. #}
+    <path class="tee__rule" d="M240 74V410"/>
+    <path class="tee__tick" d="M226 74H254M226 410H254"/>
+
+    <circle class="tee__dot" cx="186" cy="238" r="20"/>
+    <text class="tee__num" x="186" y="246" text-anchor="middle" font-size="22">1</text>
+    <circle class="tee__dot" cx="240" cy="0" r="20"/>
+    <text class="tee__num" x="240" y="8" text-anchor="middle" font-size="22">2</text>
+    <circle class="tee__dot" cx="444" cy="88" r="20"/>
+    <text class="tee__num" x="444" y="96" text-anchor="middle" font-size="22">3</text>
+    <circle class="tee__dot" cx="240" cy="326" r="20"/>
+    <text class="tee__num" x="240" y="334" text-anchor="middle" font-size="22">4</text>
+  </svg>
+
+  {% for chart in charts %}
+    <section class="stack">
+      {# A chart's own name only when there are several to tell apart, and #}
+      {# in the page's language (§17 #357). None for a chart whose name was #}
+      {# cleared: an empty heading is worse than no heading. #}
+      {% if charts|length > 1 %}
+        {% with name=chart|t:"name" %}{% if name %}<h2 class="h3">{{ name }}</h2>{% endif %}{% endwith %}
+      {% else %}
+        <h2 class="h3">{% trans "Kiyim oʻlchamlari" %}</h2>
+      {% endif %}
+      {# A table on a phone too, five short columns; the wrapper only keeps a #}
+      {# long heading in some language from widening the page. #}
+      <div class="scroll-x">
+      <table class="table table--keep sizeguide__table sizeguide__measures">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Oʻlcham" %}</th>
+            <th scope="col" class="num"><span class="sizeguide__mark" aria-hidden="true">1</span>{% trans "Koʻkrak aylanasi, sm" %}</th>
+            <th scope="col" class="num"><span class="sizeguide__mark" aria-hidden="true">2</span>{% trans "Yelka, sm" %}</th>
+            <th scope="col" class="num"><span class="sizeguide__mark" aria-hidden="true">3</span>{% trans "Yeng, sm" %}</th>
+            <th scope="col" class="num"><span class="sizeguide__mark" aria-hidden="true">4</span>{% trans "Uzunlik, sm" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in chart.rows.all %}
+            {# data-row-size is how the product page's viewer finds the row #}
+            {# for the size the customer has picked. A whole number of #}
+            {# centimetres is printed as one; a half keeps its half. #}
+            <tr data-row-size="{{ row.size_id }}">
+              <th scope="row">{{ row.size.size }}</th>
+              <td class="num">{{ row.chest_cm|floatformat:"-1" }}</td>
+              <td class="num">{% if row.shoulder_cm is None %}—{% else %}{{ row.shoulder_cm|floatformat:"-1" }}{% endif %}</td>
+              <td class="num">{% if row.sleeve_cm is None %}—{% else %}{{ row.sleeve_cm|floatformat:"-1" }}{% endif %}</td>
+              <td class="num">{{ row.length_cm|floatformat:"-1" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% if chart|t:"note" %}<p class="small muted">{{ chart|t:"note" }}</p>{% endif %}
+    </section>
+  {% endfor %}
+
+  {% include "product/_size_fit.html" %}
+</div>

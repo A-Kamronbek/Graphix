@@ -391,9 +391,35 @@ html.js .otp__timer { display: block; }
 .viewer__stage img { max-width: 100%; height: auto; border-radius: var(--r-sm); }
 .viewer__stage > * { width: 100%; max-width: 900px; }
 
-/* The chart block the viewer clones. Present in the document so the viewer has
-   real markup to show, and hidden until it is asked for. */
-.sizeguide[hidden] { display: none; }
+/* The size guide the site draws (§17 #400): a T-shirt laid flat with the
+   four measures numbered on it, then the tables. The same partial on the
+   guide page and in the viewer. The drawing's strokes and the numbers' type
+   are its own geometry, in its viewBox, so they scale with it; its colours
+   are the system's. The product page keeps a copy hidden for the viewer to
+   clone (`[data-sizeguide-content]`), which the browser's own `[hidden]`
+   rule keeps off the page. */
+.tee { display: block; width: 100%; max-width: 360px; height: auto;
+  margin-inline: auto; }
+.tee__cloth { fill: var(--c-surface); stroke: var(--c-fg); stroke-width: 3;
+  stroke-linejoin: round; }
+.tee__seam { fill: none; stroke: var(--c-fg); stroke-width: 1.5; }
+.tee__rule { fill: none; stroke: var(--c-brand); stroke-width: 3; stroke-dasharray: 10 8; }
+.tee__tick { fill: none; stroke: var(--c-brand); stroke-width: 3; }
+.tee__dot { fill: var(--c-fg); }
+.tee__num { fill: var(--c-bg); font-weight: var(--fw-bold); }
+/* The guide's headings in their own case: four measures across a phone, and
+   "KOʻKRAK AYLANASI, SM" in spaced capitals is wider than its column. The
+   choosing table under it reads the same way. */
+.sizeguide__table thead th { text-transform: none; letter-spacing: var(--ls-normal);
+  vertical-align: bottom; hyphens: auto; }
+@media (max-width: 719px) {
+  .sizeguide__measures th, .sizeguide__measures td { padding-inline: var(--s-1); }
+}
+/* The number a column heading carries, as it is on the drawing. */
+.sizeguide__mark { display: grid; place-items: center; width: 24px; height: 24px;
+  margin: 0 0 var(--s-1) auto; border-radius: var(--r-full);
+  background: var(--c-fg); color: var(--c-bg);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: 0; }
 /* A row's own heading is its size, and is read as one: the small capitals a
    column heading is set in would make "XS" the quietest thing in its row. */
 .sizeguide__table tbody th { font-size: inherit; font-weight: var(--fw-semibold);
@@ -723,6 +749,61 @@ html.js .otp__timer { display: block; }
   gap: var(--s-5) var(--s-3); }
 @media (min-width: 720px) { .grid-products { grid-template-columns: repeat(3, 1fr); gap: var(--s-6) var(--s-4); } }
 @media (min-width: 860px) { .grid-products { grid-template-columns: repeat(4, 1fr); } }
+
+/* ======================================================== 21b. product shelf
+   A row of cards that scrolls sideways: "Siz uchun" on the home page (§9
+   Phase 23 part F, §17 #403). A scroll-snap track, as the slides are
+   (§17 #251): the browser does the swiping and the snapping, so the row
+   works with no script at all.
+
+   Below 860 px it runs to the screen's edges, starting at the page's gutter,
+   and the next card shows in part so the row reads as one that moves. From
+   860 it keeps to the page's width, four cards and a cut fifth, and two
+   arrows beside the heading move it by as many cards as fit.
+
+   The arrows are for a pointer, and shown by CSS rather than revealed by the
+   script: `html.js` is set in the head before the first paint, so the
+   heading's height is settled from the start (§17 #276). With nothing to
+   scroll the script makes them invisible but keeps their place. */
+.shelf__track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 62%;
+  gap: var(--s-3);
+  margin: 0 calc(-1 * var(--pad-x)); padding: 0 var(--pad-x);
+  list-style: none;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding-inline: var(--pad-x);
+  scrollbar-width: none;
+}
+.shelf__track::-webkit-scrollbar { display: none; }
+.shelf__item { min-width: 0; scroll-snap-align: start; }
+
+.shelf__arrows { display: none; gap: var(--s-2); }
+.shelf__arrows.is-idle { visibility: hidden; }
+.shelf__arrow {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 0;
+  color: var(--c-fg); background: var(--c-surface);
+  border: 1px solid var(--c-line); border-radius: var(--r-full);
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.shelf__arrow:hover:not([disabled]) { border-color: var(--c-fg-muted); }
+.shelf__arrow[disabled] { opacity: .4; cursor: default; }
+
+@media (min-width: 560px) { .shelf__track { grid-auto-columns: 40%; } }
+@media (min-width: 860px) {
+  .shelf__track {
+    grid-auto-columns: calc((100% - 4 * var(--s-4)) / 4.4);
+    gap: var(--s-4);
+    margin-inline: 0; padding-inline: 0; scroll-padding-inline: 0;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  html.js .shelf__arrows { display: flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shelf__track { scroll-behavior: auto; }
+}
 
 /* ===================================================== 19. touch sizing
    Plan §9 sets the floor at 44 x 44. Most controls already meet it; these are

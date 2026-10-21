@@ -69,6 +69,9 @@ urlpatterns = [
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),
     path('boshqaruv/sozlamalar/teg/', views.tag_new, name='panel_tag_new'),
     path('boshqaruv/sozlamalar/jadval/', views.chart_new, name='panel_chart_new'),
+    # A chart's rows: every size's four measures, saved together (§17 #400).
+    path('boshqaruv/sozlamalar/jadval/<int:pk>/qatorlar/', views.chart_rows,
+         name='panel_chart_rows'),
     # A size is one field with no slug and no translations, so it gets its own
     # route rather than a fourth shape inside the one below.
     path('boshqaruv/sozlamalar/olcham/', views.size_new, name='panel_size_new'),

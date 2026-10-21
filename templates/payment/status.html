@@ -48,7 +48,7 @@
 
       {% if order.status == 'paying' %}
         <div class="stack">
-          <a class="btn btn--primary btn--block" href="{% url 'payment' order.id %}">{% trans "Toʻlovni yakunlash" %}</a>
+          {% include "payment/_pay.html" %}
           <form method="post" action="{% url 'order_cancel' order.id %}">
             {% csrf_token %}
             <button class="btn btn--ghost btn--block btn--sm" type="submit">{% trans "Bekor qilish" %}</button>

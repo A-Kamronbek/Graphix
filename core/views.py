@@ -159,8 +159,9 @@ def home(request):
                        .exclude(Q(picture='') & Q(phone__isnull=True))),
         'newest': latest,
         # "Siz uchun" is most-liked until Phase 13 replaces it with the real
-        # recommender — the plan's own stand-in, not a placeholder.
-        'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:4]),
+        # recommender — the plan's own stand-in, not a placeholder. Twelve, a
+        # row that scrolls sideways, where it was a grid of four (§17 #403).
+        'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:12]),
         'categories': Category.objects.all()[:6],
         # The shop itself, and the search box a result may carry. Only on the
         # home page: an Organization repeated on forty pages is the same fact
@@ -170,26 +171,21 @@ def home(request):
 
 
 def size_guide(request):
-    """Standalone size guide, for search engines and the footer (plan §9 6a).
+    """The size guide, drawn by the site from the charts' rows (§17 #400).
 
-    The guide is whatever exists: the owner's image at
-    ``static/img/size_guide.png``, plus any structured ``SizeChart`` rows once
-    Phase 6 seeds them. If neither exists there is no size guide, and this 404s
-    rather than rendering a page that apologises for being empty - the footer
-    and product-page links are hidden in the same state, so a visitor never
-    learns that something is missing (owner's call, plan §17 #69).
+    Every chart with a measured row, under one drawing of the shirt, then the
+    table for choosing a size. A chart with no rows is not shown, and with no
+    chart to show there is no page: this 404s rather than apologise for being
+    empty, and the footer link is hidden in the same state, so a visitor never
+    learns that something is missing (§17 #69).
 
-    The modal on the product page is Phase 6a; this page is its indexable twin.
+    The picture that led this page until Phase 23 said every figure in three
+    languages at once, and the page then said them again as a table.
     """
     from product import size_charts
-    from product.models import SizeChart
-    from .context_processors import size_guide_image
-    charts = list(SizeChart.objects.prefetch_related('rows__size'))
-    url, _size = size_guide_image()
-    if not charts and not url:
-        raise Http404('no size guide has been uploaded yet')
-    # The picture and its dimensions come from the context processor, which is
-    # the one place that looks it up (§17 #111).
+    charts = list(size_charts.shown())
+    if not charts:
+        raise Http404('no size chart has any rows yet')
     return render(request, 'core/size_guide.html', {
         'charts': charts,
         'size_fit': size_charts.fit_rows(),

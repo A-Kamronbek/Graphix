@@ -25,9 +25,8 @@ class StaticViewSitemap(Sitemap):
         names = ['home', 'shop', 'about', 'contact', 'delivery', 'terms', 'privacy']
         # The size guide 404s until there is something to show, and a sitemap
         # that advertises a 404 is worse than one that omits the page. The same
-        # question the page itself answers: a drawn chart OR structured rows -
-        # asking only about the picture left the page out of the sitemap while
-        # it was live and rendering its tables (§17 #111).
+        # question the page itself answers: does a chart have rows, which the
+        # guide is drawn from (§17 #111, #400).
         if has_size_guide():
             names.append('size_guide')
         return names

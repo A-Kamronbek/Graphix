@@ -39,7 +39,7 @@ from payment.models import (DeliveryOption, District, Order, Region, Shipment,
 from .test_phase4 import make_product
 from .test_phase6 import make_regions, make_user
 from .test_phase7 import make_staff
-from .test_phase16 import CheckoutCase
+from .test_phase16 import CheckoutCase, sent_to_click
 
 ANSWERS = json.loads((Path(__file__).parent / 'testdata' / 'uzpost.json')
                      .read_text(encoding='utf-8'))
@@ -461,8 +461,7 @@ class OfficeCheckoutTests(CheckoutCase):
     def test_an_office_order_is_placed_with_a_district_alone(self):
         response = self.post(postal_index=None)
         order = Order.objects.get(cart=self.cart)
-        self.assertRedirects(response, reverse('payment', args=[order.pk]),
-                             fetch_redirect_response=False)
+        sent_to_click(self, response, order)
         self.assertEqual(order.postal_index, '')
         self.assertEqual(order.district, self.geo['chilonzor'])
         self.assertEqual(order.location_snapshot, 'Toshkent shahri · Chilonzor tumani')

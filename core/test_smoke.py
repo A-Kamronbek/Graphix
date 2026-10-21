@@ -51,6 +51,8 @@ SIGN_IN = (302, '/uz/login/')
 STAFF_DOOR = (302, '/admin/login/?next=')
 #: Where an already-signed-in visitor is sent away from the auth pages.
 ACCOUNT = (302, '/uz/account/')
+#: Where an old payment-page address sends everybody: the order's own page.
+ORDER_PAGE = (302, '/uz/order/')
 
 PAGES = (
     # ---------------------------------------------------------- public pages
@@ -95,7 +97,9 @@ PAGES = (
     # read an order (§9 Phase 10 item 5).
     Page('order_detail', {'pk': 'order_pk'}, LOGIN, 200, 404),
     Page('order_status', {'pk': 'order_pk'}, LOGIN, 200, 404),
-    Page('payment', {'order_id': 'paying_pk'}, LOGIN, 200, 404),
+    # The payment page went in Phase 23 (§17 #405). Its name still resolves
+    # and leads to the order's page, which decides who may read it.
+    Page('payment', {'order_id': 'paying_pk'}, ORDER_PAGE, ORDER_PAGE, ORDER_PAGE),
     Page('review_create', {'order_id': 'order_pk'}, LOGIN, 200, 404),
 )
 
@@ -156,6 +160,7 @@ PANEL = (
     Page('panel_message_read', {'pk': 'msg_pk'}, STAFF_DOOR, 403, 405),
     Page('panel_lookup_new', {'kind': 'kind'}, STAFF_DOOR, 403, 405),
     Page('panel_chart_new', {}, STAFF_DOOR, 403, 405),
+    Page('panel_chart_rows', {'pk': 'chart_pk'}, STAFF_DOOR, 403, 405),
     Page('panel_size_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_slide_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_slide_picture', {'pk': 'slide_pk', 'which': 'which'},
@@ -230,6 +235,8 @@ class SmokeMatrix(TestCase):
             # A slide need not exist: every answer in the matrix comes before
             # the view looks one up (§17 #302).
             'slide_pk': 1, 'which': 'phone',
+            # Nor a chart, for the same reason (§17 #400).
+            'chart_pk': 1,
             'promo_pk': PromoCode.objects.create(
                 code='SMOKE', kind=PromoCode.Kind.ORDER_SUM, value=1000).pk,
         }
@@ -324,9 +331,10 @@ class OrderOwnershipTests(TestCase):
                 self.assertEqual(self.client.get(url).status_code, 404)
 
     def test_another_customers_payment_page_is_not_found(self):
+        """Its old address leads to the order's page, which is not theirs to read."""
         with translation.override('uz'):
             url = reverse('payment', kwargs={'order_id': self.order.pk})
-        self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.get(url, follow=True).status_code, 404)
 
     def test_another_customers_order_cannot_be_reviewed(self):
         with translation.override('uz'):

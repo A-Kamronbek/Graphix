@@ -433,6 +433,20 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 .chart { display: grid; gap: var(--s-4); grid-template-columns: 1fr;
   align-items: start; }
 .chart + .chart, .chart + form { margin-top: var(--s-3); }
+/* A size chart's card: its names, then a line per size with four boxes, so
+   the owner fills a chart in where he sees it (§17 #400). The boxes are
+   narrow on purpose: they hold "118" or "62,5", and five columns of them fit
+   a phone without scrolling sideways. */
+.sizechart + .sizechart, .sizechart + form { margin-top: var(--s-3); }
+.sizechart__rows { width: 100%; table-layout: fixed; }
+.sizechart__rows th, .sizechart__rows td { padding: var(--s-1); }
+.sizechart__rows thead th { text-transform: none; letter-spacing: var(--ls-normal);
+  vertical-align: bottom; hyphens: auto; overflow-wrap: anywhere; }
+.sizechart__rows thead th:first-child { width: 4.5em; overflow-wrap: normal; }
+.sizechart__rows tbody th { font-size: var(--fs-sm); text-transform: none;
+  letter-spacing: var(--ls-normal); color: var(--c-fg); }
+.sizechart__cm { width: 100%; min-width: 0; padding-inline: var(--s-2);
+  text-align: right; font-variant-numeric: tabular-nums; }
 .chart__shot { display: block; border-radius: var(--r-sm); overflow: hidden;
   background: var(--c-surface-2); border: 1px solid var(--c-line); }
 .chart__shot img { display: block; width: 100%; height: auto; max-height: 260px;

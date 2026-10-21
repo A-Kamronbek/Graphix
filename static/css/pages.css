@@ -578,12 +578,6 @@ html.js .slides__controls {
 .prose { max-width: 68ch; }
 .prose img { border: 1px solid var(--c-line); border-radius: var(--r-md); }
 
-/* The size guide is one photograph or diagram the owner uploads. It is the
-   content of the page, so it gets the full column and is never cropped: an
-   intrinsic ratio is unknown here, so `height: auto` with the `.prose` width
-   cap is the honest constraint. */
-.sizeguide__img { display: block; width: 100%; height: auto; }
-
 /* ------------------------------------------------------- legal documents */
 /* The terms, the privacy policy and the delivery page share one shape: the
    title with the version in force, a contents list, the text in a readable

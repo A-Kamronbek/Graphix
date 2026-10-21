@@ -484,13 +484,39 @@ msgstr ""
 msgid "Slayd qoʻshildi."
 msgstr ""
 
-#: .\panel\views.py:953
-msgid "Nomi va rasm kerak."
-msgstr "Nomi va rasm kerak."
-
 #: .\panel\views.py:964
 msgid "Jadval qoʻshildi."
 msgstr "Jadval qoʻshildi."
+
+#: .\panel\views.py
+#, python-format
+msgid "%(size)s: koʻkrak aylanasi va uzunlik kerak."
+msgstr ""
+
+#: .\panel\views.py
+#, python-format
+msgid "%(size)s: oʻlchovni santimetrda, 1 dan 999,9 gacha son bilan yozing."
+msgstr ""
+
+#: .\panel\views.py
+msgid "Har bir oʻlcham uchun santimetrdagi oʻlchovlar. Sayt jadvalni shulardan chizadi; qatori yoʻq jadval saytda koʻrinmaydi. Jadval mahsulot sahifasida tanlanadi."
+msgstr ""
+
+#: .\panel\views.py
+msgid "Jadval saqlandi."
+msgstr ""
+
+#: .\panel\views.py
+msgid "Jadvalni saqlash"
+msgstr ""
+
+#: .\panel\views.py
+msgid "Jadvalning nomi kerak."
+msgstr ""
+
+#: .\panel\views.py
+msgid "Qatorlari yoʻq: saytda koʻrinmaydi."
+msgstr ""
 
 #: .\panel\views.py:1069
 #, python-format
@@ -1748,10 +1774,6 @@ msgstr "Mahsulot sahifasidagi xususiyatlar qatorida koʻrinadi."
 msgid "Yangi bosma usuli"
 msgstr "Yangi bosma usuli"
 
-#: .\templates\boshqaruv\settings.html:215
-msgid "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
-msgstr "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
-
 #: .\templates\boshqaruv\settings.html:229 .\templates\boshqaruv\slides.html:49
 msgid "Rasm yoʻq"
 msgstr "Rasm yoʻq"
@@ -1759,10 +1781,6 @@ msgstr "Rasm yoʻq"
 #: .\templates\boshqaruv\settings.html:252
 msgid "Yangi jadval"
 msgstr "Yangi jadval"
-
-#: .\templates\boshqaruv\settings.html:265
-msgid "Rasm"
-msgstr "Rasm"
 
 #: .\templates\boshqaruv\settings.html:267
 #: .\templates\boshqaruv\slides.html:120
@@ -2056,6 +2074,14 @@ msgstr ""
 msgid "Keyingi slayd"
 msgstr ""
 
+#: .\templates\core\home.html:157
+msgid "Oldingi dizaynlar"
+msgstr ""
+
+#: .\templates\core\home.html:162
+msgid "Keyingi dizaynlar"
+msgstr ""
+
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr ""
@@ -2094,10 +2120,6 @@ msgstr ""
 
 #: .\templates\core\size_guide.html:20
 msgid "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan."
-msgstr ""
-
-#: .\templates\core\size_guide.html:27 .\templates\product\item.html:265
-msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 msgstr ""
 
 #: .\templates\core\size_guide.html:44 .\templates\product\item.html:269
@@ -2569,20 +2591,6 @@ msgstr ""
 msgid "Sharh qoldirish"
 msgstr "Sharh qoldirish"
 
-#: .\templates\payment\payment.html:14
-msgid "Telegram orqali toʻlov"
-msgstr ""
-
-#: .\templates\payment\payment.html:15
-#, python-format
-msgid "%(method)s orqali toʻlov"
-msgstr ""
-
-#: .\templates\payment\payment.html:17
-#, python-format
-msgid "Promokod %(code)s: −%(off)s soʻm"
-msgstr ""
-
 #: .\templates\payment\payment.html:48
 msgid ""
 "Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
@@ -2602,14 +2610,6 @@ msgstr ""
 msgid ""
 "Telegram ochilmasa, bizga oʻzingiz yozing: <strong>@%(admin)s</strong>. "
 "Buyurtma raqami: <strong>%(number)s</strong>."
-msgstr ""
-
-#: .\templates\payment\payment.html:27
-msgid "Toʻlovga oʻtish"
-msgstr ""
-
-#: .\templates\payment\payment.html:31
-msgid "Buyurtma tafsilotlari"
 msgstr ""
 
 #: .\templates\payment\payment.html:34 .\templates\payment\status.html:54
@@ -3430,3 +3430,32 @@ msgstr ""
 
 #~ msgid "Nomi (en)"
 #~ msgstr "Nomi (en)"
+
+#~ msgid "Telegram orqali toʻlov"
+#~ msgstr ""
+
+#, python-format
+#~ msgid "%(method)s orqali toʻlov"
+#~ msgstr ""
+
+#, python-format
+#~ msgid "Promokod %(code)s: −%(off)s soʻm"
+#~ msgstr ""
+
+#~ msgid "Toʻlovga oʻtish"
+#~ msgstr ""
+
+#~ msgid "Buyurtma tafsilotlari"
+#~ msgstr ""
+
+#~ msgid "Nomi va rasm kerak."
+#~ msgstr "Nomi va rasm kerak."
+
+#~ msgid "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
+#~ msgstr "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
+
+#~ msgid "Rasm"
+#~ msgstr "Rasm"
+
+#~ msgid "GRAPHIX futbolkalari oʻlcham jadvali"
+#~ msgstr ""

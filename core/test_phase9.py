@@ -735,13 +735,18 @@ class MetaCopyTests(TestCase):
 class SitemapTests(TestCase):
     """What the sitemap advertises has to exist (item 12)."""
 
-    def test_the_size_guide_is_listed_when_charts_alone_exist(self):
-        """The page renders on charts; the sitemap asked only about the image."""
+    def test_the_size_guide_is_listed_while_a_chart_has_rows(self):
+        """The page is drawn from the rows, so the sitemap asks about them (§17 #400)."""
         from core import sitemaps
         from core.context_processors import has_size_guide
-        SizeChart.objects.create(name='Oversize')
+        from product.models import SizeChartRow
+        self.assertTrue(SizeChartRow.objects.exists())
         self.assertTrue(has_size_guide())
         self.assertIn('size_guide', sitemaps.StaticViewSitemap().items())
+        SizeChartRow.objects.all().delete()
+        SizeChart.objects.create(name='Oversize')
+        self.assertFalse(has_size_guide())
+        self.assertNotIn('size_guide', sitemaps.StaticViewSitemap().items())
 
     def test_lastmod_follows_an_edit_rather_than_the_creation_date(self):
         """A crawler comes back only if <lastmod> has moved.

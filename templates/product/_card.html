@@ -1,7 +1,8 @@
 {% load static i18n i18n_fields price_format image_tags %}
 {# One product card: shop grid, related strip, home rows and the saved page. #}
 {# Expects `p`, annotated with `min_price`, `in_stock` and (for a signed-in #}
-{# visitor) `is_liked` by product.views.annotate_cards. #}
+{# visitor) `is_liked` by product.views.annotate_cards. `sizes` names where #}
+{# the card is drawn, for the photograph's `sizes`: a grid unless it says. #}
 {# #}
 {# The photograph is the point of the card, so it gets the whole top of it and #}
 {# the text underneath stays quiet. No layout shift: the frame holds the #}
@@ -19,7 +20,7 @@
   <a href="{% url 'item' p.slug %}">
     <div class="card__media">
       {% with p.images.all|first as img %}
-        <img {% photo_attrs img 'card' %} alt="{{ p|t:'name' }}" decoding="async"
+        <img {% photo_attrs img sizes|default:'card' %} alt="{{ p|t:'name' }}" decoding="async"
              {% if lcp %}fetchpriority="high"{% elif not eager %}loading="lazy"{% endif %}>
       {% endwith %}
 

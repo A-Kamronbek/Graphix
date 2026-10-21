@@ -488,13 +488,39 @@ msgstr "Нужны изображение и описание."
 msgid "Slayd qoʻshildi."
 msgstr "Слайд добавлен."
 
-#: .\panel\views.py:953
-msgid "Nomi va rasm kerak."
-msgstr "Нужны название и изображение."
-
 #: .\panel\views.py:964
 msgid "Jadval qoʻshildi."
 msgstr "Таблица добавлена."
+
+#: .\panel\views.py
+#, python-format
+msgid "%(size)s: koʻkrak aylanasi va uzunlik kerak."
+msgstr "%(size)s: нужны обхват груди и длина."
+
+#: .\panel\views.py
+#, python-format
+msgid "%(size)s: oʻlchovni santimetrda, 1 dan 999,9 gacha son bilan yozing."
+msgstr "%(size)s: укажите мерку в сантиметрах, числом от 1 до 999,9."
+
+#: .\panel\views.py
+msgid "Har bir oʻlcham uchun santimetrdagi oʻlchovlar. Sayt jadvalni shulardan chizadi; qatori yoʻq jadval saytda koʻrinmaydi. Jadval mahsulot sahifasida tanlanadi."
+msgstr "Мерки каждого размера в сантиметрах. Сайт рисует таблицу по ним; таблица без строк на сайте не показывается. Таблица выбирается на странице товара."
+
+#: .\panel\views.py
+msgid "Jadval saqlandi."
+msgstr "Таблица сохранена."
+
+#: .\panel\views.py
+msgid "Jadvalni saqlash"
+msgstr "Сохранить таблицу"
+
+#: .\panel\views.py
+msgid "Jadvalning nomi kerak."
+msgstr "Нужно название таблицы."
+
+#: .\panel\views.py
+msgid "Qatorlari yoʻq: saytda koʻrinmaydi."
+msgstr "Строк нет: на сайте не показывается."
 
 #: .\panel\views.py:1069
 #, python-format
@@ -1798,12 +1824,6 @@ msgstr "Показывается в строке характеристик на
 msgid "Yangi bosma usuli"
 msgstr "Новый способ печати"
 
-#: .\templates\boshqaruv\settings.html:215
-msgid "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
-msgstr ""
-"Название и картинка — этого достаточно. Таблица выбирается на странице "
-"товара."
-
 #: .\templates\boshqaruv\settings.html:229 .\templates\boshqaruv\slides.html:49
 msgid "Rasm yoʻq"
 msgstr "Без изображения"
@@ -1811,10 +1831,6 @@ msgstr "Без изображения"
 #: .\templates\boshqaruv\settings.html:252
 msgid "Yangi jadval"
 msgstr "Новая таблица"
-
-#: .\templates\boshqaruv\settings.html:265
-msgid "Rasm"
-msgstr "Изображение"
 
 #: .\templates\boshqaruv\settings.html:267
 #: .\templates\boshqaruv\slides.html:120
@@ -2113,6 +2129,14 @@ msgstr "Предыдущий слайд"
 msgid "Keyingi slayd"
 msgstr "Следующий слайд"
 
+#: .\templates\core\home.html:157
+msgid "Oldingi dizaynlar"
+msgstr "Предыдущие дизайны"
+
+#: .\templates\core\home.html:162
+msgid "Keyingi dizaynlar"
+msgstr "Следующие дизайны"
+
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr "Остановить"
@@ -2152,10 +2176,6 @@ msgstr ""
 #: .\templates\core\size_guide.html:20
 msgid "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan."
 msgstr "Размеры в сантиметрах, сняты с самой вещи."
-
-#: .\templates\core\size_guide.html:27 .\templates\product\item.html:265
-msgid "GRAPHIX futbolkalari oʻlcham jadvali"
-msgstr "Таблица размеров футболок GRAPHIX"
 
 #: .\templates\core\size_guide.html:44 .\templates\product\item.html:269
 msgid "Kiyim oʻlchamlari"
@@ -2633,20 +2653,6 @@ msgstr "Отменить заказ"
 msgid "Sharh qoldirish"
 msgstr "Оставить отзыв"
 
-#: .\templates\payment\payment.html:14
-msgid "Telegram orqali toʻlov"
-msgstr "Оплата через Telegram"
-
-#: .\templates\payment\payment.html:15
-#, python-format
-msgid "%(method)s orqali toʻlov"
-msgstr "Оплата через %(method)s"
-
-#: .\templates\payment\payment.html:17
-#, python-format
-msgid "Promokod %(code)s: −%(off)s soʻm"
-msgstr "Промокод %(code)s: −%(off)s сум"
-
 #: .\templates\payment\payment.html:48
 msgid ""
 "Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
@@ -2671,14 +2677,6 @@ msgid ""
 msgstr ""
 "Если Telegram не открылся, напишите нам сами: <strong>@%(admin)s</strong>. "
 "Номер заказа: <strong>%(number)s</strong>."
-
-#: .\templates\payment\payment.html:27
-msgid "Toʻlovga oʻtish"
-msgstr "Перейти к оплате"
-
-#: .\templates\payment\payment.html:31
-msgid "Buyurtma tafsilotlari"
-msgstr "Детали заказа"
 
 #: .\templates\payment\payment.html:34 .\templates\payment\status.html:54
 #: .\templates\user\verify_phone.html:53
@@ -3718,3 +3716,34 @@ msgstr "Изображение сохранено."
 
 #~ msgid "Nomi (en)"
 #~ msgstr "Название (en)"
+
+#~ msgid "Telegram orqali toʻlov"
+#~ msgstr "Оплата через Telegram"
+
+#, python-format
+#~ msgid "%(method)s orqali toʻlov"
+#~ msgstr "Оплата через %(method)s"
+
+#, python-format
+#~ msgid "Promokod %(code)s: −%(off)s soʻm"
+#~ msgstr "Промокод %(code)s: −%(off)s сум"
+
+#~ msgid "Toʻlovga oʻtish"
+#~ msgstr "Перейти к оплате"
+
+#~ msgid "Buyurtma tafsilotlari"
+#~ msgstr "Детали заказа"
+
+#~ msgid "Nomi va rasm kerak."
+#~ msgstr "Нужны название и изображение."
+
+#~ msgid "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
+#~ msgstr ""
+#~ "Название и картинка — этого достаточно. Таблица выбирается на странице "
+#~ "товара."
+
+#~ msgid "Rasm"
+#~ msgstr "Изображение"
+
+#~ msgid "GRAPHIX futbolkalari oʻlcham jadvali"
+#~ msgstr "Таблица размеров футболок GRAPHIX"

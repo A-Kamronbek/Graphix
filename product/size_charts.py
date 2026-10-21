@@ -6,8 +6,8 @@ oversize one, that had stood in "until a real garment is measured" (§17 #95).
 Migration ``0028_owner_size_chart`` wrote them onto the live rows; they live
 here as well so that anything that has to build the rows again, such as the
 demo-catalogue reset, uses the same table and not a copy of its own. The
-drawn chart, ``docs/brand/size-guide.html``, carries the same figures, and a
-test holds the two together.
+site draws the guide from the rows (§17 #400); there is no picture to keep
+in step with them any more.
 
 Migration 0028 deliberately keeps its own copy and does not import this
 module. A migration is a frozen snapshot and has to keep working when the
@@ -47,6 +47,18 @@ FIT = {
 BY_NAME = {
     NAME: MEASURES,
 }
+
+
+def shown():
+    """The charts the site shows: those with a measured row, rows fetched.
+
+    A chart with no rows is shown nowhere (§9 Phase 23 item 17). One place
+    for the question, so the guide page, its footer link and the sitemap
+    cannot disagree about it.
+    """
+    from .models import SizeChart
+    return (SizeChart.objects.filter(rows__isnull=False).distinct()
+            .prefetch_related('rows__size').order_by('pk'))
 
 
 def fit_rows(sizes=()):

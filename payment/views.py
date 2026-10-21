@@ -326,6 +326,11 @@ def checkout(request):
     """
     cart = services.get_open_cart(request.user)
     if not cart or not cart.cart_items.exists():
+        placed = _just_placed(request)
+        if placed:
+            # Back from Telegram or a gateway's page: the order, not an
+            # empty basket (§17 #409).
+            return redirect('order_detail', pk=placed)
         messages.error(request, _("Savat boʻsh."))
         return redirect('cart')
 
@@ -441,7 +446,7 @@ def checkout(request):
     if code['error'] or 'apply_promo' in post:
         # A refused code stops the order as well as the preview. The customer
         # typed it expecting to pay less, and an order placed at the full
-        # price would be a surprise on the payment page.
+        # price would be a surprise at the gateway.
         if code['error']:
             messages.error(request, code['error'])
         return again(form_data, delivery)
@@ -508,15 +513,20 @@ def checkout(request):
         return again(form_data, delivery)
     except services.CartAlreadyCheckedOut as e:
         messages.info(request, _("Buyurtma allaqachon rasmiylashtirilgan."))
-        return redirect('payment', order_id=e.existing_order.id)
+        return redirect('order_detail', pk=e.existing_order.id)
     except services.EmptyCart:
         messages.error(request, _("Savat boʻsh."))
         return redirect('cart')
     except services.OffSaleItems as e:
         return _refuse_off_sale(request, e.lines)
 
-    messages.success(request, _("Buyurtma qabul qilindi. Toʻlovni amalga oshiring."))
-    return redirect('payment', order_id=order.id)
+    # Said on the order's page, where a Telegram order lands. Not before a
+    # gateway's page: it would be waiting on the order's page when the
+    # customer came back from paying.
+    if order.payment_method not in services.GATEWAY_CREDENTIALS:
+        messages.success(request, _("Buyurtma qabul qilindi. Toʻlovni amalga oshiring."))
+    request.session[PLACED_KEY] = order.id
+    return _pay(request, order)
 
 
 @login_required
@@ -549,57 +559,58 @@ def checkout_promo(request):
 
 # ---------- payment ----------
 
-@login_required
-def payment(request, order_id):
-    """Show the payment page for an order.
+#: The session key that tells an order's page to open the Telegram chat at
+#: once: set by the checkout, read once by the page (§17 #405).
+OPEN_CHAT_KEY = 'gx_open_chat'
 
-    An order paid for through the shop's admin has no gateway to be sent to.
-    Its page carries the link that opens the chat, and only while the order
-    is waiting to be paid for: once staff have marked it paid or it has been
-    cancelled there is nothing left to write about, and the customer is shown
-    where the order stands (§17 #362).
+#: The session key holding the order the checkout last placed (§17 #409).
+PLACED_KEY = 'gx_placed'
+
+
+def _just_placed(request):
+    """The order this session's checkout placed, while it waits for payment.
+
+    Back from Telegram or from a gateway's page is the checkout, and not the
+    order's page: browsers skip, on Back, a page that went on by itself
+    without being tapped, as the order's page does when it opens the chat.
+    The checkout, its basket empty now, sends the customer to that order
+    instead of saying the basket is empty. Only while the order waits: once
+    it is paid or cancelled the basket is simply empty again (§17 #409).
     """
-    order = get_object_or_404(
-        Order.objects.select_related('cart', 'user')
-        .prefetch_related('cart__cart_items__variant__product'),
-        pk=order_id, user=request.user,
-    )
-    context = {'order': order}
-    if order.payment_method == Order.PaymentMethod.TELEGRAM:
-        if order.status != Order.Status.PAYING:
-            messages.info(request, _("Bu buyurtma uchun toʻlov holati "
-                                     "allaqachon oʻzgargan."))
-            return redirect('order_status', pk=order.id)
-        context.update(by_telegram=True,
-                       telegram_admin=services.telegram_admin(),
-                       telegram_link=services.telegram_pay_link(order))
-    return render(request, 'payment/payment.html', context)
+    pk = request.session.get(PLACED_KEY)
+    if pk and Order.objects.filter(pk=pk, user=request.user,
+                                   status=Order.Status.PAYING).exists():
+        return pk
+    request.session.pop(PLACED_KEY, None)
+    return None
 
 
-@login_required
-@require_POST
-def payment_start(request, order_id):
-    """Generate the pay link for this order's method and redirect to it.
+def _pay(request, order):
+    """Send the customer on to pay for ``order``, with no page in between.
 
-    Only while the order is still PAYING. Which gateway builds the link is
+    A gateway's order goes straight to the gateway's own page, which comes
+    back to the order's details. A Telegram order goes to its details page,
+    which opens the chat with the shop's admin at once (§17 #405). Back from
+    either is the checkout, which sends the customer on to the order
+    (`_just_placed`, §17 #409).
+
+    When a gateway cannot make a link the order exists already, so the
+    customer lands on its page, told why, with the button there to try again
+    (§9 Phase 23 item 38). Which gateway builds the link is
     `services.generate_paylink`'s business, not this view's.
     """
-    order = get_object_or_404(Order, pk=order_id, user=request.user)
-
-    if order.status != Order.Status.PAYING:
-        messages.info(request, _("Bu buyurtma uchun toʻlov holati "
-                                 "allaqachon oʻzgargan."))
-        return redirect('order_status', pk=order.id)
+    if order.payment_method not in services.GATEWAY_CREDENTIALS:
+        if order.payment_method == Order.PaymentMethod.TELEGRAM:
+            request.session[OPEN_CHAT_KEY] = order.id
+        return redirect('order_detail', pk=order.id)
 
     return_url = request.build_absolute_uri(reverse('order_detail', args=[order.id]))
     try:
-        paylink = services.generate_paylink(order, return_url)
+        return redirect(services.generate_paylink(order, return_url))
     except services.PaymentMethodUnavailable:
-        # Cash has no online step, and a method whose credentials are blank
-        # cannot make a link either. Both end here, and both are told plainly
-        # rather than redirected at a gateway that will show a broken page.
+        # A method whose credentials are blank cannot make a link. Told
+        # plainly rather than sent at a gateway that will show a broken page.
         messages.info(request, _("Bu toʻlov usuli uchun onlayn toʻlov yoʻq."))
-        return redirect('order_status', pk=order.id)
     except services.PaymentGatewayError:
         # Reachable and said no, or not reachable at all. A different message
         # from the one above on purpose: this order is still PAYING and the
@@ -608,8 +619,52 @@ def payment_start(request, order_id):
         messages.error(request, _("Toʻlov tizimi hozir javob bermayapti. "
                                   "Iltimos, birozdan soʻng qayta urinib "
                                   "koʻring."))
+    return redirect('order_detail', pk=order.id)
+
+
+def _pay_context(request, order):
+    """What an order's pay button needs, or None when there is nothing to pay.
+
+    ``kind`` is 'gateway' for a form posting to `payment_start`, 'telegram'
+    for the link that opens the chat, with ``open`` true the one time the
+    checkout has just sent the customer here. Cash, switched off, has no
+    online step and so no button.
+    """
+    if order.status != Order.Status.PAYING:
+        return None
+    if order.payment_method in services.GATEWAY_CREDENTIALS:
+        return {'kind': 'gateway'}
+    if order.payment_method == Order.PaymentMethod.TELEGRAM:
+        return {'kind': 'telegram',
+                'link': services.telegram_pay_link(order),
+                'admin': services.telegram_admin(),
+                'open': request.session.pop(OPEN_CHAT_KEY, None) == order.id}
+    return None
+
+
+def payment(request, order_id):
+    """Where the payment page was: the order's details page now (§17 #405).
+
+    The URL name keeps resolving (§4.2) so a link made before still lands;
+    the order's page checks that the order is the customer's.
+    """
+    return redirect('order_detail', pk=order_id)
+
+
+@login_required
+@require_POST
+def payment_start(request, order_id):
+    """The order page's pay button: send this order on to be paid.
+
+    Only while the order is still PAYING.
+    """
+    order = get_object_or_404(Order, pk=order_id, user=request.user)
+
+    if order.status != Order.Status.PAYING:
+        messages.info(request, _("Bu buyurtma uchun toʻlov holati "
+                                 "allaqachon oʻzgargan."))
         return redirect('order_status', pk=order.id)
-    return redirect(paylink)
+    return _pay(request, order)
 
 
 class PaidByWebhook:
@@ -889,6 +944,7 @@ def order_detail(request, pk):
         'order': order,
         'shipment': shipment,
         'shipment_history': shipment.history.all() if shipment else (),
+        'pay': _pay_context(request, order),
     })
 
 
@@ -896,7 +952,8 @@ def order_detail(request, pk):
 def order_status(request, pk):
     """Lightweight order-status page (used for post-payment status checks)."""
     order = get_object_or_404(Order, pk=pk, user=request.user)
-    return render(request, 'payment/status.html', {'order': order})
+    return render(request, 'payment/status.html', {
+        'order': order, 'pay': _pay_context(request, order)})
 
 
 # ---------- cancel ----------

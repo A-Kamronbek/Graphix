@@ -139,13 +139,35 @@
 {% endif %}
 
 {% if popular %}
-  {# "Siz uchun" is most-liked until Phase 13 ships the real recommender. #}
-  <section class="section">
+  {% comment %} "Siz uchun" is most-liked until Phase 13 ships the real recommender.
+     A shelf that scrolls sideways, twelve designs (§9 Phase 23 part F,
+     §17 #403): a scroll-snap track like the slides, so a thumb swipes it
+     with or without the script. The arrows are for a pointer; CSS shows them
+     where there is one and the document carries `html.js`, so their place is
+     decided before the first paint, as the slides' controls are (§17 #276).
+     {% endcomment %}
+  <section class="section shelf" data-shelf aria-labelledby="shelf-for-you">
     <div class="wrap stack stack--lg">
-      <h2 class="h2">{% trans "Siz uchun" %}</h2>
-      <div class="grid-products">
-        {% for p in popular %}{% include "product/_card.html" with p=p %}{% endfor %}
+      <div class="row row--between">
+        <h2 class="h2" id="shelf-for-you">{% trans "Siz uchun" %}</h2>
+        <div class="shelf__arrows" data-shelf-arrows>
+          <button type="button" class="shelf__arrow" data-shelf-prev
+                  aria-controls="shelf-for-you-track">
+            <svg class="i" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+            <span class="sr-only">{% trans "Oldingi dizaynlar" %}</span>
+          </button>
+          <button type="button" class="shelf__arrow" data-shelf-next
+                  aria-controls="shelf-for-you-track">
+            <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+            <span class="sr-only">{% trans "Keyingi dizaynlar" %}</span>
+          </button>
+        </div>
       </div>
+      <ul class="shelf__track" id="shelf-for-you-track" data-shelf-track>
+        {% for p in popular %}
+          <li class="shelf__item">{% include "product/_card.html" with p=p sizes='shelf' %}</li>
+        {% endfor %}
+      </ul>
     </div>
   </section>
 {% endif %}

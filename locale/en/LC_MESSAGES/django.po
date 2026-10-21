@@ -484,13 +484,39 @@ msgstr "An image and a description are required."
 msgid "Slayd qoʻshildi."
 msgstr "Slide added."
 
-#: .\panel\views.py:953
-msgid "Nomi va rasm kerak."
-msgstr "A name and an image are required."
-
 #: .\panel\views.py:964
 msgid "Jadval qoʻshildi."
 msgstr "Chart added."
+
+#: .\panel\views.py
+#, python-format
+msgid "%(size)s: koʻkrak aylanasi va uzunlik kerak."
+msgstr "%(size)s: the chest and the length are needed."
+
+#: .\panel\views.py
+#, python-format
+msgid "%(size)s: oʻlchovni santimetrda, 1 dan 999,9 gacha son bilan yozing."
+msgstr "%(size)s: write each measure in centimetres, as a number from 1 to 999.9."
+
+#: .\panel\views.py
+msgid "Har bir oʻlcham uchun santimetrdagi oʻlchovlar. Sayt jadvalni shulardan chizadi; qatori yoʻq jadval saytda koʻrinmaydi. Jadval mahsulot sahifasida tanlanadi."
+msgstr "Each size's measures in centimetres. The site draws the chart from them; a chart with no rows is not shown on the site. A product's chart is chosen on its own page."
+
+#: .\panel\views.py
+msgid "Jadval saqlandi."
+msgstr "Chart saved."
+
+#: .\panel\views.py
+msgid "Jadvalni saqlash"
+msgstr "Save chart"
+
+#: .\panel\views.py
+msgid "Jadvalning nomi kerak."
+msgstr "The chart needs a name."
+
+#: .\panel\views.py
+msgid "Qatorlari yoʻq: saytda koʻrinmaydi."
+msgstr "No rows: not shown on the site."
 
 #: .\panel\views.py:1069
 #, python-format
@@ -1779,12 +1805,6 @@ msgstr "Shown in the spec strip on the product page."
 msgid "Yangi bosma usuli"
 msgstr "New print method"
 
-#: .\templates\boshqaruv\settings.html:215
-msgid "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
-msgstr ""
-"A name and a picture, and that is all. The chart is chosen on the product "
-"page."
-
 #: .\templates\boshqaruv\settings.html:229 .\templates\boshqaruv\slides.html:49
 msgid "Rasm yoʻq"
 msgstr "No image"
@@ -1792,10 +1812,6 @@ msgstr "No image"
 #: .\templates\boshqaruv\settings.html:252
 msgid "Yangi jadval"
 msgstr "New chart"
-
-#: .\templates\boshqaruv\settings.html:265
-msgid "Rasm"
-msgstr "Image"
 
 #: .\templates\boshqaruv\settings.html:267
 #: .\templates\boshqaruv\slides.html:120
@@ -2093,6 +2109,14 @@ msgstr "Previous slide"
 msgid "Keyingi slayd"
 msgstr "Next slide"
 
+#: .\templates\core\home.html:157
+msgid "Oldingi dizaynlar"
+msgstr "Previous designs"
+
+#: .\templates\core\home.html:162
+msgid "Keyingi dizaynlar"
+msgstr "Next designs"
+
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr "Pause"
@@ -2132,10 +2156,6 @@ msgstr ""
 #: .\templates\core\size_guide.html:20
 msgid "Oʻlchamlar santimetrda, kiyimning oʻzidan olingan."
 msgstr "Measurements in centimetres, taken from the garment itself."
-
-#: .\templates\core\size_guide.html:27 .\templates\product\item.html:265
-msgid "GRAPHIX futbolkalari oʻlcham jadvali"
-msgstr "GRAPHIX T-shirt size chart"
 
 #: .\templates\core\size_guide.html:44 .\templates\product\item.html:269
 msgid "Kiyim oʻlchamlari"
@@ -2617,20 +2637,6 @@ msgstr "Cancel order"
 msgid "Sharh qoldirish"
 msgstr "Write a review"
 
-#: .\templates\payment\payment.html:14
-msgid "Telegram orqali toʻlov"
-msgstr "Pay through Telegram"
-
-#: .\templates\payment\payment.html:15
-#, python-format
-msgid "%(method)s orqali toʻlov"
-msgstr "Pay with %(method)s"
-
-#: .\templates\payment\payment.html:17
-#, python-format
-msgid "Promokod %(code)s: −%(off)s soʻm"
-msgstr "Promo code %(code)s: −%(off)s soʻm"
-
 #: .\templates\payment\payment.html:48
 msgid ""
 "Telegram orqali adminga bogʻlanib, toʻlovni amalga oshiring. Admin "
@@ -2655,14 +2661,6 @@ msgid ""
 msgstr ""
 "If Telegram does not open, write to us yourself: "
 "<strong>@%(admin)s</strong>. Order number: <strong>%(number)s</strong>."
-
-#: .\templates\payment\payment.html:27
-msgid "Toʻlovga oʻtish"
-msgstr "Go to payment"
-
-#: .\templates\payment\payment.html:31
-msgid "Buyurtma tafsilotlari"
-msgstr "Order details"
 
 #: .\templates\payment\payment.html:34 .\templates\payment\status.html:54
 #: .\templates\user\verify_phone.html:53
@@ -3679,3 +3677,34 @@ msgstr "Picture saved."
 
 #~ msgid "Nomi (en)"
 #~ msgstr "Name (en)"
+
+#~ msgid "Telegram orqali toʻlov"
+#~ msgstr "Pay through Telegram"
+
+#, python-format
+#~ msgid "%(method)s orqali toʻlov"
+#~ msgstr "Pay with %(method)s"
+
+#, python-format
+#~ msgid "Promokod %(code)s: −%(off)s soʻm"
+#~ msgstr "Promo code %(code)s: −%(off)s soʻm"
+
+#~ msgid "Toʻlovga oʻtish"
+#~ msgstr "Go to payment"
+
+#~ msgid "Buyurtma tafsilotlari"
+#~ msgstr "Order details"
+
+#~ msgid "Nomi va rasm kerak."
+#~ msgstr "A name and an image are required."
+
+#~ msgid "Nomi va rasmi — shu yetarli. Jadval mahsulot sahifasida tanlanadi."
+#~ msgstr ""
+#~ "A name and a picture, and that is all. The chart is chosen on the product "
+#~ "page."
+
+#~ msgid "Rasm"
+#~ msgstr "Image"
+
+#~ msgid "GRAPHIX futbolkalari oʻlcham jadvali"
+#~ msgstr "GRAPHIX T-shirt size chart"
