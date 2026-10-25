@@ -26,6 +26,11 @@ asks to return or exchange part of a delivered order on the site, staff
 answer in the panel, the customer reads the answer under the order, and the
 shop hears of it on Telegram (§17 #398, #399, §9 Phase 23 items 1-13).
 
+Part E: a customer suggests a design of their own on `/oz-dizayn/`; the
+owner reads it in the panel's "Dizaynlar", marks it read, and hears of it on
+Telegram. Nothing is paid on the site, and a suggestion is kept a year
+(§17 #402, #406, §9 Phase 23 items 24-28).
+
 Each class is one of those, written as what a customer, or the owner, sees.
 """
 import re
@@ -47,9 +52,10 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 
 from cart.models import Cart, CartItem
-from core import legal, telegram
+from core import designs, legal, telegram
+from core.models import DesignImage, DesignRequest
 from payment import returns, services, views
-from payment.management.commands.prune_return_requests import cutoff
+from core.management.commands.prune_requests import cutoff
 from payment.models import Order, ReturnImage, ReturnLine, ReturnRequest
 from panel import reference
 from product import size_charts
@@ -1036,7 +1042,7 @@ class ReturnRetentionTests(ReturnCase):
         ReturnRequest.objects.filter(pk=open_one.pk).update(
             created_at=timezone.now() - timedelta(days=800))
         with self.captureOnCommitCallbacks(execute=True):
-            call_command('prune_return_requests', stdout=StringIO())
+            call_command('prune_requests', stdout=StringIO())
         self.assertEqual(set(ReturnRequest.objects.values_list('pk', flat=True)),
                          {recent.pk, open_one.pk})
         self.assertFalse(ReturnImage.objects.filter(request=old.pk).exists())
@@ -1054,4 +1060,237 @@ class ReturnRetentionTests(ReturnCase):
                                 ('en', '%d months after the request is closed')):
             with self.subTest(language=language):
                 html = self.client.get('/%s/privacy/' % language).content.decode()
-                self.assertIn(words % legal.RETURN_KEEP_MONTHS, html)
+                self.assertIn(words % legal.REQUEST_KEEP_MONTHS, html)
+
+
+# ------------------------------------------ part E: suggesting one's own design
+
+def transparent_logo():
+    """A PNG that is white where it is drawn and transparent everywhere else."""
+    import io
+    from PIL import Image
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    image = Image.new('RGBA', (60, 40), (0, 0, 0, 0))
+    for x in range(20, 40):
+        for y in range(10, 30):
+            image.putpixel((x, y), (255, 255, 255, 255))
+    buf = io.BytesIO()
+    image.save(buf, format='PNG')
+    return SimpleUploadedFile('logo.png', buf.getvalue(), content_type='image/png')
+
+
+class DesignCase(TempMedia, TestCase):
+    """A signed-in customer on the own-design page."""
+
+    def setUp(self):
+        super().setUp()
+        # The hourly limit is counted by user id, which SQLite gives out again.
+        cache.clear()
+        self.user = make_user('dizaynchi', '+998901230066')
+        self.client.force_login(self.user)
+        self.size = Size.objects.filter(size='M').first() or Size.objects.create(size='M')
+
+    def form(self, **over):
+        data = {'idea': 'Togʻlar va quyosh, chiziqli.', 'print_text': 'QOʻQON',
+                'garment': 'tshirt', 'colour': 'white', 'placement': 'front',
+                'size': str(self.size.pk), 'quantity': '2', 'phone': '90 123 00 66',
+                'use-colour-1': '1', 'colour-1': '#1F3A5F', 'colour-2': '#000000',
+                'colour-3': '#000000'}
+        data.update(over)
+        return {k: v for k, v in data.items() if v is not None}
+
+    def send(self, photos=(), **over):
+        data = self.form(**over)
+        if photos:
+            data['photos'] = list(photos)
+        return self.client.post(reverse('custom_design'), data)
+
+    def said(self, response):
+        return [str(m) for m in response.context['messages']]
+
+
+class DesignPageTests(DesignCase):
+    """The page a customer suggests a design on (§9 Phase 23 items 24, 25, 27)."""
+
+    def test_signed_out_it_shows_the_page_and_asks_to_sign_in(self):
+        self.client.logout()
+        html = self.client.get(reverse('custom_design')).content.decode()
+        self.assertIn('href="%s?next=%s"' % (reverse('login'), reverse('custom_design')), html)
+        self.assertNotIn('name="idea"', html)
+        response = self.send()
+        self.assertRedirects(response, '%s?next=%s' % (reverse('login'), reverse('custom_design')),
+                             fetch_redirect_response=False)
+        self.assertFalse(DesignRequest.objects.exists())
+
+    def test_it_asks_for_everything_item_25_lists(self):
+        html = self.client.get(reverse('custom_design')).content.decode()
+        self.assertIn('name="idea"', html)
+        self.assertIn('name="print_text"', html)
+        self.assertEqual(html.count('name="garment"'), 2)
+        self.assertEqual(html.count('name="colour"'), 4)
+        self.assertIn('name="colour_other"', html)
+        self.assertEqual(html.count('type="color"'), 3)
+        self.assertEqual(html.count('name="placement"'), 3)
+        self.assertIn('<option value="%d" >M</option>' % self.size.pk, html)
+        self.assertIn('name="quantity"', html)
+        self.assertRegex(html, r'type="file" name="photos"[^>]*\n?[^>]*multiple')
+        # The shared phone field, filled from the account (§17 #367).
+        self.assertIn('<span class="tel__code">+998</span>', html)
+        self.assertIn('value="90 123 00 66"', html)
+
+    def test_a_design_is_sent_and_the_shop_is_told(self):
+        with mock.patch.object(telegram, 'deliver') as sent, \
+                self.captureOnCommitCallbacks(execute=True):
+            response = self.send(photos=[photo()])
+        self.assertRedirects(response, reverse('custom_design'), fetch_redirect_response=False)
+        design = DesignRequest.objects.get()
+        self.assertEqual((design.garment, design.colour, design.placement, design.size,
+                          design.quantity, design.print_text, design.phone),
+                         ('tshirt', 'white', 'front', 'M', 2, 'QOʻQON', '+998 90 123 00 66'))
+        # Only the ticked colour: a picker always holds one.
+        self.assertEqual(design.colour_list, ['#1f3a5f'])
+        image = design.images.get()
+        self.assertRegex(image.picture.name, r'^designs/[A-Za-z0-9_-]{24}\.jpg$')
+        event, text, data = sent.call_args.args[:3]
+        self.assertEqual(event, 'design.new')
+        self.assertIn('futbolka, oq', text)
+        self.assertIn('QOʻQON', text)
+        self.assertIn('#1F3A5F', text)
+        self.assertIn('📷 Rasm: 1 ta', text)
+        self.assertTrue(data['design']['admin_url'].endswith(
+            '%s#dizayn-%d' % (reverse('panel_designs'), design.pk)))
+        self.assertEqual(data['design']['colours'], ['#1f3a5f'])
+
+    def test_the_notice_is_in_uzbek_from_any_page(self):
+        with translation.override('ru'):
+            url = reverse('custom_design')
+        with mock.patch.object(telegram, 'deliver') as sent, \
+                self.captureOnCommitCallbacks(execute=True):
+            self.client.post(url, self.form(placement='back'))
+        text = sent.call_args.args[1]
+        self.assertIn('futbolka, oq', text)
+        self.assertIn('orqa tomonga', text)
+        self.assertNotIn('футболка', text)
+
+    def test_another_colour_is_asked_for_in_words(self):
+        response = self.send(colour='other')
+        self.assertEqual(self.said(response), ['Qaysi rang kerakligini yozing.'])
+        self.send(colour='other', colour_other='Toʻq yashil')
+        self.assertEqual(DesignRequest.objects.get().colour_label, 'Toʻq yashil')
+
+    def test_a_refused_form_comes_back_as_typed_and_says_the_pictures_are_lost(self):
+        response = self.send(photos=[photo()], idea='')
+        self.assertEqual(self.said(response), ['Gʻoyangizni qisqacha yozing.'])
+        html = response.content.decode()
+        self.assertIn('value="QOʻQON"', html)
+        self.assertRegex(html, r'name="garment" value="tshirt" required\s+checked')
+        self.assertRegex(html, r'name="use-colour-1" value="1" checked')
+        self.assertIn('name="colour-1" value="#1f3a5f"', html)
+        self.assertIn('Tanlangan rasmlar saqlanmadi', html)
+        self.assertFalse(DesignRequest.objects.exists())
+
+    def test_what_it_refuses(self):
+        for over, said in (
+                ({'garment': 'hoodie'}, 'Futbolka yoki longslivni tanlang.'),
+                ({'placement': ''}, 'Dizayn qayerga tushirilishini tanlang.'),
+                ({'size': '999999'}, 'Oʻlchamni tanlang.'),
+                ({'quantity': '0'}, 'Nechta kerakligini 1 dan 100 gacha yozing.'),
+                ({'quantity': '101'}, 'Nechta kerakligini 1 dan 100 gacha yozing.'),
+                ({'colour-1': 'red'}, 'Bosma rangini qayta tanlang.'),
+                ({'phone': '123'}, 'Telefon raqamini +998 XX XXX XX XX koʻrinishida yozing.')):
+            with self.subTest(**over):
+                self.assertEqual(self.said(self.send(**over)), [said])
+        response = self.send(photos=[photo() for _ in range(5)])
+        self.assertEqual(self.said(response), ['Koʻpi bilan 4 ta rasm yuborish mumkin.'])
+        self.assertFalse(DesignRequest.objects.exists())
+
+    def test_five_a_day(self):
+        for _ in range(designs.DAILY):
+            DesignRequest.objects.create(user=self.user, idea='x', garment='tshirt',
+                                         colour='black', placement='back', size='M',
+                                         phone='+998 90 123 00 66')
+        response = self.send()
+        self.assertIn('Bir kunda koʻpi bilan 5 ta taklif', self.said(response)[-1])
+        self.assertEqual(DesignRequest.objects.count(), designs.DAILY)
+
+    def test_a_transparent_logo_is_laid_on_grey_not_white(self):
+        from PIL import Image
+        self.send(photos=[transparent_logo()])
+        image = DesignRequest.objects.get().images.get()
+        with image.picture.open() as f, Image.open(f) as stored:
+            corner = stored.convert('RGB').getpixel((2, 2))
+            middle = stored.convert('RGB').getpixel((30, 20))
+        self.assertTrue(all(abs(c - 128) < 8 for c in corner), corner)
+        self.assertTrue(all(c > 240 for c in middle), middle)
+
+    def test_the_page_is_linked_from_home_contact_and_the_sitemap(self):
+        url = reverse('custom_design')
+        self.assertIn('href="%s"' % url, self.client.get(reverse('home')).content.decode())
+        self.assertIn('href="%s"' % url, self.client.get(reverse('contact')).content.decode())
+        self.assertIn('/uz/oz-dizayn/', self.client.get('/sitemap.xml').content.decode())
+
+
+class PanelDesignTests(DesignCase):
+    """Staff read the designs in "Dizaynlar", as the messages (item 26)."""
+
+    def setUp(self):
+        super().setUp()
+        self.send(photos=[photo()], colour='other', colour_other='Toʻq yashil')
+        self.design = DesignRequest.objects.get()
+        self.staff = make_staff('dizayn', '+998901230067')
+        self.client.force_login(self.staff)
+
+    def test_the_list_shows_what_was_asked_and_marks_it_unread(self):
+        html = self.client.get(reverse('panel_designs')).content.decode()
+        card = html.split('id="dizayn-%d"' % self.design.pk, 1)[1].split('</article>', 1)[0]
+        self.assertIn('is-unread', html.split('id="dizayn-%d"' % self.design.pk, 1)[1][:80])
+        for words in ('Futbolka, Toʻq yashil', 'Old tomonga', 'M × 2', 'QOʻQON',
+                      'Togʻlar va quyosh', 'href="tel:+998901230066"', '--chip: #1f3a5f',
+                      self.design.images.get().picture.url):
+            with self.subTest(words=words):
+                self.assertIn(words, card)
+
+    def test_marking_it_read_and_the_dashboard_count(self):
+        response = self.client.get(reverse('panel_dashboard'))
+        self.assertEqual(response.context['unread_designs'], 1)
+        answer = self.client.post(reverse('panel_design_read', args=[self.design.pk]),
+                                  {'value': '1'}).json()
+        self.assertEqual(answer, {'ok': True, 'value': True, 'unread': 0})
+        html = self.client.get(reverse('panel_designs') + '?show=unread').content.decode()
+        self.assertNotIn('id="dizayn-%d"' % self.design.pk, html)
+
+    def test_a_customer_cannot_see_them(self):
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(reverse('panel_designs')).status_code, 403)
+        self.assertEqual(self.client.post(reverse('panel_design_read',
+                                                  args=[self.design.pk])).status_code, 403)
+
+
+class DesignRetentionTests(DesignCase):
+    """A design is kept a year after it was sent, then goes with its pictures (§17 #406)."""
+
+    def test_only_a_design_sent_over_a_year_ago_goes(self):
+        self.send(photos=[photo()])
+        self.send()
+        old, recent = DesignRequest.objects.order_by('pk')
+        old_file = old.images.get().picture.name
+        DesignRequest.objects.filter(pk=old.pk).update(
+            created_at=timezone.now() - timedelta(days=31 * 13))
+        with self.captureOnCommitCallbacks(execute=True):
+            call_command('prune_requests', stdout=StringIO())
+        self.assertEqual(list(DesignRequest.objects.values_list('pk', flat=True)), [recent.pk])
+        self.assertFalse(DesignImage.objects.filter(request=old.pk).exists())
+        self.assertFalse(DesignImage.picture.field.storage.exists(old_file))
+
+    def test_the_privacy_policy_says_so_in_every_language(self):
+        for language, words in (('uz', 'taklif yuborilganidan keyin %d oy'),
+                                ('ru', '%d месяцев после отправки'),
+                                ('en', '%d months after they are sent')):
+            with self.subTest(language=language):
+                html = self.client.get('/%s/privacy/' % language).content.decode()
+                self.assertIn(words % legal.REQUEST_KEEP_MONTHS, html)
+
+    def test_the_bot_contract_names_the_event(self):
+        doc = (Path(settings.BASE_DIR) / 'docs' / 'integrations' /
+               'telegram-bot.md').read_text(encoding='utf-8')
+        self.assertIn('### `design.new`', doc)

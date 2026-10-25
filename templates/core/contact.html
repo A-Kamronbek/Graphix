@@ -21,6 +21,12 @@
       <div class="stack stack--sm">
         <h1 class="h1">{% trans "Bogʻlanish" %}</h1>
         <p class="lede">{% trans "Buyurtma, oʻlcham yoki oʻz dizayningiz haqida savol boʻlsa — yozing. Yozganingiz toʻgʻridan-toʻgʻri doʻkon egasiga boradi." %}</p>
+        {# A design of one's own has a page of its own (§9 Phase 23 part E); #}
+        {# this form keeps everything else. #}
+        <p>
+          {% url 'custom_design' as design_url %}
+          {% blocktrans %}Oʻz dizayningizni taklif qilmoqchimisiz? <a class="link" href="{{ design_url }}">Dizayn yuborish sahifasi</a>.{% endblocktrans %}
+        </p>
       </div>
 
       {% if user.is_authenticated %}

@@ -3441,6 +3441,152 @@ msgstr "The photos you chose were not kept: please choose them again."
 msgid "Muddatdan keyin"
 msgstr "Past the time limit"
 
+msgid "Futbolka"
+msgstr "T-shirt"
+
+msgid "Longsliv"
+msgstr "Long-sleeve"
+
+msgid "Oq"
+msgstr "White"
+
+msgid "Qora"
+msgstr "Black"
+
+msgid "Kulrang"
+msgstr "Grey"
+
+msgid "Boshqa rang"
+msgstr "Another colour"
+
+msgid "Old tomonga"
+msgstr "On the front"
+
+msgid "Orqa tomonga"
+msgstr "On the back"
+
+msgid "Ikkala tomonga"
+msgstr "On both sides"
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta taklif yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr "You can send up to %(n)d designs a day. Try again tomorrow, or write to us."
+
+msgid "Gʻoyangizni qisqacha yozing."
+msgstr "Describe your idea briefly."
+
+#, python-format
+msgid "Gʻoya %(n)d belgidan oshmasligi kerak."
+msgstr "The idea must be no longer than %(n)d characters."
+
+#, python-format
+msgid "Bosiladigan matn %(n)d belgidan oshmasligi kerak."
+msgstr "The text to print must be no longer than %(n)d characters."
+
+msgid "Futbolka yoki longslivni tanlang."
+msgstr "Choose a T-shirt or a long-sleeve."
+
+msgid "Kiyim rangini tanlang."
+msgstr "Choose the garment’s colour."
+
+msgid "Qaysi rang kerakligini yozing."
+msgstr "Write which colour you want."
+
+#, python-format
+msgid "Rang nomi %(n)d belgidan oshmasligi kerak."
+msgstr "The colour’s name must be no longer than %(n)d characters."
+
+msgid "Bosma rangini qayta tanlang."
+msgstr "Choose the print colour again."
+
+msgid "Dizayn qayerga tushirilishini tanlang."
+msgstr "Choose where the design goes."
+
+msgid "Oʻlchamni tanlang."
+msgstr "Choose a size."
+
+#, python-format
+msgid "Nechta kerakligini 1 dan %(n)d gacha yozing."
+msgstr "Enter a quantity from 1 to %(n)d."
+
+msgid "Taklifingiz yuborildi. Doʻkon egasi siz bilan koʻrsatilgan raqam orqali bogʻlanadi."
+msgstr "Your design has been sent. The store’s owner will get in touch on the number you gave."
+
+msgid "Oʻz dizayningizni GRAPHIX’ga yuboring: gʻoya, matn, ranglar va rasmlar. Doʻkon egasi koʻrib chiqib, siz bilan bogʻlanadi."
+msgstr "Send GRAPHIX a design of your own: the idea, the words, the colours and pictures. The store’s owner will look at it and get in touch."
+
+msgid "Gʻoyangizni yozing va eskiz, logotip yoki namuna rasmini qoʻshing. Doʻkon egasi koʻrib chiqadi va narxi hamda muddati haqida siz bilan bogʻlanadi. Saytda hech narsa toʻlanmaydi."
+msgstr "Describe your idea and add a sketch, a logo or an example. The store’s owner will look at it and get in touch about the price and timing. Nothing is paid on the site."
+
+msgid "Gʻoyangiz"
+msgstr "Your idea"
+
+msgid "Nima tasvirlansin, qaysi uslubda, qanday kayfiyatda."
+msgstr "What to show, in what style, with what mood."
+
+msgid "Bosiladigan matn"
+msgstr "Text to print"
+
+msgid "Matn boʻlmasa, boʻsh qoldiring."
+msgstr "Leave it empty if there are no words."
+
+msgid "Kiyim"
+msgstr "Garment"
+
+msgid "Kiyim rangi"
+msgstr "Garment colour"
+
+msgid "Qaysi rang?"
+msgstr "Which colour?"
+
+msgid "Bosma ranglari"
+msgstr "Print colours"
+
+#, python-format
+msgid "%(n)s-rang"
+msgstr "Colour %(n)s"
+
+#, python-format
+msgid "Koʻpi bilan %(n)s ta. Bilmasangiz, belgilamang: doʻkon egasi tavsiya qiladi."
+msgstr "Up to %(n)s. If you’re not sure, leave them unticked: the store’s owner will suggest some."
+
+msgid "Dizayn qayerga tushiriladi?"
+msgstr "Where does the design go?"
+
+#, python-format
+msgid "Eskiz, logotip yoki namuna. Koʻpi bilan %(n)s ta. Rasmlarni faqat doʻkon xodimlari koʻradi."
+msgstr "A sketch, a logo or an example. Up to %(n)s. Only the store’s staff see the pictures."
+
+msgid "Doʻkon egasi shu raqamga qoʻngʻiroq qiladi yoki yozadi."
+msgstr "The store’s owner will call or message this number."
+
+#, python-format
+msgid "Dizayn yuborish uchun <a class=\"link\" href=\"%(login_url)s?next=%(here)s\">hisobingizga kiring</a>."
+msgstr "To send a design, <a class=\"link\" href=\"%(login_url)s?next=%(here)s\">sign in</a>."
+
+#, python-format
+msgid "Boshqa savol boʻlsa, <a class=\"link\" href=\"%(contact_url)s\">Bogʻlanish</a> sahifasidan yozing."
+msgstr "For anything else, write to us from the <a class=\"link\" href=\"%(contact_url)s\">Contact</a> page."
+
+#, python-format
+msgid "Oʻz dizayningizni taklif qilmoqchimisiz? <a class=\"link\" href=\"%(design_url)s\">Dizayn yuborish sahifasi</a>."
+msgstr "Want to suggest a design of your own? <a class=\"link\" href=\"%(design_url)s\">Send it here</a>."
+
+msgid "Dizaynlar"
+msgstr "Designs"
+
+msgid "Joyi"
+msgstr "Placement"
+
+msgid "Matn"
+msgstr "Text"
+
+msgid "Dizayn yoʻq."
+msgstr "No designs."
+
+msgid "Oʻqilmagan dizaynlar"
+msgstr "Unread designs"
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Enter the postal index."
 

@@ -688,3 +688,37 @@ html.js .slides__controls {
   border: 1px solid var(--c-line); border-radius: var(--r-sm); }
 .retlist__answer { padding: var(--s-3) var(--s-4); background: var(--c-brand-bg);
   border-radius: var(--r-sm); }
+
+/* ---- Suggesting one's own design (§9 Phase 23 part E) ----
+   One column, as the return form. The garment's colours are radios with a
+   swatch beside them; "which colour" is asked only for "Boshqa rang" where
+   :has() is understood, and is simply always there where it is not. */
+.design { max-width: 720px; }
+.design__choices { display: grid; gap: var(--s-3); }
+.design__swatches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+.design__swatch { display: flex; align-items: center; gap: var(--s-3); min-height: 44px; cursor: pointer; }
+.design__chip { width: 28px; height: 28px; flex: none; border-radius: 50%;
+  border: 1px solid var(--c-line-strong); }
+/* The radio is hidden; the swatch carries its state. Chosen: a ring round it,
+   set off by the page's own ground so it reads on black and on white alike.
+   Focused: the system's ring, on the swatch, the thing that can be seen. */
+.design__swatch input:checked + .design__chip {
+  box-shadow: 0 0 0 2px var(--c-bg), 0 0 0 4px var(--c-fg); }
+.design__swatch input:checked ~ span:last-child { font-weight: var(--fw-semibold); }
+.design__swatch input:focus-visible + .design__chip { outline: 2px solid var(--c-brand-ink);
+  outline-offset: 6px; }
+.design__chip--white { background: var(--c-garment-white); }
+.design__chip--black { background: var(--c-garment-black); }
+.design__chip--grey { background: var(--c-garment-grey); }
+.design__chip--other { border-style: dashed; border-color: var(--c-line-control); }
+.design__other { margin-top: var(--s-3); }
+.design:not(:has(input[name="colour"][value="other"]:checked)) .design__other { display: none; }
+.design__colours { display: grid; gap: var(--s-3); }
+.design__colour { display: flex; align-items: center; gap: var(--s-4); }
+.design__colour .check { min-width: 7em; }
+.design__picker { width: 56px; height: 40px; padding: var(--s-1); cursor: pointer;
+  background: var(--c-bg); border: 1px solid var(--c-line-control); border-radius: var(--r-sm); }
+.design__pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+@media (min-width: 560px) {
+  .design__swatches { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

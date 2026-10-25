@@ -3,13 +3,13 @@
 # happens at the next boot.
 
 [Unit]
-Description=GRAPHIX - prune closed return requests, daily
+Description=GRAPHIX - prune requests kept a year, daily
 
 [Timer]
 OnCalendar=*-*-* 04:40:00 Asia/Tashkent
 Persistent=true
 RandomizedDelaySec=600
-Unit=graphix-prune-returns.service
+Unit=graphix-prune-requests.service
 
 [Install]
 WantedBy=timers.target

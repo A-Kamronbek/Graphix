@@ -65,6 +65,14 @@
   --c-danger:        #B4371F;  --c-danger-bg:  #FCEBE6;
   --c-info:          #1E6A8E;  --c-info-bg:    #E6F1F7;
 
+  /* garments. The cloth a customer picks on the own-design page (§9 Phase 23
+     part E): what the shirt looks like, not the system's palette, and used
+     for those swatches and nothing else. Each sits in a hairline ring, so
+     white reads on the white page. */
+  --c-garment-white: #FFFFFF;
+  --c-garment-black: #1A1A1A;
+  --c-garment-grey:  #9E9E9E;
+
   /* The scrim behind anything that covers the page - drawer, filter sheet,
      modal. One value, so every dimmed page dims by the same amount; three
      hand-written color-mix() calls had already drifted to two. */

@@ -1,0 +1,78 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n date_tags image_tags %}
+{% block title %}{% trans "Dizaynlar" %}{% endblock %}
+
+{% comment %}
+  Customers' own designs (§9 Phase 23 part E, item 26), beside "Xabarlar" and
+  built as it is: newest first, the unread ones marked, a switch to mark one
+  read that `panel.js` sends without leaving the page (§17 #155). The owner
+  answers by phone or Telegram; the number is a link to ring.
+
+  The pictures open at their full size in a new tab, to be judged there
+  (§17 #150). Their names are random, as a return's photographs are.
+{% endcomment %}
+
+{% block content %}
+<div class="row row--between pnl__head">
+  <h1 class="pnl__title">{% trans "Dizaynlar" %}</h1>
+  <span class="badge badge--brand" data-unread-count {% if not unread %}hidden{% endif %}>{{ unread }}</span>
+</div>
+
+<nav class="pnl__tabs" aria-label="{% trans 'Filtr' %}">
+  <a href="{% url 'panel_designs' %}" {% if not show %}aria-current="page"{% endif %}>{% trans "Hammasi" %}</a>
+  <a href="?show=unread" {% if show == 'unread' %}aria-current="page"{% endif %}>{% trans "Oʻqilmagan" %}</a>
+</nav>
+
+<form hidden>{% csrf_token %}</form>
+
+<div class="pnl__section stack">
+  {% for d in designs %}
+    {# The id is what the Telegram notice links to, as a message's is. #}
+    <article id="dizayn-{{ d.pk }}"
+             class="note {% if not d.is_read %}is-unread{% endif %}" data-msg="{{ d.pk }}"
+             data-url="{% url 'panel_design_read' pk=d.pk %}">
+      <div class="note__hd">
+        <strong>{{ d.get_garment_display }}, {{ d.colour_label }}</strong>
+        <time class="small muted" datetime="{{ d.created_at|date:'c' }}">{{ d.created_at|date:"j E, H:i"|month_case }}</time>
+      </div>
+      <dl class="spec">
+        <div class="spec__row"><dt>{% trans "Joyi" %}</dt><dd>{{ d.get_placement_display }}</dd></div>
+        <div class="spec__row"><dt>{% trans "Oʻlcham" %}</dt><dd class="num">{{ d.size }} × {{ d.quantity }}</dd></div>
+        {% if d.print_text %}
+          <div class="spec__row"><dt>{% trans "Matn" %}</dt><dd>{{ d.print_text }}</dd></div>
+        {% endif %}
+        {% if d.colour_list %}
+          <div class="spec__row"><dt>{% trans "Bosma ranglari" %}</dt>
+            <dd class="dzn__colours">
+              {% for hex in d.colour_list %}
+                <span class="dzn__colour"><span class="dzn__chip" style="--chip: {{ hex }}" aria-hidden="true"></span><span class="num small">{{ hex|upper }}</span></span>
+              {% endfor %}
+            </dd></div>
+        {% endif %}
+      </dl>
+      <p class="note__text">{{ d.idea|linebreaksbr }}</p>
+      {% if d.images.all %}
+        <div class="mod__pics">
+          {% for image in d.images.all %}
+            <a href="{{ image.picture.url }}" target="_blank" rel="noopener">
+              <img {% photo_attrs image 'panel' %} alt="" loading="lazy" decoding="async">
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <div class="note__foot">
+        <span class="small muted">{{ d.user.public_name }}</span>
+        <a class="link tap" href="tel:{{ d.phone|cut:' ' }}">{{ d.phone }}</a>
+        <label class="switch">
+          <input type="checkbox" data-msg-read {% if d.is_read %}checked{% endif %}>
+          <span>{% trans "Oʻqildi" %}</span>
+        </label>
+      </div>
+    </article>
+  {% empty %}
+    <p class="muted">{% trans "Dizayn yoʻq." %}</p>
+  {% endfor %}
+</div>
+
+{% include "product/_pager.html" with page_obj=designs base_query=base_query %}
+{% endblock %}

@@ -67,9 +67,11 @@ CLAIM_RESPONSE_DAYS = 10
 #: purchase, and holds a return to the same ten (§17 #398).
 EXCHANGE_DAYS = 10
 
-#: How long a return or exchange request and its photographs are kept once it
-#: is closed (§17 #406), in months. `prune_return_requests` deletes them.
-RETURN_KEEP_MONTHS = 12
+#: How long a customer's request and its photographs are kept, in months
+#: (§17 #406): a return or exchange request from the day it is closed, a
+#: suggested design from the day it is sent, since it has no closing.
+#: `prune_requests` deletes them.
+REQUEST_KEEP_MONTHS = 12
 
 #: Art. 13: with no warranty period set, a defect may be claimed within six
 #: months. Art. 14: a replacement is due within seven days of the claim.
@@ -203,6 +205,7 @@ def facts():
     from core.ratelimit import MAX_WINDOW
     from product.images import MAX_BYTES
     from payment.promos import FLOOR
+    from core import designs
     from payment import returns
     from product.views import MAX_PHOTOS, MAX_TEXT
     from user import codes
@@ -242,7 +245,9 @@ def facts():
         review_photo_mb=MAX_BYTES // (1024 * 1024),
         return_photos=returns.MAX_PHOTOS,
         return_daily=returns.DAILY,
-        return_keep_months=RETURN_KEEP_MONTHS,
+        request_keep_months=REQUEST_KEEP_MONTHS,
+        design_photos=designs.MAX_PHOTOS,
+        design_daily=designs.DAILY,
         session_days=settings.SESSION_COOKIE_AGE // day,
         language_cookie_days=settings.LANGUAGE_COOKIE_AGE // day,
         csrf_cookie_days=settings.CSRF_COOKIE_AGE // day,

@@ -13,6 +13,10 @@
  *    `data-file-field` is upgraded to a translated button and a line naming
  *    what was picked (§18 #29). Without this script the native control stays,
  *    and still works.
+ * 3. A colour picker always holds a colour, so the own-design page pairs
+ *    each with a box that says it is wanted (§9 Phase 23 part E). Picking a
+ *    colour ticks its box, `[data-colour-pick]`; without this script the
+ *    customer ticks it.
  *
  * Nothing here is load-bearing: the server validates everything again. This
  * is the only script that sets a custom validity message, which is what makes
@@ -103,5 +107,14 @@
     }
     input.addEventListener('change', show);
     show();
+  });
+
+  /* ---------------------------------------------------- colour pickers */
+  document.addEventListener('input', function (event) {
+    var picker = event.target;
+    if (!picker || picker.type !== 'color') return;
+    var row = picker.closest('[data-colour-pick]');
+    var box = row && row.querySelector('input[type="checkbox"]');
+    if (box) box.checked = true;
   });
 })();

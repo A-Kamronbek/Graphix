@@ -31,7 +31,7 @@ from django.db import transaction
 
 from django.db.models import ExpressionWrapper, Max, Prefetch
 
-from core.models import Msg
+from core.models import DesignRequest, Msg
 from payment.models import (DeliveryOption, District, Order, PaymentOption,
                             Region, SOLD)
 from product import images as image_pipeline
@@ -160,6 +160,8 @@ def dashboard(request):
                       .order_by('stock')[:8]),
         'low_stock_count': Variant.objects.running_low().count(),
         'unread': Msg.objects.filter(is_read=False).count(),
+        # Customers' own designs nobody has marked read (§9 Phase 23 part E).
+        'unread_designs': DesignRequest.objects.filter(is_read=False).count(),
         'pending_reviews': Review.objects.filter(
             status=Review.Status.PENDING).count(),
         # New return and exchange requests, nobody has looked at yet
@@ -755,6 +757,42 @@ def message_read(request, pk):
     msg.save(update_fields=['is_read'])
     return JsonResponse({'ok': True, 'value': msg.is_read,
                          'unread': Msg.objects.filter(is_read=False).count()})
+
+
+@staff_only
+def designs_inbox(request):
+    """Customers' own designs (§9 Phase 23 part E), built as the messages are.
+
+    Newest first, the unread ones marked, a filter for the unread: the owner
+    reads a suggestion, rings or writes back, and marks it read (§17 #155).
+    """
+    show = request.GET.get('show', '')
+    qs = (DesignRequest.objects.select_related('user').prefetch_related('images')
+          .order_by('-created_at', '-id'))
+    if show == 'unread':
+        qs = qs.filter(is_read=False)
+
+    page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
+    kept = request.GET.copy()
+    kept.pop('page', None)
+    return render(request, 'boshqaruv/designs.html', {
+        'screen': 'designs',
+        'designs': page,
+        'base_query': kept.urlencode(),
+        'show': show,
+        'unread': DesignRequest.objects.filter(is_read=False).count(),
+    })
+
+
+@staff_only
+@require_POST
+def design_read(request, pk):
+    """Mark one design read or unread, as a message is."""
+    design = get_object_or_404(DesignRequest, pk=pk)
+    design.is_read = request.POST.get('value', '1') in ('1', 'true', 'on')
+    design.save(update_fields=['is_read'])
+    return JsonResponse({'ok': True, 'value': design.is_read,
+                         'unread': DesignRequest.objects.filter(is_read=False).count()})
 
 
 # --------------------------------------------------------------- reference

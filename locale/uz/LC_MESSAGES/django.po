@@ -3385,6 +3385,152 @@ msgstr ""
 msgid "Muddatdan keyin"
 msgstr ""
 
+msgid "Futbolka"
+msgstr ""
+
+msgid "Longsliv"
+msgstr ""
+
+msgid "Oq"
+msgstr ""
+
+msgid "Qora"
+msgstr ""
+
+msgid "Kulrang"
+msgstr ""
+
+msgid "Boshqa rang"
+msgstr ""
+
+msgid "Old tomonga"
+msgstr ""
+
+msgid "Orqa tomonga"
+msgstr ""
+
+msgid "Ikkala tomonga"
+msgstr ""
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta taklif yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr ""
+
+msgid "Gʻoyangizni qisqacha yozing."
+msgstr ""
+
+#, python-format
+msgid "Gʻoya %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+#, python-format
+msgid "Bosiladigan matn %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Futbolka yoki longslivni tanlang."
+msgstr ""
+
+msgid "Kiyim rangini tanlang."
+msgstr ""
+
+msgid "Qaysi rang kerakligini yozing."
+msgstr ""
+
+#, python-format
+msgid "Rang nomi %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Bosma rangini qayta tanlang."
+msgstr ""
+
+msgid "Dizayn qayerga tushirilishini tanlang."
+msgstr ""
+
+msgid "Oʻlchamni tanlang."
+msgstr ""
+
+#, python-format
+msgid "Nechta kerakligini 1 dan %(n)d gacha yozing."
+msgstr ""
+
+msgid "Taklifingiz yuborildi. Doʻkon egasi siz bilan koʻrsatilgan raqam orqali bogʻlanadi."
+msgstr ""
+
+msgid "Oʻz dizayningizni GRAPHIX’ga yuboring: gʻoya, matn, ranglar va rasmlar. Doʻkon egasi koʻrib chiqib, siz bilan bogʻlanadi."
+msgstr ""
+
+msgid "Gʻoyangizni yozing va eskiz, logotip yoki namuna rasmini qoʻshing. Doʻkon egasi koʻrib chiqadi va narxi hamda muddati haqida siz bilan bogʻlanadi. Saytda hech narsa toʻlanmaydi."
+msgstr ""
+
+msgid "Gʻoyangiz"
+msgstr ""
+
+msgid "Nima tasvirlansin, qaysi uslubda, qanday kayfiyatda."
+msgstr ""
+
+msgid "Bosiladigan matn"
+msgstr ""
+
+msgid "Matn boʻlmasa, boʻsh qoldiring."
+msgstr ""
+
+msgid "Kiyim"
+msgstr ""
+
+msgid "Kiyim rangi"
+msgstr ""
+
+msgid "Qaysi rang?"
+msgstr ""
+
+msgid "Bosma ranglari"
+msgstr ""
+
+#, python-format
+msgid "%(n)s-rang"
+msgstr ""
+
+#, python-format
+msgid "Koʻpi bilan %(n)s ta. Bilmasangiz, belgilamang: doʻkon egasi tavsiya qiladi."
+msgstr ""
+
+msgid "Dizayn qayerga tushiriladi?"
+msgstr ""
+
+#, python-format
+msgid "Eskiz, logotip yoki namuna. Koʻpi bilan %(n)s ta. Rasmlarni faqat doʻkon xodimlari koʻradi."
+msgstr ""
+
+msgid "Doʻkon egasi shu raqamga qoʻngʻiroq qiladi yoki yozadi."
+msgstr ""
+
+#, python-format
+msgid "Dizayn yuborish uchun <a class=\"link\" href=\"%(login_url)s?next=%(here)s\">hisobingizga kiring</a>."
+msgstr ""
+
+#, python-format
+msgid "Boshqa savol boʻlsa, <a class=\"link\" href=\"%(contact_url)s\">Bogʻlanish</a> sahifasidan yozing."
+msgstr ""
+
+#, python-format
+msgid "Oʻz dizayningizni taklif qilmoqchimisiz? <a class=\"link\" href=\"%(design_url)s\">Dizayn yuborish sahifasi</a>."
+msgstr ""
+
+msgid "Dizaynlar"
+msgstr ""
+
+msgid "Joyi"
+msgstr ""
+
+msgid "Matn"
+msgstr ""
+
+msgid "Dizayn yoʻq."
+msgstr ""
+
+msgid "Oʻqilmagan dizaynlar"
+msgstr ""
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr ""
 

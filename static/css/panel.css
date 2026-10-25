@@ -515,3 +515,10 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 .retrow { display: block; color: inherit; text-decoration: none; }
 .retrow:hover { border-color: var(--c-fg-muted); }
 .retrow + .retrow { margin-top: 0; }
+
+/* A suggested design's print colours: each the customer's own pick, so its
+   value comes from the row (`--chip`), not from a token. */
+.dzn__colours { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); }
+.dzn__colour { display: inline-flex; align-items: center; gap: var(--s-2); }
+.dzn__chip { width: 18px; height: 18px; flex: none; border-radius: 50%;
+  background: var(--chip); border: 1px solid var(--c-line-strong); }

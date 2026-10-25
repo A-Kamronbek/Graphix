@@ -68,12 +68,21 @@ JPEG_QUALITY = 82
 #: one image on the site that is meant to be looked at closely (§8).
 PRODUCT_MAX_EDGE = 2000
 
+#: What a transparent picture is laid on before it becomes a JPEG. White suits
+#: a screenshot sent with a review; a design's logo is often white on nothing,
+#: and on white it would vanish, so a suggested design's pictures go on grey
+#: (§9 Phase 23 part E).
+WHITE = (255, 255, 255)
+GREY = (128, 128, 128)
 
-def sanitise(upload, name_hint='review', max_edge=None):
+
+def sanitise(upload, name_hint='review', max_edge=None, background=WHITE):
     """Return ``upload`` as a clean JPEG :class:`ContentFile`.
 
     ``max_edge`` defaults to :data:`MAX_EDGE`, which suits a review photo; the
-    panel passes :data:`PRODUCT_MAX_EDGE` for catalogue photography. Everything
+    panel passes :data:`PRODUCT_MAX_EDGE` for catalogue photography.
+    ``background`` is what a transparent picture is laid on, white unless the
+    caller says otherwise (:data:`GREY` for a design's logo). Everything
     else — the size and pixel limits, the format check, and the re-encode that
     strips the metadata — is the same either way, which is the point: one
     pipeline, so a photograph uploaded by the owner is cleaned exactly like one
@@ -127,11 +136,11 @@ def sanitise(upload, name_hint='review', max_edge=None):
         # sideways is stored sideways: the tag is the only thing that was
         # holding it upright.
         image = _apply_orientation(image)
-        # Flatten transparency onto white rather than letting RGBA fail to save
-        # as JPEG. A review photo with an alpha channel is a screenshot.
+        # Flatten transparency onto `background` rather than letting RGBA fail
+        # to save as JPEG. A review photo with an alpha channel is a screenshot.
         if image.mode in ('RGBA', 'LA', 'P'):
             image = image.convert('RGBA')
-            flat = Image.new('RGB', image.size, (255, 255, 255))
+            flat = Image.new('RGB', image.size, background)
             flat.paste(image, mask=image.split()[-1])
             image = flat
         elif image.mode != 'RGB':

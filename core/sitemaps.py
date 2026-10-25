@@ -22,8 +22,8 @@ class StaticViewSitemap(Sitemap):
     def items(self):
         # /saqlanganlar/ is deliberately absent: it needs a login, so it has
         # nothing to show a crawler.
-        names = ['home', 'shop', 'about', 'contact', 'delivery', 'terms', 'privacy',
-                 'returns']
+        names = ['home', 'shop', 'about', 'contact', 'custom_design', 'delivery',
+                 'terms', 'privacy', 'returns']
         # The size guide 404s until there is something to show, and a sitemap
         # that advertises a 404 is worse than one that omits the page. The same
         # question the page itself answers: does a chart have rows, which the

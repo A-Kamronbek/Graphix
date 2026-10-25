@@ -76,6 +76,11 @@
       <span class="stat__n">{{ unread }}</span>
       <span class="stat__label">{% trans "Oʻqilmagan xabarlar" %}</span>
     </a>
+    <a class="stat {% if unread_designs %}stat--todo{% endif %}"
+       href="{% url 'panel_designs' %}?show=unread">
+      <span class="stat__n">{{ unread_designs }}</span>
+      <span class="stat__label">{% trans "Oʻqilmagan dizaynlar" %}</span>
+    </a>
     <a class="stat {% if low_stock_count %}stat--todo{% endif %}"
        href="{% url 'panel_products' %}?low=1">
       <span class="stat__n">{{ low_stock_count }}</span>

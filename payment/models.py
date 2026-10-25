@@ -755,7 +755,7 @@ class ReturnRequest(models.Model):
     #: request cannot be asked about again (item 12).
     OPEN = frozenset({Status.NEW, Status.REVIEWING, Status.ACCEPTED})
     #: Closed. A closed request is kept a year and then deleted with its
-    #: photographs (§17 #406, `prune_return_requests`).
+    #: photographs (§17 #406, `prune_requests`).
     CLOSED = frozenset({Status.REJECTED, Status.DONE})
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,

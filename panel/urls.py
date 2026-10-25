@@ -49,6 +49,11 @@ urlpatterns = [
     path('boshqaruv/xabarlar/', views.messages_inbox, name='panel_messages'),
     path('boshqaruv/xabarlar/<int:pk>/oqildi/', views.message_read,
          name='panel_message_read'),
+    # Customers' own designs, read and unread like the messages (§9 Phase 23
+    # part E).
+    path('boshqaruv/dizaynlar/', views.designs_inbox, name='panel_designs'),
+    path('boshqaruv/dizaynlar/<int:pk>/oqildi/', views.design_read,
+         name='panel_design_read'),
 
     # The home page's promotional cards. Not reference data — a promotion
     # changes with the season — so its own screen and its own tab (§17 #251).

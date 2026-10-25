@@ -61,6 +61,8 @@ PAGES = (
     Page('search', {}, 200, 200, 200),
     Page('about', {}, 200, 200, 200),
     Page('contact', {}, 200, 200, 200),
+    # Open to read; sending needs an account (§9 Phase 23 part E).
+    Page('custom_design', {}, 200, 200, 200),
     Page('delivery', {}, 200, 200, 200),
     Page('terms', {}, 200, 200, 200),
     Page('privacy', {}, 200, 200, 200),
@@ -139,6 +141,7 @@ PANEL = (
     Page('panel_product_new', {}, STAFF_DOOR, 403, 200),
     Page('panel_product', {'slug': 'slug'}, STAFF_DOOR, 403, 200),
     Page('panel_messages', {}, STAFF_DOOR, 403, 200),
+    Page('panel_designs', {}, STAFF_DOOR, 403, 200),
     Page('panel_reviews', {}, STAFF_DOOR, 403, 200),
     Page('panel_regions', {}, STAFF_DOOR, 403, 200),
     Page('panel_settings', {}, STAFF_DOOR, 403, 200),
@@ -162,6 +165,7 @@ PANEL = (
     Page('panel_product_images', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
     Page('panel_review_moderate', {'pk': 'review_pk'}, STAFF_DOOR, 403, 405),
     Page('panel_message_read', {'pk': 'msg_pk'}, STAFF_DOOR, 403, 405),
+    Page('panel_design_read', {'pk': 'design_pk'}, STAFF_DOOR, 403, 405),
     Page('panel_lookup_new', {'kind': 'kind'}, STAFF_DOOR, 403, 405),
     Page('panel_chart_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_chart_rows', {'pk': 'chart_pk'}, STAFF_DOOR, 403, 405),
@@ -243,7 +247,7 @@ class SmokeMatrix(TestCase):
             # the view looks one up (§17 #302).
             'slide_pk': 1, 'which': 'phone',
             # Nor a chart, for the same reason (§17 #400).
-            'chart_pk': 1, 'return_pk': 1,
+            'chart_pk': 1, 'return_pk': 1, 'design_pk': 1,
             'promo_pk': PromoCode.objects.create(
                 code='SMOKE', kind=PromoCode.Kind.ORDER_SUM, value=1000).pk,
         }

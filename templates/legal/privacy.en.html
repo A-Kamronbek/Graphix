@@ -24,6 +24,8 @@
   <p>Your review (rating, text, photos) and the order it belongs to; a message you send through the contact form (subject and text) together with the phone number on your account.</p>
   <h3>Return and exchange requests</h3>
   <p>Which order and items a request is about, whether it is a return or an exchange, the reason, the explanation you write, the photos you send (up to {{ legal.return_photos }}) and a phone number to reach you on, as well as the store staff’s answer. The photos are processed, and the hidden location and device data in them is removed. Only you and the store’s staff see a request and its photos.</p>
+  <h3>Design suggestions</h3>
+  <p>Your idea, the text to print, the garment and its colour, the print colours, where the design goes, the size and quantity, the pictures you send (up to {{ legal.design_photos }}) and a phone number to reach you on. The pictures are processed, and the hidden location and device data in them is removed. Only the store’s staff see a suggestion and its pictures.</p>
   <h3>Cart and saved designs</h3>
   <p>The products in your cart and the designs you have saved with the heart. If you are not signed in, your cart is linked to a session in your browser.</p>
   <h3>Technical data</h3>
@@ -36,7 +38,7 @@
   <ul>
     <li><strong>Your account</strong> — confirming your phone number, signing you in with an SMS code, keeping the account secure;</li>
     <li><strong>Fulfilling orders</strong> — checkout, taking payment, preparing the parcel and handing it to Uzpost, contacting you;</li>
-    <li><strong>Customer service</strong> — answering your questions, handling exchange and return requests;</li>
+    <li><strong>Customer service</strong> — answering your questions, handling exchange and return requests and design suggestions;</li>
     <li><strong>Reviews</strong> — checking and publishing them on the Site;</li>
     <li><strong>Security</strong> — preventing fraud and abuse;</li>
     <li><strong>Legal duties</strong> — keeping accounting and tax records.</li>
@@ -53,7 +55,7 @@
     <li><strong>Click</strong> (click.uz) — payments: the order number and amount; Click takes your card details itself;</li>
     <li><strong>Uzpost</strong> (Oʻzbekiston pochtasi JSC) — delivery: when the parcel is booked, Uzpost’s system is sent the recipient’s full name, phone number, region and district, and for door delivery the street and house number and, if you dropped a pin, its coordinates;</li>
     <li><strong>Google</strong> — Google Maps: the map does not load when the page opens. Your browser loads Google’s script only when you press “From the map” or “Choose on the map”, and only then does Google receive your IP address and technical details about your browser. If you drop a pin, its coordinates are sent to Google to look up the address. “Near me” uses your location only to move the map to where you are: it is not sent to us. If you never open the map, nothing is sent to Google at all;</li>
-    <li><strong>Telegram</strong> — notices of new orders, payments, messages, reviews and return requests reach the store’s staff through the store’s Telegram bot. An order notice contains the recipient’s name, phone number and address (with the pin’s coordinates, if one was dropped on the map), the items and the order note; a message notice contains the sender’s name, phone number and message; a return request notice contains the order number, the items, the reason, the explanation and the phone number (the photos themselves are not sent);</li>
+    <li><strong>Telegram</strong> — notices of new orders, payments, messages, reviews, return requests and design suggestions reach the store’s staff through the store’s Telegram bot. An order notice contains the recipient’s name, phone number and address (with the pin’s coordinates, if one was dropped on the map), the items and the order note; a message notice contains the sender’s name, phone number and message; a return request notice contains the order number, the items, the reason, the explanation and the phone number; a design suggestion notice contains the idea, the text to print, the garment, the colours, the size, the quantity and the phone number (photos and pictures themselves are not sent);</li>
     <li><strong>Our hosting provider</strong> — the Site and its database run on a rented server in Warsaw, Poland: everything we keep is stored there (<a class="link" href="#abroad">section 5</a>).</li>
   </ul>
   <p>Where the law requires it, data may be disclosed at the request of the competent public authorities.</p>
@@ -73,7 +75,8 @@
     <li><strong>Orders</strong> — for the period the law sets for accounting and tax records (under current rules, at least three years). These records are kept until that period ends even if your account is deleted;</li>
     <li><strong>Carts without an account</strong> — deleted {{ legal.guest_cart_days }} day{{ legal.guest_cart_days|pluralize }} after they were created;</li>
     <li><strong>Reviews</strong> — for as long as they are published on the Site, or until you ask us to remove them;</li>
-    <li><strong>Return and exchange requests</strong> and their photos — {{ legal.return_keep_months }} month{{ legal.return_keep_months|pluralize }} after the request is closed, then deleted;</li>
+    <li><strong>Return and exchange requests</strong> and their photos — {{ legal.request_keep_months }} month{{ legal.request_keep_months|pluralize }} after the request is closed, then deleted;</li>
+    <li><strong>Design suggestions</strong> and their pictures — {{ legal.request_keep_months }} month{{ legal.request_keep_months|pluralize }} after they are sent, then deleted;</li>
     <li><strong>Messages</strong> — for as long as it takes to resolve what you wrote to us about;</li>
     <li><strong>Web server logs</strong> — {{ legal.log_days }} day{{ legal.log_days|pluralize }};</li>
     <li><strong>Attempt counters</strong> (a hash of your IP address or phone number) — up to {{ legal.rate_limit_minutes }} minute{{ legal.rate_limit_minutes|pluralize }}.</li>
@@ -111,7 +114,7 @@
 
 <section class="legal__sec" id="security">
   <h2>9. How we protect it</h2>
-  <p>Your connection to the Site is encrypted (HTTPS). The only way into an account is a one-time code sent to your phone, and the code itself is not stored. Only authorised staff can reach the database and the order management panel. Requests for a code and attempts to enter one are limited. Location data is removed from review and request photos.</p>
+  <p>Your connection to the Site is encrypted (HTTPS). The only way into an account is a one-time code sent to your phone, and the code itself is not stored. Only authorised staff can reach the database and the order management panel. Requests for a code and attempts to enter one are limited. Location data is removed from review and request photos and from design suggestion pictures.</p>
   <p>If a data breach happens, we will tell you as soon as we can and, where the law requires it, the competent authority.</p>
 </section>
 

@@ -4,10 +4,11 @@ Structured exactly like :mod:`core.sms`, and for the same reason: module
 logger, catch everything, log, return a boolean, **never raise**. A Telegram
 outage degrades a feature; it must never fail a checkout (§4, §12 risk #17).
 
-There are six events - a paid order, a contact message, a review waiting
+There are seven events - a paid order, a contact message, a review waiting
 for moderation, the hourly ceiling on sign-in codes being reached, an Uzpost
-shipment in a status the shop does not act on, and a request to return or
-exchange - and each is sent once, when it happens. An order is notified
+shipment in a status the shop does not act on, a request to return or
+exchange, and a design a customer suggests - and each is sent once, when it
+happens. An order is notified
 when the money arrives and not when it is placed (§17 #237): an abandoned
 checkout and a cancelled payment are not parcels, and the owner should not
 have to work out which of his notifications are.
@@ -484,6 +485,50 @@ def notify_return(request):
         'kind': request.kind,
         'reason': request.reason,
         'text': request.explanation,
+        'phone': request.phone,
+        'photos': photos,
+        'admin_url': link,
+    }})
+
+
+@_in_uzbek
+def notify_design(request):
+    """A customer suggests a design of their own (§17 #402).
+
+    The garment, where the print goes, the size and how many, the words and
+    colours if any, the number to ring, and a link to it in the panel's
+    "Dizaynlar". The idea and the text are the customer's own, so they are
+    escaped like every other. The pictures themselves are not sent.
+    """
+    lines = [
+        f"🎨 <b>Yangi dizayn taklifi:</b> {esc(request.get_garment_display().lower())}, "
+        f"{esc(request.colour_label.lower())}",
+        f"<b>Joyi:</b> {esc(request.get_placement_display().lower())}",
+        f"<b>Oʻlcham:</b> {esc(request.size)} × {request.quantity}",
+    ]
+    if request.print_text:
+        lines.append(f"<b>Matn:</b> {esc(request.print_text)}")
+    if request.print_colours:
+        lines.append(f"<b>Ranglar:</b> {esc(request.print_colours.upper())}")
+    lines.append(esc(request.idea[:300]))
+    photos = request.images.count()
+    if photos:
+        lines.append(f"📷 Rasm: {photos} ta")
+    lines.append(_phone_line('Telefon', request.phone).lstrip('\n'))
+    link = panel_url('panel_designs', anchor=f'#dizayn-{request.pk}')
+    if link:
+        lines.append(f'\n<a href="{link}">Dizaynni ochish</a>')
+    notify('\n'.join(lines), event='design.new', data={'design': {
+        'id': request.pk,
+        'garment': request.garment,
+        'colour': request.colour,
+        'colour_other': request.colour_other,
+        'placement': request.placement,
+        'size': request.size,
+        'quantity': request.quantity,
+        'text': request.idea,
+        'print_text': request.print_text,
+        'colours': request.colour_list,
         'phone': request.phone,
         'photos': photos,
         'admin_url': link,

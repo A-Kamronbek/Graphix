@@ -3474,6 +3474,152 @@ msgstr "Выбранные фото не сохранились: выберит�
 msgid "Muddatdan keyin"
 msgstr "После срока"
 
+msgid "Futbolka"
+msgstr "Футболка"
+
+msgid "Longsliv"
+msgstr "Лонгслив"
+
+msgid "Oq"
+msgstr "Белый"
+
+msgid "Qora"
+msgstr "Чёрный"
+
+msgid "Kulrang"
+msgstr "Серый"
+
+msgid "Boshqa rang"
+msgstr "Другой цвет"
+
+msgid "Old tomonga"
+msgstr "Спереди"
+
+msgid "Orqa tomonga"
+msgstr "Сзади"
+
+msgid "Ikkala tomonga"
+msgstr "С двух сторон"
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta taklif yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr "В день можно отправить не больше %(n)d предложений. Попробуйте завтра или напишите нам."
+
+msgid "Gʻoyangizni qisqacha yozing."
+msgstr "Коротко опишите идею."
+
+#, python-format
+msgid "Gʻoya %(n)d belgidan oshmasligi kerak."
+msgstr "Идея должна быть не длиннее %(n)d символов."
+
+#, python-format
+msgid "Bosiladigan matn %(n)d belgidan oshmasligi kerak."
+msgstr "Текст для печати должен быть не длиннее %(n)d символов."
+
+msgid "Futbolka yoki longslivni tanlang."
+msgstr "Выберите футболку или лонгслив."
+
+msgid "Kiyim rangini tanlang."
+msgstr "Выберите цвет изделия."
+
+msgid "Qaysi rang kerakligini yozing."
+msgstr "Напишите, какой нужен цвет."
+
+#, python-format
+msgid "Rang nomi %(n)d belgidan oshmasligi kerak."
+msgstr "Название цвета должно быть не длиннее %(n)d символов."
+
+msgid "Bosma rangini qayta tanlang."
+msgstr "Выберите цвет печати ещё раз."
+
+msgid "Dizayn qayerga tushirilishini tanlang."
+msgstr "Выберите, где будет рисунок."
+
+msgid "Oʻlchamni tanlang."
+msgstr "Выберите размер."
+
+#, python-format
+msgid "Nechta kerakligini 1 dan %(n)d gacha yozing."
+msgstr "Укажите количество от 1 до %(n)d."
+
+msgid "Taklifingiz yuborildi. Doʻkon egasi siz bilan koʻrsatilgan raqam orqali bogʻlanadi."
+msgstr "Предложение отправлено. Владелец магазина свяжется с вами по указанному номеру."
+
+msgid "Oʻz dizayningizni GRAPHIX’ga yuboring: gʻoya, matn, ranglar va rasmlar. Doʻkon egasi koʻrib chiqib, siz bilan bogʻlanadi."
+msgstr "Отправьте GRAPHIX свой дизайн: идею, текст, цвета и изображения. Владелец магазина рассмотрит его и свяжется с вами."
+
+msgid "Gʻoyangizni yozing va eskiz, logotip yoki namuna rasmini qoʻshing. Doʻkon egasi koʻrib chiqadi va narxi hamda muddati haqida siz bilan bogʻlanadi. Saytda hech narsa toʻlanmaydi."
+msgstr "Опишите идею и приложите эскиз, логотип или пример. Владелец магазина рассмотрит её и свяжется с вами, чтобы обсудить цену и сроки. На сайте ничего оплачивать не нужно."
+
+msgid "Gʻoyangiz"
+msgstr "Ваша идея"
+
+msgid "Nima tasvirlansin, qaysi uslubda, qanday kayfiyatda."
+msgstr "Что изобразить, в каком стиле, с каким настроением."
+
+msgid "Bosiladigan matn"
+msgstr "Текст для печати"
+
+msgid "Matn boʻlmasa, boʻsh qoldiring."
+msgstr "Если текста нет, оставьте поле пустым."
+
+msgid "Kiyim"
+msgstr "Изделие"
+
+msgid "Kiyim rangi"
+msgstr "Цвет изделия"
+
+msgid "Qaysi rang?"
+msgstr "Какой цвет?"
+
+msgid "Bosma ranglari"
+msgstr "Цвета печати"
+
+#, python-format
+msgid "%(n)s-rang"
+msgstr "Цвет %(n)s"
+
+#, python-format
+msgid "Koʻpi bilan %(n)s ta. Bilmasangiz, belgilamang: doʻkon egasi tavsiya qiladi."
+msgstr "Не больше %(n)s. Если не знаете, не отмечайте: владелец магазина подскажет."
+
+msgid "Dizayn qayerga tushiriladi?"
+msgstr "Где будет рисунок?"
+
+#, python-format
+msgid "Eskiz, logotip yoki namuna. Koʻpi bilan %(n)s ta. Rasmlarni faqat doʻkon xodimlari koʻradi."
+msgstr "Эскиз, логотип или пример. Не больше %(n)s. Изображения видят только сотрудники магазина."
+
+msgid "Doʻkon egasi shu raqamga qoʻngʻiroq qiladi yoki yozadi."
+msgstr "Владелец магазина позвонит или напишет на этот номер."
+
+#, python-format
+msgid "Dizayn yuborish uchun <a class=\"link\" href=\"%(login_url)s?next=%(here)s\">hisobingizga kiring</a>."
+msgstr "Чтобы отправить дизайн, <a class=\"link\" href=\"%(login_url)s?next=%(here)s\">войдите в аккаунт</a>."
+
+#, python-format
+msgid "Boshqa savol boʻlsa, <a class=\"link\" href=\"%(contact_url)s\">Bogʻlanish</a> sahifasidan yozing."
+msgstr "С другими вопросами пишите через страницу <a class=\"link\" href=\"%(contact_url)s\">«Контакты»</a>."
+
+#, python-format
+msgid "Oʻz dizayningizni taklif qilmoqchimisiz? <a class=\"link\" href=\"%(design_url)s\">Dizayn yuborish sahifasi</a>."
+msgstr "Хотите предложить свой дизайн? <a class=\"link\" href=\"%(design_url)s\">Отправьте его здесь</a>."
+
+msgid "Dizaynlar"
+msgstr "Дизайны"
+
+msgid "Joyi"
+msgstr "Где"
+
+msgid "Matn"
+msgstr "Текст"
+
+msgid "Dizayn yoʻq."
+msgstr "Дизайнов нет."
+
+msgid "Oʻqilmagan dizaynlar"
+msgstr "Непрочитанные дизайны"
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Укажите почтовый индекс."
 
