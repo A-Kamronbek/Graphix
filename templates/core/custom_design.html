@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Oʻz dizayningiz" %}{% endblock %}
+{% block meta_description %}{% trans "Oʻz dizayningizni GRAPHIX’ga yuboring: gʻoya, matn, ranglar va rasmlar. Doʻkon egasi koʻrib chiqib, siz bilan bogʻlanadi." %}{% endblock %}
+{% block og_description %}{% trans "Oʻz dizayningizni GRAPHIX’ga yuboring: gʻoya, matn, ranglar va rasmlar. Doʻkon egasi koʻrib chiqib, siz bilan bogʻlanadi." %}{% endblock %}
+
+{% comment %}
+  Suggesting one's own design (§9 Phase 23 part E, §17 #402). A request to
+  the owner, who rings or writes back; nothing is priced or paid here. The
+  rules are `core/designs.py`.
+
+  Everything works without a script. The garment colour and the placement are
+  radios; a garment colour's radio is hidden and its swatch is what is seen
+  and ringed when chosen, so a colour is not two circles side by side. The
+  print's colours are the browser's colour picker, each with a
+  box that says it is wanted, since a colour input always holds a colour.
+  `forms.js` ticks the box when a colour is picked. A browser that
+  understands `:has()` shows the "which colour" box only for "Boshqa rang"
+  (pages.css); without it the box is always there and read only then.
+
+  A refused form comes back as typed. A file input cannot be filled again by
+  the page, so when pictures were sent and the form was refused, it says so
+  under the field rather than leaving them silently gone (item 25).
+{% endcomment %}
+
+{% block content %}
+<div class="wrap section stack stack--lg design">
+  <div class="stack stack--sm">
+    <h1 class="h1">{% trans "Oʻz dizayningiz" %}</h1>
+    <p class="lede">{% trans "Gʻoyangizni yozing va eskiz, logotip yoki namuna rasmini qoʻshing. Doʻkon egasi koʻrib chiqadi va narxi hamda muddati haqida siz bilan bogʻlanadi. Saytda hech narsa toʻlanmaydi." %}</p>
+  </div>
+
+  {% if user.is_authenticated %}
+    <form method="post" enctype="multipart/form-data" class="stack stack--lg" novalidate>
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_idea">{% trans "Gʻoyangiz" %}</label>
+        <textarea class="textarea" name="idea" id="id_idea" rows="5" maxlength="{{ max_text }}"
+                  aria-describedby="id_idea_hint" required>{{ form.idea }}</textarea>
+        <small class="field__hint" id="id_idea_hint">{% trans "Nima tasvirlansin, qaysi uslubda, qanday kayfiyatda." %}</small>
+      </div>
+
+      <div class="field">
+        <label class="label" for="id_print_text">{% trans "Bosiladigan matn" %}</label>
+        <input class="input" type="text" name="print_text" id="id_print_text" maxlength="{{ text_max }}"
+               value="{{ form.print_text }}" aria-describedby="id_print_text_hint">
+        <small class="field__hint" id="id_print_text_hint">{% trans "Matn boʻlmasa, boʻsh qoldiring." %}</small>
+      </div>
+
+      <fieldset class="field">
+        <legend class="label">{% trans "Kiyim" %}</legend>
+        <div class="design__choices">
+          {% for value, label in garments %}
+            <label class="check">
+              <input type="radio" name="garment" value="{{ value }}" required
+                     {% if form.garment == value %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="label">{% trans "Kiyim rangi" %}</legend>
+        <div class="design__swatches">
+          {% for value, label in colours %}
+            <label class="design__swatch">
+              <input class="sr-only" type="radio" name="colour" value="{{ value }}" required
+                     {% if form.colour == value %}checked{% endif %}>
+              <span class="design__chip design__chip--{{ value }}" aria-hidden="true"></span>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        <label class="field design__other">
+          <span class="label">{% trans "Qaysi rang?" %}</span>
+          <input class="input" type="text" name="colour_other" maxlength="{{ other_max }}"
+                 value="{{ form.colour_other }}">
+        </label>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="label">{% trans "Bosma ranglari" %}</legend>
+        <div class="design__colours">
+          {% for n, chosen, value in colour_slots %}
+            <div class="design__colour" data-colour-pick>
+              <label class="check">
+                <input type="checkbox" name="use-colour-{{ n }}" value="1" {% if chosen %}checked{% endif %}>
+                <span>{% blocktrans %}{{ n }}-rang{% endblocktrans %}</span>
+              </label>
+              <input class="design__picker" type="color" name="colour-{{ n }}" value="{{ value }}"
+                     aria-label="{% blocktrans %}{{ n }}-rang{% endblocktrans %}">
+            </div>
+          {% endfor %}
+        </div>
+        <small class="field__hint">{% blocktrans trimmed with n=max_colours %}
+          Koʻpi bilan {{ n }} ta. Bilmasangiz, belgilamang: doʻkon egasi tavsiya qiladi.
+        {% endblocktrans %}</small>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="label">{% trans "Dizayn qayerga tushiriladi?" %}</legend>
+        <div class="design__choices">
+          {% for value, label in placements %}
+            <label class="check">
+              <input type="radio" name="placement" value="{{ value }}" required
+                     {% if form.placement == value %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <div class="design__pair">
+        <label class="field">
+          <span class="label">{% trans "Oʻlcham" %}</span>
+          <select class="select" name="size" required>
+            <option value="">—</option>
+            {% for size in sizes %}
+              <option value="{{ size.pk }}" {% if form.size == size.pk|stringformat:'d' %}selected{% endif %}>{{ size.size }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nechta" %}</span>
+          <input class="input" type="number" name="quantity" min="1" max="{{ max_quantity }}"
+                 inputmode="numeric" value="{{ form.quantity|default:'1' }}" required>
+        </label>
+      </div>
+
+      {# As on the review and return forms: the browser's own input without a #}
+      {# script, `forms.js` swaps it for a button and a line naming the files. #}
+      <div class="field" data-file-field>
+        <label class="label" for="photos">{% trans "Rasmlar" %}</label>
+        <input class="input" type="file" name="photos" id="photos"
+               accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+        <span class="field__file" hidden data-file-ui>
+          <label class="btn btn--secondary" for="photos">{% trans "Rasmlarni tanlash" %}</label>
+          <span class="small muted" data-file-status></span>
+        </span>
+        {% if photos_lost %}
+          <p class="field__error">{% trans "Tanlangan rasmlar saqlanmadi: ularni qayta tanlang." %}</p>
+        {% endif %}
+        <small class="field__hint">
+          {% blocktrans trimmed with n=max_photos %}
+            Eskiz, logotip yoki namuna. Koʻpi bilan {{ n }} ta. Rasmlarni faqat doʻkon xodimlari koʻradi.
+          {% endblocktrans %}
+        </small>
+      </div>
+
+      {# +998 is written in the field, as at checkout (§17 #367). #}
+      <div class="field">
+        <label class="label" for="id_phone">{% trans "Telefon" %}</label>
+        {% include "partials/_tel.html" with value=form.phone describedby="id_phone_hint" %}
+        <small class="field__hint" id="id_phone_hint">{% trans "Doʻkon egasi shu raqamga qoʻngʻiroq qiladi yoki yozadi." %}</small>
+      </div>
+
+      <button class="btn btn--primary btn--lg" type="submit">{% trans "Yuborish" %}</button>
+    </form>
+  {% else %}
+    <div class="msg msg--warn" role="status">
+      <svg class="i i--sm" aria-hidden="true"><use href="#i-info"></use></svg>
+      <span>
+        {% url 'login' as login_url %}{% url 'custom_design' as here %}
+        {% blocktrans %}Dizayn yuborish uchun <a class="link" href="{{ login_url }}?next={{ here }}">hisobingizga kiring</a>.{% endblocktrans %}
+      </span>
+    </div>
+  {% endif %}
+
+  <p class="small muted">
+    {% url 'contact' as contact_url %}
+    {% blocktrans %}Boshqa savol boʻlsa, <a class="link" href="{{ contact_url }}">Bogʻlanish</a> sahifasidan yozing.{% endblocktrans %}
+  </p>
+</div>
+{% endblock %}

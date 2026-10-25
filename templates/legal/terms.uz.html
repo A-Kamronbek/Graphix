@@ -68,8 +68,7 @@
 <section class="legal__sec" id="uncollected">
   <h2>7. Olib ketilmagan yoki rad etilgan joʻnatma</h2>
   <p>Pochta boʻlimi «Bir Qadam» joʻnatmasini {{ legal.hold_days }} kun saqlaydi.</p>
-  <p>Saqlash muddatida olib ketilmagan yoki qabul qiluvchi rad etgan joʻnatma Sotuvchiga qaytariladi. Pochta qoidalariga koʻra, qaytarish xarajatini joʻnatuvchi — Sotuvchi toʻlaydi.</p>
-  <p>Joʻnatma bizga qaytib kelgach, toʻlangan summadan <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> ushlab qolinadi va qolgan qismi {{ legal.refund_days }} kun ichida qaytariladi (<a class="link" href="#refunds">10-boʻlim</a>). Ushlab qolingan summa joʻnatish va qaytarish xarajatlarining bir qismini qoplaydi.</p>
+  <p>Saqlash muddatida olib ketilmagan yoki qabul qiluvchi rad etgan joʻnatma Sotuvchiga qaytariladi. Uzpost boʻlimida qabul qilinmasdan qaytgan joʻnatma Xaridor uchun bepul: qaytarish xarajatini Sotuvchi toʻlaydi, toʻlangan summa esa {{ legal.refund_days }} kun ichida toʻliq qaytariladi (<a class="link" href="#refunds">10-boʻlim</a>).</p>
 </section>
 
 <section class="legal__sec" id="cancel">
@@ -84,19 +83,19 @@
 
 <section class="legal__sec" id="returns">
   <h2>9. Almashtirish va qaytarish</h2>
+  <p>Mahsulotni almashtirish va qaytarish tartibi <a class="link" href="{% url 'returns' %}">Qaytarish va almashtirish siyosati</a>da belgilangan; u ushbu shartlarning bir qismidir.</p>
   <h3>Sifati lozim boʻlgan mahsulot</h3>
-  <p>Oʻlchami yoki bichimi toʻgʻri kelmagan mahsulotni olgan kuningizdan boshlab {{ legal.exchange_days }} kun ichida boshqa oʻlchamga almashtirishingiz mumkin («Isteʼmolchilarning huquqlarini himoya qilish toʻgʻrisida»gi Qonunning 18-moddasi). Buning uchun mahsulot:</p>
   <ul>
-    <li>kiyilmagan va yuvilmagan boʻlishi;</li>
-    <li>tovar koʻrinishi, yorliqlari va qadogʻi saqlangan boʻlishi;</li>
-    <li>buyurtma raqami koʻrsatilgan holda qaytarilishi kerak.</li>
+    <li>Mahsulotni xarid qilingan kundan boshlab {{ legal.exchange_days }} kun ichida qaytarish yoki almashtirish uchun murojaat qilish mumkin («Isteʼmolchilarning huquqlarini himoya qilish toʻgʻrisida»gi Qonunning 18-moddasi). Mahsulot foydalanilmagan, yuvilmagan, shikastlanmagan, yorliqlari va qadogʻi saqlangan boʻlishi kerak.</li>
+    <li>Oʻlcham mos kelmasa, mahsulot mavjud boshqa oʻlchamga bepul almashtiriladi: yangi mahsulotni yetkazib berish xarajatini Sotuvchi qoplaydi. Kerakli oʻlcham boʻlmasa, Xaridor pulini qaytarishni tanlashi mumkin.</li>
+    <li>Mahsulot qabul qilingandan keyin oʻlcham yoki shaxsiy tanlov sababli qaytarilsa, yetkazib berish xarajatlarini Xaridor qoplaydi, qonunchilikda boshqacha tartib belgilangan hollar bundan mustasno.</li>
   </ul>
-  <p>Avval bizga yozing — mahsulotni qayerga yuborishni aytamiz. Mahsulotni bizga yuborish va yangi oʻlchamni sizga joʻnatish xarajatlarini Xaridor toʻlaydi; yangi joʻnatma tanlangan yetkazib berish usulining amaldagi narxida yuboriladi. Kerakli oʻlcham qolmagan boʻlsa, mahsulot narxi qaytariladi, dastlabki yetkazib berish haqi esa qaytarilmaydi.</p>
-  <h3>Nuqsonli yoki shikastlangan mahsulot</h3>
-  <p>Mahsulotda ishlab chiqarish nuqsoni boʻlsa yoki u shikastlanib yetib kelsa, iloji boricha tezroq — yaxshisi olgan kuningizning oʻzida — rasm yoki video bilan bizga yozing. Qonunga koʻra, kafolat muddati belgilanmagan mahsulotning nuqsoni haqida {{ legal.defect_claim_months }} oy ichida talab qoʻyish mumkin (Qonunning 13-moddasi).</p>
-  <p>Nuqson tasdiqlansa, mahsulotni talabingiz qabul qilingan kundan {{ legal.defect_replace_days }} kun ichida xuddi shunday mahsulotga almashtirib beramiz (14-modda) yoki, xohishingizga koʻra, pulini qaytaramiz. Qonunda nazarda tutilgan boshqa talablarni ham qoʻyishingiz mumkin. Nuqsonli mahsulotni qaytarish va yangisini joʻnatish xarajatlarini Sotuvchi toʻlaydi.</p>
+  <p>Murojaatni Saytdagi <a class="link" href="{% url 'return_request' %}">soʻrov sahifasida</a> yoki Telegram orqali yuboring. Koʻrib chiqilgach, keyingi qadamlarni va mahsulotni qaytarish manzilini aytamiz.</p>
+  <h3>Nuqsonli, shikastlangan yoki notoʻgʻri mahsulot</h3>
+  <p>Mahsulotda ishlab chiqarish nuqsoni boʻlsa, u shikastlanib yetib kelsa yoki buyurtmaga mos kelmasa (boshqa oʻlcham, rang yoki model, saytdagi tavsifga mos emas), iloji boricha tezroq — yaxshisi olgan kuningizning oʻzida — rasm yoki video bilan bizga murojaat qiling. Bu huquqlar {{ legal.exchange_days }} kunlik muddat bilan cheklanmaydi: kafolat muddati belgilanmagan mahsulotning nuqsoni haqida {{ legal.defect_claim_months }} oy ichida talab qoʻyish mumkin (Qonunning 13-moddasi).</p>
+  <p>Nuqson tasdiqlansa, mahsulotni talabingiz qabul qilingan kundan {{ legal.defect_replace_days }} kun ichida xuddi shunday mahsulotga almashtirib beramiz (14-modda) yoki, xohishingizga koʻra, pulini qaytaramiz. Qonunda nazarda tutilgan boshqa talablarni ham qoʻyishingiz mumkin. Sotuvchining xatosi yoki mahsulot nuqsoni bilan bogʻliq qaytarish va almashtirish xarajatlarini Sotuvchi qoplaydi.</p>
   <p>Iloji boʻlsa, joʻnatmani pochta boʻlimining oʻzida koʻzdan kechiring. Qadoq shikastlangan boʻlsa, pochta xodimi ishtirokida dalolatnoma tuzdiring — bu Pochta bilan hisob-kitobni osonlashtiradi.</p>
-  <h3>Oʻlchamlar va koʻrinish</h3>
+<h3>Oʻlchamlar va koʻrinish</h3>
   <p>Oʻlcham jadvalidagi qiymatlar kiyimning oʻzidan qoʻlda oʻlchangan va ±{{ legal.size_tolerance_cm }} sm farq qilishi mumkin. Rasmlardagi ranglar ekran sozlamalariga qarab biroz farq qilishi mumkin — bu nuqson hisoblanmaydi.</p>
   <h3>Individual buyurtmalar</h3>
   <p>Oʻz dizayningiz asosidagi buyurtma alohida kelishiladi: narxi, muddati va qaytarish shartlari buyurtma berilishidan oldin yozma ravishda (masalan, Telegram orqali) tasdiqlanadi.</p>
@@ -109,8 +108,9 @@
   <p>Qaytariladigan summa:</p>
   <ul>
     <li>bekor qilingan buyurtma uchun — toʻliq summa;</li>
-    <li>olib ketilmagan yoki rad etilgan joʻnatma uchun — toʻlangan summadan <span class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</span> ayirilgani;</li>
-    <li>nuqsonli mahsulot uchun — mahsulot narxi va yetkazib berish xarajatlari;</li>
+    <li>olib ketilmagan yoki rad etilgan joʻnatma uchun — toʻliq summa;</li>
+    <li>nuqsonli, shikastlangan yoki notoʻgʻri mahsulot uchun — mahsulot narxi va yetkazib berish xarajatlari;</li>
+    <li>qabul qilingandan keyin oʻlcham yoki shaxsiy tanlov sababli qaytarilgan mahsulot uchun — mahsulot narxi;</li>
     <li>almashtirish uchun kerakli oʻlcham qolmaganda — mahsulot narxi.</li>
   </ul>
 </section>

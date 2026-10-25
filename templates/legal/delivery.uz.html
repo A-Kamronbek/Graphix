@@ -37,17 +37,18 @@
 <section class="legal__sec" id="uncollected">
   <h2>5. Joʻnatmani olib ketmasangiz</h2>
   <p>Pochta boʻlimi «Bir Qadam» joʻnatmasini {{ legal.hold_days }} kun saqlaydi. Joʻnatma yetib kelgach, kechiktirmay olib keting.</p>
-  <p>Muddatida olinmagan yoki rad etilgan joʻnatma bizga qaytadi. Shunda toʻlovingizdan <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> ushlab qolinadi, qolgani {{ legal.refund_days }} kun ichida qaytariladi. Shuning uchun tuman va manzilni diqqat bilan tekshiring — ularni buyurtma sahifasida qayta koʻrishingiz mumkin.</p>
+  <p>Muddatida olinmagan yoki rad etilgan joʻnatma bizga qaytadi. Bu siz uchun bepul: toʻlovingiz {{ legal.refund_days }} kun ichida toʻliq qaytariladi. Shunga qaramay, tuman va manzilni diqqat bilan tekshiring — ularni buyurtma sahifasida qayta koʻrishingiz mumkin.</p>
 </section>
 
 <section class="legal__sec" id="exchange">
   <h2>6. Oʻlcham toʻgʻri kelmasa</h2>
-  <p>Kiyilmagan, yuvilmagan va yorliqlari saqlangan mahsulotni olganingizdan keyin {{ legal.exchange_days }} kun ichida boshqa oʻlchamga almashtirishingiz mumkin. Avval bizga yozing — qayerga yuborishni aytamiz. Mahsulotni qaytarish va yangi oʻlchamni joʻnatish xarajatlarini xaridor toʻlaydi. Kerakli oʻlcham qolmagan boʻlsa, mahsulot narxini qaytaramiz.</p>
+  <p>Kiyilmagan, yuvilmagan va yorliqlari saqlangan mahsulotni xarid qilingan kundan boshlab {{ legal.exchange_days }} kun ichida mavjud boshqa oʻlchamga bepul almashtiramiz: yangi oʻlchamni yuborish xarajatini biz qoplaymiz. Kerakli oʻlcham qolmagan boʻlsa, pulingizni qaytaramiz. Mahsulot qabul qilingandan keyin oʻlcham yoki shaxsiy tanlov sababli qaytarilsa, yetkazib berish xarajatlarini xaridor toʻlaydi.</p>
+  <p>Soʻrovni <a class="link" href="{% url 'return_request' %}">sayt orqali</a> yoki Telegramda yuboring — keyingi qadamlarni va mahsulotni qaytarish manzilini aytamiz.</p>
 </section>
 
 <section class="legal__sec" id="defects">
-  <h2>7. Nuqson yoki shikast boʻlsa</h2>
-  <p>Mahsulot nuqsonli yoki shikastlangan holda kelsa, iloji boricha tezroq rasm yoki video bilan bizga yozing: almashtirib beramiz yoki pulini qaytaramiz, barcha yetkazib berish xarajatlari esa bizning hisobimizdan. Nuqson haqida olganingizdan keyin {{ legal.defect_claim_months }} oy ichida murojaat qilishingiz mumkin.</p>
+  <h2>7. Nuqson boʻlsa yoki boshqa mahsulot kelsa</h2>
+  <p>Mahsulot nuqsonli yoki shikastlangan holda kelsa, yoki sizga boshqa oʻlcham, rang yoki model yuborilgan boʻlsa, iloji boricha tezroq rasm yoki video bilan bizga yozing: almashtirib beramiz yoki pulini qaytaramiz, barcha yetkazib berish xarajatlari esa bizning hisobimizdan. Nuqson haqida olganingizdan keyin {{ legal.defect_claim_months }} oy ichida murojaat qilishingiz mumkin.</p>
   <p>Qadoq shikastlangan boʻlsa, joʻnatmani pochtaning oʻzida koʻzdan kechiring va xodim ishtirokida dalolatnoma tuzdiring.</p>
-  <p>Toʻliq qoidalar — <a class="link" href="{% url 'terms' %}">Foydalanish shartlari</a>da.</p>
+  <p>Toʻliq qoidalar — <a class="link" href="{% url 'returns' %}">Qaytarish va almashtirish siyosati</a> va <a class="link" href="{% url 'terms' %}">Foydalanish shartlari</a>da.</p>
 </section>

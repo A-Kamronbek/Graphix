@@ -1,0 +1,83 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n date_tags image_tags price_format %}
+{% block title %}{% trans "Qaytarish soʻrovi" %}{% endblock %}
+
+{% comment %}
+  One request (§9 Phase 23 item 10): what the customer asked and why, the
+  photographs at a size one can judge (§17 #150), and the answer the customer
+  reads under the order. The status and the answer are one form. Cancelling
+  or refunding the order is done on the order's own screen, linked below.
+{% endcomment %}
+
+{% block content %}
+<nav aria-label="{% trans 'Yoʻnalish' %}">
+  <a class="link small" href="{% url 'panel_returns' %}">← {% trans "Qaytarishlar" %}</a>
+</nav>
+<h1 class="pnl__title">{{ req.get_kind_display }} · <span class="num">{{ req.order.order_no|default:req.order_id }}</span></h1>
+
+<section class="pnl__section mod stack">
+  <dl class="spec">
+    <div class="spec__row"><dt>{% trans "Holati" %}</dt><dd>{{ req.get_status_display }}</dd></div>
+    <div class="spec__row"><dt>{% trans "Sabab" %}</dt><dd>{{ req.get_reason_display }}</dd></div>
+    <div class="spec__row"><dt>{% trans "Yuborilgan" %}</dt><dd>{{ req.created_at|date:"j E Y, H:i"|month_case }}
+      {% if late %}<span class="badge badge--warning">{% trans "Muddatdan keyin" %}</span>{% endif %}</dd></div>
+    <div class="spec__row"><dt>{% trans "Xaridor" %}</dt><dd>{{ req.user.first_name|default:"—" }}</dd></div>
+    <div class="spec__row"><dt>{% trans "Telefon" %}</dt><dd><a class="link num" href="tel:{{ req.phone }}">{{ req.phone }}</a></dd></div>
+    <div class="spec__row"><dt>{% trans "Buyurtma" %}</dt>
+      <dd>{% if req.order.order_no %}<a class="link num" href="{% url 'panel_order' order_no=req.order.order_no %}">{{ req.order.order_no }}</a>{% else %}{{ req.order_id }}{% endif %}</dd></div>
+  </dl>
+
+  <div class="stack stack--sm">
+    <span class="label">{% trans "Mahsulotlar" %}</span>
+    <ul class="retlist__lines">
+      {% for line in req.lines.all %}
+        <li>
+          {{ line.item.variant.product.name }}, {{ line.item.variant.size.size }} × {{ line.quantity }}
+          {% if line.size_wanted %} → <strong>{{ line.size_wanted.size }}</strong>{% endif %}
+          <span class="small muted num">({{ line.item.price_stat|price }} {% trans "soʻm" %})</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="stack stack--sm">
+    <span class="label">{% trans "Xaridorning tushuntirishi" %}</span>
+    <p class="mod__text">{{ req.explanation|linebreaksbr }}</p>
+  </div>
+
+  {% if req.images.all %}
+    <div class="mod__pics">
+      {% for image in req.images.all %}
+        <a href="{{ image.picture.url }}" target="_blank" rel="noopener">
+          <img {% photo_attrs image 'panel' %} alt="" loading="lazy" decoding="async">
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+<form class="pnl__section panel-card stack" method="post">
+  {% csrf_token %}
+  <label class="field">
+    <span class="label">{% trans "Holati" %}</span>
+    <select class="select" name="status">
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if req.status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span class="label">{% trans "Xaridorga javob" %}</span>
+    <textarea class="textarea" name="answer" rows="4" maxlength="{{ max_text }}">{{ req.answer }}</textarea>
+    <small class="field__hint">{% trans "Xaridor buni buyurtma sahifasida oʻqiydi." %}</small>
+  </label>
+  {% if req.answered_at %}
+    <p class="small muted">
+      {% blocktrans trimmed with who=req.answered_by.first_name|default:req.answered_by.username|default:"—" when=req.answered_at|date:"j E, H:i"|month_case %}
+        Oxirgi javob: {{ who }}, {{ when }}
+      {% endblocktrans %}
+    </p>
+  {% endif %}
+  <button class="btn btn--primary" type="submit">{% trans "Saqlash" %}</button>
+</form>
+{% endblock %}

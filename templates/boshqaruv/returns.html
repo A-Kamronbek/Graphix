@@ -1,0 +1,43 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n date_tags %}
+{% block title %}{% trans "Qaytarishlar" %}{% endblock %}
+
+{% comment %}
+  Return and exchange requests, newest first (§9 Phase 23 item 10). Each row
+  opens the request, where it is read and answered. A request moves no stock
+  and no money: the order is cancelled or refunded on its own screen.
+{% endcomment %}
+
+{% block content %}
+<h1 class="pnl__title">{% trans "Qaytarishlar" %}</h1>
+
+<nav class="pnl__tabs" aria-label="{% trans 'Holat' %}">
+  <a href="?" {% if not status %}aria-current="page"{% endif %}>{% trans "Barchasi" %}</a>
+  {% for value, label in statuses %}
+    <a href="?status={{ value }}" {% if status == value %}aria-current="page"{% endif %}>
+      {{ label }}{% if value == 'new' and new %} ({{ new }}){% endif %}
+    </a>
+  {% endfor %}
+</nav>
+
+<div class="pnl__section stack">
+  {% for req in requests %}
+    <a class="mod retrow" href="{% url 'panel_return' pk=req.pk %}">
+      <div class="mod__hd">
+        <strong>{{ req.get_kind_display }}</strong>
+        <span class="num">{{ req.order.order_no|default:req.order_id }}</span>
+        <span class="small muted">{{ req.get_reason_display }}</span>
+        <time class="small muted" datetime="{{ req.created_at|date:'c' }}">{{ req.created_at|date:"j E, H:i"|month_case }}</time>
+      </div>
+      <div class="mod__foot">
+        <span class="badge {% if req.status == 'new' %}badge--info{% elif req.status == 'rejected' %}badge--danger{% elif req.status == 'done' %}badge--success{% endif %}">{{ req.get_status_display }}</span>
+        <span class="small muted">{{ req.user.first_name|default:req.phone }}</span>
+      </div>
+    </a>
+  {% empty %}
+    <p class="muted">{% trans "Bu yerda hech narsa yoʻq." %}</p>
+  {% endfor %}
+</div>
+
+{% include "product/_pager.html" with page_obj=requests base_query=base_query %}
+{% endblock %}

@@ -14,10 +14,10 @@ from django.utils.translation import get_language, gettext as _
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import Resolver404, resolve, reverse
-from product.models import Product, Category, Slide
+from product.models import Product, Slide
 from django.templatetags.static import static
-from . import legal, seo, telegram
-from .models import Msg
+from . import designs, legal, seo, telegram
+from .models import DesignRequest, Msg
 from .ratelimit import is_rate_limited, is_currently_limited, RATE_LIMIT_MESSAGE
 
 
@@ -92,6 +92,8 @@ DOC_DESCRIPTIONS = {
                  'nima uchun va qancha muddat saqlanadi.'),
     'delivery': _('Oʻzbekiston boʻylab yetkazib berish: pochta boʻlimiga yoki '
                   'eshikkacha — muddatlar, narxlar va qaytarish tartibi.'),
+    'returns': _('GRAPHIX mahsulotini qaytarish va almashtirish: muddat, shartlar, '
+                 'nuqsonli mahsulot, pulni qaytarish va murojaat tartibi.'),
 }
 
 
@@ -110,6 +112,15 @@ def terms(request):
 def privacy(request):
     """The privacy policy (plan §9 Phase 8 item 1)."""
     return _legal_page(request, 'privacy')
+
+
+def returns_policy(request):
+    """The returns and exchange policy, the owner's document (§9 Phase 23 part A).
+
+    A fourth legal document on the shared page, with its version, date,
+    contents and history (§17 #182, #192, #398).
+    """
+    return _legal_page(request, 'returns')
 
 
 def delivery(request):
@@ -162,7 +173,6 @@ def home(request):
         # recommender — the plan's own stand-in, not a placeholder. Twelve, a
         # row that scrolls sideways, where it was a grid of four (§17 #403).
         'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:12]),
-        'categories': Category.objects.all()[:6],
         # The shop itself, and the search box a result may carry. Only on the
         # home page: an Organization repeated on forty pages is the same fact
         # forty times, and this is the page a search engine treats as the site.
@@ -248,6 +258,64 @@ def contact(request):
     })
 
 
+#: Submissions of the design form an hour, refused ones included: each may
+#: carry four pictures to re-encode, as a return's may (§17 #134).
+DESIGN_TRIES = 10
+
+
+def custom_design(request):
+    """Suggest one's own design to the owner (§9 Phase 23 part E, §17 #402).
+
+    Open to everyone to read; sending needs an account, as the contact form
+    does, and an anonymous POST is sent to sign in and back here. What may
+    be sent is decided in :mod:`core.designs`; this view chooses what to
+    render. A refused form comes back as typed. Its pictures cannot be, as
+    no browser lets a page put a file back, so the page says they have to
+    be chosen again rather than leaving them silently gone.
+    """
+    form = {}
+    photos_lost = False
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return redirect(f"{reverse('login')}?next={reverse('custom_design')}")
+        form = request.POST
+        # Whatever happens below short of success, the files do not come back.
+        photos_lost = any(request.FILES.getlist('photos'))
+        if is_rate_limited(request, 'design', DESIGN_TRIES, 3600,
+                           ident=f"u{request.user.pk}"):
+            messages.error(request, RATE_LIMIT_MESSAGE)
+        else:
+            try:
+                cleaned = designs.clean(request.user, request.POST,
+                                        request.FILES.getlist('photos'))
+            except designs.Refused as exc:
+                messages.error(request, exc.message)
+            else:
+                designs.create(request.user, cleaned)
+                messages.success(request, _("Taklifingiz yuborildi. Doʻkon egasi siz bilan "
+                                            "koʻrsatilgan raqam orqali bogʻlanadi."))
+                return redirect('custom_design')
+    elif request.user.is_authenticated:
+        form = {'phone': request.user.phone}
+
+    field = DesignRequest._meta.get_field
+    return render(request, 'core/custom_design.html', {
+        'form': form,
+        'photos_lost': photos_lost,
+        'garments': DesignRequest.Garment.choices,
+        'colours': DesignRequest.Colour.choices,
+        'placements': DesignRequest.Placement.choices,
+        'sizes': designs.sizes(),
+        'colour_slots': designs.colour_slots(form),
+        'max_text': designs.MAX_TEXT,
+        'text_max': field('print_text').max_length,
+        'other_max': field('colour_other').max_length,
+        'max_colours': designs.MAX_COLOURS,
+        'max_quantity': designs.MAX_QUANTITY,
+        'max_photos': designs.MAX_PHOTOS,
+    })
+
+
 # ---------- design system ----------
 
 # The palette, listed once here so the style guide and tokens.css cannot drift
@@ -262,11 +330,14 @@ STYLE_SWATCHES = [
     ('--c-brand-ink', '#85600B'),
     ('--c-success', '#2E7A26'), ('--c-warning', '#8A5B00'), ('--c-danger', '#B4371F'),
     ('--c-info', '#1E6A8E'),
+    ('--c-garment-white', '#FFFFFF'), ('--c-garment-black', '#1A1A1A'),
+    ('--c-garment-grey', '#9E9E9E'),
 ]
 
 STYLE_ICONS = [
     'mark', 'search', 'heart', 'cart', 'user', 'share', 'menu', 'close', 'check',
     'minus', 'plus', 'chevron-down', 'chevron-right', 'arrow-left', 'arrow-right',
+    'home', 'grid',
     'pause', 'play',
     'star', 'filter', 'sort', 'truck', 'box', 'pin', 'phone', 'mail', 'telegram', 'info',
     'warning', 'image', 'trash', 'ruler', 'calendar',

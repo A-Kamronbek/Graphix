@@ -1,6 +1,7 @@
 {% load i18n %}
-{# Account section navigation. A row of tabs on mobile, a column on desktop. #}
-<nav class="account__nav" aria-label="{% trans 'Kabinet' %}">
+{# Account section navigation. A row of tabs on mobile, one row that scrolls #}
+{# (§9 Phase 23 D9), a column on desktop. #}
+<nav class="account__nav" aria-label="{% trans 'Kabinet' %}" data-scroll-row>
   <a href="{% url 'account' %}" {% if active == 'home' %}class="is-active" aria-current="page"{% endif %}>{% trans "Kabinet" %}</a>
   <a href="{% url 'account_orders' %}" {% if active == 'orders' %}class="is-active" aria-current="page"{% endif %}>{% trans "Buyurtmalarim" %}</a>
   <a href="{% url 'liked' %}" {% if active == 'liked' %}class="is-active" aria-current="page"{% endif %}>{% trans "Saqlanganlar" %}</a>

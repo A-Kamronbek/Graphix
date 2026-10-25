@@ -107,30 +107,65 @@
   }
 
   /* ------------------------------------------------------ header search */
-  /* Below 860 px the field is hidden and this reveals it as a second header row. */
+  /* Below 860 px the field is hidden and this reveals it as a second header row.
+   * Two things open it: the header's own toggle, and "Qidiruv" in the bar of
+   * five (§9 Phase 23 D2), which is a link to the search page and, with this
+   * script, opens the field in place instead. */
   function initSearchToggle() {
     var toggle = $('[data-search-toggle]');
+    var openers = $$('[data-search-open]');
     var form = $('.nav__search');
-    if (!toggle || !form) return;
+    if (!form || (!toggle && !openers.length)) return;
+    var opener = null;
 
     function setOpen(open) {
       form.classList.toggle('is-open', open);
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       if (open) {
         var input = form.querySelector('input');
         if (input) input.focus();
-      } else {
-        toggle.focus();
+      } else if (opener) {
+        opener.focus();
       }
     }
 
-    toggle.addEventListener('click', function () {
-      setOpen(!form.classList.contains('is-open'));
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        opener = toggle;
+        setOpen(!form.classList.contains('is-open'));
+      });
+    }
+    openers.forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        opener = link;
+        window.scrollTo(0, 0);
+        setOpen(true);
+      });
     });
     /* Escape is what people press to dismiss a revealed field; without it the
      * only way back was to find the toggle again. */
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && form.classList.contains('is-open')) setOpen(false);
+    });
+  }
+
+  /* --------------------------------------------------- rows that scroll */
+  /* A row of tabs wider than a phone scrolls sideways (§9 Phase 23 D9). The
+   * current tab is brought into view, and `is-more` is set while there is more
+   * of the row to the right, which the stylesheet shows as a fading edge. */
+  function initScrollRows() {
+    $$('[data-scroll-row]').forEach(function (row) {
+      function mark() {
+        row.classList.toggle('is-more', row.scrollLeft + row.clientWidth < row.scrollWidth - 1);
+      }
+      var current = row.querySelector('[aria-current="page"]');
+      if (current && current.offsetLeft + current.offsetWidth > row.clientWidth) {
+        row.scrollLeft = current.offsetLeft + current.offsetWidth - row.clientWidth;
+      }
+      row.addEventListener('scroll', mark, { passive: true });
+      window.addEventListener('resize', mark);
+      mark();
     });
   }
 
@@ -503,6 +538,7 @@
     initAutoSubmit();
     initDrawer();
     initSearchToggle();
+    initScrollRows();
     initSteppers();
     initFilterSheet();
     initLikes();

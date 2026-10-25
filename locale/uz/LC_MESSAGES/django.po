@@ -2098,10 +2098,6 @@ msgstr ""
 msgid "Siz uchun"
 msgstr ""
 
-#: .\templates\core\home.html:168
-msgid "Kategoriyalar"
-msgstr ""
-
 #: .\templates\core\home.html:181
 msgid ""
 "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
@@ -2252,19 +2248,6 @@ msgstr ""
 
 #: .\templates\partials\_nav.html:23
 msgid "Dizayn qidirish..."
-msgstr ""
-
-#: .\templates\partials\_orders_table.html:10
-#: .\templates\partials\_orders_table.html:22
-msgid "Summa"
-msgstr ""
-
-#: .\templates\partials\_orders_table.html:11
-msgid "Amallar"
-msgstr ""
-
-#: .\templates\partials\_orders_table.html:24
-msgid "Koʻrish"
 msgstr ""
 
 #: .\templates\partials\_orders_table.html:29
@@ -2519,13 +2502,13 @@ msgstr ""
 #: .\templates\payment\order_detail.html:94
 #, python-format
 msgid ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
 msgid_plural ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
 msgstr[0] ""
 
 #: .\templates\payment\order_detail.html:111
@@ -3202,8 +3185,421 @@ msgstr ""
 msgid "Rasm tanlanmadi."
 msgstr ""
 
+msgid "Almashtirish"
+msgstr ""
+
+msgid "Almashtirish uchun oʻlcham"
+msgstr ""
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta soʻrov yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr ""
+
+msgid "Birinchi tahrir: muddat, shartlar, almashtirish, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr ""
+
+msgid "Boshqa buyurtma"
+msgstr ""
+
+msgid "Boshqa mahsulot yuborilgan"
+msgstr ""
+
+msgid "Boshqa sabab"
+msgstr ""
+
+msgid "Bu buyurtma boʻyicha soʻrov yuborib boʻlmaydi."
+msgstr ""
+
+msgid "Bu mahsulot boʻyicha soʻrov koʻrib chiqilmoqda."
+msgstr ""
+
+msgid "Bu sabab uchun mahsulot rasmini yuboring."
+msgstr ""
+
+#, python-format
+msgid "Buyurtma <strong class=\"num\">%(number)s</strong>, %(day)s"
+msgstr ""
+
+msgid "Buyurtmani tanlang"
+msgstr ""
+
+msgid "GRAPHIX mahsulotini qaytarish va almashtirish: muddat, shartlar, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr ""
+
+#, python-format
+msgid "Javob %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Javobimiz"
+msgstr ""
+
+msgid "Koʻrib chiqilmoqda"
+msgstr ""
+
+msgid "Mahsulotda nuqson bor"
+msgstr ""
+
+msgid "Nechta"
+msgstr ""
+
+msgid "Nima boʻldi?"
+msgstr ""
+
+msgid "Nima boʻlganini qisqacha yozing."
+msgstr ""
+
+msgid "Nima qilmoqchisiz?"
+msgstr ""
+
+#, python-format
+msgid "Nuqson, boshqa mahsulot yoki tavsifga mos kelmasa, rasm shart. Koʻpi bilan %(n)s ta. Rasmlarni faqat siz va doʻkon xodimlari koʻradi."
+msgstr ""
+
+#, python-format
+msgid "Oxirgi javob: %(who)s, %(when)s"
+msgstr ""
+
+msgid "Oʻlcham mos kelmadi"
+msgstr ""
+
+msgid "Qaysi mahsulot va nechta ekanini tanlang."
+msgstr ""
+
+msgid "Qaysi mahsulot va nechta?"
+msgstr ""
+
+msgid "Qaytarish"
+msgstr ""
+
+msgid "Qaytarish soʻrovi"
+msgstr ""
+
+msgid "Qaytarish va almashtirish"
+msgstr ""
+
+msgid "Qaytarish va almashtirish siyosati"
+msgstr ""
+
+msgid "Qaytarish yoki almashtirish"
+msgstr ""
+
+msgid "Qaytarish yoki almashtirishni tanlang."
+msgstr ""
+
+msgid "Qaytarishlar"
+msgstr ""
+
+msgid "Rad etildi"
+msgstr ""
+
+msgid "Sabab"
+msgstr ""
+
+msgid "Sababni tanlang."
+msgstr ""
+
+msgid "Saytdagi tavsifga mos emas"
+msgstr ""
+
+msgid "Siz yuborgan rasm"
+msgstr ""
+
+msgid "Soʻrov yuborish"
+msgstr ""
+
+msgid "Soʻrovingiz yuborildi. Javobimizni shu buyurtma sahifasida koʻrasiz."
+msgstr ""
+
+msgid "Soʻrovni koʻrib chiqib, keyingi qadamlarni va mahsulotni qaytarish manzilini aytamiz."
+msgstr ""
+
+msgid "Soʻrovni yetkazib berilgan buyurtma boʻyicha yuborish mumkin. Sizda hozircha bunday buyurtma yoʻq."
+msgstr ""
+
+msgid "Telefon raqamini +998 XX XXX XX XX koʻrinishida yozing."
+msgstr ""
+
+#, python-format
+msgid "Tushuntirish %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Xaridor buni buyurtma sahifasida oʻqiydi."
+msgstr ""
+
+msgid "Xaridorga javob"
+msgstr ""
+
+msgid "Xaridorning tushuntirishi"
+msgstr ""
+
+msgid "Yakunlandi"
+msgstr ""
+
+msgid "Yangi qaytarish soʻrovlari"
+msgstr ""
+
+msgid "Yuborilgan"
+msgstr ""
+
+#, python-format
+msgid "«%(name)s» boʻyicha soʻrov allaqachon koʻrib chiqilmoqda."
+msgstr ""
+
+#, python-format
+msgid "«%(name)s»: almashtirish uchun oʻlchamni tanlang."
+msgstr ""
+
+#, python-format
+msgid "«%(name)s»: buyurtmada %(n)d dona bor."
+msgstr ""
+
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
+msgstr ""
+
+#, python-format
+msgid "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgid_plural "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgstr[0] ""
+
+msgid "Tanlangan rasmlar saqlanmadi: ularni qayta tanlang."
+msgstr ""
+
+msgid "Muddatdan keyin"
+msgstr ""
+
+msgid "Futbolka"
+msgstr ""
+
+msgid "Longsliv"
+msgstr ""
+
+msgid "Oq"
+msgstr ""
+
+msgid "Qora"
+msgstr ""
+
+msgid "Kulrang"
+msgstr ""
+
+msgid "Boshqa rang"
+msgstr ""
+
+msgid "Old tomonga"
+msgstr ""
+
+msgid "Orqa tomonga"
+msgstr ""
+
+msgid "Ikkala tomonga"
+msgstr ""
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta taklif yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr ""
+
+msgid "Gʻoyangizni qisqacha yozing."
+msgstr ""
+
+#, python-format
+msgid "Gʻoya %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+#, python-format
+msgid "Bosiladigan matn %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Futbolka yoki longslivni tanlang."
+msgstr ""
+
+msgid "Kiyim rangini tanlang."
+msgstr ""
+
+msgid "Qaysi rang kerakligini yozing."
+msgstr ""
+
+#, python-format
+msgid "Rang nomi %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Bosma rangini qayta tanlang."
+msgstr ""
+
+msgid "Dizayn qayerga tushirilishini tanlang."
+msgstr ""
+
+msgid "Oʻlchamni tanlang."
+msgstr ""
+
+#, python-format
+msgid "Nechta kerakligini 1 dan %(n)d gacha yozing."
+msgstr ""
+
+msgid "Taklifingiz yuborildi. Doʻkon egasi siz bilan koʻrsatilgan raqam orqali bogʻlanadi."
+msgstr ""
+
+msgid "Oʻz dizayningizni GRAPHIX’ga yuboring: gʻoya, matn, ranglar va rasmlar. Doʻkon egasi koʻrib chiqib, siz bilan bogʻlanadi."
+msgstr ""
+
+msgid "Gʻoyangizni yozing va eskiz, logotip yoki namuna rasmini qoʻshing. Doʻkon egasi koʻrib chiqadi va narxi hamda muddati haqida siz bilan bogʻlanadi. Saytda hech narsa toʻlanmaydi."
+msgstr ""
+
+msgid "Gʻoyangiz"
+msgstr ""
+
+msgid "Nima tasvirlansin, qaysi uslubda, qanday kayfiyatda."
+msgstr ""
+
+msgid "Bosiladigan matn"
+msgstr ""
+
+msgid "Matn boʻlmasa, boʻsh qoldiring."
+msgstr ""
+
+msgid "Kiyim"
+msgstr ""
+
+msgid "Kiyim rangi"
+msgstr ""
+
+msgid "Qaysi rang?"
+msgstr ""
+
+msgid "Bosma ranglari"
+msgstr ""
+
+#, python-format
+msgid "%(n)s-rang"
+msgstr ""
+
+#, python-format
+msgid "Koʻpi bilan %(n)s ta. Bilmasangiz, belgilamang: doʻkon egasi tavsiya qiladi."
+msgstr ""
+
+msgid "Dizayn qayerga tushiriladi?"
+msgstr ""
+
+#, python-format
+msgid "Eskiz, logotip yoki namuna. Koʻpi bilan %(n)s ta. Rasmlarni faqat doʻkon xodimlari koʻradi."
+msgstr ""
+
+msgid "Doʻkon egasi shu raqamga qoʻngʻiroq qiladi yoki yozadi."
+msgstr ""
+
+#, python-format
+msgid "Dizayn yuborish uchun <a class=\"link\" href=\"%(login_url)s?next=%(here)s\">hisobingizga kiring</a>."
+msgstr ""
+
+#, python-format
+msgid "Boshqa savol boʻlsa, <a class=\"link\" href=\"%(contact_url)s\">Bogʻlanish</a> sahifasidan yozing."
+msgstr ""
+
+#, python-format
+msgid "Oʻz dizayningizni taklif qilmoqchimisiz? <a class=\"link\" href=\"%(design_url)s\">Dizayn yuborish sahifasi</a>."
+msgstr ""
+
+msgid "Dizaynlar"
+msgstr ""
+
+msgid "Joyi"
+msgstr ""
+
+msgid "Matn"
+msgstr ""
+
+msgid "Dizayn yoʻq."
+msgstr ""
+
+msgid "Oʻqilmagan dizaynlar"
+msgstr ""
+
+#, python-format
+msgid "%(n)s ta element"
+msgid_plural "%(n)s ta element"
+msgstr[0] ""
+
+msgid "Doʻkonda koʻrsatish"
+msgstr ""
+
+msgid "Doʻkonda oʻlchamdan tashqari koʻrinadigan filtrlar. Guruh yoqilgan boʻlsa, sotuvdagi mahsulotga belgilangan elementlari bilan koʻrinadi. Mahsulotga element uning tahrir sahifasida belgilanadi. Teglar xaridorga koʻrinmaydi."
+msgstr ""
+
+msgid "Element qoʻshildi."
+msgstr ""
+
+msgid "Guruh oʻchirilsa, elementlari ham oʻchadi va mahsulotlardan olib tashlanadi."
+msgstr ""
+
+msgid "Guruh qoʻshildi. Elementlarini qoʻshing, mahsulotlarga belgilang, soʻng doʻkonda koʻrsatishni yoqing."
+msgstr ""
+
+msgid "Guruhlar"
+msgstr ""
+
+msgid "Hali filtr yoʻq."
+msgstr ""
+
+msgid "Koʻrsatish"
+msgstr ""
+
+msgid "Rang"
+msgstr ""
+
+msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
+msgstr ""
+
+msgid "Rangni #RRGGBB koʻrinishida yozing."
+msgstr ""
+
+msgid "Tartib"
+msgstr ""
+
+#, python-format
+msgid "Xaridor doʻkonda shular boʻyicha saralaydi. Guruh va elementlar <a class=\"link\" href=\"%(filters_url)s\">Filtrlar</a> sahifasida."
+msgstr ""
+
+msgid "Yangi element"
+msgstr ""
+
+msgid "Yangi guruh"
+msgstr ""
+
+msgid "doʻkonda koʻrinmaydi"
+msgstr ""
+
+#, python-format
+msgid "«%(name)s» elementlari"
+msgstr ""
+
+msgid "Buyurtma qayerda"
+msgstr ""
+
+msgid "Gʻoyangizni, rasmingizni yoki matningizni yuboring: qaysi kiyimga, qaysi rangda va qayerga bosilishini tanlaysiz, biz siz bilan bogʻlanamiz."
+msgstr ""
+
+msgid "Oʻlcham mos kelmasa — bepul almashtiramiz"
+msgstr ""
+
+msgid "Oʻz dizayningiz bormi?"
+msgstr ""
+
+msgid "Pastki menyu"
+msgstr ""
+
+msgid "Qaytarish shartlari"
+msgstr ""
+
+msgid "Saqlangan"
+msgstr ""
+
+msgid "Taklif yuborish"
+msgstr ""
+
+msgid "Yangi oʻlchamni oʻzimiz yuboramiz."
+msgstr ""
+
+msgid "koʻrish"
 msgstr ""
 
 #~ msgid "Pochta indeksini kiriting."
@@ -3458,4 +3854,16 @@ msgstr ""
 #~ msgstr "Rasm"
 
 #~ msgid "GRAPHIX futbolkalari oʻlcham jadvali"
+#~ msgstr ""
+
+#~ msgid "Kategoriyalar"
+#~ msgstr ""
+
+#~ msgid "Summa"
+#~ msgstr ""
+
+#~ msgid "Amallar"
+#~ msgstr ""
+
+#~ msgid "Koʻrish"
 #~ msgstr ""

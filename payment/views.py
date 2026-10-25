@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -26,14 +26,15 @@ from tolov.integrations.django.views import (BaseClickWebhookView,
                                              BaseOctoWebhookView,
                                              BasePaymeWebhookView)
 
+from core import legal
 from core.i18n import tfield
 from core.ratelimit import (RATE_LIMIT_MESSAGE, is_currently_limited,
                             is_rate_limited)
 from product.templatetags.price_format import price
 from .models import (SOLD, DeliveryOption, District, Order, PaymentOption, Region,
-                     RECIPIENT_NAME_MAX)
+                     RECIPIENT_NAME_MAX, ReturnRequest)
 from user.models import normalize_uz_phone, phone_regex
-from . import promos, services
+from . import promos, returns, services
 
 logger = logging.getLogger(__name__)
 
@@ -945,6 +946,13 @@ def order_detail(request, pk):
         'shipment': shipment,
         'shipment_history': shipment.history.all() if shipment else (),
         'pay': _pay_context(request, order),
+        # Its return and exchange requests and staff's answers, read here by
+        # the customer (§9 Phase 23 item 9).
+        'return_requests': (order.return_requests
+                            .select_related('order')
+                            .prefetch_related('lines__item__variant__product',
+                                              'lines__item__variant__size',
+                                              'lines__size_wanted', 'images')),
     })
 
 
@@ -971,3 +979,82 @@ def order_cancel(request, pk):
     else:
         messages.error(request, _("Buyurtmani bekor qilib boʻlmadi."))
     return redirect('order_status', pk=order.id)
+
+
+# ---------- returns ----------
+
+#: Submissions of the request form an hour, refused ones included: each may
+#: carry four photographs to re-encode, as a review's may (§17 #134).
+RETURN_TRIES = 10
+
+
+@login_required
+def return_request(request):
+    """Ask to return or exchange part of a delivered order (§9 Phase 23 part B).
+
+    Two steps on one address, both working without scripts: with several
+    delivered orders the customer first picks one, and the order page's
+    button brings its own (``?order=``); then the form for that order's
+    lines. What may be asked is decided in :mod:`payment.returns`; this view
+    chooses what to render. A refused form comes back as it was typed, except
+    the photographs, which no browser lets a page put back (§17 #133): the
+    page says so under the field rather than leaving them silently gone.
+    """
+    orders = list(returns.eligible_orders(request.user))
+    order = None
+    wanted = request.POST.get('order') or request.GET.get('order')
+    if wanted:
+        order = next((o for o in orders if str(o.pk) == str(wanted)), None)
+        if order is None:
+            # Not one of this customer's delivered orders: nothing to show,
+            # and nothing said about whether it exists.
+            raise Http404('no such delivered order')
+    elif len(orders) == 1:
+        order = orders[0]
+
+    data = {}
+    photos_lost = False
+    if request.method == 'POST' and order is not None:
+        data = request.POST
+        # Whatever happens below short of success, the files do not come back.
+        photos_lost = any(request.FILES.getlist('photos'))
+        if is_rate_limited(request, 'return', RETURN_TRIES, 3600,
+                           ident=f"u{request.user.pk}"):
+            messages.error(request, RATE_LIMIT_MESSAGE)
+        else:
+            try:
+                cleaned = returns.clean(request.user, order, request.POST,
+                                        request.FILES.getlist('photos'))
+            except returns.Refused as exc:
+                messages.error(request, exc.message)
+            else:
+                returns.create(request.user, order, cleaned)
+                messages.success(request, _("Soʻrovingiz yuborildi. Javobimizni shu "
+                                            "buyurtma sahifasida koʻrasiz."))
+                return redirect(reverse('order_detail', args=[order.pk]) + '#qaytarish')
+
+    lines = returns.lines_of(order) if order else []
+    for line in lines:
+        # What the customer had chosen, for a form that comes back refused.
+        line['qty'] = str(data.get('qty-%d' % line['item'].pk, ''))
+        line['size'] = str(data.get('size-%d' % line['item'].pk, ''))
+        line['choices'] = range(1, line['free'] + 1)
+    return render(request, 'payment/return_request.html', {
+        'orders': orders,
+        'order': order,
+        'lines': lines,
+        'kinds': ReturnRequest.Kind.choices,
+        'reasons': ReturnRequest.Reason.choices,
+        'photo_reasons': sorted(ReturnRequest.PHOTO_REASONS),
+        'max_photos': returns.MAX_PHOTOS,
+        'max_text': returns.MAX_TEXT,
+        'kind': data.get('kind', ''),
+        'reason': data.get('reason', ''),
+        'explanation': data.get('explanation', ''),
+        'phone': data.get('phone') or request.user.phone or '',
+        'photos_lost': photos_lost,
+        # Past the policy's ten days the form says so; the request still goes
+        # (§17 #406).
+        'late': order is not None and returns.is_late(order),
+        'exchange_days': legal.EXCHANGE_DAYS,
+    })

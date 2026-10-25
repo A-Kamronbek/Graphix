@@ -13,9 +13,49 @@
     </ol>
   </nav>
 
-  <div class="row row--between row--wrap">
-    <h1 class="h1 num">{{ order.order_no|default:order.id }}</h1>
-    <span class="badge {% if order.status == 'done' %}badge--success{% elif order.status == 'cancelled' %}badge--danger{% elif order.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ order.get_status_display }}</span>
+  {# "Buyurtma" above the number, which is set smaller and on one line, its #}
+  {# status beside it; then where the order is, in four steps; then the one #}
+  {# thing to do now, with the rest as quiet links (§9 Phase 23 D8). #}
+  <div class="orderhd">
+    <span class="eyebrow">{% trans "Buyurtma" %}</span>
+    <div class="orderhd__row">
+      <h1 class="orderhd__no num">{{ order.order_no|default:order.id }}</h1>
+      <span class="badge {% if order.status == 'done' %}badge--success{% elif order.status == 'cancelled' %}badge--danger{% elif order.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ order.get_status_display }}</span>
+    </div>
+  </div>
+
+  {% if order.status != 'cancelled' %}
+    {% with at=order.status %}
+    <ol class="steps" aria-label="{% trans 'Buyurtma qayerda' %}">
+      <li class="{% if at == 'paying' %}is-now{% else %}is-done{% endif %}" {% if at == 'paying' %}aria-current="step"{% endif %}>{% trans "Toʻlov" %}</li>
+      <li class="{% if at == 'paid' or at == 'processing' %}is-now{% elif at == 'on_the_way' or at == 'done' %}is-done{% endif %}" {% if at == 'paid' or at == 'processing' %}aria-current="step"{% endif %}>{% trans "Qabul qilindi" %}</li>
+      <li class="{% if at == 'on_the_way' %}is-now{% elif at == 'done' %}is-done{% endif %}" {% if at == 'on_the_way' %}aria-current="step"{% endif %}>{% trans "Yoʻlda" %}</li>
+      <li class="{% if at == 'done' %}is-done{% endif %}" {% if at == 'done' %}aria-current="step"{% endif %}>{% trans "Topshirildi" %}</li>
+    </ol>
+    {% endwith %}
+  {% endif %}
+
+  <div class="orderact stack stack--sm">
+    {% if order.status == 'paying' %}
+      {% include "payment/_pay.html" %}
+    {% elif order.status == 'done' %}
+      {# Only on a delivered order, because that is the only state in which #}
+      {# the form would accept anything (§9 Phase 12 item 2). #}
+      <a class="btn btn--primary btn--block" href="{% url 'review_create' order_id=order.id %}">{% trans "Sharh qoldirish" %}</a>
+      {# The request page for this order, which it brings with it (§9 Phase #}
+      {# 23 item 6). Only once delivered, for the same reason as the review. #}
+      <a class="btn btn--secondary btn--block" href="{% url 'return_request' %}?order={{ order.id }}">{% trans "Qaytarish yoki almashtirish" %}</a>
+    {% endif %}
+    <div class="orderact__quiet">
+      <a class="link" href="{% url 'order_status' order.id %}">{% trans "Holatini kuzatish" %}</a>
+      {% if order.status == 'paying' %}
+        {# Under the pay button, where an unpaid order is decided on. #}
+        <form method="post" action="{% url 'order_cancel' order.id %}">
+          {% csrf_token %}
+          <button class="link" type="submit">{% trans "Buyurtmani bekor qilish" %}</button>
+        </form>
+      {% endif %}
+    </div>
   </div>
 
   <div class="checkout">
@@ -38,6 +78,47 @@
           </div>
         </article>
       {% endfor %}
+
+      {# The customer's return and exchange requests for this order, and what #}
+      {# staff answered (§9 Phase 23 item 9). The photographs are theirs and #}
+      {# are shown to them and to staff, nowhere else. #}
+      {% if return_requests %}
+        <section class="stack retlist" id="qaytarish">
+          <h2 class="h3">{% trans "Qaytarish va almashtirish" %}</h2>
+          {% for req in return_requests %}
+            <article class="panel stack stack--sm">
+              <div class="row row--between">
+                <strong>{{ req.get_kind_display }}</strong>
+                <span class="badge">{{ req.get_status_display }}</span>
+              </div>
+              <span class="small muted">{{ req.created_at|date:"j E Y"|month_case }} · {{ req.get_reason_display }}</span>
+              <ul class="small retlist__lines">
+                {% for line in req.lines.all %}
+                  <li>
+                    {{ line.item.variant.product|t:"name" }}, {{ line.item.variant.size.size }} × {{ line.quantity }}{% if line.size_wanted %} → {{ line.size_wanted.size }}{% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+              <p class="small">{{ req.explanation|linebreaksbr }}</p>
+              {% if req.images.all %}
+                <div class="retlist__photos">
+                  {% for photo in req.images.all %}
+                    <a href="{{ photo.picture.url }}" target="_blank" rel="noopener">
+                      <img {% photo_attrs photo 'thumb' %} alt="{% trans 'Siz yuborgan rasm' %}" loading="lazy" decoding="async">
+                    </a>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% if req.answer %}
+                <div class="retlist__answer stack stack--sm">
+                  <span class="label">{% trans "Javobimiz" %}</span>
+                  <p class="small">{{ req.answer|linebreaksbr }}</p>
+                </div>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </section>
+      {% endif %}
     </div>
 
     <aside class="checkout__summary panel stack">
@@ -85,16 +166,17 @@
         <address class="small">{{ order.location_snapshot|default:order.address|linebreaksbr }}</address>
         {% if branch %}
           {# The plain-language version of terms §7: how long the office holds #}
-          {# a Bir Qadam parcel, and what an uncollected one costs (§19 Q11). #}
-          {# The figures come from core/legal.py; the hold is counted, so #}
-          {# Russian and English name the day in the form its number takes. #}
-          {# Uzbek does not inflect, so its two forms are the same sentence. #}
+          {# a Bir Qadam parcel, and that an uncollected one comes back free #}
+          {# (§17 #398). The figures come from core/legal.py; the hold is #}
+          {# counted, so Russian and English name the day in the form its #}
+          {# number takes. Uzbek does not inflect, so its two forms are the #}
+          {# same sentence. #}
           {% get_legal as legal %}
           <p class="small muted">
-            {% blocktrans trimmed with fee=legal.uncollected_fee|price days=legal.refund_days count hold=legal.hold_days %}
-              Joʻnatma boʻlimda {{ hold }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing.
+            {% blocktrans trimmed with days=legal.refund_days count hold=legal.hold_days %}
+              Joʻnatma boʻlimda {{ hold }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi va toʻlovingiz {{ days }} kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing.
             {% plural %}
-              Joʻnatma boʻlimda {{ hold }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi: toʻlovdan {{ fee }} soʻm ushlab qolinadi, qolgani {{ days }} kun ichida qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing.
+              Joʻnatma boʻlimda {{ hold }} kun saqlanadi. Olib ketilmasa, u bizga qaytadi va toʻlovingiz {{ days }} kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing.
             {% endblocktrans %}
             <a class="link" href="{% url 'delivery' %}#uncollected">{% trans "Batafsil" %}</a>
           </p>
@@ -133,22 +215,8 @@
         </div>
       {% endif %}
 
-      <a class="btn btn--secondary btn--block" href="{% url 'order_status' order.id %}">{% trans "Holatini kuzatish" %}</a>
-      {% if order.status == 'paying' %}
-        {% include "payment/_pay.html" %}
-        {# Under the pay button, where an unpaid order is decided on. It was #}
-        {# only on the status page, which a customer had to find first. #}
-        <form method="post" action="{% url 'order_cancel' order.id %}">
-          {% csrf_token %}
-          <button class="btn btn--secondary btn--block" type="submit">{% trans "Buyurtmani bekor qilish" %}</button>
-        </form>
-      {% endif %}
-      {# Only on a delivered order, because that is the only state in which the #}
-      {# form would accept anything (§9 Phase 12 item 2). Offering it earlier #}
-      {# would be a button that exists to refuse. #}
-      {% if order.status == 'done' %}
-        <a class="btn btn--primary btn--block" href="{% url 'review_create' order_id=order.id %}">{% trans "Sharh qoldirish" %}</a>
-      {% endif %}
+      {# The policy, from every order's page (§9 Phase 23 item 5). #}
+      <a class="link small" href="{% url 'returns' %}">{% trans "Qaytarish va almashtirish siyosati" %}</a>
     </aside>
   </div>
 </div>

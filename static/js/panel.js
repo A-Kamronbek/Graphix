@@ -565,6 +565,9 @@ function TELL(message, kind) {
         }
         control.classList.add('is-saved-field');
         setTimeout(function () { control.classList.remove('is-saved-field'); }, 1200);
+        /* A filter item's swatch shows the colour just saved (§17 #404). */
+        var swatch = control.dataset.refField === 'colour' && row.querySelector('[data-swatch]');
+        if (swatch) swatch.style.setProperty('--chip', data.value || 'transparent');
       })
       .catch(function () { control.classList.remove('is-saving-field'); });
   }

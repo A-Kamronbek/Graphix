@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load i18n i18n_fields price_format image_tags date_tags %}
+{% block title %}{% trans "Qaytarish yoki almashtirish" %}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
+
+{% comment %}
+  Asking to return or exchange part of a delivered order (§9 Phase 23 part B).
+  Two steps on one address, both plain HTML: with several delivered orders the
+  customer picks one, as a list of links; then the form for its lines. The
+  order page's button brings its own order, so most people see only the form.
+
+  Without a script everything works and the size boxes are always there; a
+  browser that understands `:has()` hides them while "Qaytarish" is chosen
+  (pages.css). The server is what decides: a size is asked for only for an
+  exchange, and a photograph only for the reasons that need one.
+{% endcomment %}
+
+{% block content %}
+<div class="wrap section stack stack--lg retreq">
+  <nav aria-label="{% trans 'Yoʻnalish' %}">
+    <ol class="crumbs">
+      <li><a href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a></li>
+      {% if order %}<li><a href="{% url 'order_detail' pk=order.pk %}">{{ order.order_no }}</a></li>{% endif %}
+      <li aria-current="page">{% trans "Qaytarish yoki almashtirish" %}</li>
+    </ol>
+  </nav>
+
+  <div class="stack stack--sm">
+    <h1 class="h1">{% trans "Qaytarish yoki almashtirish" %}</h1>
+    <p class="muted">
+      {% trans "Soʻrovni koʻrib chiqib, keyingi qadamlarni va mahsulotni qaytarish manzilini aytamiz." %}
+      <a class="link" href="{% url 'returns' %}">{% trans "Qaytarish va almashtirish siyosati" %}</a>
+    </p>
+  </div>
+
+  {% if not orders %}
+    <p class="msg msg--warn">
+      {% trans "Soʻrovni yetkazib berilgan buyurtma boʻyicha yuborish mumkin. Sizda hozircha bunday buyurtma yoʻq." %}
+      <a class="link" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
+    </p>
+
+  {% elif not order %}
+    <section class="stack">
+      <h2 class="h3">{% trans "Buyurtmani tanlang" %}</h2>
+      <ul class="retreq__orders">
+        {% for o in orders %}
+          <li>
+            <a class="retreq__order" href="?order={{ o.pk }}">
+              <span class="num">{{ o.order_no }}</span>
+              <span class="muted small">{{ o.created_at|date:"j E Y"|month_case }}</span>
+              <span class="num">{{ o.total_price|price }} {% trans "soʻm" %}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+  {% else %}
+    <form method="post" enctype="multipart/form-data" class="stack stack--lg" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="order" value="{{ order.pk }}">
+
+      <div class="row row--between">
+        <p class="small">
+          {% blocktrans trimmed with number=order.order_no day=order.created_at|date:"j E Y"|month_case %}
+            Buyurtma <strong class="num">{{ number }}</strong>, {{ day }}
+          {% endblocktrans %}
+        </p>
+        {% if orders|length > 1 %}
+          <a class="link small" href="{% url 'return_request' %}">{% trans "Boshqa buyurtma" %}</a>
+        {% endif %}
+      </div>
+
+      {# Past the policy's period the request still goes, and the owner #}
+      {# decides; a fault is not held to it (§17 #406). #}
+      {% if late %}
+        <div class="msg msg--warn" role="status">
+          <svg class="i i--sm" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>
+            {% blocktrans trimmed count days=exchange_days %}
+              Xariddan beri {{ days }} kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas.
+            {% plural %}
+              Xariddan beri {{ days }} kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas.
+            {% endblocktrans %}
+          </span>
+        </div>
+      {% endif %}
+
+      <fieldset class="field">
+        <legend class="label">{% trans "Nima qilmoqchisiz?" %}</legend>
+        <div class="retreq__choices">
+          {% for value, label in kinds %}
+            <label class="check">
+              <input type="radio" name="kind" value="{{ value }}" required
+                     {% if kind == value %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="label">{% trans "Qaysi mahsulot va nechta?" %}</legend>
+        <ul class="retreq__lines">
+          {% for line in lines %}
+            {% with item=line.item %}
+              <li class="retreq__line">
+                {% with item.variant.product.images.all|first as img %}
+                  <img class="retreq__thumb" {% photo_attrs img 'thumb' %} alt="" loading="lazy" decoding="async">
+                {% endwith %}
+                <div class="stack stack--sm">
+                  <span>{{ item.variant.product|t:"name" }}</span>
+                  <span class="small muted">{% trans "Oʻlcham" %}: {{ item.variant.size.size }} × {{ item.quantity }}</span>
+                  {% if line.held %}
+                    <span class="small">{% trans "Bu mahsulot boʻyicha soʻrov koʻrib chiqilmoqda." %}</span>
+                  {% else %}
+                    <div class="retreq__pick">
+                      <label class="field">
+                        <span class="label">{% trans "Nechta" %}</span>
+                        <select class="select" name="qty-{{ item.pk }}">
+                          <option value="0">—</option>
+                          {% for n in line.choices %}
+                            <option value="{{ n }}" {% if line.qty == n|stringformat:'d' %}selected{% endif %}>{{ n }}</option>
+                          {% endfor %}
+                        </select>
+                      </label>
+                      {% if line.sizes %}
+                        <label class="field retreq__size">
+                          <span class="label">{% trans "Almashtirish uchun oʻlcham" %}</span>
+                          <select class="select" name="size-{{ item.pk }}">
+                            <option value="">—</option>
+                            {% for size in line.sizes %}
+                              <option value="{{ size.pk }}" {% if line.size == size.pk|stringformat:'d' %}selected{% endif %}>{{ size.size }}</option>
+                            {% endfor %}
+                          </select>
+                        </label>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+              </li>
+            {% endwith %}
+          {% endfor %}
+        </ul>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="label">{% trans "Sabab" %}</legend>
+        <div class="retreq__choices">
+          {% for value, label in reasons %}
+            <label class="check">
+              <input type="radio" name="reason" value="{{ value }}" required
+                     {% if reason == value %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label class="label" for="explanation">{% trans "Nima boʻldi?" %}</label>
+        <textarea class="textarea" name="explanation" id="explanation" rows="4"
+                  maxlength="{{ max_text }}" required>{{ explanation }}</textarea>
+      </div>
+
+      {# As on the review form: the browser's own input without a script, #}
+      {# `forms.js` swaps it for a button and a line naming what was picked. #}
+      <div class="field" data-file-field>
+        <label class="label" for="photos">{% trans "Rasmlar" %}</label>
+        <input class="input" type="file" name="photos" id="photos"
+               accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+        <span class="field__file" hidden data-file-ui>
+          <label class="btn btn--secondary" for="photos">{% trans "Rasmlarni tanlash" %}</label>
+          <span class="small muted" data-file-status></span>
+        </span>
+        {% if photos_lost %}
+          <p class="field__error">{% trans "Tanlangan rasmlar saqlanmadi: ularni qayta tanlang." %}</p>
+        {% endif %}
+        <small class="field__hint">
+          {% blocktrans trimmed with n=max_photos %}
+            Nuqson, boshqa mahsulot yoki tavsifga mos kelmasa, rasm shart. Koʻpi bilan {{ n }} ta. Rasmlarni faqat siz va doʻkon xodimlari koʻradi.
+          {% endblocktrans %}
+        </small>
+      </div>
+
+      {# +998 is written in the field, as at checkout (§17 #367). #}
+      <div class="field">
+        <label class="label" for="id_phone">{% trans "Telefon" %}</label>
+        {% include "partials/_tel.html" with value=phone %}
+      </div>
+
+      <button class="btn btn--primary btn--lg" type="submit">{% trans "Soʻrov yuborish" %}</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -29,6 +29,24 @@
 
       <h1 class="h1">{% if q %}{% blocktrans %}“{{ q }}” uchun natijalar{% endblocktrans %}{% elif search_page %}{% trans "Qidiruv" %}{% else %}{% trans "Barcha dizaynlar" %}{% endif %}</h1>
 
+      {# The search page's own field, for a phone: the header's is hidden #}
+      {# there, and "Qidiruv" in the bar of five comes here without a script #}
+      {# (§9 Phase 23 D2). From 1280 px the header's field is in its row. #}
+      {% if search_page %}
+        <form class="shop__search" method="get" action="{% url 'search' %}" role="search">
+          <label class="search">
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+            <span class="sr-only">{% trans "Qidirish" %}</span>
+            <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Dizayn qidirish...' %}" autocomplete="off">
+          </label>
+        </form>
+      {% endif %}
+
+      {# The categories under the title, as on the home page (§9 Phase 23 D4). #}
+      {# Not on the search page, whose results are the whole catalogue's. #}
+      {% if not search_page %}
+        {% include "partials/_cats.html" with active=selected_category|default_if_none:'' %}
+      {% endif %}
     </div>
 
     {# Filters. One set of markup: sidebar on desktop, top sheet on mobile. #}
@@ -48,14 +66,17 @@
         </button>
       </div>
 
-      {# Size only, the owner's call (§17 #303). The tag axes and the category #}
-      {# chips were here; tags are no longer shown to shoppers at all (§17 #304). #}
-      {# A category or tag already in the address - a link from the home page #}
-      {# or the footer - still narrows the list, and is cleared below. #}
+      {# The size (§17 #303), then the owner's groups (§17 #404). Tags are not #}
+      {# shown to shoppers at all (§17 #304). A category or tag already in the #}
+      {# address - a link from the home page or the footer - still narrows the #}
+      {# list, and is cleared below. #}
 
       {% if sizes %}
         <div class="filters__group">
           <span class="label">{% trans "Oʻlcham" %}</span>
+          {# A size button sends itself; this keeps the size when a group's #}
+          {# box sends the form. Before the buttons, so a pressed one wins. #}
+          {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
           <div class="chips">
             {% for s in sizes %}
               <button type="submit" name="size" value="{{ s.id }}"
@@ -63,6 +84,30 @@
             {% endfor %}
           </div>
         </div>
+      {% endif %}
+
+      {# The owner's groups: within a group the items are alternatives, across #}
+      {# groups they narrow each other. A box sends the form when it changes; #}
+      {# without a script, the button under them does. #}
+      {% for group, items in filter_groups %}
+        <fieldset class="filters__group">
+          <legend class="label">{{ group|t:"name" }}</legend>
+          <div class="chips">
+            {% for item in items %}
+              <label class="fchip">
+                <input class="sr-only" type="checkbox" name="{{ group.slug }}" value="{{ item.slug }}"
+                       data-autosubmit {% if item.pk in picked %}checked{% endif %}>
+                <span class="fchip__face">
+                  {% if item.colour %}<span class="fchip__swatch" style="--chip: {{ item.colour }}" aria-hidden="true"></span>{% endif %}
+                  {{ item|t:"name" }}
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+      {% endfor %}
+      {% if filter_groups %}
+        <noscript><div class="filters__group"><button class="btn btn--secondary btn--sm" type="submit">{% trans "Koʻrsatish" %}</button></div></noscript>
       {% endif %}
 
       {% if filter_count %}
@@ -97,6 +142,7 @@
           {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
           {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
           {% for t in selected_tags %}<input type="hidden" name="tag" value="{{ t }}">{% endfor %}
+          {% for group, items in filter_choice %}{% for item in items %}<input type="hidden" name="{{ group.slug }}" value="{{ item.slug }}">{% endfor %}{% endfor %}
           <label class="sr-only" for="gx-sort">{% trans "Tartiblash" %}</label>
           <select class="select" id="gx-sort" name="sort" data-autosubmit>
             <option value="new" {% if sort == 'new' %}selected{% endif %}>{% trans "Yangilari" %}</option>

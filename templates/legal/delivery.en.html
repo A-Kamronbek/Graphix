@@ -39,17 +39,18 @@
 <section class="legal__sec" id="uncollected">
   <h2>5. If you don’t collect it</h2>
   <p>The office holds a Bir Qadam parcel for {{ legal.hold_days }} day{{ legal.hold_days|pluralize }}. Collect it soon after it arrives.</p>
-  <p>A parcel that is not collected in time, or is refused, comes back to us. We then keep <strong class="num">{{ legal.uncollected_fee|price }}&nbsp;soʻm</strong> of your payment and refund the rest within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. So check the district and the address carefully — you can see them again on the order page.</p>
+  <p>A parcel that is not collected in time, or is refused, comes back to us. That costs you nothing: your payment is refunded in full within {{ legal.refund_days }} day{{ legal.refund_days|pluralize }}. Even so, check the district and the address carefully — you can see them again on the order page.</p>
 </section>
 
 <section class="legal__sec" id="exchange">
   <h2>6. If the size is wrong</h2>
-  <p>An unworn, unwashed item with its labels on can be exchanged for another size within {{ legal.exchange_days }} day{{ legal.exchange_days|pluralize }} of receiving it. Write to us first and we will tell you where to send it. The buyer pays for sending it back and for sending the new size. If the size you need has sold out, we refund the price of the item.</p>
+  <p>We exchange an unworn, unwashed item with its labels on for another size we have, free of charge, within {{ legal.exchange_days }} day{{ legal.exchange_days|pluralize }} of buying it: we pay for sending the new size. If the size you need has sold out, we refund you. If an item is returned after it has been collected because of its size or a change of mind, the buyer pays for delivery.</p>
+  <p>Send a request <a class="link" href="{% url 'return_request' %}">on the site</a> or on Telegram — we will tell you the next steps and where to send the item.</p>
 </section>
 
 <section class="legal__sec" id="defects">
-  <h2>7. If it is faulty or damaged</h2>
-  <p>If the item arrives faulty or damaged, write to us as soon as you can with a photo or video: we will replace it or refund it, and we pay all the delivery costs. You can report a defect within {{ legal.defect_claim_months }} month{{ legal.defect_claim_months|pluralize }} of receiving the item.</p>
+  <h2>7. If it is faulty or not what you ordered</h2>
+  <p>If the item arrives faulty or damaged, or you were sent the wrong size, colour or model, write to us as soon as you can with a photo or video: we will replace it or refund it, and we pay all the delivery costs. You can report a defect within {{ legal.defect_claim_months }} month{{ legal.defect_claim_months|pluralize }} of receiving the item.</p>
   <p>If the packaging is damaged, inspect the parcel at the branch and have a report drawn up in the presence of a postal employee.</p>
-  <p>The full rules are in the <a class="link" href="{% url 'terms' %}">Terms of use</a>.</p>
+  <p>The full rules are in the <a class="link" href="{% url 'returns' %}">Returns and exchange policy</a> and the <a class="link" href="{% url 'terms' %}">Terms of use</a>.</p>
 </section>

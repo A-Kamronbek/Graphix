@@ -101,7 +101,7 @@
 
   {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="has-tabbar {% block body_class %}{% endblock %}">
   {# First focusable element on the page, so a keyboard user can pass the nav. #}
   <a class="skip" href="#main">{% trans "Asosiy qismga oʻtish" %}</a>
 
@@ -126,6 +126,9 @@
   </main>
 
   {% include "partials/_footer.html" %}
+
+  {# The bar of five at the foot of a phone (§9 Phase 23 D2). #}
+  {% include "partials/_tabbar.html" %}
 
   {% include "partials/_viewer.html" %}
 

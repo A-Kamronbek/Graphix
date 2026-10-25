@@ -61,9 +61,12 @@ PAGES = (
     Page('search', {}, 200, 200, 200),
     Page('about', {}, 200, 200, 200),
     Page('contact', {}, 200, 200, 200),
+    # Open to read; sending needs an account (§9 Phase 23 part E).
+    Page('custom_design', {}, 200, 200, 200),
     Page('delivery', {}, 200, 200, 200),
     Page('terms', {}, 200, 200, 200),
     Page('privacy', {}, 200, 200, 200),
+    Page('returns', {}, 200, 200, 200),
     Page('size_guide', {}, 200, 200, 200),
     Page('cart', {}, 200, 200, 200),
     Page('item', {'slug': 'slug'}, 200, 200, 200),
@@ -91,6 +94,9 @@ PAGES = (
     Page('account_settings', {}, LOGIN, 200, 200),
     Page('liked', {}, LOGIN, 200, 200),
     Page('checkout', {}, LOGIN, 200, 200),
+    # Asking to return or exchange (§9 Phase 23 part B). Staff are customers
+    # too, with no delivered order of their own here: the page says so.
+    Page('return_request', {}, LOGIN, 200, 200),
 
     # Order-scoped, and the order belongs to `user`. Staff must get a 404:
     # being staff is not being the customer, and the panel is where staff
@@ -135,6 +141,8 @@ PANEL = (
     Page('panel_product_new', {}, STAFF_DOOR, 403, 200),
     Page('panel_product', {'slug': 'slug'}, STAFF_DOOR, 403, 200),
     Page('panel_messages', {}, STAFF_DOOR, 403, 200),
+    Page('panel_designs', {}, STAFF_DOOR, 403, 200),
+    Page('panel_filters', {}, STAFF_DOOR, 403, 200),
     Page('panel_reviews', {}, STAFF_DOOR, 403, 200),
     Page('panel_regions', {}, STAFF_DOOR, 403, 200),
     Page('panel_settings', {}, STAFF_DOOR, 403, 200),
@@ -158,9 +166,15 @@ PANEL = (
     Page('panel_product_images', {'slug': 'slug'}, STAFF_DOOR, 403, 405),
     Page('panel_review_moderate', {'pk': 'review_pk'}, STAFF_DOOR, 403, 405),
     Page('panel_message_read', {'pk': 'msg_pk'}, STAFF_DOOR, 403, 405),
+    Page('panel_design_read', {'pk': 'design_pk'}, STAFF_DOOR, 403, 405),
+    Page('panel_filter_group_new', {}, STAFF_DOOR, 403, 405),
+    Page('panel_filter_item_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_lookup_new', {'kind': 'kind'}, STAFF_DOOR, 403, 405),
     Page('panel_chart_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_chart_rows', {'pk': 'chart_pk'}, STAFF_DOOR, 403, 405),
+    Page('panel_returns', {}, STAFF_DOOR, 403, 200),
+    # No request exists in the matrix, so staff are told so (§17 #399).
+    Page('panel_return', {'pk': 'return_pk'}, STAFF_DOOR, 403, 404),
     Page('panel_size_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_slide_new', {}, STAFF_DOOR, 403, 405),
     Page('panel_slide_picture', {'pk': 'slide_pk', 'which': 'which'},
@@ -236,7 +250,7 @@ class SmokeMatrix(TestCase):
             # the view looks one up (§17 #302).
             'slide_pk': 1, 'which': 'phone',
             # Nor a chart, for the same reason (§17 #400).
-            'chart_pk': 1,
+            'chart_pk': 1, 'return_pk': 1, 'design_pk': 1,
             'promo_pk': PromoCode.objects.create(
                 code='SMOKE', kind=PromoCode.Kind.ORDER_SUM, value=1000).pk,
         }

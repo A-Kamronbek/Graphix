@@ -1,0 +1,170 @@
+{% extends "boshqaruv/base.html" %}
+{% load i18n i18n_fields %}
+{% block title %}{% trans "Filtrlar" %}{% endblock %}
+
+{% comment %}
+  The shop's filters (§9 Phase 23 part G, §17 #404): the groups, then the
+  items of the group chosen. Every box saves on its own through the reference
+  endpoint and its allowlist (`panel/reference.py`), as Sozlamalar's rows do;
+  the two "new" forms are ordinary posts.
+
+  A group is shown in the shop when it is switched on, with its items that are
+  switched on and that a product on sale carries (`product/filters.py`). A new
+  group starts switched off, so it is not shown half filled in. The slugs are
+  made once and are not offered for editing: they are what the shop's address
+  calls a group and an item.
+{% endcomment %}
+
+{% block content %}
+<h1 class="pnl__title">{% trans "Filtrlar" %}</h1>
+<form hidden>{% csrf_token %}</form>
+<p class="field__hint">{% trans "Doʻkonda oʻlchamdan tashqari koʻrinadigan filtrlar. Guruh yoqilgan boʻlsa, sotuvdagi mahsulotga belgilangan elementlari bilan koʻrinadi. Mahsulotga element uning tahrir sahifasida belgilanadi. Teglar xaridorga koʻrinmaydi." %}</p>
+
+<section class="pnl__section" id="guruhlar">
+  <h2>{% trans "Guruhlar" %}</h2>
+  <p class="field__hint">{% trans "Guruh oʻchirilsa, elementlari ham oʻchadi va mahsulotlardan olib tashlanadi." %}</p>
+  <div class="panel-card stack stack--sm">
+    {% for g in groups %}
+      <div class="row--fields fgroup" data-ref="filtergroup" data-id="{{ g.pk }}"
+           data-ref-url="{% url 'panel_reference_inline' kind='filtergroup' pk=g.pk %}">
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (uz)</span>
+          <input class="input" type="text" value="{{ g.name }}" maxlength="60" data-ref-field="name">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (ru)</span>
+          <input class="input" type="text" value="{{ g.name_ru }}" maxlength="60" data-ref-field="name_ru">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (en)</span>
+          <input class="input" type="text" value="{{ g.name_en }}" maxlength="60" data-ref-field="name_en">
+        </label>
+        <label class="field field--num">
+          <span class="label">{% trans "Tartib" %}</span>
+          <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+                 value="{{ g.sort_order }}" data-ref-field="sort_order">
+        </label>
+        <div class="fgroup__foot">
+          <label class="switch">
+            <input type="checkbox" data-ref-field="is_active" {% if g.is_active %}checked{% endif %}>
+            <span>{% trans "Doʻkonda koʻrsatish" %}</span>
+          </label>
+          <a class="link small" href="?group={{ g.pk }}#elementlar"
+             {% if group and group.pk == g.pk %}aria-current="true"{% endif %}>
+            {% blocktrans count n=g.item_count %}{{ n }} ta element{% plural %}{{ n }} ta element{% endblocktrans %}
+          </a>
+          <button type="button" class="btn btn--ghost btn--sm ref__x"
+                  data-ref-delete="{% url 'panel_reference_delete' kind='filtergroup' pk=g.pk %}"
+                  data-ref-name="{{ g.name }}">
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+            <span class="sr-only">{% trans "Oʻchirish" %}</span>
+          </button>
+        </div>
+      </div>
+    {% empty %}
+      <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+    {% endfor %}
+  </div>
+
+  <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_filter_group_new' %}">
+    {% csrf_token %}
+    <h3 class="label">{% trans "Yangi guruh" %}</h3>
+    <div class="row--fields">
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (uz)</span>
+        <input class="input" type="text" name="name" required maxlength="60">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (ru)</span>
+        <input class="input" type="text" name="name_ru" maxlength="60">
+      </label>
+      <label class="field">
+        <span class="label">{% trans "Nomi" %} (en)</span>
+        <input class="input" type="text" name="name_en" maxlength="60">
+      </label>
+      <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
+    </div>
+  </form>
+</section>
+
+{% if group %}
+  <section class="pnl__section" id="elementlar">
+    <h2>{% blocktrans with name=group.name %}«{{ name }}» elementlari{% endblocktrans %}</h2>
+    <p class="field__hint">{% trans "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi." %}</p>
+    <div class="panel-card stack stack--sm">
+      {% for item in items %}
+        <div class="row--fields fitem" data-ref="filteritem" data-id="{{ item.pk }}"
+             data-ref-url="{% url 'panel_reference_inline' kind='filteritem' pk=item.pk %}">
+          <label class="field">
+            <span class="label">{% trans "Nomi" %} (uz)</span>
+            <input class="input" type="text" value="{{ item.name }}" maxlength="60" data-ref-field="name">
+          </label>
+          <label class="field">
+            <span class="label">{% trans "Nomi" %} (ru)</span>
+            <input class="input" type="text" value="{{ item.name_ru }}" maxlength="60" data-ref-field="name_ru">
+          </label>
+          <label class="field">
+            <span class="label">{% trans "Nomi" %} (en)</span>
+            <input class="input" type="text" value="{{ item.name_en }}" maxlength="60" data-ref-field="name_en">
+          </label>
+          <label class="field field--num">
+            <span class="label">{% trans "Rang" %}</span>
+            <span class="fitem__colour">
+              <span class="dzn__chip" data-swatch style="--chip: {{ item.colour|default:'transparent' }}" aria-hidden="true"></span>
+              <input class="input" type="text" value="{{ item.colour }}" maxlength="7"
+                     placeholder="#000000" spellcheck="false" data-ref-field="colour">
+            </span>
+          </label>
+          <label class="field field--num">
+            <span class="label">{% trans "Tartib" %}</span>
+            <input class="input num" type="number" inputmode="numeric" min="0" step="1"
+                   value="{{ item.sort_order }}" data-ref-field="sort_order">
+          </label>
+          <div class="fgroup__foot">
+            <label class="switch">
+              <input type="checkbox" data-ref-field="is_active" {% if item.is_active %}checked{% endif %}>
+              <span>{% trans "Yoqilgan" %}</span>
+            </label>
+            <span class="small muted">
+              {% blocktrans count n=item.product_count %}{{ n }} ta mahsulot{% plural %}{{ n }} ta mahsulot{% endblocktrans %}
+            </span>
+            <button type="button" class="btn btn--ghost btn--sm ref__x"
+                    data-ref-delete="{% url 'panel_reference_delete' kind='filteritem' pk=item.pk %}"
+                    data-ref-name="{{ item.name }}">
+              <svg class="i i--sm" aria-hidden="true"><use href="#i-trash"></use></svg>
+              <span class="sr-only">{% trans "Oʻchirish" %}</span>
+            </button>
+          </div>
+        </div>
+      {% empty %}
+        <p class="muted small">{% trans "Hozircha yoʻq." %}</p>
+      {% endfor %}
+    </div>
+
+    <form class="panel-card stack stack--sm" method="post" action="{% url 'panel_filter_item_new' %}">
+      {% csrf_token %}
+      <input type="hidden" name="group" value="{{ group.pk }}">
+      <h3 class="label">{% trans "Yangi element" %}</h3>
+      <div class="row--fields">
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (uz)</span>
+          <input class="input" type="text" name="name" required maxlength="60">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (ru)</span>
+          <input class="input" type="text" name="name_ru" maxlength="60">
+        </label>
+        <label class="field">
+          <span class="label">{% trans "Nomi" %} (en)</span>
+          <input class="input" type="text" name="name_en" maxlength="60">
+        </label>
+        <label class="field field--num">
+          <span class="label">{% trans "Rang" %}</span>
+          <input class="input" type="text" name="colour" maxlength="7" placeholder="#000000" spellcheck="false">
+        </label>
+        <button class="btn btn--primary" type="submit">{% trans "Qoʻshish" %}</button>
+      </div>
+    </form>
+  </section>
+{% endif %}
+{% endblock %}

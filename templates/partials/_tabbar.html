@@ -1,0 +1,41 @@
+{% load i18n %}
+{% comment %}
+  The bar of five at the foot of a phone (§9 Phase 23 D2, §17 #408): the
+  home page, the shop, search, the saved designs and the basket, each an icon
+  over a word, the page's own one marked. Below 860 px only; the header keeps
+  the brand, the account and the menu there, and its own search, heart and
+  basket step aside for these (`nav__twin`).
+
+  Every item is a link, so the bar works without a script. "Qidiruv" goes to
+  the search page, which has its own field; with a script it opens the
+  header's field in place instead (`data-search-open`, main.js).
+{% endcomment %}
+{% with here=request.resolver_match.url_name %}
+<nav class="tabbar" aria-label="{% trans 'Pastki menyu' %}">
+  <a href="{% url 'home' %}" {% if here == 'home' %}aria-current="page"{% endif %}>
+    <svg class="i" aria-hidden="true"><use href="#i-home"></use></svg>
+    <span>{% trans "Bosh sahifa" %}</span>
+  </a>
+  <a href="{% url 'shop' %}" {% if here == 'shop' %}aria-current="page"{% endif %}>
+    <svg class="i" aria-hidden="true"><use href="#i-grid"></use></svg>
+    <span>{% trans "Doʻkon" %}</span>
+  </a>
+  <a href="{% url 'search' %}" data-search-open {% if here == 'search' %}aria-current="page"{% endif %}>
+    <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
+    <span>{% trans "Qidiruv" %}</span>
+  </a>
+  <a href="{% if user.is_authenticated %}{% url 'liked' %}{% else %}{% url 'login' %}{% endif %}"
+     {% if here == 'liked' %}aria-current="page"{% endif %}
+     {% if liked_count %}aria-label="{% trans 'Saqlangan' %} ({{ liked_count }})"{% endif %}>
+    <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
+    {% if liked_count %}<span class="tabbar__count" aria-hidden="true">{{ liked_count }}</span>{% endif %}
+    <span>{% trans "Saqlangan" %}</span>
+  </a>
+  <a href="{% url 'cart' %}" {% if here == 'cart' %}aria-current="page"{% endif %}
+     {% if cart_count %}aria-label="{% trans 'Savat' %} ({{ cart_count }})"{% endif %}>
+    <svg class="i" aria-hidden="true"><use href="#i-cart"></use></svg>
+    {% if cart_count %}<span class="tabbar__count" aria-hidden="true">{{ cart_count }}</span>{% endif %}
+    <span>{% trans "Savat" %}</span>
+  </a>
+</nav>
+{% endwith %}

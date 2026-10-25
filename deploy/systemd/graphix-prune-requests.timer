@@ -1,0 +1,15 @@
+# Daily, at a quiet hour in the timezone the shop operates in, after the
+# guest carts. Persistent=true so a run missed while the machine was off
+# happens at the next boot.
+
+[Unit]
+Description=GRAPHIX - prune requests kept a year, daily
+
+[Timer]
+OnCalendar=*-*-* 04:40:00 Asia/Tashkent
+Persistent=true
+RandomizedDelaySec=600
+Unit=graphix-prune-requests.service
+
+[Install]
+WantedBy=timers.target

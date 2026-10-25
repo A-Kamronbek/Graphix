@@ -66,10 +66,20 @@
       <span class="stat__n">{{ pending_reviews }}</span>
       <span class="stat__label">{% trans "Yangi sharhlar" %}</span>
     </a>
+    <a class="stat {% if new_returns %}stat--todo{% endif %}"
+       href="{% url 'panel_returns' %}?status=new">
+      <span class="stat__n">{{ new_returns }}</span>
+      <span class="stat__label">{% trans "Yangi qaytarish soʻrovlari" %}</span>
+    </a>
     <a class="stat {% if unread %}stat--todo{% endif %}"
        href="{% url 'panel_messages' %}?show=unread">
       <span class="stat__n">{{ unread }}</span>
       <span class="stat__label">{% trans "Oʻqilmagan xabarlar" %}</span>
+    </a>
+    <a class="stat {% if unread_designs %}stat--todo{% endif %}"
+       href="{% url 'panel_designs' %}?show=unread">
+      <span class="stat__n">{{ unread_designs }}</span>
+      <span class="stat__label">{% trans "Oʻqilmagan dizaynlar" %}</span>
     </a>
     <a class="stat {% if low_stock_count %}stat--todo{% endif %}"
        href="{% url 'panel_products' %}?low=1">

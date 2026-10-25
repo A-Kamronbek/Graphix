@@ -4,10 +4,11 @@ Structured exactly like :mod:`core.sms`, and for the same reason: module
 logger, catch everything, log, return a boolean, **never raise**. A Telegram
 outage degrades a feature; it must never fail a checkout (§4, §12 risk #17).
 
-There are five events - a paid order, a contact message, a review waiting
-for moderation, the hourly ceiling on sign-in codes being reached, and an
-Uzpost shipment in a status the shop does not act on - and each is sent once,
-when it happens. An order is notified
+There are seven events - a paid order, a contact message, a review waiting
+for moderation, the hourly ceiling on sign-in codes being reached, an Uzpost
+shipment in a status the shop does not act on, a request to return or
+exchange, and a design a customer suggests - and each is sent once, when it
+happens. An order is notified
 when the money arrives and not when it is placed (§17 #237): an abandoned
 checkout and a cancelled payment are not parcels, and the owner should not
 have to work out which of his notifications are.
@@ -46,6 +47,7 @@ import hmac
 import json
 import logging
 import time
+from functools import wraps
 from urllib.parse import urlsplit
 
 import requests
@@ -53,6 +55,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.utils import timezone
+from django.utils import translation
 from django.utils.html import escape
 
 logger = logging.getLogger(__name__)
@@ -247,8 +250,25 @@ def _som(amount):
     return None if amount is None else int(amount)
 
 
+def _in_uzbek(compose):
+    """Compose a notice in Uzbek whatever language the request was in.
+
+    The owner reads the notices in Uzbek. Labels a notice takes from the
+    models - a return's kind and reason, a design's garment and colour, an
+    order's payment method - are translated, so composed during a Russian
+    or English page's request they came out in that language, inside an
+    Uzbek message.
+    """
+    @wraps(compose)
+    def composed(*args, **kwargs):
+        with translation.override('uz'):
+            return compose(*args, **kwargs)
+    return composed
+
+
 # ------------------------------------------------------------------- events
 
+@_in_uzbek
 def notify_paid_order(order):
     """A paid order, with everything needed to act on it without a laptop.
 
@@ -335,6 +355,7 @@ def notify_paid_order(order):
     notify('\n'.join(lines), event='order.paid', data=data)
 
 
+@_in_uzbek
 def notify_message(msg):
     """A contact-form message, with the sender's number ready to tap."""
     # A customer has no username to show: theirs is the number below.
@@ -358,6 +379,7 @@ def notify_message(msg):
     }})
 
 
+@_in_uzbek
 def notify_review(review):
     """A review waiting for moderation. Nothing is public until it is approved."""
     excerpt = (review.text or '')[:200]
@@ -384,6 +406,7 @@ def notify_review(review):
     }})
 
 
+@_in_uzbek
 def notify_code_ceiling(limit):
     """The site sent as many sign-in codes in an hour as it may, and has stopped.
 
@@ -400,6 +423,7 @@ def notify_code_ceiling(limit):
         data={'signin': {'codes_sent': limit, 'window_minutes': 60}})
 
 
+@_in_uzbek
 def notify_shipment_status(shipment):
     """Uzpost put a shipment in a status the shop does not act on by itself.
 
@@ -421,5 +445,91 @@ def notify_shipment_status(shipment):
         'number': shipment.number,
         'status': shipment.status,
         'status_at': shipment.status_at,
+        'admin_url': link,
+    }})
+
+
+@_in_uzbek
+def notify_return(request):
+    """A customer asks to return or exchange part of a delivered order (§17 #399).
+
+    What and why, the number to ring, and a link to the request in the panel,
+    where staff answer it. The explanation is the customer's own text, so it
+    is escaped like every other.
+    """
+    order = request.order
+    lines = [
+        f"↩️ <b>Yangi soʻrov: {esc(request.get_kind_display().lower())}</b> "
+        f"{esc(order.order_no or order.pk)}",
+        f"<b>Sabab:</b> {esc(request.get_reason_display())}",
+    ]
+    for line in request.lines.select_related('item__variant__product',
+                                             'item__variant__size', 'size_wanted'):
+        variant = line.item.variant
+        size = variant.size.size if variant.size_id else ''
+        text = f"• {esc(variant.product.name)} {esc(size)} × {line.quantity}"
+        if line.size_wanted_id:
+            text += f" → {esc(line.size_wanted.size)}"
+        lines.append(text)
+    lines.append(esc(request.explanation[:300]))
+    photos = request.images.count()
+    if photos:
+        lines.append(f"📷 Rasm: {photos} ta")
+    lines.append(_phone_line('Telefon', request.phone).lstrip('\n'))
+    link = panel_url('panel_return', pk=request.pk)
+    if link:
+        lines.append(f'\n<a href="{link}">Soʻrovni ochish</a>')
+    notify('\n'.join(lines), event='return.new', data={'return': {
+        'id': request.pk,
+        'order': order.order_no or str(order.pk),
+        'kind': request.kind,
+        'reason': request.reason,
+        'text': request.explanation,
+        'phone': request.phone,
+        'photos': photos,
+        'admin_url': link,
+    }})
+
+
+@_in_uzbek
+def notify_design(request):
+    """A customer suggests a design of their own (§17 #402).
+
+    The garment, where the print goes, the size and how many, the words and
+    colours if any, the number to ring, and a link to it in the panel's
+    "Dizaynlar". The idea and the text are the customer's own, so they are
+    escaped like every other. The pictures themselves are not sent.
+    """
+    lines = [
+        f"🎨 <b>Yangi dizayn taklifi:</b> {esc(request.get_garment_display().lower())}, "
+        f"{esc(request.colour_label.lower())}",
+        f"<b>Joyi:</b> {esc(request.get_placement_display().lower())}",
+        f"<b>Oʻlcham:</b> {esc(request.size)} × {request.quantity}",
+    ]
+    if request.print_text:
+        lines.append(f"<b>Matn:</b> {esc(request.print_text)}")
+    if request.print_colours:
+        lines.append(f"<b>Ranglar:</b> {esc(request.print_colours.upper())}")
+    lines.append(esc(request.idea[:300]))
+    photos = request.images.count()
+    if photos:
+        lines.append(f"📷 Rasm: {photos} ta")
+    lines.append(_phone_line('Telefon', request.phone).lstrip('\n'))
+    link = panel_url('panel_designs', anchor=f'#dizayn-{request.pk}')
+    if link:
+        lines.append(f'\n<a href="{link}">Dizaynni ochish</a>')
+    notify('\n'.join(lines), event='design.new', data={'design': {
+        'id': request.pk,
+        'garment': request.garment,
+        'colour': request.colour,
+        'colour_other': request.colour_other,
+        'placement': request.placement,
+        'size': request.size,
+        'quantity': request.quantity,
+        'text': request.idea,
+        'print_text': request.print_text,
+        'colours': request.colour_list,
+        'phone': request.phone,
+        'photos': photos,
         'admin_url': link,
     }})

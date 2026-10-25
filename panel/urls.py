@@ -49,6 +49,11 @@ urlpatterns = [
     path('boshqaruv/xabarlar/', views.messages_inbox, name='panel_messages'),
     path('boshqaruv/xabarlar/<int:pk>/oqildi/', views.message_read,
          name='panel_message_read'),
+    # Customers' own designs, read and unread like the messages (§9 Phase 23
+    # part E).
+    path('boshqaruv/dizaynlar/', views.designs_inbox, name='panel_designs'),
+    path('boshqaruv/dizaynlar/<int:pk>/oqildi/', views.design_read,
+         name='panel_design_read'),
 
     # The home page's promotional cards. Not reference data — a promotion
     # changes with the season — so its own screen and its own tab (§17 #251).
@@ -60,6 +65,11 @@ urlpatterns = [
     # Promo codes. The list, and one form that makes a code or edits one. The
     # switch and the delete go through the reference endpoints below, like
     # every other row the panel turns off or removes.
+    # Return and exchange requests (§9 Phase 23 part B): the list and one
+    # request, which is also where it is answered.
+    path('boshqaruv/qaytarishlar/', views.returns_list, name='panel_returns'),
+    path('boshqaruv/qaytarishlar/<int:pk>/', views.return_detail, name='panel_return'),
+
     path('boshqaruv/promokodlar/', views.promos, name='panel_promos'),
     path('boshqaruv/promokodlar/yangi/', views.promo_form, name='panel_promo_new'),
     path('boshqaruv/promokodlar/<int:pk>/', views.promo_form, name='panel_promo'),
@@ -67,6 +77,11 @@ urlpatterns = [
     # Reference data: rows somebody changes two or three times a year, so that
     # none of it needs a deploy.
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),
+    # The shop's filter groups and items (§9 Phase 23 part G). Edited in place
+    # through `panel_reference_inline`, like the rows on Sozlamalar; made here.
+    path('boshqaruv/filtrlar/', views.filters_screen, name='panel_filters'),
+    path('boshqaruv/filtrlar/guruh/', views.filter_group_new, name='panel_filter_group_new'),
+    path('boshqaruv/filtrlar/element/', views.filter_item_new, name='panel_filter_item_new'),
     path('boshqaruv/sozlamalar/teg/', views.tag_new, name='panel_tag_new'),
     path('boshqaruv/sozlamalar/jadval/', views.chart_new, name='panel_chart_new'),
     # A chart's rows: every size's four measures, saved together (§17 #400).

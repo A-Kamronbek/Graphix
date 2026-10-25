@@ -32,6 +32,11 @@ see it.
 Uzpost shipment in a status the shop does not act on by itself. The bot has to
 be taught it for the owner to see it.
 
+**Changed 2026-10-20 (Phase 23):** two new events, `return.new`, for a
+customer's request to return or exchange part of a delivered order, and
+`design.new`, for a design a customer suggests. The bot has to be taught
+them for the owner to see them.
+
 ## How it fits together
 
 ```
@@ -154,9 +159,10 @@ Refuse anything that fails with `401` and do nothing with it.
 
 ## The events
 
-Five: a paid order, a contact message, a review waiting for moderation, the
-ceiling on sign-in codes being reached, and an Uzpost shipment in a status the
-shop does not act on.
+Seven: a paid order, a contact message, a review waiting for moderation, the
+ceiling on sign-in codes being reached, an Uzpost shipment in a status the
+shop does not act on, a request to return or exchange, and a design a
+customer suggests.
 
 Amounts are whole so'm, as integers. Dates are ISO 8601 with a time zone.
 `admin_url` links to the staff panel — the order's own screen, or the list the
@@ -262,6 +268,51 @@ person to decide.
 - `status` is Uzpost's own word, as Uzpost wrote it.
 - `status_at` is when Uzpost says the status began, or `null`.
 
+### `return.new`
+
+A customer asked to return or exchange part of a delivered order, from the
+site's request page. Sent once, when the request is sent; staff answer it in
+the panel, and answering sends nothing. A request moves no stock and no money.
+
+```json
+{"return": {"id": 7, "order": "GX-261018-0001", "kind": "exchange",
+            "reason": "size", "text": "M kichik keldi, L kerak.",
+            "phone": "+998 90 123 45 67", "photos": 2,
+            "admin_url": "https://graphix.uz/uz/boshqaruv/qaytarishlar/7/"}}
+```
+
+- `kind` is `return` or `exchange`.
+- `reason` is one of `size`, `fault`, `wrong`, `not_as_described`, `other`.
+- `photos` is how many photographs came with it; the photographs themselves
+  are not sent, and are seen in the panel.
+
+### `design.new`
+
+A customer suggested a design of their own, from the site's own-design
+page. Sent once, when it is sent; the owner answers by phone or Telegram and
+marks it read in the panel, which sends nothing. Nothing is priced or paid on
+the site.
+
+```json
+{"design": {"id": 4, "garment": "tshirt", "colour": "other",
+            "colour_other": "toʻq yashil", "placement": "front",
+            "size": "L", "quantity": 2, "text": "Togʻlar va quyosh, chiziqli.",
+            "print_text": "QOʻQON", "colours": ["#1f3a5f", "#f2c14e"],
+            "phone": "+998 90 123 45 67", "photos": 1,
+            "admin_url": "https://graphix.uz/uz/boshqaruv/dizaynlar/#dizayn-4"}}
+```
+
+- `garment` is `tshirt` or `longsleeve`.
+- `colour` is `white`, `black`, `grey` or `other`; for `other`,
+  `colour_other` is the colour in the customer's words, and empty otherwise.
+- `placement` is `front`, `back` or `both`.
+- `size` is the size's label as the shop names it.
+- `colours` are the print's colours, up to three, as `#rrggbb`; empty when
+  the customer left them to the owner.
+- `print_text` is empty when there is nothing to print in words.
+- `photos` is how many pictures came with it; the pictures themselves are not
+  sent, and are seen in the panel.
+
 ## The bot's own commands
 
 `/start` and `/chatid` answer with the chat's id. They are how the bot's
@@ -272,7 +323,9 @@ site's side uses them.
 
 ## Personal data
 
-The events carry customers' names, phone numbers, addresses and messages. The
+The events carry customers' names, phone numbers, addresses, messages, the
+explanations they write in a return request and the ideas they describe in a
+suggested design. The
 privacy policy tells customers that notifications reach the shop's staff
 through the shop's Telegram bot, and that the site's data is stored in Poland
 (Warsaw). So:

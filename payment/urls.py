@@ -34,4 +34,8 @@ urlpatterns = [
     path('order/<int:pk>/',         views.order_detail, name='order_detail'),
     path('order/<int:pk>/status/',  views.order_status, name='order_status'),
     path('order/<int:pk>/cancel/',  views.order_cancel, name='order_cancel'),
+
+    # Asking to return or exchange (§9 Phase 23 part B). Under the returns
+    # policy's own address, `/qaytarish/`, which the core app serves.
+    path('qaytarish/ariza/', views.return_request, name='return_request'),
 ]

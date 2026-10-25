@@ -62,6 +62,10 @@
        {% if screen == 'reviews' %}aria-current="page"{% endif %}>{% trans "Sharhlar" %}</a>
     <a href="{% url 'panel_messages' %}"
        {% if screen == 'messages' %}aria-current="page"{% endif %}>{% trans "Xabarlar" %}</a>
+    <a href="{% url 'panel_designs' %}"
+       {% if screen == 'designs' %}aria-current="page"{% endif %}>{% trans "Dizaynlar" %}</a>
+    <a href="{% url 'panel_returns' %}"
+       {% if screen == 'returns' %}aria-current="page"{% endif %}>{% trans "Qaytarishlar" %}</a>
     {# Slides earn a tab where the other reference rows do not: a promotion #}
     {# changes with the season, and Sozlamalar is for rows touched twice a #}
     {# year (§17 #251). #}
@@ -69,6 +73,8 @@
        {% if screen == 'slides' %}aria-current="page"{% endif %}>{% trans "Slaydlar" %}</a>
     <a href="{% url 'panel_promos' %}"
        {% if screen == 'promos' %}aria-current="page"{% endif %}>{% trans "Promokodlar" %}</a>
+    <a href="{% url 'panel_filters' %}"
+       {% if screen == 'filters' %}aria-current="page"{% endif %}>{% trans "Filtrlar" %}</a>
     <a href="{% url 'panel_settings' %}"
        {% if screen == 'settings' %}aria-current="page"{% endif %}>{% trans "Sozlamalar" %}</a>
     {# The style guide is a development page and stays reachable at #}

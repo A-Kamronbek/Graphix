@@ -31,19 +31,21 @@ from django.db import transaction
 
 from django.db.models import ExpressionWrapper, Max, Prefetch
 
-from core.models import Msg
+from core.models import DesignRequest, Msg
 from payment.models import (DeliveryOption, District, Order, PaymentOption,
                             Region, SOLD)
 from product import images as image_pipeline
 from payment import services as payment_services
+from product import filters as shop_filters
 from product import services as product_services
-from product.models import (Category, PrintMethod, Product, Review, Size,
-                            SizeChart, SizeChartRow, Slide, SlidePhone, Tag,
-                            TagKind, Variant, slide_link)
+from product.models import (Category, FilterGroup, FilterItem, PrintMethod, Product,
+                            Review, Size, SizeChart, SizeChartRow, Slide, SlidePhone,
+                            Tag, TagKind, Variant, slide_link)
 
 from payment import promos as promo_rules
 from payment import shipments
-from payment.models import PromoCode
+from payment.models import PromoCode, ReturnRequest
+from payment import returns as return_rules
 from core import uzpost
 
 from . import catalogue, reference
@@ -159,8 +161,14 @@ def dashboard(request):
                       .order_by('stock')[:8]),
         'low_stock_count': Variant.objects.running_low().count(),
         'unread': Msg.objects.filter(is_read=False).count(),
+        # Customers' own designs nobody has marked read (§9 Phase 23 part E).
+        'unread_designs': DesignRequest.objects.filter(is_read=False).count(),
         'pending_reviews': Review.objects.filter(
             status=Review.Status.PENDING).count(),
+        # New return and exchange requests, nobody has looked at yet
+        # (§9 Phase 23 item 10).
+        'new_returns': ReturnRequest.objects.filter(
+            status=ReturnRequest.Status.NEW).count(),
         'latest': _order_list().filter(created_at__gte=week)[:5],
         # The shared order row carries a status control, so the dashboard has
         # to supply its options too. Without this the include rendered a select
@@ -520,6 +528,11 @@ def product_form(request, slug=None):
     if loose:
         tag_groups.append((None, loose))
 
+    # The owner's filter groups, every one, switched on or not: a group is
+    # filled in on the products before it is shown in the shop (§17 #404).
+    filter_groups = [(group, list(group.items.all()))
+                     for group in FilterGroup.objects.prefetch_related('items')]
+
     sizes = Size.objects.all()
     # The grid, as rows the template can render without looking anything up:
     # every size the shop sells, carrying this product's numbers where it has
@@ -553,6 +566,11 @@ def product_form(request, slug=None):
         'chosen_tags': (set(_int(t) for t in posted.getlist('tags')) if posted is not None
                         else set(product.tags.values_list('pk', flat=True)) if product
                         else set()),
+        'filter_groups': filter_groups,
+        'chosen_filters': (set(_int(i) for i in posted.getlist('filter_items'))
+                           if posted is not None
+                           else set(product.filter_items.values_list('pk', flat=True)) if product
+                           else set()),
         'print_methods': PrintMethod.objects.all(),
         'max_images': catalogue.MAX_IMAGES,
         'copy_templates': catalogue.description_templates(),
@@ -752,6 +770,42 @@ def message_read(request, pk):
                          'unread': Msg.objects.filter(is_read=False).count()})
 
 
+@staff_only
+def designs_inbox(request):
+    """Customers' own designs (§9 Phase 23 part E), built as the messages are.
+
+    Newest first, the unread ones marked, a filter for the unread: the owner
+    reads a suggestion, rings or writes back, and marks it read (§17 #155).
+    """
+    show = request.GET.get('show', '')
+    qs = (DesignRequest.objects.select_related('user').prefetch_related('images')
+          .order_by('-created_at', '-id'))
+    if show == 'unread':
+        qs = qs.filter(is_read=False)
+
+    page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
+    kept = request.GET.copy()
+    kept.pop('page', None)
+    return render(request, 'boshqaruv/designs.html', {
+        'screen': 'designs',
+        'designs': page,
+        'base_query': kept.urlencode(),
+        'show': show,
+        'unread': DesignRequest.objects.filter(is_read=False).count(),
+    })
+
+
+@staff_only
+@require_POST
+def design_read(request, pk):
+    """Mark one design read or unread, as a message is."""
+    design = get_object_or_404(DesignRequest, pk=pk)
+    design.is_read = request.POST.get('value', '1') in ('1', 'true', 'on')
+    design.save(update_fields=['is_read'])
+    return JsonResponse({'ok': True, 'value': design.is_read,
+                         'unread': DesignRequest.objects.filter(is_read=False).count()})
+
+
 # --------------------------------------------------------------- reference
 
 def _payment_rows():
@@ -908,6 +962,78 @@ def lookup_new(request, kind):
     row.save()
     messages.success(request, done)
     return redirect('panel_settings')
+
+
+@staff_only
+def filters_screen(request):
+    """The shop's filters: the groups, then the items of the group chosen (§17 #404).
+
+    Two sections, edited in place through the reference endpoint and its
+    allowlist, as the other small tables are (§9 Phase 23 item 32). The group
+    whose items are shown is in the address, so a page reloaded after adding
+    an item comes back to the same group.
+    """
+    # Ordered by hand: a query with a count drops the model's own ordering.
+    groups = list(FilterGroup.objects.annotate(item_count=Count('items'))
+                  .order_by('sort_order', 'pk'))
+    wanted = request.GET.get('group', '')
+    group = next((g for g in groups if str(g.pk) == wanted), groups[0] if groups else None)
+    items = (group.items.annotate(product_count=Count('products')).order_by('sort_order', 'pk')
+             if group else [])
+    return render(request, 'boshqaruv/filters.html', {
+        'screen': 'filters',
+        'groups': groups,
+        'group': group,
+        'items': items,
+    })
+
+
+def _names(request):
+    """A new row's three names from its form, each cut to the column."""
+    return [(request.POST.get(key) or '').strip()[:60] for key in ('name', 'name_ru', 'name_en')]
+
+
+@staff_only
+@require_POST
+def filter_group_new(request):
+    """Make a filter group. It starts switched off, so it is not shown half filled in."""
+    name, name_ru, name_en = _names(request)
+    if not name:
+        messages.error(request, _('Nomi kerak.'))
+        return redirect('panel_filters')
+    try:
+        reference.refuse_duplicate('filtergroup', name)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_filters')
+    group = shop_filters.new_group(name, name_ru, name_en)
+    messages.success(request, _('Guruh qoʻshildi. Elementlarini qoʻshing, mahsulotlarga '
+                                'belgilang, soʻng doʻkonda koʻrsatishni yoqing.'))
+    return redirect(reverse('panel_filters') + '?group=%d' % group.pk)
+
+
+@staff_only
+@require_POST
+def filter_item_new(request):
+    """Make an item in a group, switched on, with a swatch if a colour is given."""
+    group = FilterGroup.objects.filter(pk=_int(request.POST.get('group'))).first()
+    if group is None:
+        messages.error(request, _('Topilmadi.'))
+        return redirect('panel_filters')
+    back = reverse('panel_filters') + '?group=%d' % group.pk
+    name, name_ru, name_en = _names(request)
+    if not name:
+        messages.error(request, _('Nomi kerak.'))
+        return redirect(back)
+    try:
+        reference.refuse_duplicate('filteritem', name, group=group)
+        colour = reference.READERS['hex'](request.POST.get('colour', ''))
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect(back)
+    shop_filters.new_item(group, name, name_ru, name_en, colour)
+    messages.success(request, _('Element qoʻshildi.'))
+    return redirect(back)
 
 
 @staff_only
@@ -1228,4 +1354,66 @@ def promo_form(request, pk=None):
         # it came back with a mistake, what the code holds otherwise.
         'chosen': {str(value) for value in (form['products'].value() or [])},
         'orders': promo.orders.count() if promo else 0,
+    })
+
+
+# ------------------------------------------------------------ returns
+# Asking to return or exchange (§9 Phase 23 part B). Staff read a request and
+# answer it here; they cancel or refund the order on the order's own screen,
+# as before, because a request moves no stock and no money (§17 #399).
+
+@staff_only
+def returns_list(request):
+    """Every return and exchange request, newest first, by status."""
+    status = request.GET.get('status', '')
+    qs = (ReturnRequest.objects.select_related('order', 'user')
+          .prefetch_related('lines').order_by('-created_at', '-id'))
+    if status in ReturnRequest.Status.values:
+        qs = qs.filter(status=status)
+    else:
+        status = ''
+    page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
+    kept = request.GET.copy()
+    kept.pop('page', None)
+    return render(request, 'boshqaruv/returns.html', {
+        'screen': 'returns',
+        'requests': page,
+        'base_query': kept.urlencode(),
+        'status': status,
+        'statuses': ReturnRequest.Status.choices,
+        'new': ReturnRequest.objects.filter(status=ReturnRequest.Status.NEW).count(),
+    })
+
+
+@staff_only
+def return_detail(request, pk):
+    """One request: the order, the items, the photographs, the status and the answer.
+
+    Opening a new request marks it as being looked at, so the dashboard's
+    count is of requests nobody has opened. Saving sets the status and the
+    answer the customer reads under the order.
+    """
+    req = get_object_or_404(
+        ReturnRequest.objects.select_related('order', 'user', 'answered_by')
+        .prefetch_related('lines__item__variant__product', 'lines__item__variant__size',
+                          'lines__size_wanted', 'images'), pk=pk)
+    if request.method == 'POST':
+        try:
+            return_rules.answer(req, status=request.POST.get('status', ''),
+                                text=request.POST.get('answer', ''), by=request.user)
+        except return_rules.Refused as exc:
+            messages.error(request, exc.message)
+        else:
+            messages.success(request, _('Saqlandi.'))
+        return redirect('panel_return', pk=req.pk)
+    if req.status == ReturnRequest.Status.NEW:
+        ReturnRequest.objects.filter(pk=req.pk).update(status=ReturnRequest.Status.REVIEWING)
+        req.status = ReturnRequest.Status.REVIEWING
+    return render(request, 'boshqaruv/return.html', {
+        'screen': 'returns',
+        'req': req,
+        # Sent past the policy's ten days: the owner decides (§17 #406).
+        'late': return_rules.is_late(req.order, on=timezone.localdate(req.created_at)),
+        'statuses': ReturnRequest.Status.choices,
+        'max_text': return_rules.MAX_TEXT,
     })
