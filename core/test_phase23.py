@@ -10,9 +10,10 @@ to the order's page, and a gateway that cannot make a link leaves the
 customer there, told why, with the button to try again (§17 #405, §9 Phase 23
 items 35–39).
 
-Part F: "Siz uchun" on the home page is a shelf that scrolls sideways, twelve
-of the most liked designs where there were four (§17 #403, §9 Phase 23 item
-29).
+Part F: "Siz uchun" on the home page was a shelf that scrolls sideways
+(§17 #403); at the developer's word it is now the shop's most-liked list, its
+first page on the home page and the rest added from the shop's own pages as
+the visitor scrolls (§17 #420).
 
 Part C: the size guide is drawn by the site from the charts' rows: a drawing
 of the shirt with the measures numbered on it and no words in it, one table,
@@ -322,107 +323,144 @@ class OpenChatScriptTests(SimpleTestCase):
 
 # ------------------------------------------------------------ part F: "Siz uchun"
 
-def shelf_of(html):
+SHOP_JS = Path(settings.BASE_DIR) / 'static' / 'js' / 'shop.js'
+PAGES_CSS = Path(settings.BASE_DIR) / 'static' / 'css' / 'pages.css'
+
+
+def for_you_of(html):
     """The "Siz uchun" section of the home page, from its opening tag to its end."""
-    return html.split('data-shelf ', 1)[1].split('</section>', 1)[0]
+    return html.split('aria-labelledby="for-you"', 1)[1].split('</section>', 1)[0]
 
 
-class ForYouShelfTests(TempMedia, TestCase):
-    """The home page's "Siz uchun": twelve of the most liked, in a row that scrolls."""
+def card_names(html):
+    """The designs' names on the cards in ``html``, in order."""
+    return re.findall(r'<span class="card__name">([^<]*)</span>', html)
 
-    def setUp(self):
-        super().setUp()
-        # Fourteen liked designs, the most liked made last, and one nobody
-        # liked; each with a small photograph, so the cards carry `sizes`.
-        self.liked = []
-        for n in range(1, 15):
+
+class ForYouListTests(TempMedia, TestCase):
+    """The home page's "Siz uchun": the shop's most-liked list, growing as one scrolls (§17 #420)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        # Twenty-two liked designs, the most liked made last, then two nobody
+        # liked: a page of twenty and four more.
+        for n in range(1, 23):
             product, _variant = make_product('Dizayn %02d' % n)
             Product.objects.filter(pk=product.pk).update(likes_count=n)
-            with_photo(product, 400, 500)
-            self.liked.append(product)
-        self.unliked, _variant = make_product('Hech kim')
-        with_photo(self.unliked, 400, 500)
+        cls.unliked = [make_product('Hech kim %d' % n)[0] for n in (1, 2)]
+        # Two photographs are enough to read what the cards ask for.
+        cls.top = Product.objects.get(name='Dizayn 22')
+        with_photo(cls.top, 400, 500)
+        with_photo(Product.objects.get(name='Dizayn 10'), 400, 500)
 
     def page(self, language='uz'):
         with translation.override(language):
             return self.client.get(reverse('home')).content.decode()
 
-    def test_twelve_of_the_most_liked_most_liked_first(self):
-        shelf = shelf_of(self.page())
-        names = re.findall(r'<span class="card__name">([^<]*)</span>', shelf)
-        self.assertEqual(names, ['Dizayn %02d' % n for n in range(14, 2, -1)])
+    def shop(self, **query):
+        return self.client.get(reverse('shop'), {'sort': 'popular', **query})
 
-    def test_what_fills_it_is_unchanged_a_design_nobody_liked_is_not_on_it(self):
-        self.assertNotIn('Hech kim', shelf_of(self.page()))
-        Product.objects.filter(pk__in=[p.pk for p in self.liked]).update(likes_count=0)
-        self.assertNotIn('data-shelf ', self.page())
+    def test_it_is_the_first_page_of_the_shops_most_liked_list(self):
+        names = card_names(for_you_of(self.page()))
+        self.assertEqual(names, ['Dizayn %02d' % n for n in range(22, 2, -1)])
+        self.assertEqual(names, [p.name for p in self.shop().context['products']])
 
-    def test_it_is_a_list_that_scrolls_each_card_an_item(self):
-        shelf = shelf_of(self.page())
-        self.assertIn('<ul class="shelf__track" id="shelf-for-you-track" data-shelf-track>', shelf)
-        self.assertEqual(shelf.count('<li class="shelf__item">'), 12)
-        self.assertNotIn('grid-products', shelf)
-        self.assertIn('aria-labelledby="shelf-for-you"', self.page())
-        self.assertIn('<h2 class="h2" id="shelf-for-you">Siz uchun</h2>', shelf)
+    def test_the_shops_next_page_carries_on_where_it_stops(self):
+        first = card_names(for_you_of(self.page()))
+        second = [p.name for p in self.shop(page=2).context['products']]
+        # The ones nobody liked come after the rest, the newest first.
+        self.assertEqual(second, ['Dizayn 02', 'Dizayn 01', 'Hech kim 2', 'Hech kim 1'])
+        self.assertFalse(set(first) & set(second))
+        self.assertEqual(len(set(first) | set(second)), Product.objects.count())
 
-    def test_its_photographs_ask_for_the_width_the_shelf_draws_them_at(self):
-        shelf = shelf_of(self.page())
-        sizes = re.findall(r'sizes="([^"]*)"', shelf)
-        self.assertEqual(len(sizes), 12)
-        self.assertEqual(set(sizes), {'(min-width: 1280px) 260px, (min-width: 860px) 21vw, '
-                                      '(min-width: 560px) 37vw, 57vw'})
-        # Below the first screen: every one waits to be scrolled to.
-        self.assertEqual(shelf.count('loading="lazy"'), 12)
+    def test_a_design_nobody_liked_is_on_it_when_there_is_room(self):
+        Product.objects.filter(name__in=['Dizayn %02d' % n for n in range(1, 11)]).delete()
+        names = card_names(for_you_of(self.page()))
+        self.assertEqual(names[-2:], ['Hech kim 2', 'Hech kim 1'])
 
-    def test_the_grid_above_it_keeps_the_grids_widths(self):
+    def test_it_is_the_shops_grid_handed_to_the_list_script(self):
         html = self.page()
-        newest = html.split('Yangi kelganlar', 1)[1].split('</section>', 1)[0]
-        self.assertIn('(min-width: 720px) 31vw, 46vw', newest)
+        section = for_you_of(html)
+        self.assertIn('<h2 class="h2" id="for-you">Siz uchun</h2>', section)
+        self.assertIn('<div class="grid-products" data-more-grid>', section)
+        self.assertRegex(section, r'<div class="more" data-more data-first\b')
+        self.assertIn('data-loaded="Yana dizaynlar koʻrsatildi."', section)
+        self.assertIn('data-more-retry', section)
+        self.assertIn('js/shop.js', html)
+        # One list on the page for the script to grow.
+        self.assertEqual(html.count('data-more-grid'), 1)
 
-    def test_two_arrows_named_in_each_language_that_move_the_track(self):
-        for language in ('uz', 'ru', 'en'):
+    def test_its_page_links_lead_to_the_shops_pages(self):
+        section = for_you_of(self.page())
+        shop = reverse('shop')
+        self.assertRegex(section, r'href="%s\?sort=popular&(amp;)?page=2"\s+rel="next"' % shop)
+        self.assertRegex(section, r'<span class="is-current" aria-current="page">1</span>')
+        self.assertNotIn('href="?', section)
+
+    def test_a_list_of_one_page_has_nothing_to_load(self):
+        Product.objects.filter(name__startswith='Hech kim').delete()
+        Product.objects.filter(name__in=['Dizayn 01', 'Dizayn 02']).delete()
+        html = self.page()
+        self.assertEqual(len(card_names(for_you_of(html))), 20)
+        self.assertNotIn('data-more ', html)
+        self.assertNotIn('rel="next"', html)
+        self.assertNotIn('js/shop.js', html)
+
+    def test_with_nothing_on_sale_there_is_no_section(self):
+        Product.objects.update(is_active=False)
+        html = self.page()
+        self.assertNotIn('id="for-you"', html)
+        self.assertNotIn('js/shop.js', html)
+
+    def test_its_photographs_wait_to_be_scrolled_to(self):
+        section = for_you_of(self.page())
+        self.assertEqual(section.count('<img'), 20)
+        self.assertEqual(section.count('loading="lazy"'), 20)
+        self.assertNotIn('fetchpriority', section)
+        # The grid's widths, as the shop's cards ask for.
+        self.assertEqual(set(re.findall(r'sizes="([^"]*)"', section)),
+                         {'(min-width: 1280px) 300px, (min-width: 860px) 23vw, '
+                          '(min-width: 720px) 31vw, 46vw'})
+
+    def test_the_band_is_above_it_and_nothing_is_under_it(self):
+        html = self.page()
+        self.assertLess(html.index('class="band"'), html.index('id="for-you"'))
+        after = html.split('id="for-you"', 1)[1].split('</section>', 1)[1].split('</main>', 1)[0]
+        self.assertNotIn('<section', after)
+        # The statement that stood at the foot is gone.
+        self.assertNotIn('home__statement', html)
+        self.assertNotIn('Har bir futbolka', html)
+
+    def test_its_words_are_in_each_language(self):
+        for language, loaded in (('ru', 'Показаны ещё дизайны.'), ('en', 'More designs are shown.')):
             with self.subTest(language=language):
-                shelf = shelf_of(self.page(language))
+                section = for_you_of(self.page(language))
                 with translation.override(language):
-                    names = (_('Oldingi dizaynlar'), _('Keyingi dizaynlar'))
-                if language != 'uz':
-                    self.assertNotIn(names[0], ('', 'Oldingi dizaynlar'))
-                for name, mark in zip(names, ('data-shelf-prev', 'data-shelf-next')):
-                    button = shelf.split(mark, 1)[1].split('</button>', 1)[0]
-                    self.assertIn('<span class="sr-only">%s</span>' % name, button)
-                    self.assertIn('aria-controls="shelf-for-you-track"', button)
-                # Not hidden by an attribute: CSS shows them, so the heading's
-                # height is settled before the first paint.
-                self.assertNotRegex(shelf, r'<button[^>]*data-shelf-(prev|next)[^>]*hidden')
+                    heading = _('Siz uchun')
+                self.assertNotEqual(heading, 'Siz uchun')
+                self.assertIn('id="for-you">%s</h2>' % heading, section)
+                self.assertIn('data-loaded="%s"' % loaded, section)
 
 
-class ForYouShelfAssetTests(SimpleTestCase):
-    """The stylesheet and the script behind the shelf, read as text."""
+class ForYouAssetTests(SimpleTestCase):
+    """The scripts and stylesheets behind "Siz uchun", read as text."""
 
-    def rule(self, selector):
-        css = COMPONENTS_CSS.read_text(encoding='utf-8')
-        return css.split(selector + ' {', 1)[1].split('}', 1)[0]
+    def test_the_list_script_reads_a_link_against_the_page_it_came_from(self):
+        """The shop's pages carry links written for the shop, not the home page."""
+        body = SHOP_JS.read_text(encoding='utf-8')
+        self.assertIn("nextOf(document, window.location.href)", body)
+        self.assertIn("new URL(link.getAttribute('href'), address)", body)
+        self.assertIn('if (response.url) address = response.url;', body)
+        self.assertIn("state.next = fresh.length ? nextOf(page, address) : '';", body)
 
-    def test_the_track_scrolls_and_snaps_without_a_script(self):
-        track = self.rule('.shelf__track')
-        for declaration in ('overflow-x: auto', 'scroll-snap-type: x mandatory',
-                            'grid-auto-flow: column', 'grid-auto-columns: 62%'):
-            self.assertIn(declaration, track)
-        self.assertIn('scroll-snap-align: start', self.rule('.shelf__item'))
-
-    def test_the_arrows_are_for_a_pointer_and_shown_before_the_first_paint(self):
-        css = COMPONENTS_CSS.read_text(encoding='utf-8')
-        self.assertIn('display: none', self.rule('.shelf__arrows'))
-        self.assertIn('@media (hover: hover) and (pointer: fine) {\n'
-                      '  html.js .shelf__arrows { display: flex; }', css)
-        self.assertIn('.shelf__arrows.is-idle { visibility: hidden; }', css)
-
-    def test_the_script_drives_every_shelf_once_the_page_is_read(self):
-        body = MAIN_JS.read_text(encoding='utf-8')
-        self.assertIn("$$('[data-shelf]').forEach", body)
-        self.assertIn("arrows.classList.toggle('is-idle', end <= 1);", body)
-        ready = body.split("document.addEventListener('DOMContentLoaded'", 1)[1]
-        self.assertIn('initShelves();', ready)
+    def test_the_sideways_shelf_is_gone(self):
+        from product.templatetags.image_tags import SIZES
+        self.assertNotIn('shelf', SIZES)
+        self.assertNotIn('.shelf', COMPONENTS_CSS.read_text(encoding='utf-8'))
+        main = MAIN_JS.read_text(encoding='utf-8')
+        self.assertNotIn('initShelves', main)
+        self.assertNotIn('data-shelf', main)
+        self.assertNotIn('home__statement', PAGES_CSS.read_text(encoding='utf-8'))
 
 
 # ------------------------------------------------------- part C: the size guide

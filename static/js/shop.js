@@ -15,6 +15,9 @@
  * browser either restores the page whole or loads it again; when it loads it
  * again the list is rebuilt to the length it was left at before the browser
  * puts the scroll back, so the visitor lands on the design they left from.
+ *
+ * The home page's "Siz uchun" is the first page of the shop's most-liked list,
+ * and goes on with the shop's own pages through this same script (§17 #420).
  */
 (function () {
   'use strict';
@@ -36,13 +39,16 @@
   /* How many cards the page itself brought. The ones after them were added. */
   var own = grid.children.length;
 
-  /* The address of the page after the one `doc` is, or '' on the last. */
-  function nextOf(doc) {
+  /* The address of the page after the one `doc` is, or '' on the last. A
+   * link is read against the address of the page it is on, `address`: a page
+   * fetched for the home page's "Siz uchun" is one of the shop's, and its
+   * links are written for the shop. */
+  function nextOf(doc, address) {
     var link = doc.querySelector('.pager a[rel="next"]');
-    return link ? new URL(link.getAttribute('href'), window.location.href).href : '';
+    return link ? new URL(link.getAttribute('href'), address).href : '';
   }
 
-  var state = { html: [], next: nextOf(document) };
+  var state = { html: [], next: nextOf(document, window.location.href) };
   if (!state.next) return;
 
   /* ---------------------------------------------------------------- kept */
@@ -171,9 +177,11 @@
     var options = { credentials: 'same-origin', headers: { Accept: 'text/html' } };
     if (stop) options.signal = stop.signal;
 
-    window.fetch(state.next, options)
+    var address = state.next;
+    window.fetch(address, options)
       .then(function (response) {
         if (!response.ok) throw new Error('status ' + response.status);
+        if (response.url) address = response.url;
         return response.text();
       })
       .then(function (text) {
@@ -186,7 +194,7 @@
         /* A page that brings nothing new is the end of the list, whatever it
          * says comes after it. The list got shorter while it was being read,
          * and the last page is then handed out for every page asked for. */
-        state.next = fresh.length ? nextOf(page) : '';
+        state.next = fresh.length ? nextOf(page, address) : '';
         state.html.push(cards.innerHTML);
         keep();
         busy = false;

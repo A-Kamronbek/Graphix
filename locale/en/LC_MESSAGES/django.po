@@ -2109,14 +2109,6 @@ msgstr "Previous slide"
 msgid "Keyingi slayd"
 msgstr "Next slide"
 
-#: .\templates\core\home.html:157
-msgid "Oldingi dizaynlar"
-msgstr "Previous designs"
-
-#: .\templates\core\home.html:162
-msgid "Keyingi dizaynlar"
-msgstr "Next designs"
-
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr "Pause"
@@ -2132,14 +2124,6 @@ msgstr "New arrivals"
 #: .\templates\core\home.html:155
 msgid "Siz uchun"
 msgstr "For you"
-
-#: .\templates\core\home.html:181
-msgid ""
-"Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
-"mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
-msgstr ""
-"Every T-shirt is checked before it’s printed. No bad prints, no cheap "
-"fabric — everything in the shop is something we’d wear ourselves."
 
 #: .\templates\core\size_guide.html:4 .\templates\core\size_guide.html:5
 msgid ""
@@ -4112,3 +4096,16 @@ msgstr "view"
 
 #~ msgid "Koʻrish"
 #~ msgstr "View"
+
+#~ msgid "Oldingi dizaynlar"
+#~ msgstr "Previous designs"
+
+#~ msgid "Keyingi dizaynlar"
+#~ msgstr "Next designs"
+
+#~ msgid ""
+#~ "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
+#~ "mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
+#~ msgstr ""
+#~ "Every T-shirt is checked before it’s printed. No bad prints, no cheap "
+#~ "fabric — everything in the shop is something we’d wear ourselves."

@@ -21,6 +21,16 @@ from . import filters, images, services, size_charts
 from .models import Colour, Product, ProductLike, Review, Size, Tag, Variant
 
 
+#: Designs on a page of the shop. The home page's "Siz uchun" is the first
+#: page of the shop's most-liked list, and the list that grows under it is the
+#: shop's own next pages, so the two read this one number (§17 #420).
+PER_PAGE = 20
+
+#: The shop's most-liked order: the most liked first, then the newest, and the
+#: row's own id last, so it is one order and not a family of them (§17 #356).
+POPULAR = ('-likes_count', '-created_at', '-pk')
+
+
 def annotate_cards(qs, user=None):
     """Add the values every product card renders: cheapest price, stock, heart.
 
@@ -132,14 +142,14 @@ def _listing(request, search_page=False):
     elif sort == 'price_desc':
         qs = qs.order_by('-min_price', '-created_at', '-pk')
     elif sort == 'popular':
-        qs = qs.order_by('-likes_count', '-created_at', '-pk')
+        qs = qs.order_by(*POPULAR)
     elif sort == 'rating':
         qs = qs.order_by('-rating_avg', '-review_count', '-created_at', '-pk')
     else:
         sort = 'new'
         qs = qs.order_by('-created_at', '-pk')
 
-    paginator = Paginator(qs, 20)
+    paginator = Paginator(qs, PER_PAGE)
     page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
 

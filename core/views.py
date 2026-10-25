@@ -4,6 +4,7 @@ handlers."""
 from urllib.parse import urlsplit
 
 from django.conf import settings
+from django.core.paginator import Paginator
 from panel.auth import staff_only
 from django.http import Http404, HttpResponse
 from django.db.models import Q
@@ -143,21 +144,25 @@ def home(request):
 
     A product row has to be at least partly visible at 390 x 844 without
     scrolling (§17 #29), so the slides are height-capped in CSS and the newest
-    designs sit immediately under them. Three short queries, all annotated the
-    same way the shop annotates, so the cards render identically wherever they
-    appear.
+    designs sit immediately under them. The cards are annotated the same way
+    the shop annotates, so they render identically wherever they appear.
+
+    "Siz uchun" is the first page of the shop's most-liked list (§17 #420):
+    as the visitor nears its end, ``shop.js`` adds the shop's next page under
+    it, as it does on the shop itself, so this page and the shop have to cut
+    the list at the same place, in the same order. Its paginator is one count
+    and one page.
 
     The page led with a hero until Phase 14: a fixed headline, a lede and the
     newest design as a photograph. The owner replaced it with cards he manages
     himself (§17 #251), and `featured` went with it — nothing else read it.
     """
-    from product.views import annotate_cards
+    from product.views import PER_PAGE, POPULAR, annotate_cards
 
     live = Product.objects.filter(is_active=True, variants__available=True)
 
-    newest = annotate_cards(live.prefetch_related('images', 'variants'),
-                            user=request.user).distinct()
-    latest = list(newest.order_by('-created_at')[:8])
+    cards = annotate_cards(live.prefetch_related('images', 'variants'),
+                           user=request.user).distinct()
     return render(request, 'core/home.html', {
         # Evaluated here rather than left as a queryset: the template counts
         # them to decide whether the carousel's controls are worth rendering,
@@ -168,11 +173,12 @@ def home(request):
         'slides': list(Slide.objects.filter(is_active=True)
                        .select_related('phone')
                        .exclude(Q(picture='') & Q(phone__isnull=True))),
-        'newest': latest,
-        # "Siz uchun" is most-liked until Phase 13 replaces it with the real
-        # recommender — the plan's own stand-in, not a placeholder. Twelve, a
-        # row that scrolls sideways, where it was a grid of four (§17 #403).
-        'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:12]),
+        'newest': list(cards.order_by('-created_at')[:8]),
+        # Most liked until Phase 13 replaces it with the real recommender —
+        # the plan's own stand-in, not a placeholder. Every design on sale,
+        # the ones nobody has liked yet after the rest, or the list would end
+        # where the likes do.
+        'for_you': Paginator(cards.order_by(*POPULAR), PER_PAGE).get_page(1),
         # The shop itself, and the search box a result may carry. Only on the
         # home page: an Organization repeated on forty pages is the same fact
         # forty times, and this is the page a search engine treats as the site.

@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %} The end of a list that grows as the visitor scrolls: the shop's, and
+   the home page's "Siz uchun", which goes on with the shop's own pages
+   (§17 #356, #420).
+
+   The page links are the way on for a browser that runs no script and for
+   a search engine. Where shop.js runs it hides them and adds the next page
+   under the last as the visitor nears it, and only from a first page: any
+   other page has designs before it, and the links are the one way back to
+   those. What the script says is passed in, like every string a page can
+   show (§17 #80).
+
+   `base` is the address the links lead to when that is not this page, and
+   `base_query` what travels with them; both go to the pager. {% endcomment %}
+<div class="more" data-more{% if page_obj.number == 1 %} data-first{% endif %}
+     data-loaded="{% trans 'Yana dizaynlar koʻrsatildi.' %}">
+  <div class="more__fail stack" data-more-fail hidden>
+    <p class="msg msg--err" role="alert">{% trans "Dizaynlarni yuklab boʻlmadi. Qayta urinib koʻring." %}</p>
+    <button type="button" class="btn btn--secondary" data-more-retry>{% trans "Yana koʻrsatish" %}</button>
+  </div>
+  {% include "product/_pager.html" with page_obj=page_obj base=base base_query=base_query %}
+</div>

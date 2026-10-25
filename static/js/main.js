@@ -480,58 +480,6 @@
     if (link) window.location.assign(link.href);
   }
 
-  /* A shelf of cards that scrolls sideways (§9 Phase 23 part F). The track
-   * swipes and snaps by itself; this drives the two arrows CSS shows where
-   * there is a pointer. Each moves the row by as many whole cards as fit,
-   * and is switched off at its end. With nothing to scroll the pair stays
-   * in place, unseen, so the heading beside it does not move. Position is
-   * read back off the track, so a swipe, a wheel and an arrow agree. */
-  function initShelves() {
-    var calm = window.matchMedia
-      ? window.matchMedia('(prefers-reduced-motion: reduce)')
-      : { matches: false };
-    $$('[data-shelf]').forEach(function (shelf) {
-      var track = $('[data-shelf-track]', shelf);
-      var arrows = $('[data-shelf-arrows]', shelf);
-      var prev = $('[data-shelf-prev]', shelf);
-      var next = $('[data-shelf-next]', shelf);
-      if (!track || !arrows || !prev || !next) return;
-
-      function step() {
-        var cards = track.children;
-        if (cards.length < 2) return track.clientWidth;
-        var pitch = cards[1].offsetLeft - cards[0].offsetLeft;
-        if (pitch <= 0) return track.clientWidth;
-        return Math.max(1, Math.floor((track.clientWidth + 1) / pitch)) * pitch;
-      }
-
-      function sync() {
-        var end = track.scrollWidth - track.clientWidth;
-        prev.disabled = track.scrollLeft <= 1;
-        next.disabled = track.scrollLeft >= end - 1;
-        arrows.classList.toggle('is-idle', end <= 1);
-      }
-
-      function go(direction) {
-        track.scrollBy({ left: direction * step(),
-                         behavior: calm.matches ? 'auto' : 'smooth' });
-      }
-
-      prev.addEventListener('click', function () { go(-1); });
-      next.addEventListener('click', function () { go(1); });
-
-      var pending = false;
-      function later() {
-        if (pending) return;
-        pending = true;
-        window.requestAnimationFrame(function () { pending = false; sync(); });
-      }
-      track.addEventListener('scroll', later, { passive: true });
-      window.addEventListener('resize', later);
-      sync();
-    });
-  }
-
   document.addEventListener('DOMContentLoaded', function () {
     openChat();
     sweepBrokenImages();
@@ -543,6 +491,5 @@
     initFilterSheet();
     initLikes();
     initShare();
-    initShelves();
   });
 })();

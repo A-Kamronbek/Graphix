@@ -2129,14 +2129,6 @@ msgstr "Предыдущий слайд"
 msgid "Keyingi slayd"
 msgstr "Следующий слайд"
 
-#: .\templates\core\home.html:157
-msgid "Oldingi dizaynlar"
-msgstr "Предыдущие дизайны"
-
-#: .\templates\core\home.html:162
-msgid "Keyingi dizaynlar"
-msgstr "Следующие дизайны"
-
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr "Остановить"
@@ -2152,14 +2144,6 @@ msgstr "Новые поступления"
 #: .\templates\core\home.html:155
 msgid "Siz uchun"
 msgstr "Для вас"
-
-#: .\templates\core\home.html:181
-msgid ""
-"Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
-"mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
-msgstr ""
-"Каждая футболка проверяется до печати. Ни плохой печати, ни дешёвой ткани — "
-"всё, что есть в магазине, мы носим и сами."
 
 #: .\templates\core\size_guide.html:4 .\templates\core\size_guide.html:5
 msgid ""
@@ -4161,3 +4145,16 @@ msgstr "посмотреть"
 
 #~ msgid "Koʻrish"
 #~ msgstr "Открыть"
+
+#~ msgid "Oldingi dizaynlar"
+#~ msgstr "Предыдущие дизайны"
+
+#~ msgid "Keyingi dizaynlar"
+#~ msgstr "Следующие дизайны"
+
+#~ msgid ""
+#~ "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
+#~ "mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
+#~ msgstr ""
+#~ "Каждая футболка проверяется до печати. Ни плохой печати, ни дешёвой ткани — "
+#~ "всё, что есть в магазине, мы носим и сами."

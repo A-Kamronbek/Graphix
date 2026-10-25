@@ -2074,14 +2074,6 @@ msgstr ""
 msgid "Keyingi slayd"
 msgstr ""
 
-#: .\templates\core\home.html:157
-msgid "Oldingi dizaynlar"
-msgstr ""
-
-#: .\templates\core\home.html:162
-msgid "Keyingi dizaynlar"
-msgstr ""
-
 #: .\templates\core\home.html:102 .\templates\core\home.html:105
 msgid "Toʻxtatish"
 msgstr ""
@@ -2097,14 +2089,6 @@ msgstr ""
 #: .\templates\core\home.html:155
 msgid "Siz uchun"
 msgstr ""
-
-#: .\templates\core\home.html:181
-msgid ""
-"Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
-"mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
-msgstr ""
-"Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
-"mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
 
 #: .\templates\core\size_guide.html:4 .\templates\core\size_guide.html:5
 msgid ""
@@ -3867,3 +3851,16 @@ msgstr ""
 
 #~ msgid "Koʻrish"
 #~ msgstr ""
+
+#~ msgid "Oldingi dizaynlar"
+#~ msgstr ""
+
+#~ msgid "Keyingi dizaynlar"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
+#~ "mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."
+#~ msgstr ""
+#~ "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
+#~ "mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada."

@@ -139,42 +139,9 @@
   </section>
 {% endif %}
 
-{% if popular %}
-  {% comment %} "Siz uchun" is most-liked until Phase 13 ships the real recommender.
-     A shelf that scrolls sideways, twelve designs (§9 Phase 23 part F,
-     §17 #403): a scroll-snap track like the slides, so a thumb swipes it
-     with or without the script. The arrows are for a pointer; CSS shows them
-     where there is one and the document carries `html.js`, so their place is
-     decided before the first paint, as the slides' controls are (§17 #276).
-     {% endcomment %}
-  <section class="section shelf" data-shelf aria-labelledby="shelf-for-you">
-    <div class="wrap stack stack--lg">
-      <div class="row row--between">
-        <h2 class="h2" id="shelf-for-you">{% trans "Siz uchun" %}</h2>
-        <div class="shelf__arrows" data-shelf-arrows>
-          <button type="button" class="shelf__arrow" data-shelf-prev
-                  aria-controls="shelf-for-you-track">
-            <svg class="i" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
-            <span class="sr-only">{% trans "Oldingi dizaynlar" %}</span>
-          </button>
-          <button type="button" class="shelf__arrow" data-shelf-next
-                  aria-controls="shelf-for-you-track">
-            <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
-            <span class="sr-only">{% trans "Keyingi dizaynlar" %}</span>
-          </button>
-        </div>
-      </div>
-      <ul class="shelf__track" id="shelf-for-you-track" data-shelf-track>
-        {% for p in popular %}
-          <li class="shelf__item">{% include "product/_card.html" with p=p sizes='shelf' %}</li>
-        {% endfor %}
-      </ul>
-    </div>
-  </section>
-{% endif %}
-
-{# One's own design, as a band of its own above the statement (§9 Phase 23 #}
-{# D3, part E). The categories' block that stood here went to the top. #}
+{# One's own design, as a band of its own (§9 Phase 23 D3, part E), above #}
+{# "Siz uchun": nothing goes under a list that has no end (§17 #420). The #}
+{# statement that stood under it was taken off with that change. #}
 <section class="section">
   <div class="wrap">
     <div class="band">
@@ -187,14 +154,30 @@
   </div>
 </section>
 
-<section class="section">
-  <div class="wrap home__statement">
-    <p class="h3">
-      {% trans "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon mato ham yoʻq — doʻkonimizdagi har bir mahsulot oʻzimiz kiyadigan darajada." %}
-    </p>
-    <a class="link" href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a>
-  </div>
-</section>
+{% if for_you %}
+  {% comment %} "Siz uchun" is the shop's list in its most-liked order until Phase 13
+     ships the real recommender: the most liked first, then the newest
+     (§17 #420, which replaced the sideways row of #403). Its first page is
+     here, the shop's grid; as the visitor nears its end shop.js adds the
+     shop's next page under it, as it does on the shop (§17 #356). The page
+     links it hides lead a browser that runs no script to the same pages of
+     the shop. Last on the page, for the reason above. Below the first
+     screen, so every photograph waits to be scrolled to. {% endcomment %}
+  {% url 'shop' as shop_url %}
+  <section class="section" aria-labelledby="for-you">
+    <div class="wrap stack stack--lg">
+      <h2 class="h2" id="for-you">{% trans "Siz uchun" %}</h2>
+      <div class="grid-products" data-more-grid>
+        {% for p in for_you %}
+          {% include "product/_card.html" with p=p %}
+        {% endfor %}
+      </div>
+      {% if for_you.has_next %}
+        {% include "product/_more.html" with page_obj=for_you base=shop_url base_query="sort=popular" %}
+      {% endif %}
+    </div>
+  </section>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -202,5 +185,10 @@
      nothing for this to do, and it is the only page that loads it. {% endcomment %}
   {% if slides|length > 1 %}
     <script src="{% static 'js/slides.js' %}" defer></script>
+  {% endif %}
+  {# The shop's list script, for "Siz uchun", which goes on with the shop's #}
+  {# pages; only when there is a next page to add. #}
+  {% if for_you.has_next %}
+    <script src="{% static 'js/shop.js' %}" defer></script>
   {% endif %}
 {% endblock %}
