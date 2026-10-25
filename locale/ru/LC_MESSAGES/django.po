@@ -2153,10 +2153,6 @@ msgstr "Новые поступления"
 msgid "Siz uchun"
 msgstr "Для вас"
 
-#: .\templates\core\home.html:168
-msgid "Kategoriyalar"
-msgstr "Категории"
-
 #: .\templates\core\home.html:181
 msgid ""
 "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
@@ -2308,19 +2304,6 @@ msgstr "Основное меню"
 #: .\templates\partials\_nav.html:23
 msgid "Dizayn qidirish..."
 msgstr "Искать дизайн..."
-
-#: .\templates\partials\_orders_table.html:10
-#: .\templates\partials\_orders_table.html:22
-msgid "Summa"
-msgstr "Сумма"
-
-#: .\templates\partials\_orders_table.html:11
-msgid "Amallar"
-msgstr "Действия"
-
-#: .\templates\partials\_orders_table.html:24
-msgid "Koʻrish"
-msgstr "Открыть"
 
 #: .\templates\partials\_orders_table.html:29
 #: .\templates\product\review_form.html:23
@@ -3655,7 +3638,7 @@ msgstr "Показать"
 msgid "Rang"
 msgstr "Цвет"
 
-msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
+msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
 msgstr "Цвет необязателен, в формате #RRGGBB; если он есть, в магазине рядом с названием будет кружок этого цвета."
 
 msgid "Rangni #RRGGBB koʻrinishida yozing."
@@ -3666,7 +3649,7 @@ msgstr "Порядок"
 
 #, python-format
 msgid "Xaridor doʻkonda shular boʻyicha saralaydi. Guruh va elementlar <a class=\"link\" href=\"%(filters_url)s\">Filtrlar</a> sahifasida."
-msgstr "По ним покупатель отбирает товары в магазине. Группы и элементы — на странице <a class=\"link\" href=\"%(filters_url)s\">«Фильтры»</a>."
+msgstr "По ним покупатель отбирает товары в магазине. Группы и элементы — на странице <a class=\"link\" href=\"%(filters_url)s\">«Фильтры»</a>."
 
 msgid "Yangi element"
 msgstr "Новый элемент"
@@ -3680,6 +3663,36 @@ msgstr "не видна в магазине"
 #, python-format
 msgid "«%(name)s» elementlari"
 msgstr "Элементы группы «%(name)s»"
+
+msgid "Buyurtma qayerda"
+msgstr "Где заказ"
+
+msgid "Gʻoyangizni, rasmingizni yoki matningizni yuboring: qaysi kiyimga, qaysi rangda va qayerga bosilishini tanlaysiz, biz siz bilan bogʻlanamiz."
+msgstr "Пришлите идею, картинку или текст: вы выбираете изделие, цвет и место печати, а мы свяжемся с вами."
+
+msgid "Oʻlcham mos kelmasa — bepul almashtiramiz"
+msgstr "Не подошёл размер — обменяем бесплатно"
+
+msgid "Oʻz dizayningiz bormi?"
+msgstr "Есть свой дизайн?"
+
+msgid "Pastki menyu"
+msgstr "Нижнее меню"
+
+msgid "Qaytarish shartlari"
+msgstr "Условия возврата"
+
+msgid "Saqlangan"
+msgstr "Сохранённые"
+
+msgid "Taklif yuborish"
+msgstr "Отправить идею"
+
+msgid "Yangi oʻlchamni oʻzimiz yuboramiz."
+msgstr "Новый размер отправим сами."
+
+msgid "koʻrish"
+msgstr "посмотреть"
 
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Укажите почтовый индекс."
@@ -4136,3 +4149,15 @@ msgstr "Элементы группы «%(name)s»"
 
 #~ msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 #~ msgstr "Таблица размеров футболок GRAPHIX"
+
+#~ msgid "Kategoriyalar"
+#~ msgstr "Категории"
+
+#~ msgid "Summa"
+#~ msgstr "Сумма"
+
+#~ msgid "Amallar"
+#~ msgstr "Действия"
+
+#~ msgid "Koʻrish"
+#~ msgstr "Открыть"

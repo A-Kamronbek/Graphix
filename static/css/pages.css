@@ -7,10 +7,11 @@
    Depends on tokens.css. Loads last. */
 
 /* ----------------------------------------------------------------- shell */
-/* The search field is the widest thing in the header on desktop, because
-   finding a design is the main job here. Below 860 px it is hidden and the
-   magnifier in the actions row reveals it as a second row, so the brand, the
-   cart and the burger never get squeezed. */
+/* The search field is the widest thing in the header on a wide screen,
+   because finding a design is the main job here. Below 1280 px it is hidden
+   and the magnifier in the actions row reveals it as a second row, so the
+   brand, the links and the icons never get squeezed; on a phone the bar of
+   five's "Qidiruv" opens the same row. */
 .nav { flex-wrap: wrap; }
 /* 360, not 440. Search is the main job on this site and the field should look
    it, but at 440 it was taking the room the language control needs and the
@@ -20,11 +21,19 @@
 .nav__search-toggle { display: grid; }
 .nav__account { display: none; }
 
+/* The search page's own field, for a width where the header has none in its
+   row: a phone's only one, and a tablet's (§9 Phase 23 D2). */
+@media (min-width: 1280px) { .shop__search { display: none; } }
+
 @media (min-width: 860px) {
+  .nav__account { display: grid; }
+}
+/* The field sits in the row from 1280 px, where the links leave it room;
+   below, the magnifier opens it as a second row (§9 Phase 23 D1). */
+@media (min-width: 1280px) {
   .nav__search { display: block; }
   .nav__search.is-open { order: 0; flex-basis: auto; margin: 0 0 0 var(--s-5); }
   .nav__search-toggle { display: none; }
-  .nav__account { display: grid; }
 }
 
 /* The filter sheet's backdrop. One step under the sheet, one step over
@@ -96,9 +105,17 @@
   max-height: var(--pdp-image-max);
   margin-inline: auto;
   overflow: hidden;
-  background: var(--c-surface);
-  border: 1px solid var(--c-line);
+  /* No frame round the photograph (§9 Phase 23 D5): it is the largest thing
+     on the screen, and a border and a ground of their own made it a picture
+     in a box. */
+  background: var(--c-bg);
   border-radius: var(--r-md);
+}
+/* Edge to edge on a phone. A tablet keeps the capped frame: at its whole
+   width the photograph would be taller than its screen. */
+@media (max-width: 659px) {
+  .pdp__frame { width: calc(100% + 2 * var(--pad-x)); max-height: none;
+    margin-inline: calc(-1 * var(--pad-x)); border-radius: 0; }
 }
 .pdp__frame img { position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover; }
@@ -196,11 +213,17 @@
 .shop__bar { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
 .shop__bar .shop__count { color: var(--c-fg-muted); font-size: var(--fs-sm); }
 .shop__sort { margin-left: auto; }
-/* Once the bar wraps, `margin-left: auto` stranded the sort control against the
-   right edge of its own line with nothing beside it, which read as a stray
-   dropdown rather than a deliberate pairing. On its own row it takes the row. */
-@media (max-width: 560px) {
-  .shop__sort { margin-left: 0; flex: 1 0 100%; }
+/* On a phone the count, the filter button and the sort share one row, and the
+   title is a size smaller, so the first design is nearer the top (§9 Phase 23
+   D4). The sort's box is as wide as its words, up to a limit. */
+@media (max-width: 859px) {
+  .shop__head .h1 { font-size: var(--fs-3xl); }
+  .shop__bar { flex-wrap: nowrap; gap: var(--s-2); }
+  .shop__bar .shop__count, .shop__bar .shop__filter-toggle { flex: none; white-space: nowrap; }
+  /* The sort takes what the row leaves, up to its words' width, and its box
+     cuts its words where a narrow phone has no room for them all. */
+  .shop__sort { flex: 0 1 11em; min-width: 0; margin-left: auto; }
+  .shop__sort .select { width: 100%; min-width: 0; text-overflow: ellipsis; }
 }
 
 .shop__filters { display: none; }
@@ -273,6 +296,54 @@
 .foot__link { display: inline-flex; align-items: center; gap: var(--s-2); }
 
 .crumbs--page { margin-bottom: var(--s-5); }
+/* On a phone the product page's path is one step back (§9 Phase 23 D5). */
+.back-link { display: none; }
+@media (max-width: 859px) {
+  .crumbs--page { display: none; }
+  .back-link { display: inline-flex; align-items: center; min-height: 44px;
+    margin-bottom: var(--s-2); color: var(--c-fg-muted); }
+}
+
+/* The order page's head, steps and one action (§9 Phase 23 D8). The number is
+   a size smaller than a page title and never breaks. */
+.orderhd { display: grid; gap: var(--s-2); }
+.orderhd__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); }
+/* Proportional figures and a tight setting: tabular figures at heading size
+   spaced the number out until its status could not sit beside it. */
+.orderhd__no { font-size: var(--fs-xl); font-weight: var(--fw-bold); line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight); font-variant-numeric: normal; white-space: nowrap; }
+@media (min-width: 560px) { .orderhd__no { font-size: var(--fs-2xl); } }
+@media (min-width: 860px) { .orderhd__no { font-size: var(--fs-3xl); } }
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-3);
+  margin: 0; padding: 0; list-style: none; }
+.steps li { display: grid; align-content: start; gap: var(--s-2); min-width: 0;
+  font-size: var(--fs-xs); line-height: var(--lh-snug); color: var(--c-fg-hint); }
+.steps li::before { content: ""; height: 4px; border-radius: var(--r-full); background: var(--c-line-strong); }
+.steps li.is-done { color: var(--c-fg); }
+.steps li.is-done::before { background: var(--c-fg); }
+.steps li.is-now { color: var(--c-fg); font-weight: var(--fw-semibold); }
+.steps li.is-now::before { background: var(--c-brand); }
+.orderact { max-width: 480px; }
+.orderact__quiet { display: flex; flex-wrap: wrap; justify-content: space-between;
+  gap: var(--s-4); padding-block: var(--s-3); }
+.orderact__quiet form { display: contents; }
+/* 44 px to tap, as the panel's links are: an overlaid area, so the underline
+   stays under the words. */
+.orderact__quiet .link { position: relative; }
+.orderact__quiet .link::after { content: ""; position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%); }
+
+/* What is being bought, first, on a phone's checkout (§9 Phase 23 D7). */
+.sumbar { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3);
+  padding: var(--s-4); background: var(--c-surface); border-radius: var(--r-md); }
+.sumbar strong { font-size: var(--fs-lg); color: var(--c-brand-ink); white-space: nowrap; }
+@media (min-width: 860px) { .sumbar { display: none; } }
+
+/* The free exchange, under the buy button (§9 Phase 23 D5). */
+.promise { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-4);
+  background: var(--c-surface); border-radius: var(--r-md); font-size: var(--fs-sm); }
+.promise > .i { flex: none; color: var(--c-success); }
+.promise strong { font-size: var(--fs-base); }
 
 /* Quantity stepper beside the heart and share buttons. The stack has to stop
    stretching or the stepper grows to fill the row and pushes the actions off the
@@ -428,6 +499,30 @@ html.js .slides__controls {
   .slides__track { scroll-behavior: auto; }
 }
 
+/* The categories under the slide (§9 Phase 23 D3) and under the shop's title
+   (D4): on a phone the three buttons share the width, from 860 px they are
+   pills in a row. The current one is filled. */
+.cats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
+.cats a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+  padding-inline: var(--s-2); border: 1px solid var(--c-line-control); border-radius: var(--r-full);
+  font-weight: var(--fw-medium); white-space: nowrap; transition: border-color var(--t-fast); }
+.cats a:hover { border-color: var(--c-fg-muted); }
+.cats a.is-active { background: var(--c-fg); border-color: var(--c-fg); color: var(--c-bg); }
+.home__cats { padding-top: var(--s-4); }
+.home__cats .cats a { min-height: 48px; }
+@media (min-width: 860px) {
+  .cats { display: flex; flex-wrap: wrap; }
+  .cats a { padding-inline: var(--s-5); }
+}
+
+/* One's own design as a band of its own (§9 Phase 23 D3). */
+.band { display: grid; gap: var(--s-4); padding: var(--s-6); background: var(--c-surface);
+  border-radius: var(--r-md); }
+.band p { color: var(--c-fg-muted); max-width: 46ch; }
+@media (min-width: 860px) {
+  .band { grid-template-columns: 1fr auto; align-items: center; padding: var(--s-7); }
+}
+
 .home__statement { max-width: 62ch; display: flex; flex-direction: column;
   gap: var(--s-4); align-items: flex-start; }
 
@@ -436,7 +531,8 @@ html.js .slides__controls {
 /* ------------------------------------------------------------------ cart */
 .cartpage { display: grid; grid-template-columns: minmax(0, 1fr);
   gap: var(--s-6); align-items: start; }
-.cartline { display: grid; grid-template-columns: 84px minmax(0, 1fr);
+/* 112 px pictures (§9 Phase 23 D6): the design is what a basket line is. */
+.cartline { display: grid; grid-template-columns: 112px minmax(0, 1fr);
   gap: var(--s-3) var(--s-4); padding-block: var(--s-4);
   border-bottom: 1px solid var(--c-line); }
 .cartline__thumb { position: relative; grid-row: span 2;
@@ -453,10 +549,11 @@ html.js .slides__controls {
 .cartpage__total dt, .cartpage__total dd { font-size: var(--fs-lg);
   font-weight: var(--fw-semibold); color: var(--c-fg); }
 .cartpage__total dd { color: var(--c-brand-ink); }
+.cartpage__delivery { display: grid; justify-items: end; gap: var(--s-1); text-align: right; }
 
 @media (min-width: 860px) {
   .cartpage { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-7); }
-  .cartline { grid-template-columns: 96px minmax(0, 1fr) auto; }
+  .cartline { grid-template-columns: 112px minmax(0, 1fr) auto; }
   .cartline__actions { grid-column: auto; }
   .cartline__total { margin-left: 0; }
 }
@@ -493,11 +590,19 @@ html.js .slides__controls {
    (§17 #306, #307). */
 .account__logout { display: none; }
 .account__logout--foot { display: block; }
-/* Three links wrap rather than scroll. The strip was scrollable, but with no
-   affordance it simply looked like a word cut in half at the screen edge. */
+/* One row on a phone (§9 Phase 23 D9): wrapped, the four tabs took two rows
+   above everything Kabinet is for. A size smaller and closer together they fit
+   at 390 px; at 360 the row scrolls by the last few letters. */
 @media (max-width: 560px) {
-  .account__nav { flex-wrap: wrap; overflow-x: visible; }
+  .account__nav { flex-wrap: nowrap; gap: 0; scrollbar-width: none; }
+  .account__nav::-webkit-scrollbar { display: none; }
+  .account__nav a { padding: var(--s-3) var(--s-2); font-size: var(--fs-sm); }
 }
+/* Where the row is wider than the screen it scrolls, and while there is more
+   of it to the right its edge fades out, so it reads as a row that goes on
+   rather than a word cut in half. main.js says when (`is-more`). */
+.account__nav { position: relative; }
+.account__nav.is-more { mask-image: linear-gradient(to right, var(--c-fg) 80%, transparent); }
 
 @media (min-width: 860px) {
   .account { grid-template-columns: 220px minmax(0, 1fr); gap: var(--s-7); }
@@ -509,6 +614,20 @@ html.js .slides__controls {
   .account__logout { display: block; margin-top: var(--s-4); }
   .account__logout--foot { display: none; }
 }
+
+/* A customer's orders as short rows (§9 Phase 23 D9): the number and the day
+   on the left, the status and the total on the right, the whole row a link to
+   the order. A delivered order keeps the way to its review under its row. */
+.orows { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none;
+  border-top: 1px solid var(--c-line); }
+.orows > li { border-bottom: 1px solid var(--c-line); }
+.orow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-3);
+  align-items: center; padding-block: var(--s-3); color: inherit; }
+.orow:hover .orow__no { color: var(--c-brand-ink); }
+.orow__no { font-weight: var(--fw-semibold); }
+.orow small { display: block; color: var(--c-fg-hint); font-size: var(--fs-sm); }
+.orow__end { display: grid; gap: var(--s-1); justify-items: end; text-align: right; }
+.orows__review { display: inline-block; margin-bottom: var(--s-3); }
 
 /* ---------------------------------------------------- checkout / summary */
 /* Same two-column shape as the cart: the form leads, the summary sits beside

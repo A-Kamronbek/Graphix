@@ -130,6 +130,9 @@
      the header every time somebody tapped the rating. `.nav` pins itself to
      this value, so the token is the measurement rather than a guess about it. */
   --nav-h: calc(44px + 2 * var(--s-3) + 1px);
+  /* The bar of five at the foot of a phone (§9 Phase 23 D2): a 56 px row and
+     its hairline. The page is padded by it, so nothing ends under the bar. */
+  --tabbar-h: calc(56px + 1px);
 
   /* The home page's promotional cards: 16:5 from 860 px, 16:9 below. A
      slide has a picture for each (§17 #302); with only one, that one is

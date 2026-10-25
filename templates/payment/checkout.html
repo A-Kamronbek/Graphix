@@ -53,6 +53,15 @@
       {# does not apply a promo code instead. #}
       <button class="sr-only" type="submit" tabindex="-1" aria-hidden="true">{% trans "Buyurtma berish" %}</button>
 
+      {# On a phone the summary comes after the form, 3 000 px down: this line #}
+      {# says what is being bought and what it costs, first (§9 Phase 23 D7). #}
+      {# The total follows the delivery and the promo code, as the summary's #}
+      {# does (`data-order-total-copy`, checkout.js). #}
+      <a class="sumbar" href="#summary">
+        <span>{% blocktrans count n=item_count %}{{ n }} ta mahsulot{% plural %}{{ n }} ta mahsulot{% endblocktrans %} · <span class="link">{% trans "koʻrish" %}</span></span>
+        <strong class="num" data-order-total-copy data-suffix=" {% trans 'soʻm' %}">{{ total|price }} {% trans "soʻm" %}</strong>
+      </a>
+
       <p class="small muted">
         {% blocktrans trimmed with star='<span class="req" aria-hidden="true">*</span>'|safe %}
           {{ star }} bilan belgilangan maydonlarni toʻldirish shart.
@@ -361,8 +370,9 @@
         {% endblocktrans %}
       </p>
 
+      {# The total on the button that commits to it (§9 Phase 23 D7). #}
       <button class="btn btn--primary btn--lg btn--block" type="submit"
-              {% if not payment_options %}disabled{% endif %}>{% trans "Buyurtma berish" %}</button>
+              {% if not payment_options %}disabled{% endif %}>{% trans "Buyurtma berish" %} · <span class="num" data-order-total-copy data-suffix=" {% trans 'soʻm' %}">{{ total|price }} {% trans "soʻm" %}</span></button>
 
       {% comment %}
         The address sheet. Empty on purpose: `checkout.js` MOVES the region,
@@ -398,7 +408,7 @@
       </div>
     </form>
 
-    <aside class="checkout__summary panel stack">
+    <aside class="checkout__summary panel stack" id="summary">
       <h2 class="h3">{% trans "Buyurtma" %}</h2>
       <ul class="stack stack--sm">
         {% for it in items %}

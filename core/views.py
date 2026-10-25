@@ -14,7 +14,7 @@ from django.utils.translation import get_language, gettext as _
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import Resolver404, resolve, reverse
-from product.models import Product, Category, Slide
+from product.models import Product, Slide
 from django.templatetags.static import static
 from . import designs, legal, seo, telegram
 from .models import DesignRequest, Msg
@@ -173,7 +173,6 @@ def home(request):
         # recommender — the plan's own stand-in, not a placeholder. Twelve, a
         # row that scrolls sideways, where it was a grid of four (§17 #403).
         'popular': list(newest.filter(likes_count__gt=0).order_by('-likes_count')[:12]),
-        'categories': Category.objects.all()[:6],
         # The shop itself, and the search box a result may carry. Only on the
         # home page: an Organization repeated on forty pages is the same fact
         # forty times, and this is the page a search engine treats as the site.
@@ -338,6 +337,7 @@ STYLE_SWATCHES = [
 STYLE_ICONS = [
     'mark', 'search', 'heart', 'cart', 'user', 'share', 'menu', 'close', 'check',
     'minus', 'plus', 'chevron-down', 'chevron-right', 'arrow-left', 'arrow-right',
+    'home', 'grid',
     'pause', 'play',
     'star', 'filter', 'sort', 'truck', 'box', 'pin', 'phone', 'mail', 'telegram', 'info',
     'warning', 'image', 'trash', 'ruler', 'calendar',

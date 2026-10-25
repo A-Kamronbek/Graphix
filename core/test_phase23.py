@@ -36,6 +36,12 @@ products with them, and switches a group on for the shop, which shows it
 beside the size; within a group the items are alternatives, across groups
 they narrow each other (§17 #404, §9 Phase 23 items 30-34).
 
+Part D: the approved changes to the existing pages: the header's links and
+the grouped menu, the bar of five on a phone, the categories on the home page
+and the shop, the product page's step back and exchange promise, the basket's
+delivery prices, the checkout's total first, the order page's head, steps and
+one action, Kabinet's rows (§17 #407, #408, §9 Phase 23 items 19-23).
+
 Each class is one of those, written as what a customer, or the owner, sees.
 """
 import re
@@ -64,7 +70,7 @@ from core.management.commands.prune_requests import cutoff
 from payment.models import Order, ReturnImage, ReturnLine, ReturnRequest
 from panel import reference
 from product import filters as shop_filters, size_charts
-from product.models import (Colour, FilterGroup, FilterItem, Product, Size, SizeChart,
+from product.models import (Category, Colour, FilterGroup, FilterItem, Product, Size, SizeChart,
                             SizeChartRow, Tag, Variant)
 
 from .test_phase6 import make_user
@@ -1500,3 +1506,154 @@ class PanelFilterTests(FilterCase):
         self.assertEqual(self.client.get(reverse('panel_filters')).status_code, 403)
         self.assertEqual(self.client.post(reverse('panel_filter_group_new'),
                                           {'name': 'X'}).status_code, 403)
+
+
+# ------------------------------------------- part D: design and navigation
+
+class NavigationCase(TestCase):
+    """Two categories, a design in the first, and a signed-in customer."""
+
+    def setUp(self):
+        self.shirts = Category.objects.create(name='Futbolkalar', name_ru='Футболки')
+        self.longs = Category.objects.create(name='Longslivlar')
+        self.product, self.variant = make_product('Kategoriyali', category=self.shirts)
+        self.user = make_user('navigator', '+998901230070')
+
+    def page(self, name='home', query='', **kwargs):
+        return self.client.get(reverse(name, kwargs=kwargs or None) + query).content.decode()
+
+
+class HeaderAndMenuTests(NavigationCase):
+    """D1 and D2: the laptop's links, the grouped phone menu and the bar of five."""
+
+    def test_the_laptops_links_are_the_catalogue_its_categories_and_ones_own_design(self):
+        html = self.page()
+        links = html.split('class="nav__links"', 1)[1].split('</nav>', 1)[0]
+        self.assertEqual(re.findall(r'>([^<>]+)</a>', links),
+                         ['Barcha dizaynlar', 'Futbolkalar', 'Longslivlar', 'Oʻz dizayningiz'])
+        self.assertIn('href="%s?category=%d"' % (reverse('shop'), self.shirts.pk), links)
+        # The current category is marked.
+        links = self.page('shop', '?category=%d' % self.shirts.pk).split('class="nav__links"', 1)[1]
+        self.assertRegex(links, r'category=%d" class="is-active" aria-current="page"' % self.shirts.pk)
+
+    def test_the_phone_menu_is_in_groups_and_has_no_basket(self):
+        menu = self.page().split('id="gx-drawer"', 1)[1].split('</nav>', 1)[0]
+        groups = re.findall(r'<span class="eyebrow">([^<]+)</span>', menu)
+        self.assertEqual(groups, ['Menyu', 'Doʻkon', 'Yordam', 'Hisob'])
+        for url in (reverse('custom_design'), reverse('returns'), reverse('delivery'),
+                    reverse('about'), reverse('contact'), reverse('signup')):
+            with self.subTest(url=url):
+                self.assertIn('href="%s"' % url, menu)
+        self.assertNotIn('href="%s"' % reverse('cart'), menu)
+        self.client.force_login(self.user)
+        menu = self.page().split('id="gx-drawer"', 1)[1].split('</nav>', 1)[0]
+        self.assertIn('<span class="eyebrow">Kabinet</span>', menu)
+        self.assertIn('href="%s"' % reverse('account_settings'), menu)
+
+    def test_the_bar_of_five_marks_the_page_it_is_on(self):
+        bar = self.page('shop').split('class="tabbar"', 1)[1].split('</nav>', 1)[0]
+        self.assertEqual(re.findall(r'<span>([^<]+)</span>', bar),
+                         ['Bosh sahifa', 'Doʻkon', 'Qidiruv', 'Saqlangan', 'Savat'])
+        self.assertRegex(bar, r'href="%s" aria-current="page"' % reverse('shop'))
+        self.assertIn('href="%s" data-search-open' % reverse('search'), bar)
+
+    def test_the_search_page_has_its_own_field_for_a_phone(self):
+        html = self.page('search')
+        self.assertIn('class="shop__search"', html)
+        self.assertNotIn('class="shop__search"', self.page('shop'))
+
+    def test_the_header_fits_one_row_and_the_bar_is_for_phones_only(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'css' / 'components.css').read_text(encoding='utf-8')
+        self.assertIn('@media (min-width: 1100px) { .nav__links { display: flex; }', css)
+        self.assertIn('@media (max-width: 859px) { .nav .nav__twin { display: none; } }', css)
+        self.assertIn('.tabbar { display: none; }', css)
+
+
+class PageChangeTests(NavigationCase):
+    """D3 to D9, page by page."""
+
+    def test_home_has_the_categories_under_the_slide_and_the_own_design_band(self):
+        html = self.page()
+        cats = html.split('class="cats"', 1)[1].split('</nav>', 1)[0]
+        self.assertEqual(re.findall(r'>([^<>]+)</a>', cats), ['Barchasi', 'Futbolkalar', 'Longslivlar'])
+        self.assertNotIn('Kategoriyalar', html)
+        self.assertNotIn('home__cta', html)
+        band = html.split('class="band"', 1)[1].split('</section>', 1)[0]
+        self.assertIn('Oʻz dizayningiz bormi?', band)
+        self.assertIn('href="%s"' % reverse('custom_design'), band)
+
+    def test_the_shop_has_the_categories_with_the_current_one_marked(self):
+        cats = self.page('shop').split('class="cats"', 1)[1].split('</nav>', 1)[0]
+        self.assertRegex(cats, r'href="%s" class="is-active"' % reverse('shop'))
+        cats = self.page('shop', '?category=%d' % self.longs.pk).split('class="cats"', 1)[1]
+        self.assertRegex(cats, r'category=%d" class="is-active"' % self.longs.pk)
+
+    def test_the_product_page_steps_back_and_promises_the_exchange(self):
+        html = self.page('item', slug=self.product.slug)
+        self.assertIn('<a class="back-link" href="%s?category=%d">‹ Futbolkalar</a>'
+                      % (reverse('shop'), self.shirts.pk), html)
+        promise = html.split('class="promise"', 1)[1].split('</div>\n      </div>', 1)[0]
+        self.assertIn('Oʻlcham mos kelmasa — bepul almashtiramiz', promise)
+        self.assertIn('href="%s"' % reverse('returns'), promise)
+
+    def test_the_basket_says_the_two_delivery_prices(self):
+        from payment.models import DeliveryOption
+        rows = DeliveryOption.objects.filter(is_active=True)
+        low, high = min(r.price for r in rows), max(r.price for r in rows)
+        self.client.force_login(self.user)
+        self.client.post(reverse('cart_add', args=[self.product.pk]),
+                         {'size': self.variant.size_id, 'colour': self.variant.colour_id, 'quantity': 1})
+        html = self.page('cart')
+        delivery = html.split('class="cartpage__delivery"', 1)[1].split('</dd>', 1)[0]
+        from product.templatetags.price_format import price
+        self.assertIn('%s⁠–⁠%s' % (price(low), price(high)), delivery)
+        self.assertNotIn('Keyingi qadamda', html)
+
+    def test_kabinet_lists_orders_as_short_rows(self):
+        self.client.force_login(self.user)
+        paying = delivered(self.user, (self.variant, 1), status=Order.Status.PAYING)
+        done = delivered(self.user, (self.variant, 1))
+        html = self.page('account_orders')
+        rows = html.split('class="orows"', 1)[1].split('</ul>', 1)[0]
+        self.assertIn('<a class="orow" href="%s">' % reverse('order_detail', args=[paying.pk]), rows)
+        # The second way into the review form, under a delivered order's row.
+        self.assertIn('href="%s"' % reverse('review_create', kwargs={'order_id': done.pk}), rows)
+        self.assertNotIn(reverse('review_create', kwargs={'order_id': paying.pk}), rows)
+        self.assertIn('data-scroll-row', html)
+
+
+class OrderPageHeadTests(NavigationCase):
+    """D8: "Buyurtma" above the number, four steps, one thing to do."""
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+
+    def steps(self, status):
+        order = delivered(self.user, (self.variant, 1), status=status)
+        html = self.page('order_detail', pk=order.pk)
+        return html, re.findall(r'<li class="([^"]*)"', html.split('class="steps"', 1)[1].split('</ol>', 1)[0])
+
+    def test_the_steps_follow_the_status(self):
+        for status, classes in ((Order.Status.PAYING, ['is-now', '', '', '']),
+                                (Order.Status.PAID, ['is-done', 'is-now', '', '']),
+                                (Order.Status.PROCESSING, ['is-done', 'is-now', '', '']),
+                                (Order.Status.ON_THE_WAY, ['is-done', 'is-done', 'is-now', '']),
+                                (Order.Status.DONE, ['is-done', 'is-done', 'is-done', 'is-done'])):
+            with self.subTest(status=status):
+                self.assertEqual(self.steps(status)[1], classes)
+        order = delivered(self.user, (self.variant, 1), status=Order.Status.CANCELLED)
+        self.assertNotIn('class="steps"', self.page('order_detail', pk=order.pk))
+
+    def test_the_one_thing_to_do_comes_first_and_the_rest_are_quiet_links(self):
+        html = self.steps(Order.Status.PAYING)[0]
+        act = html.split('class="orderact', 1)[1].split('class="checkout"', 1)[0]
+        self.assertIn('class="orderact__quiet"', act)
+        self.assertIn('<a class="link" href="%s">Holatini kuzatish</a>' % reverse('order_status', args=[Order.objects.last().pk]), act)
+        self.assertIn('<button class="link" type="submit">Buyurtmani bekor qilish</button>', act)
+        self.assertIn('<span class="eyebrow">Buyurtma</span>', html)
+        html = self.steps(Order.Status.DONE)[0]
+        act = html.split('class="orderact', 1)[1].split('class="checkout"', 1)[0]
+        self.assertIn('Sharh qoldirish', act)
+        self.assertIn('Qaytarish yoki almashtirish', act)
+        self.assertNotIn('bekor qilish', act)

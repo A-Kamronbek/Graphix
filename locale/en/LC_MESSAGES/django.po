@@ -2133,10 +2133,6 @@ msgstr "New arrivals"
 msgid "Siz uchun"
 msgstr "For you"
 
-#: .\templates\core\home.html:168
-msgid "Kategoriyalar"
-msgstr "Categories"
-
 #: .\templates\core\home.html:181
 msgid ""
 "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
@@ -2288,19 +2284,6 @@ msgstr "Main menu"
 #: .\templates\partials\_nav.html:23
 msgid "Dizayn qidirish..."
 msgstr "Search designs..."
-
-#: .\templates\partials\_orders_table.html:10
-#: .\templates\partials\_orders_table.html:22
-msgid "Summa"
-msgstr "Total"
-
-#: .\templates\partials\_orders_table.html:11
-msgid "Amallar"
-msgstr "Actions"
-
-#: .\templates\partials\_orders_table.html:24
-msgid "Koʻrish"
-msgstr "View"
 
 #: .\templates\partials\_orders_table.html:29
 #: .\templates\product\review_form.html:23
@@ -3620,7 +3603,7 @@ msgstr "Show"
 msgid "Rang"
 msgstr "Colour"
 
-msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
+msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
 msgstr "The colour is optional, as #RRGGBB; if there is one, the shop shows a dot of it beside the name."
 
 msgid "Rangni #RRGGBB koʻrinishida yozing."
@@ -3645,6 +3628,36 @@ msgstr "not shown in the shop"
 #, python-format
 msgid "«%(name)s» elementlari"
 msgstr "Items of “%(name)s”"
+
+msgid "Buyurtma qayerda"
+msgstr "Where the order is"
+
+msgid "Gʻoyangizni, rasmingizni yoki matningizni yuboring: qaysi kiyimga, qaysi rangda va qayerga bosilishini tanlaysiz, biz siz bilan bogʻlanamiz."
+msgstr "Send us your idea, a picture or the words: you choose the garment, the colour and where it is printed, and we get in touch."
+
+msgid "Oʻlcham mos kelmasa — bepul almashtiramiz"
+msgstr "Wrong size? We’ll exchange it free"
+
+msgid "Oʻz dizayningiz bormi?"
+msgstr "Got a design of your own?"
+
+msgid "Pastki menyu"
+msgstr "Bottom menu"
+
+msgid "Qaytarish shartlari"
+msgstr "Return terms"
+
+msgid "Saqlangan"
+msgstr "Saved"
+
+msgid "Taklif yuborish"
+msgstr "Send your design"
+
+msgid "Yangi oʻlchamni oʻzimiz yuboramiz."
+msgstr "We send the new size ourselves."
+
+msgid "koʻrish"
+msgstr "view"
 
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Enter the postal index."
@@ -4087,3 +4100,15 @@ msgstr "Items of “%(name)s”"
 
 #~ msgid "GRAPHIX futbolkalari oʻlcham jadvali"
 #~ msgstr "GRAPHIX T-shirt size chart"
+
+#~ msgid "Kategoriyalar"
+#~ msgstr "Categories"
+
+#~ msgid "Summa"
+#~ msgstr "Total"
+
+#~ msgid "Amallar"
+#~ msgstr "Actions"
+
+#~ msgid "Koʻrish"
+#~ msgstr "View"

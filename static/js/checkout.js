@@ -102,6 +102,11 @@
     var off = applied ? (applied.discounts[choice.value] || 0) : 0;
     deliveryEl.textContent = format(price) + deliveryEl.dataset.suffix;
     totalEl.textContent = format(subtotal + price - off) + totalEl.dataset.suffix;
+    /* The same total at the top of a phone's page and on the order button
+     * (§9 Phase 23 D7). */
+    $$('[data-order-total-copy]').forEach(function (copy) {
+      copy.textContent = format(subtotal + price - off) + (copy.dataset.suffix || '');
+    });
     showPromo(off, subtotal + price - off);
   }
 

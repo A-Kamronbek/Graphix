@@ -2098,10 +2098,6 @@ msgstr ""
 msgid "Siz uchun"
 msgstr ""
 
-#: .\templates\core\home.html:168
-msgid "Kategoriyalar"
-msgstr ""
-
 #: .\templates\core\home.html:181
 msgid ""
 "Har bir futbolka bosishdan oldin tekshiriladi. Sifatsiz print ham, arzon "
@@ -2252,19 +2248,6 @@ msgstr ""
 
 #: .\templates\partials\_nav.html:23
 msgid "Dizayn qidirish..."
-msgstr ""
-
-#: .\templates\partials\_orders_table.html:10
-#: .\templates\partials\_orders_table.html:22
-msgid "Summa"
-msgstr ""
-
-#: .\templates\partials\_orders_table.html:11
-msgid "Amallar"
-msgstr ""
-
-#: .\templates\partials\_orders_table.html:24
-msgid "Koʻrish"
 msgstr ""
 
 #: .\templates\partials\_orders_table.html:29
@@ -3563,7 +3546,7 @@ msgstr ""
 msgid "Rang"
 msgstr ""
 
-msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
+msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
 msgstr ""
 
 msgid "Rangni #RRGGBB koʻrinishida yozing."
@@ -3587,6 +3570,36 @@ msgstr ""
 
 #, python-format
 msgid "«%(name)s» elementlari"
+msgstr ""
+
+msgid "Buyurtma qayerda"
+msgstr ""
+
+msgid "Gʻoyangizni, rasmingizni yoki matningizni yuboring: qaysi kiyimga, qaysi rangda va qayerga bosilishini tanlaysiz, biz siz bilan bogʻlanamiz."
+msgstr ""
+
+msgid "Oʻlcham mos kelmasa — bepul almashtiramiz"
+msgstr ""
+
+msgid "Oʻz dizayningiz bormi?"
+msgstr ""
+
+msgid "Pastki menyu"
+msgstr ""
+
+msgid "Qaytarish shartlari"
+msgstr ""
+
+msgid "Saqlangan"
+msgstr ""
+
+msgid "Taklif yuborish"
+msgstr ""
+
+msgid "Yangi oʻlchamni oʻzimiz yuboramiz."
+msgstr ""
+
+msgid "koʻrish"
 msgstr ""
 
 #~ msgid "Pochta indeksini kiriting."
@@ -3841,4 +3854,16 @@ msgstr ""
 #~ msgstr "Rasm"
 
 #~ msgid "GRAPHIX futbolkalari oʻlcham jadvali"
+#~ msgstr ""
+
+#~ msgid "Kategoriyalar"
+#~ msgstr ""
+
+#~ msgid "Summa"
+#~ msgstr ""
+
+#~ msgid "Amallar"
+#~ msgstr ""
+
+#~ msgid "Koʻrish"
 #~ msgstr ""

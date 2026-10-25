@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n i18n_fields %}
 {# Mobile menu. #}
 {# #}
 {# `inert` while closed, and that is not decoration: the drawer is moved off #}
@@ -7,6 +7,10 @@
 {# what `aria-hidden` on its own cannot fix (Phase 9's axe pass). `inert` takes #}
 {# the whole subtree out of the tab order and out of the accessibility tree #}
 {# without touching the transition; main.js removes it as the drawer opens. #}
+{# #}
+{# In groups (§9 Phase 23 D1): the shop and its categories, then help, then #}
+{# the account. The basket is not here: the header and the bar of five both #}
+{# carry it. #}
 <div class="drawer__backdrop" data-drawer-backdrop hidden></div>
 
 <nav id="gx-drawer" class="drawer" data-drawer aria-label="{% trans 'Menyu' %}"
@@ -18,22 +22,49 @@
     </button>
   </div>
 
-  <ul>
-    <li><a href="{% url 'shop' %}">{% trans "Doʻkon" %}</a></li>
-    <li><a href="{% url 'cart' %}">{% trans "Savat" %}{% if cart_count %} ({{ cart_count }}){% endif %}</a></li>
-    {% if user.is_authenticated %}
-      <li><a href="{% url 'account' %}">{% trans "Kabinet" %}</a></li>
-      <li><a href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a></li>
-    {% else %}
-      <li><a href="{% url 'login' %}">{% trans "Kirish" %}</a></li>
-      <li><a href="{% url 'signup' %}">{% trans "Roʻyxatdan oʻtish" %}</a></li>
-    {% endif %}
-    <li><a href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a></li>
-    <li><a href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a></li>
-  </ul>
+  <div class="drawer__groups">
+    <div class="drawer__group">
+      <span class="eyebrow">{% trans "Doʻkon" %}</span>
+      <ul>
+        <li><a href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a></li>
+        {% for c in nav_categories %}
+          <li><a href="{% url 'shop' %}?category={{ c.id }}">{{ c|t:"name" }}</a></li>
+        {% endfor %}
+        <li><a href="{% if user.is_authenticated %}{% url 'liked' %}{% else %}{% url 'login' %}{% endif %}">{% trans "Saqlanganlar" %}</a></li>
+      </ul>
+    </div>
+
+    <div class="drawer__group drawer__group--quiet">
+      <span class="eyebrow">{% trans "Yordam" %}</span>
+      <ul>
+        {% if has_size_guide %}<li><a href="{% url 'size_guide' %}">{% trans "Oʻlcham jadvali" %}</a></li>{% endif %}
+        <li><a href="{% url 'delivery' %}">{% trans "Yetkazib berish" %}</a></li>
+        <li><a href="{% url 'returns' %}">{% trans "Qaytarish va almashtirish" %}</a></li>
+        <li><a href="{% url 'custom_design' %}">{% trans "Oʻz dizayningiz" %}</a></li>
+        <li><a href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a></li>
+        <li><a href="{% url 'about' %}">{% trans "Biz haqimizda" %}</a></li>
+      </ul>
+    </div>
+
+    <div class="drawer__group">
+      {% if user.is_authenticated %}
+        <span class="eyebrow">{% trans "Kabinet" %}</span>
+        <ul>
+          <li><a href="{% url 'account_orders' %}">{% trans "Buyurtmalarim" %}</a></li>
+          <li><a href="{% url 'account_settings' %}">{% trans "Sozlamalar" %}</a></li>
+        </ul>
+      {% else %}
+        <span class="eyebrow">{% trans "Hisob" %}</span>
+        <ul>
+          <li><a href="{% url 'login' %}">{% trans "Kirish" %}</a></li>
+          <li><a href="{% url 'signup' %}">{% trans "Roʻyxatdan oʻtish" %}</a></li>
+        </ul>
+      {% endif %}
+    </div>
+  </div>
 
   {# The switcher a phone actually uses: the header's copy is hidden below the #}
-  {# desktop breakpoint, because that row already carries five controls at #}
+  {# desktop breakpoint, because that row already carries its controls at #}
   {# 390 px. Full names here, where there is room for them. #}
   <div class="drawer__lang">
     <span class="label">{% trans "Til" %}</span>

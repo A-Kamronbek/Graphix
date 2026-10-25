@@ -31,8 +31,9 @@ SIZES = {
     # four and a bit to the container from 860 (§17 #403).
     'shelf': '(min-width: 1280px) 260px, (min-width: 860px) 21vw, (min-width: 560px) 37vw, 57vw',
     # The product page's frame: min(76vh, 760px) tall at 4:5, so 608 px wide at
-    # most, and the page's own width below that.
-    'pdp': '(min-width: 660px) 608px, 92vw',
+    # most, and the screen's whole width on a phone, edge to edge (§9 Phase
+    # 23 D5).
+    'pdp': '(min-width: 660px) 608px, 100vw',
     # A home-page card fills the container: the page's width below the cap,
     # and 1216 px (1280 less two 32 px gutters) above it. Below 860 px the
     # 16:5 picture is drawn at the 16:9 card's full height with its sides
@@ -46,7 +47,9 @@ SIZES = {
     # it is cut top and bottom, never at the sides (§17 #302).
     'slide-card': '(min-width: 1280px) 1216px, 92vw',
     'rail': '64px',
-    'thumb': '84px',
+    # The basket's line, 112 px since §9 Phase 23 D6; the order page and the
+    # return form draw theirs smaller, from the same file.
+    'thumb': '112px',
     'review': '72px',
     'panel': '96px',
 }

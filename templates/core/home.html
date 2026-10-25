@@ -108,10 +108,11 @@
   </section>
 {% endif %}
 
-<section class="section section--tight home__cta">
-  <div class="wrap row row--wrap">
-    <a class="btn btn--primary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
-    <a class="btn btn--secondary btn--lg" href="{% url 'custom_design' %}">{% trans "Oʻz dizayningiz" %}</a>
+{# The categories under the slide, in place of two stacked buttons (§9 Phase #}
+{# 23 D3): where a visitor chooses first. One's own design has its band below. #}
+<section class="section section--tight home__cats">
+  <div class="wrap">
+    {% include "partials/_cats.html" with active=None %}
   </div>
 </section>
 
@@ -123,9 +124,9 @@
         <a class="link" href="{% url 'shop' %}">{% trans "Barchasi" %}</a>
       </div>
       <div class="grid-products">
-        {# The first row is what a phone sees without scrolling — the hero is #}
-        {# type and two buttons below 860 px — so it is fetched rather than #}
-        {# deferred, and its first card is the page's LCP candidate. #}
+        {# The first row is what a phone sees soon after the slide and the #}
+        {# categories, so it is fetched rather than deferred, and its first #}
+        {# card is the page's LCP candidate. #}
         {% for p in newest %}
           {% if forloop.counter <= 4 %}
             {% include "product/_card.html" with p=p eager=True lcp=forloop.first %}
@@ -172,20 +173,19 @@
   </section>
 {% endif %}
 
-{# Two or more, or not at all: a "Categories" heading above a single chip is a #}
-{# choice with nothing to choose between, and it reads as an unfinished page. #}
-{% if categories|length > 1 %}
-  <section class="section">
-    <div class="wrap stack stack--lg">
-      <h2 class="h2">{% trans "Kategoriyalar" %}</h2>
-      <div class="chips">
-        {% for c in categories %}
-          <a class="badge" href="{% url 'shop' %}?category={{ c.id }}">{{ c|t:"name" }}</a>
-        {% endfor %}
+{# One's own design, as a band of its own above the statement (§9 Phase 23 #}
+{# D3, part E). The categories' block that stood here went to the top. #}
+<section class="section">
+  <div class="wrap">
+    <div class="band">
+      <div class="stack stack--sm">
+        <h2 class="h2">{% trans "Oʻz dizayningiz bormi?" %}</h2>
+        <p>{% trans "Gʻoyangizni, rasmingizni yoki matningizni yuboring: qaysi kiyimga, qaysi rangda va qayerga bosilishini tanlaysiz, biz siz bilan bogʻlanamiz." %}</p>
       </div>
+      <a class="btn btn--secondary btn--lg" href="{% url 'custom_design' %}">{% trans "Taklif yuborish" %}</a>
     </div>
-  </section>
-{% endif %}
+  </div>
+</section>
 
 <section class="section">
   <div class="wrap home__statement">

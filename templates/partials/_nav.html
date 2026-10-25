@@ -1,6 +1,7 @@
-{% load i18n %}
-{# Sticky header. The search field is the widest thing in it on desktop, because #}
-{# finding a design is the main job on this site; on mobile it collapses to an #}
+{% load i18n i18n_fields %}
+{# Sticky header (§9 Phase 23 D1): the links from 1100 px, the search field in #}
+{# the row from 1280. The search field is the widest thing in it there, because #}
+{# finding a design is the main job on this site; below it collapses to an #}
 {# icon that expands the row below, so the brand and the cart never get squeezed. #}
 <header class="nav">
   <a href="{% url 'home' %}" class="nav__brand" aria-label="GRAPHIX">
@@ -8,11 +9,19 @@
     <span>GRAPHIX</span>
   </a>
 
+  {# The laptop's links: the catalogue, its categories and one's own design #}
+  {# (§9 Phase 23 D1). "Biz haqimizda" and "Bogʻlanish" are in the footer and #}
+  {# the menu. A category is the shop with `?category=`, the address the #}
+  {# footer has always used. #}
+  {% with here=request.resolver_match.url_name chosen=request.GET.category %}
   <nav class="nav__links" aria-label="{% trans 'Asosiy menyu' %}">
-    <a href="{% url 'shop' %}" {% if request.resolver_match.url_name == 'shop' %}class="is-active" aria-current="page"{% endif %}>{% trans "Doʻkon" %}</a>
-    <a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}class="is-active" aria-current="page"{% endif %}>{% trans "Biz haqimizda" %}</a>
-    <a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="is-active" aria-current="page"{% endif %}>{% trans "Bogʻlanish" %}</a>
+    <a href="{% url 'shop' %}" {% if here == 'shop' and not chosen %}class="is-active" aria-current="page"{% endif %}>{% trans "Barcha dizaynlar" %}</a>
+    {% for c in nav_categories %}
+      <a href="{% url 'shop' %}?category={{ c.id }}" {% if here == 'shop' and chosen == c.id|stringformat:'d' %}class="is-active" aria-current="page"{% endif %}>{{ c|t:"name" }}</a>
+    {% endfor %}
+    <a href="{% url 'custom_design' %}" {% if here == 'custom_design' %}class="is-active" aria-current="page"{% endif %}>{% trans "Oʻz dizayningiz" %}</a>
   </nav>
+  {% endwith %}
 
   {# The header field is the site's search entry; /shop/ keeps its own ?q=. #}
   <form class="nav__search" method="get" action="{% url 'search' %}" role="search">
@@ -32,19 +41,21 @@
     {# row already carries five controls at 390 px. #}
     {% include "partials/_lang.html" with compact=1 %}
 
-    <button type="button" class="nav__search-toggle" data-search-toggle
+    {# The search, the heart and the basket are also in the bar of five at #}
+    {# the foot of a phone (D2); `nav__twin` hides them here below 860 px. #}
+    <button type="button" class="nav__search-toggle nav__twin" data-search-toggle
             aria-label="{% trans 'Qidirish' %}" aria-expanded="false">
       <svg class="i" aria-hidden="true"><use href="#i-search"></use></svg>
     </button>
 
     {# The count and the page are Phase 5; the toggle that fills it is 6b. #}
-    <a href="{% if user.is_authenticated %}{% url 'liked' %}{% else %}{% url 'login' %}{% endif %}"
+    <a href="{% if user.is_authenticated %}{% url 'liked' %}{% else %}{% url 'login' %}{% endif %}" class="nav__twin"
        aria-label="{% trans 'Saqlanganlar' %}{% if liked_count %} ({{ liked_count }}){% endif %}">
       <svg class="i" aria-hidden="true"><use href="#i-heart"></use></svg>
       {% if liked_count %}<span class="nav__count" aria-hidden="true">{{ liked_count }}</span>{% endif %}
     </a>
 
-    <a href="{% url 'cart' %}"
+    <a href="{% url 'cart' %}" class="nav__twin"
        aria-label="{% trans 'Savat' %}{% if cart_count %} ({{ cart_count }}){% endif %}">
       <svg class="i" aria-hidden="true"><use href="#i-cart"></use></svg>
       {% if cart_count %}<span class="nav__count" aria-hidden="true">{{ cart_count }}</span>{% endif %}

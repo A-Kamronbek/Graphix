@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format image_tags %}
+{% load static i18n i18n_fields price_format image_tags legal_tags %}
 
 {% block title %}{% trans "Savat" %}{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
@@ -72,9 +72,21 @@
             <dt>{% trans "Mahsulotlar" %}</dt>
             <dd class="num">{{ subtotal|price }} {% trans "soʻm" %}</dd>
           </div>
+          {# The two delivery prices, read from the rows, rather than "next #}
+          {# step": they are fixed, and saying them is the answer to the one #}
+          {# question a basket raises (§9 Phase 23 D6, §17 #111). #}
           <div class="spec__row">
             <dt>{% trans "Yetkazib berish" %}</dt>
-            <dd class="muted small">{% trans "Keyingi qadamda" %}</dd>
+            {% if delivery_tiers %}
+              {% with low=delivery_tiers|dictsort:"price"|first high=delivery_tiers|dictsortreversed:"price"|first %}
+                <dd class="cartpage__delivery">
+                  <span class="num">{% if low.price == high.price %}{{ low.price|price }}{% else %}{% with a=low.price|price b=high.price|price %}{{ a|legal_range:b }}{% endwith %}{% endif %} {% trans "soʻm" %}</span>
+                  <span class="muted small">{% for tier in delivery_tiers %}{{ tier|t:"name" }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>
+                </dd>
+              {% endwith %}
+            {% else %}
+              <dd class="muted small">{% trans "Keyingi qadamda" %}</dd>
+            {% endif %}
           </div>
           <div class="spec__row cartpage__total">
             <dt>{% trans "Jami" %}</dt>

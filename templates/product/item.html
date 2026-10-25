@@ -18,6 +18,13 @@
 {% block content %}
 <div class="wrap section">
 
+  {# On a phone one step back, to the product's category or the shop, in #}
+  {# place of a path that wrapped to two lines (§9 Phase 23 D5). #}
+  {% if product.category %}
+    <a class="back-link" href="{% url 'shop' %}?category={{ product.category.id }}">‹ {{ product.category|t:"name" }}</a>
+  {% else %}
+    <a class="back-link" href="{% url 'shop' %}">‹ {% trans "Doʻkon" %}</a>
+  {% endif %}
   <nav aria-label="{% trans 'Yoʻnalish' %}" class="crumbs--page">
     <ol class="crumbs">
       <li><a href="{% url 'home' %}">{% trans "Bosh sahifa" %}</a></li>
@@ -194,6 +201,16 @@
           {% if is_purchasable %}{% trans "Savatga qoʻshish" %}{% else %}{% trans "Tugadi" %}{% endif %}
         </button>
       </form>
+
+      {# What happens if the size is wrong, beside the button that buys it #}
+      {# (§9 Phase 23 D5): the returns policy's free exchange (§17 #398). #}
+      <div class="promise">
+        <svg class="i" aria-hidden="true"><use href="#i-check"></use></svg>
+        <div class="stack stack--sm">
+          <strong>{% trans "Oʻlcham mos kelmasa — bepul almashtiramiz" %}</strong>
+          <span class="muted">{% trans "Yangi oʻlchamni oʻzimiz yuboramiz." %} <a class="link" href="{% url 'returns' %}">{% trans "Qaytarish shartlari" %}</a></span>
+        </div>
+      </div>
 
       {# The heart's own form. It carries nothing the customer fills in, only #}
       {# the CSRF token and where to come back to, so it renders as a bare #}

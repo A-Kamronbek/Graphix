@@ -29,6 +29,24 @@
 
       <h1 class="h1">{% if q %}{% blocktrans %}“{{ q }}” uchun natijalar{% endblocktrans %}{% elif search_page %}{% trans "Qidiruv" %}{% else %}{% trans "Barcha dizaynlar" %}{% endif %}</h1>
 
+      {# The search page's own field, for a phone: the header's is hidden #}
+      {# there, and "Qidiruv" in the bar of five comes here without a script #}
+      {# (§9 Phase 23 D2). From 1280 px the header's field is in its row. #}
+      {% if search_page %}
+        <form class="shop__search" method="get" action="{% url 'search' %}" role="search">
+          <label class="search">
+            <svg class="i i--sm" aria-hidden="true"><use href="#i-search"></use></svg>
+            <span class="sr-only">{% trans "Qidirish" %}</span>
+            <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Dizayn qidirish...' %}" autocomplete="off">
+          </label>
+        </form>
+      {% endif %}
+
+      {# The categories under the title, as on the home page (§9 Phase 23 D4). #}
+      {# Not on the search page, whose results are the whole catalogue's. #}
+      {% if not search_page %}
+        {% include "partials/_cats.html" with active=selected_category|default_if_none:'' %}
+      {% endif %}
     </div>
 
     {# Filters. One set of markup: sidebar on desktop, top sheet on mobile. #}

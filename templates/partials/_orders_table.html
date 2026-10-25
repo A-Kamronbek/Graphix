@@ -1,36 +1,31 @@
 {% load i18n price_format date_tags %}
-{# Stacks into cards below 720 px — every cell carries its own label. #}
-<div class="scroll-x">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>{% trans "Buyurtma" %}</th>
-        <th>{% trans "Sana" %}</th>
-        <th>{% trans "Holati" %}</th>
-        <th class="num">{% trans "Summa" %}</th>
-        <th><span class="sr-only">{% trans "Amallar" %}</span></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for o in orders %}
-        <tr>
-          <td data-label="{% trans 'Buyurtma' %}" class="num">{{ o.order_no|default:o.id }}</td>
-          <td data-label="{% trans 'Sana' %}">{{ o.created_at|date:"j E Y"|month_case }}</td>
-          <td data-label="{% trans 'Holati' %}">
-            <span class="badge {% if o.status == 'done' %}badge--success{% elif o.status == 'cancelled' %}badge--danger{% elif o.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ o.get_status_display }}</span>
-          </td>
-          <td data-label="{% trans 'Summa' %}" class="num">{{ o.total_price|price }} {% trans "soʻm" %}</td>
-          <td data-label="">
-            <a class="link" href="{% url 'order_detail' o.id %}">{% trans "Koʻrish" %}</a>
-            {# The second entry point to the review form. A customer who has #}
-            {# just received a parcel is looking at this list, not at one #}
-            {# order's page (§9 Phase 12 item 1). #}
-            {% if o.status == 'done' %}
-              <a class="link" href="{% url 'review_create' order_id=o.id %}">{% trans "Sharh" %}</a>
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+{% comment %}
+  A customer's orders as short rows (§9 Phase 23 D9): the number and the day on
+  the left, the status and the total on the right, the whole row a link to the
+  order's page. It was a table that stacked into cards of four labelled rows
+  on a phone.
+
+  A delivered order keeps a link to its review form under its row: the list is
+  the second way in, where a customer who has just received a parcel is
+  looking (§9 Phase 12 item 1). A link cannot sit inside the row's own link,
+  so it is below it.
+{% endcomment %}
+<ul class="orows">
+  {% for o in orders %}
+    <li>
+      <a class="orow" href="{% url 'order_detail' o.id %}">
+        <span>
+          <span class="orow__no num">{{ o.order_no|default:o.id }}</span>
+          <small>{{ o.created_at|date:"j E Y"|month_case }}</small>
+        </span>
+        <span class="orow__end">
+          <span class="badge {% if o.status == 'done' %}badge--success{% elif o.status == 'cancelled' %}badge--danger{% elif o.status == 'paid' %}badge--brand{% else %}badge--info{% endif %}">{{ o.get_status_display }}</span>
+          <span class="num">{{ o.total_price|price }} {% trans "soʻm" %}</span>
+        </span>
+      </a>
+      {% if o.status == 'done' %}
+        <a class="link small orows__review" href="{% url 'review_create' order_id=o.id %}">{% trans "Sharh qoldirish" %}</a>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

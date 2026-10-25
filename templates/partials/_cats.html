@@ -1,0 +1,16 @@
+{% load i18n i18n_fields %}
+{% comment %}
+  The catalogue's categories as a row of buttons (§9 Phase 23 D3, D4): "all"
+  first, then each category, the shop with `?category=`, the address the
+  footer and the header use. On a phone the three share the width; from
+  860 px they are pills in a row.
+
+  Takes `active`: '' for "all", a category id as a string, or nothing for a
+  page where none is current (the home page).
+{% endcomment %}
+<nav class="cats" aria-label="{% trans 'Turkumlar' %}">
+  <a href="{% url 'shop' %}" {% if active == '' %}class="is-active" aria-current="page"{% endif %}>{% trans "Barchasi" %}</a>
+  {% for c in nav_categories %}
+    <a href="{% url 'shop' %}?category={{ c.id }}" {% if active == c.id|stringformat:'d' %}class="is-active" aria-current="page"{% endif %}>{{ c|t:"name" }}</a>
+  {% endfor %}
+</nav>
