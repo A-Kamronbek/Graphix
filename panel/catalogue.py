@@ -23,7 +23,7 @@ from django.db.models import ProtectedError
 from django.utils.translation import gettext_lazy as _
 
 from product import images as image_pipeline
-from product.models import (Category, ImageP, PrintMethod, Product, Size,
+from product.models import (Category, FilterItem, ImageP, PrintMethod, Product, Size,
                             SizeChart, Tag, Variant, default_colour)
 
 #: Photographs per product. The storefront's gallery is built around four —
@@ -183,9 +183,15 @@ def save_product(data, product=None):
     if not tags:
         raise Refused(_('Kamida bitta teg tanlang.'))
 
+    # The shop's filters the product carries (§17 #404). Optional: a product
+    # with none is simply not found by a filter.
+    chosen = data.getlist('filter_items') if hasattr(data, 'getlist') else data.get('filter_items', [])
+    filter_items = list(FilterItem.objects.filter(pk__in=[i for i in chosen if str(i).isdigit()]))
+
     product.is_active = bool(data.get('is_active'))
     product.save()
     product.tags.set(tags)
+    product.filter_items.set(filter_items)
     return product
 
 

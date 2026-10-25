@@ -522,3 +522,16 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 .dzn__colour { display: inline-flex; align-items: center; gap: var(--s-2); }
 .dzn__chip { width: 18px; height: 18px; flex: none; border-radius: 50%;
   background: var(--chip); border: 1px solid var(--c-line-strong); }
+
+/* ------------------------------------------------------- shop's filters */
+/* A group's or an item's row on "Filtrlar" (§17 #404): the names and the
+   order as fields, then a line of its own for the switch, the count and the
+   delete button, which are markers and controls rather than boxes to fill. */
+.fgroup__foot { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--s-3) var(--s-5); }
+.fgroup__foot .ref__x { margin-left: auto; }
+.fgroup + .fgroup, .fitem + .fitem { padding-top: var(--s-4); border-top: 1px solid var(--c-line); }
+.fgroup__foot a[aria-current] { font-weight: var(--fw-semibold); }
+.fitem__colour { display: flex; align-items: center; gap: var(--s-2); }
+.fitem__colour .dzn__chip { width: 24px; height: 24px; }
+.chip__swatch { margin-right: var(--s-2); }

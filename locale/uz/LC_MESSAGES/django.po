@@ -3531,6 +3531,64 @@ msgstr ""
 msgid "Oʻqilmagan dizaynlar"
 msgstr ""
 
+#, python-format
+msgid "%(n)s ta element"
+msgid_plural "%(n)s ta element"
+msgstr[0] ""
+
+msgid "Doʻkonda koʻrsatish"
+msgstr ""
+
+msgid "Doʻkonda oʻlchamdan tashqari koʻrinadigan filtrlar. Guruh yoqilgan boʻlsa, sotuvdagi mahsulotga belgilangan elementlari bilan koʻrinadi. Mahsulotga element uning tahrir sahifasida belgilanadi. Teglar xaridorga koʻrinmaydi."
+msgstr ""
+
+msgid "Element qoʻshildi."
+msgstr ""
+
+msgid "Guruh oʻchirilsa, elementlari ham oʻchadi va mahsulotlardan olib tashlanadi."
+msgstr ""
+
+msgid "Guruh qoʻshildi. Elementlarini qoʻshing, mahsulotlarga belgilang, soʻng doʻkonda koʻrsatishni yoqing."
+msgstr ""
+
+msgid "Guruhlar"
+msgstr ""
+
+msgid "Hali filtr yoʻq."
+msgstr ""
+
+msgid "Koʻrsatish"
+msgstr ""
+
+msgid "Rang"
+msgstr ""
+
+msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
+msgstr ""
+
+msgid "Rangni #RRGGBB koʻrinishida yozing."
+msgstr ""
+
+msgid "Tartib"
+msgstr ""
+
+#, python-format
+msgid "Xaridor doʻkonda shular boʻyicha saralaydi. Guruh va elementlar <a class=\"link\" href=\"%(filters_url)s\">Filtrlar</a> sahifasida."
+msgstr ""
+
+msgid "Yangi element"
+msgstr ""
+
+msgid "Yangi guruh"
+msgstr ""
+
+msgid "doʻkonda koʻrinmaydi"
+msgstr ""
+
+#, python-format
+msgid "«%(name)s» elementlari"
+msgstr ""
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr ""
 

@@ -1,7 +1,8 @@
 """Editing the small reference tables from the panel.
 
 Regions, districts, delivery tiers, payment methods, sizes, tags, tag kinds,
-print methods, categories and size charts all change a few times a year: a
+print methods, categories, size charts and the shop's filter groups and items
+all change a few times a year: a
 district is renamed, a delivery price moves, a new collection tag appears.
 These screens mean none of that needs a deploy.
 
@@ -15,6 +16,7 @@ DELETABLE is a second, shorter allowlist. Regions, districts, delivery tiers
 and payment methods are left out of it: orders point at all four, and how a
 parcel was sent and paid for should survive a tidy-up.
 """
+import re
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
@@ -23,8 +25,8 @@ from django.utils.translation import gettext as _, gettext_lazy
 
 from payment.models import (DeliveryOption, District, PaymentOption, PromoCode,
                             Region)
-from product.models import (Category, PrintMethod, Size, SizeChart, Slide,
-                            Tag, TagKind, slide_link)
+from product.models import (Category, FilterGroup, FilterItem, PrintMethod, Size,
+                            SizeChart, Slide, Tag, TagKind, slide_link)
 
 #: What each screen is allowed to change, and how to read the value. Nothing
 #: else on any of these models is reachable from the panel.
@@ -96,6 +98,18 @@ EDITABLE = {
     'promo': (PromoCode, {
         'is_active': 'bool',
     }),
+    # The shop's filters (§17 #404): a group's names, its place and its
+    # switch; an item's names, place, swatch and switch. The slugs are absent:
+    # each is made once, and it is the group's or the item's name in the
+    # shop's address, so a link somebody saved keeps working after a rename.
+    'filtergroup': (FilterGroup, {
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text',
+        'sort_order': 'count', 'is_active': 'bool',
+    }),
+    'filteritem': (FilterItem, {
+        'name': 'text', 'name_ru': 'text', 'name_en': 'text',
+        'sort_order': 'count', 'colour': 'hex', 'is_active': 'bool',
+    }),
 }
 
 #: Where a row keeps the name a reader would call it by, when that is not a
@@ -126,7 +140,11 @@ NAME_FIELD = {'size': 'size', 'slide': 'alt', 'promo': 'code'}
 #: `promo` is here for the same reason `size` is: `Order.promo` is PROTECT,
 #: so a code an order was placed with cannot be removed, and the refusal
 #: below says what to do instead. A code nobody has used is a typo, and can go.
-DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size', 'slide', 'promo'}
+#: `filtergroup` and `filteritem` are here because nothing points at one but
+#: products, and deleting one takes it off them, which is what the owner asked
+#: for (§9 Phase 23 item 32). A group takes its items with it.
+DELETABLE = {'tag', 'tagkind', 'method', 'category', 'chart', 'size', 'slide', 'promo',
+             'filtergroup', 'filteritem'}
 
 #: What a refused delete says, where "something is using this" is not enough
 #: to act on. An order keeps the code it was placed with for good, so the
@@ -197,6 +215,14 @@ def _link(raw):
     return value
 
 
+def _hex(raw):
+    """A swatch's colour, ``#rrggbb``, or nothing for an item with no swatch."""
+    value = str(raw).strip()
+    if value and not re.fullmatch(r'#[0-9a-fA-F]{6}', value):
+        raise ValidationError(_('Rangni #RRGGBB koʻrinishida yozing.'))
+    return value.lower()
+
+
 def _count(raw):
     """A whole number of items, never negative. Blank counts as zero."""
     try:
@@ -207,18 +233,20 @@ def _count(raw):
 
 #: The lists whose rows must not share a name (§18 #31, §17 #229). A tag is
 #: compared only with the tags of its own kind - "Qora" may be a colour and a
-#: collection - and the other three with their whole table.
-UNIQUE_NAMES = {'tag', 'tagkind', 'method', 'category', 'size', 'payment'}
+#: collection - and a filter item only with its own group's, for the same
+#: reason; the others with their whole table.
+UNIQUE_NAMES = {'tag', 'tagkind', 'method', 'category', 'size', 'payment',
+                'filtergroup', 'filteritem'}
 
 
-def refuse_duplicate(table, name, tag_kind=None, exclude_pk=None):
+def refuse_duplicate(table, name, tag_kind=None, exclude_pk=None, group=None):
     """Raise if another row of ``table`` already has this Uzbek name.
 
     Letter case is ignored: "Anime" and "anime" are the same chip to a
     shopper. Two identical chips in one filter group are a question the owner
     would have to answer later, so the form answers it now. ``tag_kind`` is
-    the kind a tag is being saved under; ``exclude_pk`` is the row being
-    renamed, which may keep its own name.
+    the kind a tag is being saved under, ``group`` the group a filter item is
+    in; ``exclude_pk`` is the row being renamed, which may keep its own name.
     """
     if table not in UNIQUE_NAMES:
         return
@@ -227,6 +255,8 @@ def refuse_duplicate(table, name, tag_kind=None, exclude_pk=None):
     rows = model.objects.filter(**{field + '__iexact': str(name).strip()})
     if table == 'tag':
         rows = rows.filter(kind=tag_kind)
+    if table == 'filteritem':
+        rows = rows.filter(group=group)
     if exclude_pk is not None:
         rows = rows.exclude(pk=exclude_pk)
     twin = rows.first()
@@ -244,6 +274,7 @@ READERS = {
     'count': _count,
     'tagkind': _tagkind,
     'link': _link,
+    'hex': _hex,
 }
 
 
@@ -288,7 +319,7 @@ def set_field(kind, pk, field, raw):
     # create form refuses (§17 #229).
     if field == NAME_FIELD.get(kind, 'name'):
         refuse_duplicate(kind, value, tag_kind=getattr(row, 'kind', None),
-                         exclude_pk=row.pk)
+                         exclude_pk=row.pk, group=getattr(row, 'group', None))
     elif kind == 'tag' and field == 'kind':
         refuse_duplicate(kind, row.name, tag_kind=value, exclude_pk=row.pk)
 

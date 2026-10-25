@@ -108,6 +108,68 @@ class Tag(models.Model):
         ordering = ['kind', 'slug']
 
 
+#: Words a filter group's slug may not be: the shop's address carries a
+#: group's choices under its slug (``?rang=qora``), beside its own parameters,
+#: and a group called "size" would answer for the size filter.
+RESERVED_FILTER_SLUGS = frozenset({'q', 'size', 'sort', 'page', 'category', 'tag'})
+
+
+class FilterGroup(models.Model):
+    """A group of the shop's filters the owner makes: "Rang", "Turkum" (§17 #404).
+
+    Phase 23 part G. Tags stay the owner's and the search's, hidden from
+    shoppers (§17 #304); a filter is a table of its own, so what a shopper
+    narrows by is chosen on purpose rather than read off the tags. The shop
+    shows a group switched on, with its items switched on that a product on
+    sale carries. A new group starts switched off, so a group is not shown
+    half filled in while the owner is still marking products.
+
+    The slug is made once from the Uzbek name and never changes: it is the
+    group's name in the shop's address, and a renamed group keeps its links.
+    """
+    name = models.CharField(max_length=60, help_text="Oʻzbekcha — asosiy matn")
+    name_ru = models.CharField(max_length=60, blank=True, default='')
+    name_en = models.CharField(max_length=60, blank=True, default='')
+    slug = models.SlugField(max_length=60, unique=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['sort_order', 'pk']
+
+
+class FilterItem(models.Model):
+    """One choice in a filter group: "Qora" in "Rang", "Anime" in "Mavzu".
+
+    A product carries any number of them, chosen in its editor. Within a group
+    the items are alternatives; across groups they narrow each other. The
+    colour, when there is one, is shown as a swatch beside the name. The slug
+    is made once and is unique within its group, which is all the address
+    needs (``?rang=qora``).
+    """
+    group = models.ForeignKey(FilterGroup, on_delete=models.CASCADE, related_name='items')
+    name = models.CharField(max_length=60, help_text="Oʻzbekcha — asosiy matn")
+    name_ru = models.CharField(max_length=60, blank=True, default='')
+    name_en = models.CharField(max_length=60, blank=True, default='')
+    slug = models.SlugField(max_length=60)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    #: ``#rrggbb`` or nothing.
+    colour = models.CharField(max_length=7, blank=True, default='')
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.group.name}: {self.name}"
+
+    class Meta:
+        ordering = ['sort_order', 'pk']
+        constraints = [
+            models.UniqueConstraint(fields=['group', 'slug'], name='filter_item_slug_in_group'),
+        ]
+
+
 class Measured(models.Model):
     """An uploaded image that knows its own pixel size.
 
@@ -286,6 +348,10 @@ class Product(models.Model):
     # recommended. `blank=False` makes the Django admin ask for one too; the
     # panel checks it in `panel.catalogue.save_product`.
     tags = models.ManyToManyField(Tag, related_name='products')
+    # What a shopper narrows the shop by (§17 #404). Optional: a product with
+    # none is simply not found by a filter. Deleting an item or its group takes
+    # it off its products.
+    filter_items = models.ManyToManyField(FilterItem, blank=True, related_name='products')
     is_active = models.BooleanField(default=True)
 
     # Denormalised counters. Maintained with F() expressions inside a transaction,

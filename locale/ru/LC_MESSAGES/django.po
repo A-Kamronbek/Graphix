@@ -3620,6 +3620,67 @@ msgstr "Дизайнов нет."
 msgid "Oʻqilmagan dizaynlar"
 msgstr "Непрочитанные дизайны"
 
+#, python-format
+msgid "%(n)s ta element"
+msgid_plural "%(n)s ta element"
+msgstr[0] "%(n)s элемент"
+msgstr[1] "%(n)s элемента"
+msgstr[2] "%(n)s элементов"
+msgstr[3] "%(n)s элемента"
+
+msgid "Doʻkonda koʻrsatish"
+msgstr "Показывать в магазине"
+
+msgid "Doʻkonda oʻlchamdan tashqari koʻrinadigan filtrlar. Guruh yoqilgan boʻlsa, sotuvdagi mahsulotga belgilangan elementlari bilan koʻrinadi. Mahsulotga element uning tahrir sahifasida belgilanadi. Teglar xaridorga koʻrinmaydi."
+msgstr "Фильтры, которые видны в магазине помимо размера. Включённая группа видна вместе с элементами, отмеченными у товаров в продаже. Элемент отмечается у товара на странице его редактирования. Теги покупателям не видны."
+
+msgid "Element qoʻshildi."
+msgstr "Элемент добавлен."
+
+msgid "Guruh oʻchirilsa, elementlari ham oʻchadi va mahsulotlardan olib tashlanadi."
+msgstr "Если удалить группу, её элементы тоже удалятся и снимутся с товаров."
+
+msgid "Guruh qoʻshildi. Elementlarini qoʻshing, mahsulotlarga belgilang, soʻng doʻkonda koʻrsatishni yoqing."
+msgstr "Группа добавлена. Добавьте элементы, отметьте их у товаров, затем включите показ в магазине."
+
+msgid "Guruhlar"
+msgstr "Группы"
+
+msgid "Hali filtr yoʻq."
+msgstr "Фильтров пока нет."
+
+msgid "Koʻrsatish"
+msgstr "Показать"
+
+msgid "Rang"
+msgstr "Цвет"
+
+msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
+msgstr "Цвет необязателен, в формате #RRGGBB; если он есть, в магазине рядом с названием будет кружок этого цвета."
+
+msgid "Rangni #RRGGBB koʻrinishida yozing."
+msgstr "Укажите цвет в формате #RRGGBB."
+
+msgid "Tartib"
+msgstr "Порядок"
+
+#, python-format
+msgid "Xaridor doʻkonda shular boʻyicha saralaydi. Guruh va elementlar <a class=\"link\" href=\"%(filters_url)s\">Filtrlar</a> sahifasida."
+msgstr "По ним покупатель отбирает товары в магазине. Группы и элементы — на странице <a class=\"link\" href=\"%(filters_url)s\">«Фильтры»</a>."
+
+msgid "Yangi element"
+msgstr "Новый элемент"
+
+msgid "Yangi guruh"
+msgstr "Новая группа"
+
+msgid "doʻkonda koʻrinmaydi"
+msgstr "не видна в магазине"
+
+#, python-format
+msgid "«%(name)s» elementlari"
+msgstr "Элементы группы «%(name)s»"
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Укажите почтовый индекс."
 

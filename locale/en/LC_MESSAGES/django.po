@@ -3587,6 +3587,65 @@ msgstr "No designs."
 msgid "Oʻqilmagan dizaynlar"
 msgstr "Unread designs"
 
+#, python-format
+msgid "%(n)s ta element"
+msgid_plural "%(n)s ta element"
+msgstr[0] "%(n)s item"
+msgstr[1] "%(n)s items"
+
+msgid "Doʻkonda koʻrsatish"
+msgstr "Show in the shop"
+
+msgid "Doʻkonda oʻlchamdan tashqari koʻrinadigan filtrlar. Guruh yoqilgan boʻlsa, sotuvdagi mahsulotga belgilangan elementlari bilan koʻrinadi. Mahsulotga element uning tahrir sahifasida belgilanadi. Teglar xaridorga koʻrinmaydi."
+msgstr "Filters the shop shows besides the size. A group that is switched on shows with its items that a product on sale carries. An item is marked on a product in the product’s editor. Tags are not shown to shoppers."
+
+msgid "Element qoʻshildi."
+msgstr "Item added."
+
+msgid "Guruh oʻchirilsa, elementlari ham oʻchadi va mahsulotlardan olib tashlanadi."
+msgstr "Deleting a group deletes its items too and takes them off the products."
+
+msgid "Guruh qoʻshildi. Elementlarini qoʻshing, mahsulotlarga belgilang, soʻng doʻkonda koʻrsatishni yoqing."
+msgstr "Group added. Add its items, mark them on products, then switch on “Show in the shop”."
+
+msgid "Guruhlar"
+msgstr "Groups"
+
+msgid "Hali filtr yoʻq."
+msgstr "No filters yet."
+
+msgid "Koʻrsatish"
+msgstr "Show"
+
+msgid "Rang"
+msgstr "Colour"
+
+msgid "Rang — ixtiyoriy, #RRGGBB koʻrinishida; boʻlsa, doʻkonda nom yonida doiracha boʻlib koʻrinadi."
+msgstr "The colour is optional, as #RRGGBB; if there is one, the shop shows a dot of it beside the name."
+
+msgid "Rangni #RRGGBB koʻrinishida yozing."
+msgstr "Write the colour as #RRGGBB."
+
+msgid "Tartib"
+msgstr "Order"
+
+#, python-format
+msgid "Xaridor doʻkonda shular boʻyicha saralaydi. Guruh va elementlar <a class=\"link\" href=\"%(filters_url)s\">Filtrlar</a> sahifasida."
+msgstr "Shoppers narrow the shop by these. Groups and items are on the <a class=\"link\" href=\"%(filters_url)s\">Filters</a> page."
+
+msgid "Yangi element"
+msgstr "New item"
+
+msgid "Yangi guruh"
+msgstr "New group"
+
+msgid "doʻkonda koʻrinmaydi"
+msgstr "not shown in the shop"
+
+#, python-format
+msgid "«%(name)s» elementlari"
+msgstr "Items of “%(name)s”"
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Enter the postal index."
 

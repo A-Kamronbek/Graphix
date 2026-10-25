@@ -36,10 +36,11 @@ from payment.models import (DeliveryOption, District, Order, PaymentOption,
                             Region, SOLD)
 from product import images as image_pipeline
 from payment import services as payment_services
+from product import filters as shop_filters
 from product import services as product_services
-from product.models import (Category, PrintMethod, Product, Review, Size,
-                            SizeChart, SizeChartRow, Slide, SlidePhone, Tag,
-                            TagKind, Variant, slide_link)
+from product.models import (Category, FilterGroup, FilterItem, PrintMethod, Product,
+                            Review, Size, SizeChart, SizeChartRow, Slide, SlidePhone,
+                            Tag, TagKind, Variant, slide_link)
 
 from payment import promos as promo_rules
 from payment import shipments
@@ -527,6 +528,11 @@ def product_form(request, slug=None):
     if loose:
         tag_groups.append((None, loose))
 
+    # The owner's filter groups, every one, switched on or not: a group is
+    # filled in on the products before it is shown in the shop (§17 #404).
+    filter_groups = [(group, list(group.items.all()))
+                     for group in FilterGroup.objects.prefetch_related('items')]
+
     sizes = Size.objects.all()
     # The grid, as rows the template can render without looking anything up:
     # every size the shop sells, carrying this product's numbers where it has
@@ -560,6 +566,11 @@ def product_form(request, slug=None):
         'chosen_tags': (set(_int(t) for t in posted.getlist('tags')) if posted is not None
                         else set(product.tags.values_list('pk', flat=True)) if product
                         else set()),
+        'filter_groups': filter_groups,
+        'chosen_filters': (set(_int(i) for i in posted.getlist('filter_items'))
+                           if posted is not None
+                           else set(product.filter_items.values_list('pk', flat=True)) if product
+                           else set()),
         'print_methods': PrintMethod.objects.all(),
         'max_images': catalogue.MAX_IMAGES,
         'copy_templates': catalogue.description_templates(),
@@ -951,6 +962,78 @@ def lookup_new(request, kind):
     row.save()
     messages.success(request, done)
     return redirect('panel_settings')
+
+
+@staff_only
+def filters_screen(request):
+    """The shop's filters: the groups, then the items of the group chosen (§17 #404).
+
+    Two sections, edited in place through the reference endpoint and its
+    allowlist, as the other small tables are (§9 Phase 23 item 32). The group
+    whose items are shown is in the address, so a page reloaded after adding
+    an item comes back to the same group.
+    """
+    # Ordered by hand: a query with a count drops the model's own ordering.
+    groups = list(FilterGroup.objects.annotate(item_count=Count('items'))
+                  .order_by('sort_order', 'pk'))
+    wanted = request.GET.get('group', '')
+    group = next((g for g in groups if str(g.pk) == wanted), groups[0] if groups else None)
+    items = (group.items.annotate(product_count=Count('products')).order_by('sort_order', 'pk')
+             if group else [])
+    return render(request, 'boshqaruv/filters.html', {
+        'screen': 'filters',
+        'groups': groups,
+        'group': group,
+        'items': items,
+    })
+
+
+def _names(request):
+    """A new row's three names from its form, each cut to the column."""
+    return [(request.POST.get(key) or '').strip()[:60] for key in ('name', 'name_ru', 'name_en')]
+
+
+@staff_only
+@require_POST
+def filter_group_new(request):
+    """Make a filter group. It starts switched off, so it is not shown half filled in."""
+    name, name_ru, name_en = _names(request)
+    if not name:
+        messages.error(request, _('Nomi kerak.'))
+        return redirect('panel_filters')
+    try:
+        reference.refuse_duplicate('filtergroup', name)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect('panel_filters')
+    group = shop_filters.new_group(name, name_ru, name_en)
+    messages.success(request, _('Guruh qoʻshildi. Elementlarini qoʻshing, mahsulotlarga '
+                                'belgilang, soʻng doʻkonda koʻrsatishni yoqing.'))
+    return redirect(reverse('panel_filters') + '?group=%d' % group.pk)
+
+
+@staff_only
+@require_POST
+def filter_item_new(request):
+    """Make an item in a group, switched on, with a swatch if a colour is given."""
+    group = FilterGroup.objects.filter(pk=_int(request.POST.get('group'))).first()
+    if group is None:
+        messages.error(request, _('Topilmadi.'))
+        return redirect('panel_filters')
+    back = reverse('panel_filters') + '?group=%d' % group.pk
+    name, name_ru, name_en = _names(request)
+    if not name:
+        messages.error(request, _('Nomi kerak.'))
+        return redirect(back)
+    try:
+        reference.refuse_duplicate('filteritem', name, group=group)
+        colour = reference.READERS['hex'](request.POST.get('colour', ''))
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect(back)
+    shop_filters.new_item(group, name, name_ru, name_en, colour)
+    messages.success(request, _('Element qoʻshildi.'))
+    return redirect(back)
 
 
 @staff_only

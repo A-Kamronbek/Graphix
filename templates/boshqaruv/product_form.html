@@ -198,6 +198,36 @@
     <p class="muted small" data-chip-empty hidden>{% trans "Mos teg topilmadi." %}</p>
   </section>
 
+  {# The shop's filters (§17 #404): what a shopper narrows the list by, beside #}
+  {# the size. Every group is here, switched on or not, because a group is #}
+  {# filled in on the products before it is shown. Optional, unlike tags. #}
+  <section class="panel-card stack">
+    <h2>{% trans "Filtrlar" %}</h2>
+    <p class="small muted">
+      {% url 'panel_filters' as filters_url %}
+      {% blocktrans %}Xaridor doʻkonda shular boʻyicha saralaydi. Guruh va elementlar <a class="link" href="{{ filters_url }}">Filtrlar</a> sahifasida.{% endblocktrans %}
+    </p>
+    {% for group, items in filter_groups %}
+      {% if items %}
+        <div class="chips__group">
+          <span class="label">{{ group|t:"name" }}{% if not group.is_active %} · {% trans "doʻkonda koʻrinmaydi" %}{% endif %}</span>
+          <div class="chips">
+            {% for item in items %}
+              <label class="chip">
+                <input type="checkbox" name="filter_items" value="{{ item.pk }}"
+                       {% if item.pk in chosen_filters %}checked{% endif %}>
+                {% if item.colour %}<span class="dzn__chip chip__swatch" style="--chip: {{ item.colour }}" aria-hidden="true"></span>{% endif %}
+                <span>{{ item|t:"name" }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% empty %}
+      <p class="muted small">{% trans "Hali filtr yoʻq." %}</p>
+    {% endfor %}
+  </section>
+
   <section class="panel-card stack">
     <h2>{% trans "Oʻlchamlar va zaxira" %}</h2>
     <p class="field__hint">{% trans "Narxi boʻsh qolgan oʻlcham mahsulotda koʻrinmaydi." %}</p>

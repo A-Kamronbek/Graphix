@@ -523,6 +523,24 @@ html.js .otp__timer { display: block; }
   font-weight: var(--fw-semibold); transition: color var(--t-fast), border-color var(--t-fast); }
 .chips button:hover { color: var(--c-fg); border-color: var(--c-fg-muted); }
 .chips button[aria-pressed="true"] { background: var(--c-fg); color: var(--c-bg); border-color: var(--c-fg); }
+/* An item of the owner's filter groups (§17 #404): a checkbox, since a group
+   takes several, drawn as the size chips are. The box is hidden and its face,
+   which follows it, carries the state, so it works without :has(). */
+.fchip { position: relative; cursor: pointer; }
+.fchip__face { display: inline-flex; align-items: center; gap: var(--s-2);
+  padding: var(--s-2) var(--s-4); min-height: 40px; border-radius: var(--r-full);
+  border: 1px solid var(--c-line-control); color: var(--c-fg-muted); font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold); transition: color var(--t-fast), border-color var(--t-fast); }
+.fchip:hover .fchip__face { color: var(--c-fg); border-color: var(--c-fg-muted); }
+.fchip input:checked + .fchip__face { background: var(--c-fg); color: var(--c-bg); border-color: var(--c-fg); }
+.fchip input:focus-visible + .fchip__face { outline: 2px solid var(--c-brand-ink); outline-offset: 2px; }
+.fchip__swatch { width: 14px; height: 14px; flex: none; border-radius: 50%;
+  background: var(--chip); border: 1px solid var(--c-line-strong); }
+fieldset.filters__group { margin: 0; min-width: 0; border-width: 0 0 1px; padding-inline: 0; }
+/* A legend sits on the fieldset's top edge, outside its padding, unless it
+   floats; floated, it is laid out like the size group's label above it. */
+fieldset.filters__group > legend { float: left; width: 100%; padding: 0; }
+fieldset.filters__group > .chips { clear: both; }
 
 .filters__group { padding: var(--s-4) 0; border-bottom: 1px solid var(--c-line); }
 .filters__group > .label { display: block; margin-bottom: var(--s-3); }

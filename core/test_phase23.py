@@ -31,6 +31,11 @@ owner reads it in the panel's "Dizaynlar", marks it read, and hears of it on
 Telegram. Nothing is paid on the site, and a suggestion is kept a year
 (§17 #402, #406, §9 Phase 23 items 24-28).
 
+Part G: the owner makes filter groups and their items in the panel, marks
+products with them, and switches a group on for the shop, which shows it
+beside the size; within a group the items are alternatives, across groups
+they narrow each other (§17 #404, §9 Phase 23 items 30-34).
+
 Each class is one of those, written as what a customer, or the owner, sees.
 """
 import re
@@ -58,8 +63,9 @@ from payment import returns, services, views
 from core.management.commands.prune_requests import cutoff
 from payment.models import Order, ReturnImage, ReturnLine, ReturnRequest
 from panel import reference
-from product import size_charts
-from product.models import Colour, Product, Size, SizeChart, SizeChartRow, Variant
+from product import filters as shop_filters, size_charts
+from product.models import (Colour, FilterGroup, FilterItem, Product, Size, SizeChart,
+                            SizeChartRow, Tag, Variant)
 
 from .test_phase6 import make_user
 from .test_backlog import TempMedia
@@ -1294,3 +1300,203 @@ class DesignRetentionTests(DesignCase):
         doc = (Path(settings.BASE_DIR) / 'docs' / 'integrations' /
                'telegram-bot.md').read_text(encoding='utf-8')
         self.assertIn('### `design.new`', doc)
+
+
+# ------------------------------------------- part G: filters the owner manages
+
+class FilterCase(TestCase):
+    """Two groups switched on, "Rang" and "Turkum", and four designs on sale.
+
+    A: qora, futbolka · B: oq, futbolka · C: qora, longsliv · D: none.
+    """
+
+    def setUp(self):
+        self.rang = shop_filters.new_group('Rang', 'Цвет', 'Colour')
+        self.turkum = shop_filters.new_group('Turkum', 'Категория', 'Category')
+        FilterGroup.objects.update(is_active=True)
+        self.rang.refresh_from_db()
+        self.turkum.refresh_from_db()
+        self.qora = shop_filters.new_item(self.rang, 'Qora', 'Чёрный', 'Black', '#1a1a1a')
+        self.oq = shop_filters.new_item(self.rang, 'Oq', 'Белый', 'White', '#ffffff')
+        self.futbolka = shop_filters.new_item(self.turkum, 'Futbolka')
+        self.longsliv = shop_filters.new_item(self.turkum, 'Longsliv')
+        self.a = self.design('Alfa', self.qora, self.futbolka)
+        self.b = self.design('Beta', self.oq, self.futbolka)
+        self.c = self.design('Gamma', self.qora, self.longsliv)
+        self.d = self.design('Delta')
+
+    def design(self, name, *items):
+        product, _variants = shirt_in_sizes(name)
+        product.filter_items.set(items)
+        return product
+
+    def listed(self, query=''):
+        response = self.client.get(reverse('shop') + query)
+        return {p.name for p in response.context['page_obj'].object_list}
+
+
+class FilterRuleTests(FilterCase):
+    """What the shop shows, and how a choice narrows it (§9 Phase 23 items 30-34)."""
+
+    def test_within_a_group_alternatives_across_groups_narrow_each_other(self):
+        self.assertEqual(self.listed('?rang=qora'), {'Alfa', 'Gamma'})
+        self.assertEqual(self.listed('?rang=qora&rang=oq'), {'Alfa', 'Beta', 'Gamma'})
+        self.assertEqual(self.listed('?rang=qora&turkum=futbolka'), {'Alfa'})
+        self.assertEqual(self.listed('?rang=oq&turkum=longsliv'), set())
+
+    def test_a_choice_the_shop_does_not_show_is_ignored(self):
+        self.assertEqual(len(self.listed('?rang=yashil')), 4)
+        FilterItem.objects.filter(pk=self.qora.pk).update(is_active=False)
+        self.assertEqual(len(self.listed('?rang=qora')), 4)
+        FilterGroup.objects.filter(pk=self.turkum.pk).update(is_active=False)
+        self.assertEqual(len(self.listed('?turkum=futbolka')), 4)
+
+    def test_only_what_is_switched_on_and_on_sale_is_shown(self):
+        shown = lambda: [(g.slug, [i.slug for i in items]) for g, items in shop_filters.shown()]
+        self.assertEqual(shown(), [('rang', ['qora', 'oq']), ('turkum', ['futbolka', 'longsliv'])])
+        # An item no design on sale carries would only ever empty the page.
+        Product.objects.filter(pk=self.c.pk).update(is_active=False)
+        self.assertEqual(shown(), [('rang', ['qora', 'oq']), ('turkum', ['futbolka'])])
+        Variant.objects.filter(product=self.b).update(available=False)
+        self.assertEqual(shown(), [('rang', ['qora']), ('turkum', ['futbolka'])])
+        FilterItem.objects.filter(pk=self.qora.pk).update(is_active=False)
+        FilterGroup.objects.filter(pk=self.turkum.pk).update(is_active=False)
+        self.assertEqual(shown(), [])
+
+    def test_a_new_group_starts_off_and_its_slug_is_made_once(self):
+        group = shop_filters.new_group('Oʻlcham turi')
+        self.assertFalse(group.is_active)
+        self.assertEqual(group.slug, 'olcham-turi')
+        # The shop's own parameters are not a group's name in the address.
+        self.assertEqual(shop_filters.new_group('Size').slug, 'size-2')
+        reference.set_field('filtergroup', group.pk, 'name', 'Bichim')
+        group.refresh_from_db()
+        self.assertEqual((group.name, group.slug), ('Bichim', 'olcham-turi'))
+        # An item's slug is unique within its group only.
+        self.assertEqual(shop_filters.new_item(group, 'Qora').slug, 'qora')
+
+
+class ShopFilterPageTests(FilterCase):
+    """The shop's filter panel, with scripts and without."""
+
+    def page(self, query=''):
+        return self.client.get(reverse('shop') + query).content.decode()
+
+    def test_each_group_is_a_set_of_boxes_named_by_its_slug(self):
+        html = self.page('?rang=oq&size=%d' % Size.objects.get(size='S').pk)
+        self.assertIn('<legend class="label">Rang</legend>', html)
+        self.assertRegex(html, r'name="rang" value="oq"\s+data-autosubmit checked')
+        self.assertRegex(html, r'name="rang" value="qora"\s+data-autosubmit >')
+        self.assertIn('style="--chip: #ffffff"', html)
+        # The size is kept when a box sends the form, and a box works without a script.
+        self.assertIn('<input type="hidden" name="size" value="%d">' % Size.objects.get(size='S').pk, html)
+        self.assertIn('<noscript><div class="filters__group"><button', html)
+        # Two filters chosen: the size and one item.
+        self.assertIn('Filtrlar (2)', html)
+
+    def test_in_the_page_language(self):
+        html = self.client.get('/ru/shop/').content.decode()
+        self.assertIn('<legend class="label">Цвет</legend>', html)
+        self.assertIn('Чёрный', html)
+
+    def test_the_sort_keeps_the_choice_and_the_canonical_drops_it(self):
+        html = self.page('?rang=qora&turkum=futbolka')
+        sort = html.split('class="shop__sort"', 1)[1].split('</form>', 1)[0]
+        self.assertIn('<input type="hidden" name="rang" value="qora">', sort)
+        self.assertIn('<input type="hidden" name="turkum" value="futbolka">', sort)
+        self.assertIn('<link rel="canonical" href="http://127.0.0.1:8000/uz/shop/">', html)
+
+    def test_a_switched_off_group_is_not_on_the_page(self):
+        FilterGroup.objects.filter(pk=self.rang.pk).update(is_active=False)
+        html = self.page()
+        self.assertNotIn('name="rang"', html)
+        self.assertIn('name="turkum"', html)
+
+
+class PanelFilterTests(FilterCase):
+    """"Filtrlar" in the panel, and the product editor's boxes (item 32)."""
+
+    def setUp(self):
+        super().setUp()
+        self.staff = make_staff('filtr', '+998901230068')
+        self.client.force_login(self.staff)
+
+    def inline(self, kind, pk, field, value):
+        return self.client.post(reverse('panel_reference_inline', kwargs={'kind': kind, 'pk': pk}),
+                                {'field': field, 'value': value})
+
+    def test_the_screen_lists_the_groups_and_the_chosen_groups_items(self):
+        # In their order, the first group's items shown: a count in the query
+        # drops the model's ordering, and the database then picks one.
+        FilterGroup.objects.filter(pk=self.rang.pk).update(sort_order=9)
+        FilterItem.objects.filter(pk=self.futbolka.pk).update(sort_order=9)
+        html = self.client.get(reverse('panel_filters')).content.decode()
+        self.assertLess(html.index('value="Turkum"'), html.index('value="Rang"'))
+        self.assertIn('«Turkum» elementlari', html)
+        self.assertLess(html.index('value="Longsliv"'), html.index('value="Futbolka"'))
+        html = self.client.get(reverse('panel_filters') + '?group=%d' % self.rang.pk).content.decode()
+        self.assertIn('«Rang» elementlari', html)
+        self.assertIn('value="#1a1a1a"', html)
+
+    def test_a_group_and_an_item_are_made(self):
+        response = self.client.post(reverse('panel_filter_group_new'),
+                                    {'name': 'Mavzu', 'name_ru': 'Тема', 'name_en': 'Theme'})
+        group = FilterGroup.objects.get(name='Mavzu')
+        self.assertRedirects(response, reverse('panel_filters') + '?group=%d' % group.pk,
+                             fetch_redirect_response=False)
+        self.assertFalse(group.is_active)
+        self.client.post(reverse('panel_filter_item_new'),
+                         {'group': group.pk, 'name': 'Anime', 'colour': '#FF0000'})
+        self.assertEqual(group.items.get().colour, '#ff0000')
+
+    def test_what_is_refused(self):
+        response = self.client.post(reverse('panel_filter_group_new'), {'name': 'rang'}, follow=True)
+        self.assertContains(response, '«Rang» nomi bu roʻyxatda allaqachon bor.')
+        response = self.client.post(reverse('panel_filter_item_new'),
+                                    {'group': self.rang.pk, 'name': 'Sariq', 'colour': 'sariq'},
+                                    follow=True)
+        self.assertContains(response, 'Rangni #RRGGBB koʻrinishida yozing.')
+        self.assertFalse(FilterItem.objects.filter(name='Sariq').exists())
+        # The same name may be an item of two groups, not twice in one.
+        self.assertEqual(self.inline('filteritem', self.futbolka.pk, 'name', 'Qora').status_code, 200)
+        self.assertEqual(self.inline('filteritem', self.oq.pk, 'name', 'Qora').status_code, 400)
+        self.assertEqual(self.inline('filteritem', self.oq.pk, 'slug', 'x').status_code, 400)
+
+    def test_switches_order_and_colour_are_edited_in_place(self):
+        self.assertTrue(self.inline('filtergroup', self.rang.pk, 'is_active', '0').json()['ok'])
+        self.assertTrue(self.inline('filteritem', self.oq.pk, 'sort_order', '0').json()['ok'])
+        self.assertTrue(self.inline('filteritem', self.oq.pk, 'colour', '').json()['ok'])
+        self.rang.refresh_from_db()
+        self.oq.refresh_from_db()
+        self.assertEqual((self.rang.is_active, self.oq.sort_order, self.oq.colour), (False, 0, ''))
+
+    def test_deleting_takes_it_off_its_products(self):
+        self.client.post(reverse('panel_reference_delete',
+                                 kwargs={'kind': 'filteritem', 'pk': self.qora.pk}))
+        self.assertEqual(list(self.a.filter_items.all()), [self.futbolka])
+        self.client.post(reverse('panel_reference_delete',
+                                 kwargs={'kind': 'filtergroup', 'pk': self.turkum.pk}))
+        self.assertFalse(self.a.filter_items.exists())
+        self.assertFalse(FilterItem.objects.filter(group_id=self.turkum.pk).exists())
+        self.assertTrue(Product.objects.filter(pk=self.a.pk).exists())
+
+    def test_the_product_editor_marks_a_product(self):
+        url = reverse('panel_product', kwargs={'slug': self.d.slug})
+        FilterGroup.objects.filter(pk=self.turkum.pk).update(is_active=False)
+        html = self.client.get(url).content.decode()
+        self.assertIn('Turkum · doʻkonda koʻrinmaydi', html)
+        self.assertRegex(html, r'name="filter_items" value="%d"\s+>' % self.oq.pk)
+        tag = Tag.objects.create(slug='t', name='T')
+        body = {'name': 'Delta', 'is_active': 'on', 'tags': [tag.pk],
+                'filter_items': [self.oq.pk, self.longsliv.pk]}
+        for size in Size.objects.filter(size__in=['S', 'M', 'L']):
+            body['price_%s' % size.pk] = '149000'
+            body['available_%s' % size.pk] = 'on'
+        self.client.post(url, body)
+        self.assertEqual(set(self.d.filter_items.all()), {self.oq, self.longsliv})
+
+    def test_a_customer_cannot_reach_it(self):
+        self.client.force_login(make_user('xaridor', '+998901230069'))
+        self.assertEqual(self.client.get(reverse('panel_filters')).status_code, 403)
+        self.assertEqual(self.client.post(reverse('panel_filter_group_new'),
+                                          {'name': 'X'}).status_code, 403)

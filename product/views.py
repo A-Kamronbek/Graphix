@@ -17,7 +17,7 @@ from django.views.decorators.http import require_POST
 from core import seo
 from core.i18n import tfield
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
-from . import images, services, size_charts
+from . import filters, images, services, size_charts
 from .models import Colour, Product, ProductLike, Review, Size, Tag, Variant
 
 
@@ -73,10 +73,12 @@ def _listing(request, search_page=False):
     (§17 #56). What does hide a product is ``is_active=False`` — the owner's
     explicit switch.
 
-    The page offers one filter, size (§17 #303). ``category`` and ``tag`` are
-    still read, so a category link from the home page or the footer, or an old
-    tag link, still narrows the list, and "Filtrlarni tozalash" still clears it.
-    Tags are the owner's and the search's, not the shopper's (§17 #304).
+    The page offers the size (§17 #303) and the owner's filter groups that
+    are switched on (§17 #404, `product/filters.py`). ``category`` and ``tag``
+    are still read, so a category link from the home page or the footer, or
+    an old tag link, still narrows the list, and "Filtrlarni tozalash" still
+    clears it. Tags are the owner's and the search's, not the shopper's
+    (§17 #304).
     """
     q = request.GET.get('q', '').strip()
     category = request.GET.get('category')
@@ -109,6 +111,11 @@ def _listing(request, search_page=False):
     if tags:
         # Any of the chosen tags, which is how a chip row reads to a shopper.
         qs = qs.filter(tags__slug__in=tags).distinct()
+    # The owner's groups: any item of a group, every group (§17 #404).
+    groups = filters.shown()
+    choice = filters.chosen(groups, request.GET)
+    qs = filters.narrow(qs, choice)
+    picked = {item.pk for _group, items in choice for item in items}
 
     # Both new sorts fall back to recency, so a catalogue with no likes and no
     # reviews yet still comes out in a sensible order rather than by primary key.
@@ -147,13 +154,18 @@ def _listing(request, search_page=False):
         'paginator': paginator,
         'base_query': base_query,
         'total_count': paginator.count,
-        # Size is the one filter the page offers (§17 #303): the tag axes and
-        # the category chips were taken off, and so were the queries for them.
+        # The size, and the owner's groups below (§17 #303, #404). The tag
+        # axes and the category chips were taken off, and so were the queries
+        # for them.
         'sizes': Size.objects.all(),
         'selected_category': category,
         'selected_size': size,
         'selected_tags': tags,
-        'filter_count': len(tags) + (1 if category else 0) + (1 if size else 0),
+        'filter_count': (len(tags) + (1 if category else 0) + (1 if size else 0)
+                         + len(picked)),
+        'filter_groups': groups,
+        'filter_choice': choice,
+        'picked': picked,
         'q': q,
         'sort': sort,
         'search_page': search_page,

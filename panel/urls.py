@@ -77,6 +77,11 @@ urlpatterns = [
     # Reference data: rows somebody changes two or three times a year, so that
     # none of it needs a deploy.
     path('boshqaruv/sozlamalar/', views.settings_screen, name='panel_settings'),
+    # The shop's filter groups and items (§9 Phase 23 part G). Edited in place
+    # through `panel_reference_inline`, like the rows on Sozlamalar; made here.
+    path('boshqaruv/filtrlar/', views.filters_screen, name='panel_filters'),
+    path('boshqaruv/filtrlar/guruh/', views.filter_group_new, name='panel_filter_group_new'),
+    path('boshqaruv/filtrlar/element/', views.filter_item_new, name='panel_filter_item_new'),
     path('boshqaruv/sozlamalar/teg/', views.tag_new, name='panel_tag_new'),
     path('boshqaruv/sozlamalar/jadval/', views.chart_new, name='panel_chart_new'),
     # A chart's rows: every size's four measures, saved together (§17 #400).
