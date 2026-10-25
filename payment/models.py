@@ -13,6 +13,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, ngettext
 from cart.models import Cart
+from product.models import Photograph
 from user.models import phone_regex, normalize_uz_phone  # reuse same validator + normalizer as User.phone
 
 #: The longest recipient name an order keeps: room for an Uzbek full name with
@@ -715,3 +716,125 @@ class ShipmentStatus(models.Model):
 
     class Meta:
         ordering = ['-at', '-id']
+
+
+# --------------------------------------------------------------- returns
+
+class ReturnRequest(models.Model):
+    """A customer's request to return or exchange part of a delivered order.
+
+    Phase 23 part B (§17 #399). The customer writes it on the site; staff
+    answer it in the panel and the customer reads the answer under the order.
+    It is a conversation and not an operation: a request moves no stock and no
+    money. Staff cancel or refund the order itself on its own screen, as
+    before, so the one path that changes an order stays the one it was.
+    """
+
+    class Kind(models.TextChoices):
+        RETURN = 'return', _('Qaytarish')
+        EXCHANGE = 'exchange', _('Almashtirish')
+
+    class Reason(models.TextChoices):
+        SIZE = 'size', _('Oʻlcham mos kelmadi')
+        FAULT = 'fault', _('Mahsulotda nuqson bor')
+        WRONG = 'wrong', _('Boshqa mahsulot yuborilgan')
+        NOT_AS_DESCRIBED = 'not_as_described', _('Saytdagi tavsifga mos emas')
+        OTHER = 'other', _('Boshqa sabab')
+
+    class Status(models.TextChoices):
+        NEW = 'new', _('Yangi')
+        REVIEWING = 'reviewing', _('Koʻrib chiqilmoqda')
+        ACCEPTED = 'accepted', _('Qabul qilindi')
+        REJECTED = 'rejected', _('Rad etildi')
+        DONE = 'done', _('Yakunlandi')
+
+    #: The reasons a photograph is required for: what staff cannot judge
+    #: without seeing it (§9 Phase 23 item 7).
+    PHOTO_REASONS = frozenset({Reason.FAULT, Reason.WRONG, Reason.NOT_AS_DESCRIBED})
+    #: A request in one of these still holds its order lines: a line in an open
+    #: request cannot be asked about again (item 12).
+    OPEN = frozenset({Status.NEW, Status.REVIEWING, Status.ACCEPTED})
+    #: Closed. A closed request is kept a year and then deleted with its
+    #: photographs (§17 #406, `prune_return_requests`).
+    CLOSED = frozenset({Status.REJECTED, Status.DONE})
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='return_requests')
+    # PROTECT: an order with a request is the record the request is about.
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='return_requests')
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    reason = models.CharField(max_length=20, choices=Reason.choices)
+    explanation = models.TextField()
+    phone = models.CharField(max_length=20, validators=[phone_regex])
+    status = models.CharField(max_length=10, choices=Status.choices,
+                              default=Status.NEW, db_index=True)
+    # Staff's answer, written for the customer, who reads it under the order.
+    answer = models.TextField(blank=True, default='')
+    answered_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                    null=True, blank=True, related_name='answered_returns')
+    answered_at = models.DateTimeField(null=True, blank=True)
+    # When it was closed, for the year it is kept after (§17 #406). Cleared
+    # if staff open it again.
+    closed_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f"{self.order.order_no or self.order_id} · {self.get_kind_display()}"
+
+    @property
+    def is_open(self):
+        """Still being dealt with: its lines cannot be asked about again."""
+        return self.status in self.OPEN
+
+
+class ReturnLine(models.Model):
+    """One line of an order a request is about, and how many of it.
+
+    ``item`` is the order's own line: an order's lines are the items of the
+    cart it was placed from (`Order.cart`). For an exchange, ``size_wanted``
+    is the size the customer wants instead.
+    """
+    request = models.ForeignKey(ReturnRequest, on_delete=models.CASCADE, related_name='lines')
+    item = models.ForeignKey('cart.CartItem', on_delete=models.PROTECT,
+                             related_name='return_lines')
+    quantity = models.PositiveSmallIntegerField()
+    size_wanted = models.ForeignKey('product.Size', on_delete=models.PROTECT,
+                                    null=True, blank=True, related_name='+')
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.request_id}: {self.item_id} × {self.quantity}"
+
+
+def return_photo_path(instance, filename):
+    """Where a request's photograph is stored: a name nobody can guess.
+
+    These are a customer's photographs of a parcel, shown to staff and to the
+    customer and nowhere else (§9 Phase 23 item 8). The media folder is served
+    as it is, so the name is what keeps one from being found: random, and
+    carrying nothing about the customer or the order.
+    """
+    import secrets
+    return 'returns/%s.jpg' % secrets.token_urlsafe(18)
+
+
+class ReturnImage(Photograph):
+    """A photograph attached to a return request.
+
+    Cleaned as a review's photographs are (`product.images.sanitise`):
+    re-encoded, its metadata dropped (§17 #132). Kept as long as its request.
+    """
+    request = models.ForeignKey(ReturnRequest, on_delete=models.CASCADE, related_name='images')
+    picture = models.ImageField(upload_to=return_photo_path)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.request_id} · {self.order}"

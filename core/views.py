@@ -92,6 +92,8 @@ DOC_DESCRIPTIONS = {
                  'nima uchun va qancha muddat saqlanadi.'),
     'delivery': _('Oʻzbekiston boʻylab yetkazib berish: pochta boʻlimiga yoki '
                   'eshikkacha — muddatlar, narxlar va qaytarish tartibi.'),
+    'returns': _('GRAPHIX mahsulotini qaytarish va almashtirish: muddat, shartlar, '
+                 'nuqsonli mahsulot, pulni qaytarish va murojaat tartibi.'),
 }
 
 
@@ -110,6 +112,15 @@ def terms(request):
 def privacy(request):
     """The privacy policy (plan §9 Phase 8 item 1)."""
     return _legal_page(request, 'privacy')
+
+
+def returns_policy(request):
+    """The returns and exchange policy, the owner's document (§9 Phase 23 part A).
+
+    A fourth legal document on the shared page, with its version, date,
+    contents and history (§17 #182, #192, #398).
+    """
+    return _legal_page(request, 'returns')
 
 
 def delivery(request):

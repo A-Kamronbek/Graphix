@@ -11,6 +11,9 @@ urlpatterns = [
     path('olcham-jadvali/', views.size_guide, name='size_guide'),
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
+    # The returns policy (§9 Phase 23 part A); the request page beside it is
+    # the payment app's, at qaytarish/ariza/.
+    path('qaytarish/', views.returns_policy, name='returns'),
 
     # Staff-only design-system reference, under /boshqaruv/ like the rest of
     # the panel (panel/urls.py), where Phase 2 put it before the panel existed.

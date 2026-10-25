@@ -426,7 +426,7 @@ backups** — until it returns 0, the backup is a file of unknown value.
 
 ```bash
 sudo systemctl enable --now graphix-backup.timer graphix-prune-carts.timer \
-        graphix-cancel-unpaid.timer graphix-uzpost.timer
+        graphix-cancel-unpaid.timer graphix-uzpost.timer graphix-prune-returns.timer
 systemctl list-timers 'graphix*' --no-pager
 ```
 
@@ -470,6 +470,19 @@ sudo cp /srv/graphix/deploy/systemd/graphix-uzpost.service \
 sudo systemctl daemon-reload
 sudo -u graphix /srv/graphix/.venv/bin/python /srv/graphix/manage.py uzpost_sync --dry-run
 sudo systemctl enable --now graphix-uzpost.timer
+```
+
+`prune_return_requests` deletes a return or exchange request, with its
+photographs, a year after staff closed it (plan §9 Phase 23, §17 #406). The
+privacy policy promises that, and nothing else deletes one. An open request is
+never touched. Installing it on a machine set up before Phase 23:
+
+```bash
+sudo cp /srv/graphix/deploy/systemd/graphix-prune-returns.service \
+        /srv/graphix/deploy/systemd/graphix-prune-returns.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo -u graphix /srv/graphix/.venv/bin/python /srv/graphix/manage.py prune_return_requests --dry-run
+sudo systemctl enable --now graphix-prune-returns.timer
 ```
 
 ---

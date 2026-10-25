@@ -66,6 +66,11 @@
       <span class="stat__n">{{ pending_reviews }}</span>
       <span class="stat__label">{% trans "Yangi sharhlar" %}</span>
     </a>
+    <a class="stat {% if new_returns %}stat--todo{% endif %}"
+       href="{% url 'panel_returns' %}?status=new">
+      <span class="stat__n">{{ new_returns }}</span>
+      <span class="stat__label">{% trans "Yangi qaytarish soʻrovlari" %}</span>
+    </a>
     <a class="stat {% if unread %}stat--todo{% endif %}"
        href="{% url 'panel_messages' %}?show=unread">
       <span class="stat__n">{{ unread }}</span>

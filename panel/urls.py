@@ -60,6 +60,11 @@ urlpatterns = [
     # Promo codes. The list, and one form that makes a code or edits one. The
     # switch and the delete go through the reference endpoints below, like
     # every other row the panel turns off or removes.
+    # Return and exchange requests (§9 Phase 23 part B): the list and one
+    # request, which is also where it is answered.
+    path('boshqaruv/qaytarishlar/', views.returns_list, name='panel_returns'),
+    path('boshqaruv/qaytarishlar/<int:pk>/', views.return_detail, name='panel_return'),
+
     path('boshqaruv/promokodlar/', views.promos, name='panel_promos'),
     path('boshqaruv/promokodlar/yangi/', views.promo_form, name='panel_promo_new'),
     path('boshqaruv/promokodlar/<int:pk>/', views.promo_form, name='panel_promo'),

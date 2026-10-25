@@ -2558,21 +2558,15 @@ msgstr "Delivery cost"
 #: .\templates\payment\order_detail.html:94
 #, python-format
 msgid ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
 msgid_plural ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
-msgstr[0] ""
-"The office holds the parcel for %(hold)s day. If it isn’t collected, it "
-"comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
-"within %(days)s days. If the district is wrong, write to us straight away."
-msgstr[1] ""
-"The office holds the parcel for %(hold)s days. If it isn’t collected, it "
-"comes back to us: we keep %(fee)s soʻm of your payment and refund the rest "
-"within %(days)s days. If the district is wrong, write to us straight away."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
+msgstr[0] "The office holds the parcel for %(hold)s day. If it isn’t collected, it comes back to us and we refund your payment in full within %(days)s days. If the district is wrong, write to us straight away."
+msgstr[1] "The office holds the parcel for %(hold)s days. If it isn’t collected, it comes back to us and we refund your payment in full within %(days)s days. If the district is wrong, write to us straight away."
 
 #: .\templates\payment\order_detail.html:111
 msgid "Uzpost joʻnatmasi"
@@ -3263,9 +3257,189 @@ msgstr "Phone picture"
 msgid "Rasm tanlanmadi."
 msgstr "No picture was chosen."
 
+msgid "Almashtirish"
+msgstr "Exchange"
+
+msgid "Almashtirish uchun oʻlcham"
+msgstr "Size to exchange for"
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta soʻrov yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr "You can send up to %(n)d requests a day. Try again tomorrow, or write to us."
+
+msgid "Birinchi tahrir: muddat, shartlar, almashtirish, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr "First version: the time limit, conditions, exchanges, faulty items, refunds and how to apply."
+
+msgid "Boshqa buyurtma"
+msgstr "Another order"
+
+msgid "Boshqa mahsulot yuborilgan"
+msgstr "The wrong item was sent"
+
+msgid "Boshqa sabab"
+msgstr "Another reason"
+
+msgid "Bu buyurtma boʻyicha soʻrov yuborib boʻlmaydi."
+msgstr "A request cannot be sent for this order."
+
+msgid "Bu mahsulot boʻyicha soʻrov koʻrib chiqilmoqda."
+msgstr "A request for this item is already being looked at."
+
+msgid "Bu sabab uchun mahsulot rasmini yuboring."
+msgstr "For this reason, please attach a photo of the item."
+
+#, python-format
+msgid "Buyurtma <strong class=\"num\">%(number)s</strong>, %(day)s"
+msgstr "Order <strong class=\"num\">%(number)s</strong>, %(day)s"
+
+msgid "Buyurtmani tanlang"
+msgstr "Choose an order"
+
+msgid "GRAPHIX mahsulotini qaytarish va almashtirish: muddat, shartlar, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr "Returning and exchanging GRAPHIX items: the time limit, conditions, faulty items, refunds and how to apply."
+
+#, python-format
+msgid "Javob %(n)d belgidan oshmasligi kerak."
+msgstr "The answer must be no longer than %(n)d characters."
+
+msgid "Javobimiz"
+msgstr "Our answer"
+
+msgid "Koʻrib chiqilmoqda"
+msgstr "Being reviewed"
+
+msgid "Mahsulotda nuqson bor"
+msgstr "The item is faulty"
+
+msgid "Nechta"
+msgstr "How many"
+
+msgid "Nima boʻldi?"
+msgstr "What happened?"
+
+msgid "Nima boʻlganini qisqacha yozing."
+msgstr "Write briefly what happened."
+
+msgid "Nima qilmoqchisiz?"
+msgstr "What would you like to do?"
+
+#, python-format
+msgid "Nuqson, boshqa mahsulot yoki tavsifga mos kelmasa, rasm shart. Koʻpi bilan %(n)s ta. Rasmlarni faqat siz va doʻkon xodimlari koʻradi."
+msgstr "A photo is required for a fault, a wrong item or an item not as described. Up to %(n)s. Only you and the store’s staff see the photos."
+
+#, python-format
+msgid "Oxirgi javob: %(who)s, %(when)s"
+msgstr "Last answered by %(who)s, %(when)s"
+
+msgid "Oʻlcham mos kelmadi"
+msgstr "The size didn’t fit"
+
+msgid "Qaysi mahsulot va nechta ekanini tanlang."
+msgstr "Choose the item and how many."
+
+msgid "Qaysi mahsulot va nechta?"
+msgstr "Which item, and how many?"
+
+msgid "Qaytarish"
+msgstr "Return"
+
+msgid "Qaytarish soʻrovi"
+msgstr "Return request"
+
+msgid "Qaytarish va almashtirish"
+msgstr "Returns and exchanges"
+
+msgid "Qaytarish va almashtirish siyosati"
+msgstr "Returns and exchange policy"
+
+msgid "Qaytarish yoki almashtirish"
+msgstr "Return or exchange"
+
+msgid "Qaytarish yoki almashtirishni tanlang."
+msgstr "Choose a return or an exchange."
+
+msgid "Qaytarishlar"
+msgstr "Returns"
+
+msgid "Rad etildi"
+msgstr "Declined"
+
+msgid "Sabab"
+msgstr "Reason"
+
+msgid "Sababni tanlang."
+msgstr "Choose a reason."
+
+msgid "Saytdagi tavsifga mos emas"
+msgstr "Not as described on the site"
+
+msgid "Siz yuborgan rasm"
+msgstr "Your photo"
+
+msgid "Soʻrov yuborish"
+msgstr "Send request"
+
+msgid "Soʻrovingiz yuborildi. Javobimizni shu buyurtma sahifasida koʻrasiz."
+msgstr "Your request has been sent. You’ll see our answer on this order’s page."
+
+msgid "Soʻrovni koʻrib chiqib, keyingi qadamlarni va mahsulotni qaytarish manzilini aytamiz."
+msgstr "We’ll look at your request and tell you the next steps and where to send the item."
+
+msgid "Soʻrovni yetkazib berilgan buyurtma boʻyicha yuborish mumkin. Sizda hozircha bunday buyurtma yoʻq."
+msgstr "A request can be sent for a delivered order. You don’t have one yet."
+
+msgid "Telefon raqamini +998 XX XXX XX XX koʻrinishida yozing."
+msgstr "Enter the number as +998 XX XXX XX XX."
+
+#, python-format
+msgid "Tushuntirish %(n)d belgidan oshmasligi kerak."
+msgstr "The explanation must be no longer than %(n)d characters."
+
+msgid "Xaridor buni buyurtma sahifasida oʻqiydi."
+msgstr "The customer reads this on the order page."
+
+msgid "Xaridorga javob"
+msgstr "Answer to the customer"
+
+msgid "Xaridorning tushuntirishi"
+msgstr "The customer’s explanation"
+
+msgid "Yakunlandi"
+msgstr "Closed"
+
+msgid "Yangi qaytarish soʻrovlari"
+msgstr "New return requests"
+
+msgid "Yuborilgan"
+msgstr "Sent"
+
+#, python-format
+msgid "«%(name)s» boʻyicha soʻrov allaqachon koʻrib chiqilmoqda."
+msgstr "A request for “%(name)s” is already being looked at."
+
+#, python-format
+msgid "«%(name)s»: almashtirish uchun oʻlchamni tanlang."
+msgstr "“%(name)s”: choose the size to exchange for."
+
+#, python-format
+msgid "«%(name)s»: buyurtmada %(n)d dona bor."
+msgstr "“%(name)s”: the order has %(n)d."
+
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Picture saved."
+
+#, python-format
+msgid "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgid_plural "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgstr[0] "It has been more than %(days)s day since your purchase. You can still send a request, but a return or exchange for size or a personal reason falls outside the policy’s time limit, and the store decides. The limit does not apply to a faulty or wrong item."
+msgstr[1] "It has been more than %(days)s days since your purchase. You can still send a request, but a return or exchange for size or a personal reason falls outside the policy’s time limit, and the store decides. The limit does not apply to a faulty or wrong item."
+
+msgid "Tanlangan rasmlar saqlanmadi: ularni qayta tanlang."
+msgstr "The photos you chose were not kept: please choose them again."
+
+msgid "Muddatdan keyin"
+msgstr "Past the time limit"
 
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Enter the postal index."

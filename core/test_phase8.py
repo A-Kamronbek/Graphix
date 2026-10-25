@@ -31,9 +31,10 @@ from .test_phase6 import make_regions, make_user
 from .test_phase7 import make_staff
 from .test_phase12 import make_order
 
-DOCS = ('terms', 'privacy', 'delivery')
+DOCS = ('terms', 'privacy', 'delivery', 'returns')
 LANGS = ('uz', 'ru', 'en')
-PATHS = {'terms': 'terms', 'privacy': 'privacy', 'delivery': 'yetkazib-berish'}
+PATHS = {'terms': 'terms', 'privacy': 'privacy', 'delivery': 'yetkazib-berish',
+         'returns': 'qaytarish'}
 TEMPLATES = Path(settings.BASE_DIR) / 'templates'
 
 
@@ -185,11 +186,15 @@ class FiguresFollowTheCodeTests(TestCase):
             with self.subTest(doc=doc):
                 self.assertIn('41\xa0000', page(self.client, doc, 'uz'))
 
-    def test_the_uncollected_fee_is_the_one_in_core_legal(self):
-        with mock.patch.object(legal, 'UNCOLLECTED_FEE', 12345):
-            for doc in ('terms', 'delivery'):
-                with self.subTest(doc=doc):
-                    self.assertIn('12\xa0345', page(self.client, doc, 'ru'))
+    def test_nothing_is_kept_from_an_uncollected_parcel_any_more(self):
+        """The 15 000 kept went with the owner's returns policy (§17 #398)."""
+        self.assertFalse(hasattr(legal, 'UNCOLLECTED_FEE'))
+        self.assertFalse(hasattr(legal.facts(), 'uncollected_fee'))
+        for doc in ('terms', 'delivery'):
+            with self.subTest(doc=doc):
+                html = page(self.client, doc, 'uz')
+                self.assertNotIn('ushlab qolinadi', html)
+                self.assertIn('toʻliq qaytariladi', html)
 
     def test_the_payment_methods_are_the_ones_the_checkout_offers(self):
         html = page(self.client, 'terms', 'uz')
@@ -369,8 +374,9 @@ class OrderPageTests(TestCase):
         self.assertIn(self.BRANCH, html)
         self.assertNotIn(self.ADDRESS, html)
         self.assertIn(f'{facts.hold_days} kun saqlanadi', html)
-        self.assertIn('15\xa0000 soʻm ushlab qolinadi', html)
-        self.assertIn(f'{facts.refund_days} kun ichida', html)
+        # Comes back free, since the returns policy (§17 #398).
+        self.assertNotIn('ushlab qolinadi', html)
+        self.assertIn(f'{facts.refund_days} kun ichida toʻliq qaytariladi', html)
 
     def test_a_home_order_is_not_called_a_post_office(self):
         """Every order has carried a region since §17 #106, and the page used

@@ -2577,17 +2577,17 @@ msgstr "Стоимость доставки"
 #: .\templates\payment\order_detail.html:94
 #, python-format
 msgid ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
 msgid_plural ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
-msgstr[0] "Отделение хранит посылку %(hold)s день. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
-msgstr[1] "Отделение хранит посылку %(hold)s дня. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
-msgstr[2] "Отделение хранит посылку %(hold)s дней. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
-msgstr[3] "Отделение хранит посылку %(hold)s дня. Если её не забрать, она вернётся к нам: из оплаты удержим %(fee)s сум, остаток вернём в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
+msgstr[0] "Отделение хранит посылку %(hold)s день. Если её не забрать, она вернётся к нам, и мы полностью вернём оплату в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+msgstr[1] "Отделение хранит посылку %(hold)s дня. Если её не забрать, она вернётся к нам, и мы полностью вернём оплату в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+msgstr[2] "Отделение хранит посылку %(hold)s дней. Если её не забрать, она вернётся к нам, и мы полностью вернём оплату в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
+msgstr[3] "Отделение хранит посылку %(hold)s дня. Если её не забрать, она вернётся к нам, и мы полностью вернём оплату в течение %(days)s дн. Если район указан неверно, сразу напишите нам."
 
 #: .\templates\payment\order_detail.html:111
 msgid "Uzpost joʻnatmasi"
@@ -3288,9 +3288,191 @@ msgstr "Изображение для телефона"
 msgid "Rasm tanlanmadi."
 msgstr "Изображение не выбрано."
 
+msgid "Almashtirish"
+msgstr "Обмен"
+
+msgid "Almashtirish uchun oʻlcham"
+msgstr "Размер для обмена"
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta soʻrov yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr "В день можно отправить не больше %(n)d запросов. Попробуйте завтра или напишите нам."
+
+msgid "Birinchi tahrir: muddat, shartlar, almashtirish, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr "Первая редакция: срок, условия, обмен, товар с недостатком, возврат денег и порядок обращения."
+
+msgid "Boshqa buyurtma"
+msgstr "Другой заказ"
+
+msgid "Boshqa mahsulot yuborilgan"
+msgstr "Прислали не тот товар"
+
+msgid "Boshqa sabab"
+msgstr "Другая причина"
+
+msgid "Bu buyurtma boʻyicha soʻrov yuborib boʻlmaydi."
+msgstr "По этому заказу нельзя отправить запрос."
+
+msgid "Bu mahsulot boʻyicha soʻrov koʻrib chiqilmoqda."
+msgstr "Запрос по этому товару уже рассматривается."
+
+msgid "Bu sabab uchun mahsulot rasmini yuboring."
+msgstr "Для этой причины приложите фото товара."
+
+#, python-format
+msgid "Buyurtma <strong class=\"num\">%(number)s</strong>, %(day)s"
+msgstr "Заказ <strong class=\"num\">%(number)s</strong>, %(day)s"
+
+msgid "Buyurtmani tanlang"
+msgstr "Выберите заказ"
+
+msgid "GRAPHIX mahsulotini qaytarish va almashtirish: muddat, shartlar, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr "Возврат и обмен товаров GRAPHIX: срок, условия, товар с недостатком, возврат денег и как обратиться."
+
+#, python-format
+msgid "Javob %(n)d belgidan oshmasligi kerak."
+msgstr "Ответ должен быть не длиннее %(n)d символов."
+
+msgid "Javobimiz"
+msgstr "Наш ответ"
+
+msgid "Koʻrib chiqilmoqda"
+msgstr "Рассматривается"
+
+msgid "Mahsulotda nuqson bor"
+msgstr "У товара есть недостаток"
+
+msgid "Nechta"
+msgstr "Сколько"
+
+msgid "Nima boʻldi?"
+msgstr "Что случилось?"
+
+msgid "Nima boʻlganini qisqacha yozing."
+msgstr "Коротко напишите, что случилось."
+
+msgid "Nima qilmoqchisiz?"
+msgstr "Что вы хотите сделать?"
+
+#, python-format
+msgid "Nuqson, boshqa mahsulot yoki tavsifga mos kelmasa, rasm shart. Koʻpi bilan %(n)s ta. Rasmlarni faqat siz va doʻkon xodimlari koʻradi."
+msgstr "Если есть недостаток, прислали не тот товар или он не соответствует описанию, фото обязательно. Не больше %(n)s. Фото видите только вы и сотрудники магазина."
+
+#, python-format
+msgid "Oxirgi javob: %(who)s, %(when)s"
+msgstr "Последний ответ: %(who)s, %(when)s"
+
+msgid "Oʻlcham mos kelmadi"
+msgstr "Не подошёл размер"
+
+msgid "Qaysi mahsulot va nechta ekanini tanlang."
+msgstr "Выберите товар и количество."
+
+msgid "Qaysi mahsulot va nechta?"
+msgstr "Какой товар и сколько?"
+
+msgid "Qaytarish"
+msgstr "Возврат"
+
+msgid "Qaytarish soʻrovi"
+msgstr "Запрос на возврат"
+
+msgid "Qaytarish va almashtirish"
+msgstr "Возврат и обмен"
+
+msgid "Qaytarish va almashtirish siyosati"
+msgstr "Политика возврата и обмена"
+
+msgid "Qaytarish yoki almashtirish"
+msgstr "Возврат или обмен"
+
+msgid "Qaytarish yoki almashtirishni tanlang."
+msgstr "Выберите возврат или обмен."
+
+msgid "Qaytarishlar"
+msgstr "Возвраты"
+
+msgid "Rad etildi"
+msgstr "Отклонён"
+
+msgid "Sabab"
+msgstr "Причина"
+
+msgid "Sababni tanlang."
+msgstr "Выберите причину."
+
+msgid "Saytdagi tavsifga mos emas"
+msgstr "Не соответствует описанию на сайте"
+
+msgid "Siz yuborgan rasm"
+msgstr "Ваше фото"
+
+msgid "Soʻrov yuborish"
+msgstr "Отправить запрос"
+
+msgid "Soʻrovingiz yuborildi. Javobimizni shu buyurtma sahifasida koʻrasiz."
+msgstr "Запрос отправлен. Наш ответ появится на странице этого заказа."
+
+msgid "Soʻrovni koʻrib chiqib, keyingi qadamlarni va mahsulotni qaytarish manzilini aytamiz."
+msgstr "Мы рассмотрим запрос и сообщим, что делать дальше и куда отправить товар."
+
+msgid "Soʻrovni yetkazib berilgan buyurtma boʻyicha yuborish mumkin. Sizda hozircha bunday buyurtma yoʻq."
+msgstr "Запрос можно отправить по доставленному заказу. У вас пока нет такого заказа."
+
+msgid "Telefon raqamini +998 XX XXX XX XX koʻrinishida yozing."
+msgstr "Укажите номер в формате +998 XX XXX XX XX."
+
+#, python-format
+msgid "Tushuntirish %(n)d belgidan oshmasligi kerak."
+msgstr "Пояснение должно быть не длиннее %(n)d символов."
+
+msgid "Xaridor buni buyurtma sahifasida oʻqiydi."
+msgstr "Покупатель прочтёт это на странице заказа."
+
+msgid "Xaridorga javob"
+msgstr "Ответ покупателю"
+
+msgid "Xaridorning tushuntirishi"
+msgstr "Пояснение покупателя"
+
+msgid "Yakunlandi"
+msgstr "Завершён"
+
+msgid "Yangi qaytarish soʻrovlari"
+msgstr "Новые запросы на возврат"
+
+msgid "Yuborilgan"
+msgstr "Отправлен"
+
+#, python-format
+msgid "«%(name)s» boʻyicha soʻrov allaqachon koʻrib chiqilmoqda."
+msgstr "Запрос по «%(name)s» уже рассматривается."
+
+#, python-format
+msgid "«%(name)s»: almashtirish uchun oʻlchamni tanlang."
+msgstr "«%(name)s»: выберите размер для обмена."
+
+#, python-format
+msgid "«%(name)s»: buyurtmada %(n)d dona bor."
+msgstr "«%(name)s»: в заказе %(n)d шт."
+
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
 msgstr "Изображение сохранено."
+
+#, python-format
+msgid "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgid_plural "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgstr[0] "С покупки прошло больше %(days)s дня. Запрос можно отправить, но возврат и обмен из-за размера или по личной причине выходят за срок, указанный в правилах, и решение принимает магазин. На товар с недостатком или присланный по ошибке этот срок не распространяется."
+msgstr[1] "С покупки прошло больше %(days)s дней. Запрос можно отправить, но возврат и обмен из-за размера или по личной причине выходят за срок, указанный в правилах, и решение принимает магазин. На товар с недостатком или присланный по ошибке этот срок не распространяется."
+msgstr[2] "С покупки прошло больше %(days)s дней. Запрос можно отправить, но возврат и обмен из-за размера или по личной причине выходят за срок, указанный в правилах, и решение принимает магазин. На товар с недостатком или присланный по ошибке этот срок не распространяется."
+msgstr[3] "С покупки прошло больше %(days)s дня. Запрос можно отправить, но возврат и обмен из-за размера или по личной причине выходят за срок, указанный в правилах, и решение принимает магазин. На товар с недостатком или присланный по ошибке этот срок не распространяется."
+
+msgid "Tanlangan rasmlar saqlanmadi: ularni qayta tanlang."
+msgstr "Выбранные фото не сохранились: выберите их ещё раз."
+
+msgid "Muddatdan keyin"
+msgstr "После срока"
 
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Укажите почтовый индекс."

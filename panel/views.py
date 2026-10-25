@@ -43,7 +43,8 @@ from product.models import (Category, PrintMethod, Product, Review, Size,
 
 from payment import promos as promo_rules
 from payment import shipments
-from payment.models import PromoCode
+from payment.models import PromoCode, ReturnRequest
+from payment import returns as return_rules
 from core import uzpost
 
 from . import catalogue, reference
@@ -161,6 +162,10 @@ def dashboard(request):
         'unread': Msg.objects.filter(is_read=False).count(),
         'pending_reviews': Review.objects.filter(
             status=Review.Status.PENDING).count(),
+        # New return and exchange requests, nobody has looked at yet
+        # (§9 Phase 23 item 10).
+        'new_returns': ReturnRequest.objects.filter(
+            status=ReturnRequest.Status.NEW).count(),
         'latest': _order_list().filter(created_at__gte=week)[:5],
         # The shared order row carries a status control, so the dashboard has
         # to supply its options too. Without this the include rendered a select
@@ -1228,4 +1233,66 @@ def promo_form(request, pk=None):
         # it came back with a mistake, what the code holds otherwise.
         'chosen': {str(value) for value in (form['products'].value() or [])},
         'orders': promo.orders.count() if promo else 0,
+    })
+
+
+# ------------------------------------------------------------ returns
+# Asking to return or exchange (§9 Phase 23 part B). Staff read a request and
+# answer it here; they cancel or refund the order on the order's own screen,
+# as before, because a request moves no stock and no money (§17 #399).
+
+@staff_only
+def returns_list(request):
+    """Every return and exchange request, newest first, by status."""
+    status = request.GET.get('status', '')
+    qs = (ReturnRequest.objects.select_related('order', 'user')
+          .prefetch_related('lines').order_by('-created_at', '-id'))
+    if status in ReturnRequest.Status.values:
+        qs = qs.filter(status=status)
+    else:
+        status = ''
+    page = Paginator(qs, PER_PAGE).get_page(request.GET.get('page'))
+    kept = request.GET.copy()
+    kept.pop('page', None)
+    return render(request, 'boshqaruv/returns.html', {
+        'screen': 'returns',
+        'requests': page,
+        'base_query': kept.urlencode(),
+        'status': status,
+        'statuses': ReturnRequest.Status.choices,
+        'new': ReturnRequest.objects.filter(status=ReturnRequest.Status.NEW).count(),
+    })
+
+
+@staff_only
+def return_detail(request, pk):
+    """One request: the order, the items, the photographs, the status and the answer.
+
+    Opening a new request marks it as being looked at, so the dashboard's
+    count is of requests nobody has opened. Saving sets the status and the
+    answer the customer reads under the order.
+    """
+    req = get_object_or_404(
+        ReturnRequest.objects.select_related('order', 'user', 'answered_by')
+        .prefetch_related('lines__item__variant__product', 'lines__item__variant__size',
+                          'lines__size_wanted', 'images'), pk=pk)
+    if request.method == 'POST':
+        try:
+            return_rules.answer(req, status=request.POST.get('status', ''),
+                                text=request.POST.get('answer', ''), by=request.user)
+        except return_rules.Refused as exc:
+            messages.error(request, exc.message)
+        else:
+            messages.success(request, _('Saqlandi.'))
+        return redirect('panel_return', pk=req.pk)
+    if req.status == ReturnRequest.Status.NEW:
+        ReturnRequest.objects.filter(pk=req.pk).update(status=ReturnRequest.Status.REVIEWING)
+        req.status = ReturnRequest.Status.REVIEWING
+    return render(request, 'boshqaruv/return.html', {
+        'screen': 'returns',
+        'req': req,
+        # Sent past the policy's ten days: the owner decides (§17 #406).
+        'late': return_rules.is_late(req.order, on=timezone.localdate(req.created_at)),
+        'statuses': ReturnRequest.Status.choices,
+        'max_text': return_rules.MAX_TEXT,
     })

@@ -1,11 +1,11 @@
 """The facts the legal pages state, written once.
 
 Everything a legal document says that is a *fact about the shop* rather than
-wording lives here: who the seller is, how much is kept when a parcel comes
-back uncollected, how long a refund takes, how long each kind of data is kept.
-The three documents are written out in three languages each, so a figure typed
-into the copy would be a figure typed nine times - and a number written down
-twice is a number that will eventually disagree with itself (§17 #111).
+wording lives here: who the seller is, how long an exchange may be asked for,
+how long a refund takes, how long each kind of data is kept. The four
+documents are written out in three languages each, so a figure typed into the
+copy would be a figure typed twelve times - and a number written down twice is
+a number that will eventually disagree with itself (§17 #111).
 
 Where a fact already lives in the code - the OTP window, the review photo
 limit, the guest-cart age, a cookie's lifetime - it is read from there rather
@@ -55,11 +55,6 @@ SELLER = {
     'telegram': 'greatestamal',
 }
 
-#: So'm kept when a parcel comes back to us uncollected or refused; the rest of
-#: the payment is refunded by the admin. Set on 2026-09-15 and changeable
-#: later, which is what a new document version is for.
-UNCOLLECTED_FEE = 15_000
-
 #: Days to return money once the reason for a refund exists: the parcel is back
 #: with us, a paid order was cancelled before it left, or a return was accepted.
 REFUND_DAYS = 10
@@ -68,8 +63,13 @@ REFUND_DAYS = 10
 CLAIM_RESPONSE_DAYS = 10
 
 #: Consumer Protection Law, art. 18: goods of proper quality may be exchanged
-#: within ten days.
+#: within ten days. The owner's returns policy counts them from the day of
+#: purchase, and holds a return to the same ten (§17 #398).
 EXCHANGE_DAYS = 10
+
+#: How long a return or exchange request and its photographs are kept once it
+#: is closed (§17 #406), in months. `prune_return_requests` deletes them.
+RETURN_KEEP_MONTHS = 12
 
 #: Art. 13: with no warranty period set, a defect may be claimed within six
 #: months. Art. 14: a replacement is due within seven days of the claim.
@@ -133,6 +133,13 @@ VERSIONS = {
                 _('Birinchi sanali tahrir: muddatlar, pochta boʻlimida saqlash, '
                   'olib ketilmagan joʻnatma va almashtirish tartibi.')),
     ),
+    # The owner's own document (§17 #398). Dated the day it was written for the
+    # site; like the others, its 1.0 is dated again on the day it is shown.
+    'returns': (
+        Version('1.0', date(2026, 10, 20),
+                _('Birinchi tahrir: muddat, shartlar, almashtirish, nuqsonli '
+                  'mahsulot, pulni qaytarish va murojaat tartibi.')),
+    ),
 }
 
 #: The page title of each document, in the reader's language.
@@ -140,6 +147,7 @@ TITLES = {
     'terms': _('Foydalanish shartlari'),
     'privacy': _('Maxfiylik siyosati'),
     'delivery': _('Yetkazib berish va qaytarish'),
+    'returns': _('Qaytarish va almashtirish siyosati'),
 }
 
 
@@ -195,6 +203,7 @@ def facts():
     from core.ratelimit import MAX_WINDOW
     from product.images import MAX_BYTES
     from payment.promos import FLOOR
+    from payment import returns
     from product.views import MAX_PHOTOS, MAX_TEXT
     from user import codes
 
@@ -207,7 +216,6 @@ def facts():
             telegram_url='https://t.me/' + SELLER['telegram'],
             site_url='https://' + SELLER['site'],
         ),
-        uncollected_fee=UNCOLLECTED_FEE,
         # The least an order costs after a promo code, from the rule itself.
         promo_floor=FLOOR,
         refund_days=REFUND_DAYS,
@@ -232,6 +240,9 @@ def facts():
         review_photos=MAX_PHOTOS,
         review_text=MAX_TEXT,
         review_photo_mb=MAX_BYTES // (1024 * 1024),
+        return_photos=returns.MAX_PHOTOS,
+        return_daily=returns.DAILY,
+        return_keep_months=RETURN_KEEP_MONTHS,
         session_days=settings.SESSION_COOKIE_AGE // day,
         language_cookie_days=settings.LANGUAGE_COOKIE_AGE // day,
         csrf_cookie_days=settings.CSRF_COOKIE_AGE // day,

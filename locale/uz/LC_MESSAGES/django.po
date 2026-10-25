@@ -2519,13 +2519,13 @@ msgstr ""
 #: .\templates\payment\order_detail.html:94
 #, python-format
 msgid ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
 msgid_plural ""
-"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi: "
-"toʻlovdan %(fee)s soʻm ushlab qolinadi, qolgani %(days)s kun ichida "
-"qaytariladi. Tuman notoʻgʻri boʻlsa, darhol bizga yozing."
+"Joʻnatma boʻlimda %(hold)s kun saqlanadi. Olib ketilmasa, u bizga qaytadi va "
+"toʻlovingiz %(days)s kun ichida toʻliq qaytariladi. Tuman notoʻgʻri boʻlsa, "
+"darhol bizga yozing."
 msgstr[0] ""
 
 #: .\templates\payment\order_detail.html:111
@@ -3202,8 +3202,187 @@ msgstr ""
 msgid "Rasm tanlanmadi."
 msgstr ""
 
+msgid "Almashtirish"
+msgstr ""
+
+msgid "Almashtirish uchun oʻlcham"
+msgstr ""
+
+#, python-format
+msgid "Bir kunda koʻpi bilan %(n)d ta soʻrov yuborish mumkin. Ertaga qayta urinib koʻring yoki bizga yozing."
+msgstr ""
+
+msgid "Birinchi tahrir: muddat, shartlar, almashtirish, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr ""
+
+msgid "Boshqa buyurtma"
+msgstr ""
+
+msgid "Boshqa mahsulot yuborilgan"
+msgstr ""
+
+msgid "Boshqa sabab"
+msgstr ""
+
+msgid "Bu buyurtma boʻyicha soʻrov yuborib boʻlmaydi."
+msgstr ""
+
+msgid "Bu mahsulot boʻyicha soʻrov koʻrib chiqilmoqda."
+msgstr ""
+
+msgid "Bu sabab uchun mahsulot rasmini yuboring."
+msgstr ""
+
+#, python-format
+msgid "Buyurtma <strong class=\"num\">%(number)s</strong>, %(day)s"
+msgstr ""
+
+msgid "Buyurtmani tanlang"
+msgstr ""
+
+msgid "GRAPHIX mahsulotini qaytarish va almashtirish: muddat, shartlar, nuqsonli mahsulot, pulni qaytarish va murojaat tartibi."
+msgstr ""
+
+#, python-format
+msgid "Javob %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Javobimiz"
+msgstr ""
+
+msgid "Koʻrib chiqilmoqda"
+msgstr ""
+
+msgid "Mahsulotda nuqson bor"
+msgstr ""
+
+msgid "Nechta"
+msgstr ""
+
+msgid "Nima boʻldi?"
+msgstr ""
+
+msgid "Nima boʻlganini qisqacha yozing."
+msgstr ""
+
+msgid "Nima qilmoqchisiz?"
+msgstr ""
+
+#, python-format
+msgid "Nuqson, boshqa mahsulot yoki tavsifga mos kelmasa, rasm shart. Koʻpi bilan %(n)s ta. Rasmlarni faqat siz va doʻkon xodimlari koʻradi."
+msgstr ""
+
+#, python-format
+msgid "Oxirgi javob: %(who)s, %(when)s"
+msgstr ""
+
+msgid "Oʻlcham mos kelmadi"
+msgstr ""
+
+msgid "Qaysi mahsulot va nechta ekanini tanlang."
+msgstr ""
+
+msgid "Qaysi mahsulot va nechta?"
+msgstr ""
+
+msgid "Qaytarish"
+msgstr ""
+
+msgid "Qaytarish soʻrovi"
+msgstr ""
+
+msgid "Qaytarish va almashtirish"
+msgstr ""
+
+msgid "Qaytarish va almashtirish siyosati"
+msgstr ""
+
+msgid "Qaytarish yoki almashtirish"
+msgstr ""
+
+msgid "Qaytarish yoki almashtirishni tanlang."
+msgstr ""
+
+msgid "Qaytarishlar"
+msgstr ""
+
+msgid "Rad etildi"
+msgstr ""
+
+msgid "Sabab"
+msgstr ""
+
+msgid "Sababni tanlang."
+msgstr ""
+
+msgid "Saytdagi tavsifga mos emas"
+msgstr ""
+
+msgid "Siz yuborgan rasm"
+msgstr ""
+
+msgid "Soʻrov yuborish"
+msgstr ""
+
+msgid "Soʻrovingiz yuborildi. Javobimizni shu buyurtma sahifasida koʻrasiz."
+msgstr ""
+
+msgid "Soʻrovni koʻrib chiqib, keyingi qadamlarni va mahsulotni qaytarish manzilini aytamiz."
+msgstr ""
+
+msgid "Soʻrovni yetkazib berilgan buyurtma boʻyicha yuborish mumkin. Sizda hozircha bunday buyurtma yoʻq."
+msgstr ""
+
+msgid "Telefon raqamini +998 XX XXX XX XX koʻrinishida yozing."
+msgstr ""
+
+#, python-format
+msgid "Tushuntirish %(n)d belgidan oshmasligi kerak."
+msgstr ""
+
+msgid "Xaridor buni buyurtma sahifasida oʻqiydi."
+msgstr ""
+
+msgid "Xaridorga javob"
+msgstr ""
+
+msgid "Xaridorning tushuntirishi"
+msgstr ""
+
+msgid "Yakunlandi"
+msgstr ""
+
+msgid "Yangi qaytarish soʻrovlari"
+msgstr ""
+
+msgid "Yuborilgan"
+msgstr ""
+
+#, python-format
+msgid "«%(name)s» boʻyicha soʻrov allaqachon koʻrib chiqilmoqda."
+msgstr ""
+
+#, python-format
+msgid "«%(name)s»: almashtirish uchun oʻlchamni tanlang."
+msgstr ""
+
+#, python-format
+msgid "«%(name)s»: buyurtmada %(n)d dona bor."
+msgstr ""
+
 #: .\panel\views.py:1006
 msgid "Rasm saqlandi."
+msgstr ""
+
+#, python-format
+msgid "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgid_plural "Xariddan beri %(days)s kundan koʻp vaqt oʻtdi. Soʻrovni yuborishingiz mumkin, lekin oʻlcham yoki shaxsiy sabab bilan qaytarish va almashtirish siyosatdagi muddatdan tashqarida: qarorni doʻkon qabul qiladi. Nuqsonli yoki notoʻgʻri mahsulotga bu muddat taalluqli emas."
+msgstr[0] ""
+
+msgid "Tanlangan rasmlar saqlanmadi: ularni qayta tanlang."
+msgstr ""
+
+msgid "Muddatdan keyin"
 msgstr ""
 
 #~ msgid "Pochta indeksini kiriting."

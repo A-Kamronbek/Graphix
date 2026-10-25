@@ -1,0 +1,93 @@
+{% load legal_tags %}{% get_legal as legal %}
+{# Returns and exchange policy - the shop owner's document (§17 #398). The Uzbek text is the original; #}
+{# this one is written for it and gives way to it where they differ. Periods come from core/legal.py (§17 #111, #183). #}
+
+<p class="legal__lang" data-precedence>This document is published in Uzbek, Russian and English. If the versions differ, the Uzbek text prevails.</p>
+
+<p>We want you to be happy with what you buy from GRAPHIX. If a size doesn’t fit, you find a fault, or you want to return or exchange something for another reason, we’re here to help.</p>
+
+<section class="legal__sec" id="period">
+  <h2>1. Time limit for returns and exchanges</h2>
+  <p>You can ask to return or exchange an item on the conditions below <strong>within {{ legal.exchange_days }} days</strong> of the day you bought it.</p>
+  <p>Any other time limits and consumer rights provided by law still apply.</p>
+</section>
+
+<section class="legal__sec" id="conditions">
+  <h2>2. Conditions for returns and exchanges</h2>
+  <p>To return or exchange an item of proper quality, these conditions must be met:</p>
+  <ul>
+    <li>The item is unused and unwashed.</li>
+    <li>It is undamaged, with no stains or odours.</li>
+    <li>Its original labels and packaging are kept.</li>
+    <li>Its original appearance and properties are preserved.</li>
+    <li>There is an order number or other proof of purchase.</li>
+  </ul>
+  <p>Trying an item on only to check the size does not, by itself, stop it from being returned.</p>
+</section>
+
+<section class="legal__sec" id="exchange">
+  <h2>3. Exchanges</h2>
+  <p>If an item you bought doesn’t fit, you can <strong>exchange it free of charge</strong> for another size we have.</p>
+  <ul>
+    <li>If the size you need is available, the item is exchanged.</li>
+    <li>GRAPHIX pays for delivering the new item.</li>
+    <li>If the size you need is not available, you may choose a refund in accordance with the law.</li>
+  </ul>
+  <p>If a parcel comes back without being collected at the Uzpost office, the return is free. If an item is returned after it has been collected because of its size or a change of mind, the buyer pays for delivery, unless the law provides otherwise.</p>
+</section>
+
+<section class="legal__sec" id="faults">
+  <h2>4. Faulty or wrong items</h2>
+  <p>If you received an item that is faulty, damaged or not what you ordered, get in touch with us.</p>
+  <p>This includes:</p>
+  <ul>
+    <li>The wrong size, colour or model was sent.</li>
+    <li>A manufacturing fault in the fabric, the seams or the print.</li>
+    <li>The item does not match its description on the site.</li>
+  </ul>
+  <p>In such cases you may, in accordance with the law, ask for a replacement, a refund or another appropriate remedy.</p>
+  <p><strong>GRAPHIX pays the costs of returns and exchanges caused by its own mistake or by a fault in the item.</strong></p>
+  <p>Your legal rights for a faulty item are not limited to the ordinary {{ legal.exchange_days }}-day exchange period.</p>
+</section>
+
+<section class="legal__sec" id="refunds">
+  <h2>5. Refunds</h2>
+  <p>If a request to return an item and have your money back is in line with the law, the amount paid is refunded.</p>
+  <ul>
+    <li>Unless agreed otherwise, the money is returned by the method you paid with.</li>
+    <li>Refunds are made within the periods set by law.</li>
+    <li>A returned item may be inspected.</li>
+    <li>Delivery charges and other payments are accounted for in accordance with the law in force.</li>
+  </ul>
+</section>
+
+<section class="legal__sec" id="made-to-order">
+  <h2>6. Made-to-order items</h2>
+  <p>Some GRAPHIX items may be made, or have their print applied, after the order is accepted.</p>
+  <p>For designs from our standard catalogue, being made after the order does not by itself take away the right to a return or exchange.</p>
+  <p>Returns and exchanges of items made individually at a customer’s personal request are considered in accordance with the law in force.</p>
+</section>
+
+<section class="legal__sec" id="apply">
+  <h2>7. How to get in touch</h2>
+  <p>To return or exchange an item, choose one of these ways:</p>
+  <ul>
+    <li><a class="link" href="{% url 'return_request' %}"><strong>On GRAPHIX.UZ:</strong></a> send a request from the returns and exchanges section of the site.</li>
+    <li><a class="link" href="{{ legal.seller.telegram_url }}" target="_blank" rel="noopener"><strong>On Telegram:</strong></a> write to our support.</li>
+  </ul>
+  <p>In your request, include:</p>
+  <ul>
+    <li>The order number.</li>
+    <li>The item you’re returning or exchanging.</li>
+    <li>The reason.</li>
+    <li>Photos of the item, where needed.</li>
+  </ul>
+  <p>Once we’ve looked at your request, we’ll tell you the next steps and where to send the item.</p>
+</section>
+
+<section class="legal__sec" id="final">
+  <h2>8. Final provisions</h2>
+  <p>This policy applies in accordance with the consumer protection law of the Republic of Uzbekistan in force.</p>
+  <p>Nothing in this policy limits a consumer’s rights guaranteed by law.</p>
+  <p>If you have any questions, contact GRAPHIX support.</p>
+</section>

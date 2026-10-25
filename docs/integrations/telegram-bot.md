@@ -32,6 +32,10 @@ see it.
 Uzpost shipment in a status the shop does not act on by itself. The bot has to
 be taught it for the owner to see it.
 
+**Changed 2026-10-20 (Phase 23):** one new event, `return.new`, for a
+customer's request to return or exchange part of a delivered order. The bot
+has to be taught it for the owner to see it.
+
 ## How it fits together
 
 ```
@@ -154,9 +158,9 @@ Refuse anything that fails with `401` and do nothing with it.
 
 ## The events
 
-Five: a paid order, a contact message, a review waiting for moderation, the
-ceiling on sign-in codes being reached, and an Uzpost shipment in a status the
-shop does not act on.
+Six: a paid order, a contact message, a review waiting for moderation, the
+ceiling on sign-in codes being reached, an Uzpost shipment in a status the
+shop does not act on, and a request to return or exchange.
 
 Amounts are whole so'm, as integers. Dates are ISO 8601 with a time zone.
 `admin_url` links to the staff panel — the order's own screen, or the list the
@@ -262,6 +266,24 @@ person to decide.
 - `status` is Uzpost's own word, as Uzpost wrote it.
 - `status_at` is when Uzpost says the status began, or `null`.
 
+### `return.new`
+
+A customer asked to return or exchange part of a delivered order, from the
+site's request page. Sent once, when the request is sent; staff answer it in
+the panel, and answering sends nothing. A request moves no stock and no money.
+
+```json
+{"return": {"id": 7, "order": "GX-261018-0001", "kind": "exchange",
+            "reason": "size", "text": "M kichik keldi, L kerak.",
+            "phone": "+998 90 123 45 67", "photos": 2,
+            "admin_url": "https://graphix.uz/uz/boshqaruv/qaytarishlar/7/"}}
+```
+
+- `kind` is `return` or `exchange`.
+- `reason` is one of `size`, `fault`, `wrong`, `not_as_described`, `other`.
+- `photos` is how many photographs came with it; the photographs themselves
+  are not sent, and are seen in the panel.
+
 ## The bot's own commands
 
 `/start` and `/chatid` answer with the chat's id. They are how the bot's
@@ -272,7 +294,8 @@ site's side uses them.
 
 ## Personal data
 
-The events carry customers' names, phone numbers, addresses and messages. The
+The events carry customers' names, phone numbers, addresses, messages and the
+explanations they write in a return request. The
 privacy policy tells customers that notifications reach the shop's staff
 through the shop's Telegram bot, and that the site's data is stored in Poland
 (Warsaw). So:
