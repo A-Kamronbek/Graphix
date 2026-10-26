@@ -1,9 +1,12 @@
 {% load i18n %}
+{# `base` is the address the links lead to when that is not this page: the #}
+{# home page's "Siz uchun" pages through the shop (§17 #420). Left out, they #}
+{# stay on the page they are on. #}
 {% if page_obj.paginator.num_pages > 1 %}
   {% with qs=base_query %}
   <nav class="pager" aria-label="{% trans 'Sahifalar' %}">
     {% if page_obj.has_previous %}
-      <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.previous_page_number }}"
+      <a href="{{ base }}?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.previous_page_number }}"
          rel="prev" aria-label="{% trans 'Oldingi sahifa' %}">
         <svg class="i i--sm i--flip" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
       </a>
@@ -13,14 +16,14 @@
       {% if num == page_obj.number %}
         <span class="is-current" aria-current="page">{{ num }}</span>
       {% elif num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
-        <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ num }}">{{ num }}</a>
+        <a href="{{ base }}?{% if qs %}{{ qs }}&{% endif %}page={{ num }}">{{ num }}</a>
       {% elif num == page_obj.number|add:-3 or num == page_obj.number|add:3 %}
         <span class="is-gap" aria-hidden="true">&hellip;</span>
       {% endif %}
     {% endfor %}
 
     {% if page_obj.has_next %}
-      <a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.next_page_number }}"
+      <a href="{{ base }}?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.next_page_number }}"
          rel="next" aria-label="{% trans 'Keyingi sahifa' %}">
         <svg class="i i--sm" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
       </a>

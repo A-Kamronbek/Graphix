@@ -26,10 +26,6 @@ SIZES = {
     # Two cards to a row, then three at 720, then four at 860, capped by the
     # 1280 container.
     'card': '(min-width: 1280px) 300px, (min-width: 860px) 23vw, (min-width: 720px) 31vw, 46vw',
-    # A card on a shelf that scrolls sideways (components.css, 21b): 62% of
-    # the page's width inside its gutters on a phone, 40% from 560 px, and
-    # four and a bit to the container from 860 (§17 #403).
-    'shelf': '(min-width: 1280px) 260px, (min-width: 860px) 21vw, (min-width: 560px) 37vw, 57vw',
     # The product page's frame: min(76vh, 760px) tall at 4:5, so 608 px wide at
     # most, and the screen's whole width on a phone, edge to edge (§9 Phase
     # 23 D5).
