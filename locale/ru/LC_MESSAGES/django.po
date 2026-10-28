@@ -3678,6 +3678,36 @@ msgstr "Новый размер отправим сами."
 msgid "koʻrish"
 msgstr "посмотреть"
 
+msgid "Ruxsat berilmagan."
+msgstr "Доступ запрещён."
+
+msgid "Soʻrovni oʻqib boʻlmadi."
+msgstr "Не удалось прочитать запрос."
+
+msgid "Soʻrov notoʻgʻri tuzilgan."
+msgstr "Запрос составлен неверно."
+
+msgid "Bunday usul yoʻq."
+msgstr "Такого метода нет."
+
+msgid "Tizim xatosi."
+msgstr "Системная ошибка."
+
+msgid "Summa buyurtma summasiga mos emas."
+msgstr "Сумма не совпадает с суммой заказа."
+
+msgid "Tranzaksiya topilmadi."
+msgstr "Транзакция не найдена."
+
+msgid "Bu amalni bajarib boʻlmaydi."
+msgstr "Эту операцию выполнить нельзя."
+
+msgid "Buyurtma topilmadi."
+msgstr "Заказ не найден."
+
+msgid "Bu buyurtma toʻlovni kutmayapti."
+msgstr "Этот заказ не ожидает оплаты."
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Укажите почтовый индекс."
 

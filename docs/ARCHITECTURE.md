@@ -113,7 +113,9 @@ which also records who did it). Both call the same two functions in
 ### Payment
 
 Click calls one endpoint for both Prepare and Complete; `click_up` routes
-internally. `apply_successful_payment` is where an order becomes `paid`, and
+internally. Payme's six Merchant API calls are answered by `payment/payme.py`,
+not by tolov, which broke Payme's protocol (§17 #421); its transactions are
+still tolov's `PaymentTransaction` rows. `apply_successful_payment` is where an order becomes `paid`, and
 it is the only place that announces an order to Telegram (§17 #237) — an order
 that is placed and never paid for is never mentioned to anyone.
 

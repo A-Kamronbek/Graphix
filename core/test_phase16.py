@@ -686,15 +686,15 @@ class GatewayTests(PromoCase):
         self.assertEqual(order.status, Order.Status.PAID)
 
     def test_payme_is_refused_a_cancelled_order_before_it_charges(self):
-        from tolov.core.exceptions import AccountNotFound
+        from payment import payme
         order = self.order(None)
-        # The hook as tolov calls it, on a view that was not built from a
-        # request: Payme has no credentials here to build one with.
-        view = views.PaymeWebhookAPIView.__new__(views.PaymeWebhookAPIView)
-        view.before_check_perform_transaction({}, order)          # a live order passes
-        services.cancel_order(order)
-        with self.assertRaises(AccountNotFound):
-            view.before_check_perform_transaction({}, Order.objects.get(pk=order.pk))
+        Order.objects.filter(pk=order.pk).update(payment_method=Order.PaymentMethod.PAYME)
+        params = {'amount': int(order.total_price) * 100, 'account': {'order_id': order.pk}}
+        self.assertEqual(payme.check_perform_transaction(params), {'allow': True})
+        services.cancel_order(Order.objects.get(pk=order.pk))
+        with self.assertRaises(payme.Refusal) as refused:
+            payme.check_perform_transaction(params)
+        self.assertEqual(refused.exception.code, -31051)
 
     def test_a_click_payment_of_the_full_price_is_not(self):
         """The order costs what it was frozen at, and no other sum pays it."""

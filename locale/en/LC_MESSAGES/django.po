@@ -3643,6 +3643,36 @@ msgstr "We send the new size ourselves."
 msgid "koʻrish"
 msgstr "view"
 
+msgid "Ruxsat berilmagan."
+msgstr "Access denied."
+
+msgid "Soʻrovni oʻqib boʻlmadi."
+msgstr "The request could not be read."
+
+msgid "Soʻrov notoʻgʻri tuzilgan."
+msgstr "The request is malformed."
+
+msgid "Bunday usul yoʻq."
+msgstr "There is no such method."
+
+msgid "Tizim xatosi."
+msgstr "System error."
+
+msgid "Summa buyurtma summasiga mos emas."
+msgstr "The amount does not match the order."
+
+msgid "Tranzaksiya topilmadi."
+msgstr "Transaction not found."
+
+msgid "Bu amalni bajarib boʻlmaydi."
+msgstr "This operation cannot be performed."
+
+msgid "Buyurtma topilmadi."
+msgstr "Order not found."
+
+msgid "Bu buyurtma toʻlovni kutmayapti."
+msgstr "This order is not awaiting payment."
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Enter the postal index."
 

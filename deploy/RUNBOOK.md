@@ -554,6 +554,27 @@ Then, for each: restart, switch the method on in the panel, confirm it reads
 The three things to confirm afterwards are Click's three, with the gateway's
 name in the `journalctl` grep.
 
+**Payme checks the endpoint before it switches the cashbox on.** In Payme
+Business, the cashbox's developer tab takes the Endpoint URL above and the
+account field `order_id` (the order's id; the customer never types it, the pay
+link carries it). The cashbox has two keys: `key` for real payments and
+`TEST_KEY` for the sandbox. The sandbox, https://test.paycom.uz, runs Payme's
+two scenarios against the live endpoint, so for as long as it runs:
+
+1. Put the `TEST_KEY` in `PAYME_KEY` in `.env`, and restart.
+2. Switch Payme on in the panel, place one order with it for the smallest
+   total there is, and switch Payme off again: the sandbox needs an order
+   awaiting payment, and its id is the `order_id` it asks for.
+3. In the sandbox enter the cashbox id and the `TEST_KEY`, and run both
+   scenarios. Every step reads green.
+4. Put the real `key` back in `PAYME_KEY`, restart, and tell Payme the tests
+   passed.
+
+The shop answers Payme's calls itself, in `payment/payme.py`, not through
+tolov (§17 #421). It sends Payme no fiscal `detail`: the shop is a sole trader
+without an IKPU code (§17 #422). Should that change, the receipt's lines are
+built in `check_perform_transaction`.
+
 **`OCTO_UNIQUE_KEY` is not optional in production.** Octo issues it
 separately from the shop id and the secret, and it is what signs the
 callback. With `DEBUG` on the site runs Octo in test mode, signatures are not

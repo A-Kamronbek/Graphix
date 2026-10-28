@@ -14,7 +14,6 @@ It is cancelled now three days after it was placed (§17 #373). And a sixth:
 the checkout starts with the account's own name and number (§17 #374).
 """
 import base64
-import copy
 import json
 import re
 from datetime import timedelta
@@ -44,9 +43,7 @@ PAYME_KEY = 'test-key-for-the-suite'
 
 def payme_settings():
     """The settings a shop with Payme's keys in `.env` runs with."""
-    tolov = copy.deepcopy(settings.TOLOV)
-    tolov['PAYME'].update(PAYME_ID=PAYME_ID, PAYME_KEY=PAYME_KEY)
-    return override_settings(PAYME_ID=PAYME_ID, PAYME_KEY=PAYME_KEY, TOLOV=tolov)
+    return override_settings(PAYME_ID=PAYME_ID, PAYME_KEY=PAYME_KEY)
 
 
 def link_params(link):
