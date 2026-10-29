@@ -3673,6 +3673,9 @@ msgstr "Order not found."
 msgid "Bu buyurtma toʻlovni kutmayapti."
 msgstr "This order is not awaiting payment."
 
+msgid "Bu buyurtma toʻlovi hozir amalga oshirilmoqda."
+msgstr "This order is already being paid."
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr "Enter the postal index."
 
