@@ -118,13 +118,14 @@ class StylesheetTests(TestCase):
         self.assertIn('.account__logout { display: block; margin-top: var(--s-4); }', wide)
         self.assertIn('.account__logout--foot { display: none; }', wide)
 
+    # The drawer's own rules are with the drawer in components.css (§17 #424).
     def test_the_menu_button_is_spaced_from_the_languages(self):
-        self.assertIn('.drawer__logout { margin-top: var(--s-6); }', self.CSS)
+        self.assertIn('.drawer__logout { margin-top: var(--s-6); }', self.COMPONENTS)
 
     def test_the_menu_languages_run_the_full_width(self):
         """Edges in line with the list above and the sign-out below (§17 #307)."""
-        self.assertIn('.drawer__lang .lang { display: flex; }', self.CSS)
-        self.assertIn('.drawer__lang .lang button { flex: 1; }', self.CSS)
+        self.assertIn('.drawer__lang .lang { display: flex; }', self.COMPONENTS)
+        self.assertIn('.drawer__lang .lang button { flex: 1; }', self.COMPONENTS)
 
     def test_the_header_switcher_is_untouched(self):
         """Only the menu's copy stretches; the header pill keeps its own size."""

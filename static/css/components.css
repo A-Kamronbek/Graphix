@@ -10,7 +10,7 @@
   font-size: var(--fs-base); font-weight: var(--fw-semibold);
   line-height: 1.2; text-align: center;
   transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
-  min-height: 44px;                      /* tap target floor (plan §5) */
+  min-height: var(--tap);
 }
 .btn--primary   { background: var(--c-brand); color: var(--c-brand-fg); }
 .btn--primary:hover:not(:disabled)   { background: var(--c-brand-hover); }
@@ -40,7 +40,6 @@
 
 /* =============================================================== 2. fields */
 .field { display: flex; flex-direction: column; gap: var(--s-2); }
-.field__hd { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
 
 .input, .textarea, .select {
   width: 100%; padding: var(--s-3) var(--s-4);
@@ -111,7 +110,7 @@
    captions of a row of fields line up. The hidden input still takes the
    keyboard, so the ring is drawn on the button it hides behind. */
 .field__file { display: flex; align-items: center; gap: var(--s-3);
-  flex-wrap: wrap; min-height: 44px; }
+  flex-wrap: wrap; min-height: var(--tap); }
 .field__file:has(input:focus-visible) .btn { outline: 2px solid var(--c-brand-ink);
   outline-offset: 2px; }
 
@@ -149,10 +148,10 @@
 
 .stepper { display: inline-flex; align-items: center; border: 1px solid var(--c-line-control);
   border-radius: var(--r-sm); background: var(--c-bg); }
-.stepper button { width: 44px; height: 44px; display: grid; place-items: center; color: var(--c-fg); }
+.stepper button { width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--c-fg); }
 .stepper button:hover:not(:disabled) { background: var(--c-surface-3); }
 .stepper button:disabled { color: var(--c-fg-subtle); cursor: not-allowed; }
-.stepper__val { min-width: 44px; text-align: center; font-weight: var(--fw-semibold);
+.stepper__val { min-width: var(--tap); text-align: center; font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums; }
 /* As an <input> it would otherwise take the browser's own ground and border.
    The stepper's own border is the frame. */
@@ -191,7 +190,7 @@ html.js .otp__timer { display: block; }
 
 .search { display: flex; align-items: center; gap: var(--s-2); width: 100%;
   padding: 0 var(--s-4); background: var(--c-surface); border: 1px solid var(--c-line-control);
-  border-radius: var(--r-full); min-height: 44px; color: var(--c-fg-muted); }
+  border-radius: var(--r-full); min-height: var(--tap); color: var(--c-fg-muted); }
 /* The input inside the pill is borderless and has `outline: none`, so the
    keyboard ring belongs on the pill: drawn here it frames the whole control
    instead of a bare field, and every other control on the page keeps a ring
@@ -220,7 +219,7 @@ html.js .otp__timer { display: block; }
 .card__badge{ position: absolute; top: var(--s-2); left: var(--s-2); }
 .card__meta { margin-top: var(--s-3); }
 
-/* ======================================================= 5. size selector */
+/* ======================================================== 4. size selector */
 .sizes { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .sizes__btn { min-width: 60px; padding: var(--s-3) var(--s-2); background: var(--c-bg);
   color: var(--c-fg); border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
@@ -233,22 +232,24 @@ html.js .otp__timer { display: block; }
   border-color: var(--c-line); text-decoration: line-through;
   text-decoration-thickness: 1px; cursor: not-allowed; }
 
-/* ============================================================ 6. spec strip */
+/* =========================================================== 5. spec strip */
 .spec__row { display: flex; justify-content: space-between; gap: var(--s-5);
   padding: var(--s-3) 0; border-top: 1px solid var(--c-line); font-size: var(--fs-sm); }
 /* The global reset makes every svg display:block, so an icon inside this
    block-level dt took its own line and left the label sitting under it. Flex
    puts them back on one line, which is what every other icon+label pair does. */
-.spec__row dt { display: flex; align-items: center; gap: var(--s-2);
+.spec__row dt { display: flex; align-items: center; gap: var(--s-3);
   color: var(--c-fg-muted); }
 .spec__row dd { font-weight: var(--fw-semibold); text-align: right; }
 /* A second, smaller line under a label: the delivery time under its name
    on the product page (§17 #301). Muted, like the label it belongs to. */
 .spec__sub { display: block; font-size: var(--fs-xs); }
 
-/* =========================================================== 7. star rating */
+/* ========================================================== 6. star rating */
 .stars { display: inline-flex; gap: 2px; color: var(--c-brand); }
 .stars .i { width: 17px; height: 17px; fill: currentColor; stroke: none; }
+/* Under a review, on the product page and in the panel's moderation list. */
+.stars--sm .i { width: 14px; height: 14px; }
 .stars__empty { color: var(--c-fg-subtle); }
 .rating { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); }
 .rating__count { color: var(--c-fg-muted); }
@@ -269,7 +270,7 @@ html.js .otp__timer { display: block; }
    invisible radio inside it; §17 #127 is the same defect on the link that
    scrolls to this section. */
 .stars--input label { display: inline-grid; place-items: center;
-  min-width: 44px; min-height: 44px; color: var(--c-line-control); cursor: pointer; }
+  min-width: var(--tap); min-height: var(--tap); color: var(--c-line-control); cursor: pointer; }
 .stars--input label .i { fill: currentColor; stroke: none; width: 26px; height: 26px; }
 .stars--input input:checked ~ label,
 .stars--input label:hover, .stars--input label:hover ~ label { color: var(--c-brand); }
@@ -279,26 +280,7 @@ html.js .otp__timer { display: block; }
 .stars--input input:focus-visible + label { outline: 2px solid var(--c-brand-ink);
   outline-offset: 2px; border-radius: var(--r-sm); }
 
-/* Both shells use it — the storefront's and the panel's — which is why it
-   is a component and not a page style. It was in pages.css, which the
-   panel does not load, so the panel showed it as an ordinary link above
-   the header on every screen. */
-/* ------------------------------------------------------------- skip link */
-/* First focusable element on every page, so a keyboard user can jump the nav. */
-.skip {
-  position: absolute;
-  left: var(--s-4);
-  top: -100%;
-  z-index: calc(var(--z-drawer) + 1);
-  padding: var(--s-3) var(--s-4);
-  background: var(--c-brand);
-  color: var(--c-brand-fg);
-  font-weight: var(--fw-semibold);
-  border-radius: 0 0 var(--r-md) var(--r-md);
-}
-.skip:focus { top: 0; }
-
-/* ============================================================ 8. review card */
+/* ========================================================== 7. review card */
 .review { padding: var(--s-5) 0; border-top: 1px solid var(--c-line); }
 .review__hd { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
   margin-bottom: var(--s-2); }
@@ -315,10 +297,10 @@ html.js .otp__timer { display: block; }
 .review__pics img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--r-sm);
   border: 1px solid var(--c-line); }
 
-/* ============================================== 9. heart / share / badges */
+/* =============================================== 8. heart / share / badges */
 .like { display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
   color: var(--c-fg); padding: var(--s-2); border-radius: var(--r-sm);
-  min-width: 44px; min-height: 44px; }
+  min-width: var(--tap); min-height: var(--tap); }
 /* Only the heart takes the brass, under a pointer and once pressed. The
    button's ground never changes, and the count stays in ink: a number is
    read, and the brass a fill takes is too pale for that (§17 #353).
@@ -357,7 +339,7 @@ html.js .otp__timer { display: block; }
   border-radius: var(--r-md); box-shadow: var(--sh-lg); }
 .share__menu[hidden] { display: none; }
 .share__menu > * { display: flex; align-items: center; gap: var(--s-3);
-  padding: var(--s-3); min-height: 44px; border-radius: var(--r-sm);
+  padding: var(--s-3); min-height: var(--tap); border-radius: var(--r-sm);
   color: var(--c-fg); text-align: left; white-space: nowrap; }
 .share__menu > *:hover { background: var(--c-surface-3); }
 
@@ -371,7 +353,7 @@ html.js .otp__timer { display: block; }
 .badge--danger  { background: var(--c-danger-bg);  color: var(--c-danger);  border-color: var(--c-danger); }
 .badge--info    { background: var(--c-info-bg);    color: var(--c-info);    border-color: var(--c-info); }
 
-/* ============================================ 9b. full-screen viewer */
+/* =================================================== 9. full-screen viewer */
 /* One overlay serves the size chart and the product photograph. The stage is
    an ordinary scroll container: `touch-action: pinch-zoom` hands zooming to
    the browser, which does it better than any transform we would write and
@@ -428,25 +410,7 @@ html.js .otp__timer { display: block; }
 .sizeguide__table tr.is-current td { color: var(--c-brand-ink); font-weight: var(--fw-bold); }
 .sizeguide__table tr.is-current th { box-shadow: inset 3px 0 0 var(--c-brand); }
 
-/* ================================================ 10. modal / mobile sheet */
-.overlay { position: fixed; inset: 0; z-index: var(--z-modal);
-  background: var(--c-scrim); display: grid; place-items: end center; }
-.modal { width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
-  background: var(--c-surface); border: 1px solid var(--c-line-strong);
-  border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--sh-lg); }
-.modal__hd { display: flex; align-items: center; gap: var(--s-3);
-  padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--c-line); position: sticky; top: 0;
-  background: var(--c-surface); }
-.modal__hd h2 { font-family: var(--f-display); font-size: var(--fs-xl); font-weight: var(--fw-semibold); }
-.modal__close { margin-left: auto; color: var(--c-fg-muted); padding: var(--s-2); }
-.modal__close:hover { color: var(--c-fg); }
-.modal__body { padding: var(--s-5); }
-@media (min-width: 720px) {
-  .overlay { place-items: center; }
-  .modal { border-radius: var(--r-lg); }
-}
-
-/* =============================================================== 11. toast */
+/* =============================================================== 10. toast */
 .toasts { position: fixed; z-index: var(--z-toast); left: var(--s-4); right: var(--s-4);
   bottom: var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); pointer-events: none; }
 .toast { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4);
@@ -458,21 +422,22 @@ html.js .otp__timer { display: block; }
 @keyframes gx-rise { from { opacity: 0; transform: translateY(8px); } }
 @media (min-width: 720px) { .toasts { left: auto; width: 380px; } }
 
-/* ========================================== 12. breadcrumb / pagination */
+/* ============================================= 11. breadcrumb / pagination */
 .crumbs { display: flex; flex-wrap: wrap; gap: var(--s-2); font-size: var(--fs-sm);
   color: var(--c-fg-muted); }
 .crumbs a:hover { color: var(--c-fg); }
 .crumbs li:not(:last-child)::after { content: "/"; margin-left: var(--s-2); color: var(--c-fg-subtle); }
 
-.pager { display: flex; gap: var(--s-2); align-items: center; justify-content: center; }
-.pager a, .pager span { min-width: 44px; min-height: 44px; display: grid; place-items: center;
+.pager { display: flex; gap: var(--s-3); align-items: center; justify-content: center;
+  margin-top: var(--s-4); }
+.pager a, .pager span { min-width: var(--tap); min-height: var(--tap); display: grid; place-items: center;
   padding: 0 var(--s-3); border: 1px solid var(--c-line-strong); border-radius: var(--r-sm);
   color: var(--c-fg-muted); font-variant-numeric: tabular-nums; }
 .pager a:hover { color: var(--c-fg); border-color: var(--c-fg-muted); }
 .pager .is-current { background: var(--c-fg); color: var(--c-bg); border-color: var(--c-fg); }
 .pager .is-gap { border: 0; min-width: auto; }
 
-/* ================================================ 13. empty / skeleton */
+/* ==================================================== 12. empty / skeleton */
 .empty { text-align: center; padding: var(--s-9) var(--s-4); }
 .empty .i { width: 40px; height: 40px; margin: 0 auto var(--s-4); color: var(--c-fg-subtle); }
 .empty h3 { font-family: var(--f-display); font-size: var(--fs-2xl); margin-bottom: var(--s-2); }
@@ -485,7 +450,7 @@ html.js .otp__timer { display: block; }
 .skel--line.is-short { width: 45%; }
 @keyframes gx-shimmer { to { background-position: -200% 0; } }
 
-/* ========================================================== 14. data table */
+/* ========================================================== 13. data table */
 .table th, .table td { padding: var(--s-3) var(--s-4); text-align: left;
   border-bottom: 1px solid var(--c-line); }
 .table th { font-size: var(--fs-xs); letter-spacing: var(--ls-caps); text-transform: uppercase;
@@ -516,7 +481,7 @@ html.js .otp__timer { display: block; }
   .table--keep td::before { content: none; }
 }
 
-/* ====================================================== 15. filters / chips */
+/* ===================================================== 14. filters / chips */
 .chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .chips button { padding: var(--s-2) var(--s-4); min-height: 40px; border-radius: var(--r-full);
   border: 1px solid var(--c-line-control); color: var(--c-fg-muted); font-size: var(--fs-sm);
@@ -545,7 +510,7 @@ fieldset.filters__group > .chips { clear: both; }
 .filters__group { padding: var(--s-4) 0; border-bottom: 1px solid var(--c-line); }
 .filters__group > .label { display: block; margin-bottom: var(--s-3); }
 
-/* ==================================================== 16. pickup picker */
+/* ======================================================= 15. pickup picker */
 /* List-first, map-second: the list is the control, the map is confirmation
    (§17 #22). Everything here must work with the map absent. */
 .picker { display: grid; gap: var(--s-4); }
@@ -596,6 +561,8 @@ fieldset.filters__group > .chips { clear: both; }
   border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--sh-lg); }
 .picker-drawer__hd { display: flex; align-items: center; gap: var(--s-3); }
 .picker-drawer__hd h2 { margin-right: auto; }
+.picker-drawer__close { margin-left: auto; color: var(--c-fg-muted); padding: var(--s-2); }
+.picker-drawer__close:hover { color: var(--c-fg); }
 .picker-drawer .picker__list { max-height: none; flex: 1; }
 @media (min-width: 720px) {
   .picker-drawer { place-items: center; padding: var(--s-5); }
@@ -609,7 +576,7 @@ fieldset.filters__group > .chips { clear: both; }
    because it is the only way to reach four fields — a chevron on the right,
    the way every row that opens something on this site is drawn. */
 .addr { display: flex; align-items: center; gap: var(--s-3);
-  width: 100%; min-height: 44px; padding: var(--s-3) var(--s-4);
+  width: 100%; min-height: var(--tap); padding: var(--s-3) var(--s-4);
   text-align: start; color: var(--c-fg);
   background: var(--c-bg); border: 1px solid var(--c-line-control);
   border-radius: var(--r-md); cursor: pointer;
@@ -641,7 +608,7 @@ fieldset.filters__group > .chips { clear: both; }
   border-radius: var(--r-sm); display: grid; place-items: center; color: var(--c-fg-hint); }
 @media (min-width: 860px) { .picker { grid-template-columns: 380px minmax(0, 1fr); } }
 
-/* ================================================== 17. tabs / accordion */
+/* ==================================================== 16. tabs / accordion */
 .tabs { display: flex; gap: var(--s-5); border-bottom: 1px solid var(--c-line); }
 .tabs button { padding: var(--s-3) 0; color: var(--c-fg-muted); font-weight: var(--fw-semibold);
   border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -655,6 +622,25 @@ fieldset.filters__group > .chips { clear: both; }
 .acc__btn[aria-expanded="true"] .i { transform: rotate(180deg); }
 .acc__panel { padding-bottom: var(--s-4); color: var(--c-fg-muted); }
 
+/* =========================================================== 17. skip link */
+/* First focusable element on every page, so a keyboard user can jump the nav.
+   Both shells use it — the storefront's and the panel's — which is why it is
+   a component and not a page style. It was in pages.css, which the panel does
+   not load, so the panel showed it as an ordinary link above the header on
+   every screen. */
+.skip {
+  position: absolute;
+  left: var(--s-4);
+  top: -100%;
+  z-index: calc(var(--z-drawer) + 1);
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-brand);
+  color: var(--c-brand-fg);
+  font-weight: var(--fw-semibold);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+}
+.skip:focus { top: 0; }
+
 /* =============================================== 18. nav / drawer / footer */
 /* The bar is full-bleed but its contents line up with `.wrap`: without the max()
    the logo sat 80 px to the left of the page's own left edge at 1440, which is
@@ -665,12 +651,13 @@ fieldset.filters__group > .chips { clear: both; }
      header can trust the token instead of guessing. It is the height the
      header already had; this only stops the two drifting apart. */
   min-height: var(--nav-h);
+  flex-wrap: wrap;
   padding-block: var(--s-3);
   padding-inline: max(var(--pad-x), calc((100% - var(--container)) / 2 + var(--pad-x)));
   border-bottom: 1px solid var(--c-line);
   background: color-mix(in srgb, var(--c-bg) 94%, transparent); backdrop-filter: blur(8px); }
 .nav__brand { display: flex; align-items: center; gap: var(--s-2);
-  min-height: 44px; }   /* the logo is a link, so it is a tap target too */
+  min-height: var(--tap); }   /* the logo is a link, so it is a tap target too */
 .nav__brand .i { color: var(--c-fg); }
 .nav__brand span { font-family: var(--f-display); font-weight: var(--fw-bold);
   font-size: var(--fs-lg); letter-spacing: .10em; }
@@ -680,7 +667,7 @@ fieldset.filters__group > .chips { clear: both; }
 :where(.nav__actions) :where(button, a) { padding: var(--s-2); border-radius: var(--r-sm);
   display: grid; place-items: center; position: relative;
   /* The icon stays 20px; the box around it is the tap target. */
-  min-width: 44px; min-height: 44px; }
+  min-width: var(--tap); min-height: var(--tap); }
 :where(.nav__actions) :where(button, a):hover { background: var(--c-surface-2); }
 /* `:where()` on purpose. As `.nav__actions button` this rule scored (0,2,1) and
    silently beat every `display: none` written for an individual control, so the
@@ -701,9 +688,29 @@ fieldset.filters__group > .chips { clear: both; }
   .nav__actions { gap: 0; }
   .nav__brand span { letter-spacing: .06em; }
 }
+
+/* The search field is the widest thing in the header on a wide screen,
+   because finding a design is the main job here. It sits in the row from
+   1280 px, where the links leave it room; below, the magnifier in the actions
+   row reveals it as a second row, so the brand, the links and the icons never
+   get squeezed, and on a phone the bar of five's "Qidiruv" opens the same row
+   (§9 Phase 23 D1). 360 px, not 440: at 440 it took the room the language
+   control needs and the header read as one long box with three icons crowded
+   after it. */
+.nav__search { display: none; flex: 1; min-width: 0; max-width: 360px; margin-left: var(--s-5); }
+.nav__search.is-open { display: block; order: 10; flex-basis: 100%; max-width: none; margin: var(--s-3) 0 0; }
+.nav__search-toggle { display: grid; }
+@media (min-width: 1280px) {
+  .nav__search { display: block; }
+  .nav__search.is-open { order: 0; flex-basis: auto; margin: 0 0 0 var(--s-5); }
+  .nav__search-toggle { display: none; }
+}
+/* The account icon from 860 px. Below, the menu holds the account. */
+.nav__account { display: none; }
+@media (min-width: 860px) { .nav__account { display: grid; } }
 /* Below 860 px the bar of five carries the search, the heart and the basket,
    and the header's own step aside (§9 Phase 23 D2). Two classes, so this wins
-   over the search toggle's own `display` in pages.css. */
+   over the search toggle's own `display` above. */
 @media (max-width: 859px) { .nav .nav__twin { display: none; } }
 
 .drawer { position: fixed; inset: 0 0 0 auto; width: min(84vw, 340px); z-index: var(--z-drawer);
@@ -711,9 +718,13 @@ fieldset.filters__group > .chips { clear: both; }
   padding: var(--s-5); transform: translateX(100%); overflow-y: auto; overscroll-behavior: contain;
   transition: transform var(--t-base) var(--ease-out); }
 .drawer.is-open { transform: none; }
+/* The drawer's backdrop. Carries the click-to-close target and dims the page. */
+.drawer__backdrop { position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1);
+  background: var(--c-scrim); }
+.drawer__hd { margin-bottom: var(--s-5); }
 /* Pulled back by its own overhang so the icon still lines up with the
    drawer's padding edge while the target around it is full size. */
-.drawer__hd button { width: 44px; height: 44px; display: grid; place-items: center;
+.drawer__hd button { width: var(--tap); height: var(--tap); display: grid; place-items: center;
   margin: calc(var(--s-3) * -1) calc(var(--s-3) * -1) calc(var(--s-3) * -1) 0; }
 .drawer a { display: block; padding: var(--s-3) 0; border-bottom: 1px solid var(--c-line);
   font-size: var(--fs-lg); }
@@ -721,8 +732,16 @@ fieldset.filters__group > .chips { clear: both; }
    voice, then the account. */
 .drawer__groups { display: flex; flex-direction: column; gap: var(--s-5); padding-block: var(--s-2) var(--s-5); }
 .drawer__group .eyebrow { display: block; margin-bottom: var(--s-1); }
-.drawer__group a { display: flex; align-items: center; min-height: 44px; padding-block: var(--s-1); }
+.drawer__group a { display: flex; align-items: center; min-height: var(--tap); padding-block: var(--s-1); }
 .drawer__group--quiet a { font-size: var(--fs-base); color: var(--c-fg-muted); }
+.drawer__lang { margin-top: var(--s-5); }
+.drawer__lang .label { display: block; margin-bottom: var(--s-2); }
+/* Full width, so its edges line up with the list above and the sign-out below
+   (§17 #307). `flex: 1` shares the width equally; a name longer than its share
+   keeps its own width and the others give way. */
+.drawer__lang .lang { display: flex; }
+.drawer__lang .lang button { flex: 1; }
+.drawer__logout { margin-top: var(--s-6); }
 
 /* ---- The bar of five at the foot of a phone (§9 Phase 23 D2, §17 #408).
    An icon over a word, the page's own one in ink and bold. Below 860 px only;
@@ -753,12 +772,13 @@ fieldset.filters__group > .chips { clear: both; }
   font-weight: var(--fw-semibold); margin-bottom: var(--s-3); }
 .foot li { margin-bottom: var(--s-2); }
 .foot a:hover { color: var(--c-fg); }
+.foot__link { display: inline-flex; align-items: center; gap: var(--s-2); }
 .foot__bot { display: flex; flex-wrap: wrap; gap: var(--s-3); justify-content: space-between;
   margin-top: var(--s-6); padding-top: var(--s-4); border-top: 1px solid var(--c-line);
   font-size: var(--fs-xs); color: var(--c-fg-hint); }
 @media (min-width: 720px) { .foot__grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* ================================================= 19. language switcher */
+/* =================================================== 19. language switcher */
 .lang { display: inline-flex; border: 1px solid var(--c-line-control); border-radius: var(--r-sm);
   overflow: hidden; }
 /* One <form> per language, because each button posts a different destination
@@ -794,39 +814,60 @@ fieldset.filters__group > .chips { clear: both; }
 .lang--compact button[aria-pressed="true"] { background: var(--c-fg);
   color: var(--c-bg); font-weight: var(--fw-bold); }
 
-/* ================================================= 20. messages / notices */
+/* ================================================== 20. messages / notices */
 .msg { display: flex; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-sm);
   border: 1px solid var(--c-line-strong); background: var(--c-surface-2); font-size: var(--fs-sm); }
 .msg--ok   { border-color: var(--c-success); background: var(--c-success-bg); color: var(--c-success); }
 .msg--warn { border-color: var(--c-warning); background: var(--c-warning-bg); color: var(--c-warning); }
 .msg--err  { border-color: var(--c-danger);  background: var(--c-danger-bg);  color: var(--c-danger); }
+.msgs { padding-top: var(--s-4); }
 
-/* ========================================================= 21. product grid */
+/* ======================================================== 21. product grid */
 .grid-products { display: grid; grid-template-columns: repeat(2, 1fr);
   gap: var(--s-5) var(--s-3); }
 @media (min-width: 720px) { .grid-products { grid-template-columns: repeat(3, 1fr); gap: var(--s-6) var(--s-4); } }
 @media (min-width: 860px) { .grid-products { grid-template-columns: repeat(4, 1fr); } }
 
-/* ===================================================== 19. touch sizing
+/* ======================================================= 22. panel / prose */
+/* A box of its own on the page's ground: the summaries beside the cart and
+   the checkout, the account's blocks, a form set apart. */
+.panel { padding: var(--s-5); background: var(--c-surface);
+  border: 1px solid var(--c-line); border-radius: var(--r-md); }
+
+/* Long-form copy: legal pages, about, delivery, the size guide. */
+.prose { max-width: 68ch; }
+.prose img { border: 1px solid var(--c-line); border-radius: var(--r-md); }
+
+/* ===================================================== 23. return requests */
+/* The requests under an order, and staff's answers (§9 Phase 23 item 9). The
+   customer's order page and the panel's request page show the same list. */
+.retlist__lines { display: grid; gap: var(--s-1); padding-left: var(--s-5); margin: 0; }
+.retlist__photos { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+.retlist__photos img { width: 72px; height: 72px; object-fit: cover;
+  border: 1px solid var(--c-line); border-radius: var(--r-sm); }
+.retlist__answer { padding: var(--s-3) var(--s-4); background: var(--c-brand-bg);
+  border-radius: var(--r-sm); }
+
+/* ======================================================== 24. touch sizing
    Plan §9 sets the floor at 44 x 44. Most controls already meet it; these are
    the ones that did not, and they are corrected only where a finger is the
    likely input. A 36 px button is fine under a mouse and wrong under a thumb,
    so the desktop sizes are left alone rather than inflated to match. */
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 719px), (pointer: coarse) {
   /* Filter, sort and the account page's ghost buttons. */
-  .btn--sm { min-height: 44px; }
+  .btn--sm { min-height: var(--tap); }
 
-  .lang button { min-height: 44px; }
-  .lang--compact button { min-width: 44px; min-height: 44px; }
+  .lang button { min-height: var(--tap); }
+  .lang--compact button { min-width: var(--tap); min-height: var(--tap); }
 
   /* The whole label is the target for a checkbox or radio, not the 22 px box. */
-  .check { min-height: 44px; }
+  .check { min-height: var(--tap); }
 
   /* Footer links were 18 px tall on a 26 px pitch - three of them fit inside one
      fingertip. Taller links, tighter margins: the column reads the same, the
      targets stop overlapping. */
   .foot li { margin-bottom: var(--s-1); }
-  .foot li a { display: inline-flex; align-items: center; min-height: 44px; }
+  .foot li a { display: inline-flex; align-items: center; min-height: var(--tap); }
 
   /* Tag chips keep their pill proportions - a 44 px chip looks like a button -
      and grow their hit area with a pseudo-element instead. */
@@ -846,7 +887,7 @@ fieldset.filters__group > .chips { clear: both; }
      inset: a fixed 44 px would make a tall target smaller. */
   a.link, a.card__name { position: relative; }
   a.link::after { content: ""; position: absolute; left: -4px; right: -4px;
-    top: 50%; height: 44px; transform: translateY(-50%); }
+    top: 50%; height: var(--tap); transform: translateY(-50%); }
   a.card__name::after { content: ""; position: absolute; inset: -9px -4px; }
   /* A checkbox's label is running text too. The signup consent names two
      documents on neighbouring lines, and the second link's target lay over
@@ -860,7 +901,7 @@ fieldset.filters__group > .chips { clear: both; }
      #110): nothing above or below it is interactive, so it may grow over them. */
   a.rating { position: relative; }
   a.rating::after { content: ""; position: absolute; left: -4px; right: -4px;
-    top: 50%; height: 44px; transform: translateY(-50%); }
+    top: 50%; height: var(--tap); transform: translateY(-50%); }
 
   /* Breadcrumbs are 18 px of text doing navigation work. Vertical-only growth:
      the crumbs sit in a row, so widening them would let neighbours overlap. */

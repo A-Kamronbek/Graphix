@@ -143,8 +143,6 @@ code, kbd, samp, pre { font-family: var(--f-mono); }
 .section    { padding-block: var(--s-7); }
 .section--tight { padding-block: var(--s-4); }
 
-.rule { border: 0; border-top: 1px solid var(--c-line); margin: 0; }
-
 /* Wide content never makes the page scroll sideways (plan §5). */
 .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -158,4 +156,7 @@ code, kbd, samp, pre { font-family: var(--f-mono); }
      stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .i--sm { width: 16px; height: 16px; }
 .i--lg { width: 24px; height: 24px; }
-.i--solid { fill: currentColor; stroke: none; }
+/* The pager's "previous" chevron is the "next" symbol turned around, so the
+   sprite only has to carry one. Here and not in pages.css: the panel's lists
+   page with the same pager, and its "previous" pointed forwards. */
+.i--flip { transform: rotate(180deg); }

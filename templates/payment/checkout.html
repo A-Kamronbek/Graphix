@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format legal_tags %}
+{% load static i18n i18n_fields price_format %}
 {% block title %}{% trans "Rasmiylashtirish" %}{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
@@ -392,7 +392,7 @@
         <div class="picker-drawer__panel">
           <div class="picker-drawer__hd">
             <h2 class="h3" id="addr-sheet-title">{% trans "Manzil" %}</h2>
-            <button type="button" class="modal__close" data-address-sheet-close
+            <button type="button" class="picker-drawer__close" data-address-sheet-close
                     aria-label="{% trans 'Yopish' %}">
               <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
             </button>
@@ -464,7 +464,7 @@
       {# drawer opens, but an empty h2 sitting in the document is an empty #}
       {# heading whether or not anyone can see it. #}
       <h2 class="h3" data-picker-title>{% trans "Tanlang" %}</h2>
-      <button type="button" class="modal__close" data-picker-close
+      <button type="button" class="picker-drawer__close" data-picker-close
               aria-label="{% trans 'Yopish' %}">
         <svg class="i" aria-hidden="true"><use href="#i-close"></use></svg>
       </button>

@@ -121,6 +121,9 @@
   --ease-out: cubic-bezier(.16, 1, .3, 1);
 
   /* -------------------------------------------------------------- layout */
+  /* The least a finger can be asked to hit (§8): every button, link row and
+     overlaid hit area is at least this tall, and a square control this wide. */
+  --tap: 44px;
   --container:      1280px;
   --pad-x: clamp(16px, 5vw, 48px);
   /* The sticky header's height: 44 px of tap target, its own padding, and the
@@ -129,7 +132,7 @@
      happened to be five pixels short — so the reviews heading landed *under*
      the header every time somebody tapped the rating. `.nav` pins itself to
      this value, so the token is the measurement rather than a guess about it. */
-  --nav-h: calc(44px + 2 * var(--s-3) + 1px);
+  --nav-h: calc(var(--tap) + 2 * var(--s-3) + 1px);
   /* The bar of five at the foot of a phone (§9 Phase 23 D2): a 56 px row and
      its hairline. The page is padded by it, so nothing ends under the bar. */
   --tabbar-h: calc(56px + 1px);
@@ -158,6 +161,8 @@
 /* Breakpoints, for reference — CSS custom properties cannot be used in media
    queries, so these are written literally throughout and listed here so the set
    stays closed:
-     360  480  720  860  1024  1280  1600
-   860 is the one that matters most: it is where the product page becomes two
-   columns and the header shows its links. */
+     380  560  640  660  720  860  900  1024  1100  1280
+   A `max-width` query is written a pixel under its partner (859 against 860),
+   so the two never apply at once. 860 is the one that matters most: it is
+   where the product page and the shop become two columns and the bar of five
+   gives way to the header's own icons. */

@@ -30,6 +30,9 @@
     if (event.persisted && placing) window.location.reload();
   });
 
+  /* Its own two helpers rather than main.js's: like every script here it
+     checks before it borrows anything (`GX.lockScroll`), so the checkout
+     works whatever else on the page failed to load. */
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) {
     return Array.prototype.slice.call((root || document).querySelectorAll(sel));
