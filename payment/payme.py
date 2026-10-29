@@ -11,9 +11,8 @@ developer.help.paycom.uz ("Протокол Merchant API", "Методы Merchan
 "Песочница").
 
 tolov answered these calls until 2026-10-28, and broke the protocol where
-Payme's sandbox looks: an unknown transaction was "wrong amount", a second
-transaction for an order was "no such order", none ever timed out. Twice it
-was unsafe: a cancelled transaction could still be performed, making its
+Payme's sandbox looks: an unknown transaction was "wrong amount", and none
+ever timed out. Twice it was unsafe: a cancelled transaction could still be performed, making its
 order paid, and an order already paid could be paid for again. So the shop
 answers them itself, here. The transactions stay in tolov's
 ``PaymentTransaction``, where the admin reads them, and
@@ -76,6 +75,10 @@ SYSTEM = (-32400, _('Tizim xatosi.'))
 WRONG_AMOUNT = (-31001, _('Summa buyurtma summasiga mos emas.'))
 NO_TRANSACTION = (-31003, _('Tranzaksiya topilmadi.'))
 CANNOT = (-31008, _('Bu amalni bajarib boʻlmaydi.'))
+#: Another of Payme's transactions holds the order. An account error, as
+#: Payme's sandbox expects for an order "Обрабатывается": its table asks for a
+#: code from -31099 to -31050, and a run it passed answered -31099 (§17 #423).
+BUSY = (-31099, _('Bu buyurtma toʻlovi hozir amalga oshirilmoqda.'))
 NO_ORDER = (-31050, _('Buyurtma topilmadi.'))
 NOT_PAYABLE = (-31051, _('Bu buyurtma toʻlovni kutmayapti.'))
 
@@ -270,13 +273,14 @@ def check_perform_transaction(params):
     """May this order be paid for, this amount? Asked before the card is charged.
 
     The order, then the amount, as Payme's sandbox asks them; then whether
-    another transaction is already open for it.
+    another transaction is already open for it, which is the order being paid
+    (-31099).
     """
     with transaction.atomic():
         order = _order(params)
         _amount(order, params)
         if _open_elsewhere(order):
-            raise Refusal(CANNOT)
+            raise Refusal(BUSY, data=ACCOUNT_FIELD)
     return {'allow': True}
 
 
@@ -285,9 +289,10 @@ def create_transaction(params):
 
     Payme sends the same call again when it did not hear the answer, and
     hears the same answer. A transaction that is no longer open, or that
-    waited past twelve hours, cannot be created again, and a second one for
-    an order that already has one open is refused. The order's row is locked,
-    so two calls for one order cannot both open one.
+    waited past twelve hours, cannot be created again (-31008), and a second
+    one for an order that already has one open is refused as the order being
+    paid (-31099). The order's row is locked, so two calls for one order
+    cannot both open one.
     """
     payme_id = _text(params, 'id')
     created = _whole(params, 'time')
@@ -298,12 +303,14 @@ def create_transaction(params):
         tx = _locked(payme_id)
         if tx is not None:
             if tx.state != CREATED:
-                refusal = CANNOT
+                refusal = Refusal(CANNOT)
             elif _expired(tx):
                 _time_out(tx)
-                refusal = CANNOT
-        elif _now_ms() - created > TIMEOUT_MS or _open_elsewhere(order):
-            refusal = CANNOT
+                refusal = Refusal(CANNOT)
+        elif _now_ms() - created > TIMEOUT_MS:
+            refusal = Refusal(CANNOT)
+        elif _open_elsewhere(order):
+            refusal = Refusal(BUSY, data=ACCOUNT_FIELD)
         else:
             tx = PaymentTransaction.objects.create(
                 gateway=PaymentTransaction.PAYME, transaction_id=payme_id,
@@ -311,7 +318,7 @@ def create_transaction(params):
                 extra_data={'time': created, 'account': params.get('account')})
     # Refused outside the block, so a transaction timed out above stays so.
     if refusal:
-        raise Refusal(refusal)
+        raise refusal
     return {'create_time': _ms(tx.created_at), 'transaction': str(tx.pk), 'state': tx.state}
 
 

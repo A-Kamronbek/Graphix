@@ -123,8 +123,11 @@ class SandboxScenarioOneTests(PaymeCase):
         # Asked again, the same answer.
         self.assertEqual(self.result(self.create('A' * 24)), first)
         self.assertEqual(self.result(self.call('CheckTransaction', {'id': 'A' * 24}))['state'], 1)
-        # A new transaction for the order that is awaiting payment.
-        self.assertEqual(self.code(self.create('B' * 24)), -31008)
+        # A new transaction for the order that is awaiting payment: the order
+        # is being paid, an account error, as the sandbox's run answers it.
+        error = self.create('B' * 24)['error']
+        self.assertEqual((error['code'], error['data']), (-31099, 'order_id'))
+        self.assertEqual(set(error['message']), {'ru', 'uz', 'en'})
         cancelled = self.result(self.call('CancelTransaction', {'id': 'A' * 24, 'reason': 3}))
         self.assertEqual(cancelled['state'], -1)
         self.assertGreater(cancelled['cancel_time'], 0)
@@ -140,7 +143,7 @@ class SandboxScenarioTwoTests(PaymeCase):
                          {'allow': True})
         created = self.result(self.create('A' * 24))
         self.assertEqual(self.result(self.create('A' * 24)), created)
-        self.assertEqual(self.code(self.create('B' * 24)), -31008)
+        self.assertEqual(self.code(self.create('B' * 24)), -31099)
 
         performed = self.result(self.call('PerformTransaction', {'id': 'A' * 24}))
         self.assertEqual(performed['state'], 2)
@@ -212,8 +215,10 @@ class ProtocolTests(PaymeCase):
         self.assertEqual(self.code(self.call('CheckPerformTransaction', self.account())), -31051)
 
     def test_check_perform_says_no_while_another_transaction_is_open(self):
+        """The sandbox's "Обрабатывается": an error from -31099 to -31050."""
         self.create('A' * 24)
-        self.assertEqual(self.code(self.call('CheckPerformTransaction', self.account())), -31008)
+        error = self.call('CheckPerformTransaction', self.account())['error']
+        self.assertEqual((error['code'], error['data']), (-31099, 'order_id'))
 
     def test_a_transaction_past_twelve_hours_is_cancelled_not_performed(self):
         thirteen_ago = timezone.now() - timedelta(hours=13)
@@ -253,7 +258,8 @@ class ProtocolTests(PaymeCase):
 
     def test_every_message_is_written_in_each_language(self):
         for name in ('NOT_ALLOWED', 'UNREADABLE', 'MALFORMED', 'NO_METHOD', 'SYSTEM',
-                     'WRONG_AMOUNT', 'NO_TRANSACTION', 'CANNOT', 'NO_ORDER', 'NOT_PAYABLE'):
+                     'WRONG_AMOUNT', 'NO_TRANSACTION', 'CANNOT', 'BUSY', 'NO_ORDER',
+                     'NOT_PAYABLE'):
             words = payme.localised(getattr(payme, name)[1])
             with self.subTest(name=name):
                 self.assertNotEqual(words['ru'], words['uz'])
