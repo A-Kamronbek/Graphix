@@ -610,8 +610,11 @@ html.js .slides__controls {
   gap: var(--s-3); align-items: center; padding-block: var(--s-3);
   /* A step still ahead is quiet, and still read. */
   color: var(--c-fg-hint); }
-.steps__dot { width: 12px; height: 12px; margin-inline: auto; border-radius: var(--r-full);
-  border: 2px solid var(--c-line-strong); background: var(--c-bg); }
+/* Positioned, so it is drawn over the line that joins it to the step above:
+   the line is an absolutely placed pseudo-element and would otherwise run
+   through every dot. */
+.steps__dot { position: relative; width: 12px; height: 12px; margin-inline: auto;
+  border-radius: var(--r-full); border: 2px solid var(--c-line-strong); background: var(--c-bg); }
 .steps__step.is-done { color: var(--c-fg-muted); }
 .steps__step.is-done .steps__dot { background: var(--c-fg-muted); border-color: var(--c-fg-muted); }
 .steps__step.is-current { color: var(--c-fg); font-weight: var(--fw-semibold); }

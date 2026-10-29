@@ -81,6 +81,12 @@ class TwoStepListsTests(SimpleTestCase):
         self.assertIn('class="steps"', status)
         self.assertNotIn('class="track"', status)
 
+    def test_the_line_between_steps_runs_behind_the_dots(self):
+        """The joining line is a positioned `::before`; an unpositioned dot is painted under it."""
+        css = sheet('pages.css')
+        self.assertIn('position: absolute', rules(css, '.steps__step + .steps__step::before')[0])
+        self.assertIn('position: relative', rules(css, '.steps__dot')[0])
+
     def test_the_order_page_is_a_track_of_four(self):
         css = sheet('pages.css')
         self.assertIn('repeat(4, minmax(0, 1fr))', rules(css, '.track')[0])
