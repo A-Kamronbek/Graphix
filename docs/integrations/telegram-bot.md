@@ -159,10 +159,10 @@ Refuse anything that fails with `401` and do nothing with it.
 
 ## The events
 
-Seven: a paid order, a contact message, a review waiting for moderation, the
+Eight: a paid order, a contact message, a review waiting for moderation, the
 ceiling on sign-in codes being reached, an Uzpost shipment in a status the
-shop does not act on, a request to return or exchange, and a design a
-customer suggests.
+shop does not act on, a request to return or exchange, a design a customer
+suggests, and a payment a gateway gave back.
 
 Amounts are whole so'm, as integers. Dates are ISO 8601 with a time zone.
 `admin_url` links to the staff panel — the order's own screen, or the list the
@@ -312,6 +312,22 @@ the site.
 - `print_text` is empty when there is nothing to print in words.
 - `photos` is how many pictures came with it; the pictures themselves are not
   sent, and are seen in the panel.
+
+### `payment.refunded`
+
+A gateway gave a paid order's money back to the customer: a refund the owner
+made in the gateway's own cabinet. Only Payme sends it so far, when it cancels
+a transaction it had performed (§17 #421). The order is not touched: it is a
+sale, and staff undo it in the panel if it has not been sent.
+
+```json
+{"order": {"id": 42, "number": "GX-261028-0001", "status": "paid",
+           "total": 150000, "currency": "UZS", "payment_method": "payme",
+           "admin_url": "https://graphix.uz/uz/boshqaruv/buyurtmalar/GX-261028-0001/"}}
+```
+
+- `status` is the order's as it stands, unchanged by the refund.
+- `total` is what was paid, and is what goes back.
 
 ## The bot's own commands
 

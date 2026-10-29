@@ -450,6 +450,34 @@ def notify_shipment_status(shipment):
 
 
 @_in_uzbek
+def notify_refund(order, gateway):
+    """A gateway gave a paid order's money back to the customer (§17 #421).
+
+    A refund the owner made in the gateway's own cabinet. The order is not
+    touched: it is a sale, and only staff undo one, giving back its stock and
+    its code (§17 #344). Without this it would go on reading paid, and be
+    packed and sent, for money the customer has back.
+    """
+    link = panel_url('panel_order', order_no=order.order_no) if order.order_no else ''
+    lines = [
+        f"↩️ <b>{esc(gateway)}: toʻlov qaytarildi</b> {esc(order.order_no or order.pk)}",
+        f"<b>Summa:</b> {esc(order.total_price)} soʻm",
+        "Buyurtma holati oʻzgartirilmadi. Joʻnatilmagan boʻlsa, panelda bekor qiling.",
+    ]
+    if link:
+        lines.append(f'\n<a href="{link}">Buyurtmani ochish</a>')
+    notify('\n'.join(lines), event='payment.refunded', data={'order': {
+        'id': order.pk,
+        'number': order.order_no,
+        'status': order.status,
+        'total': _som(order.total_price),
+        'currency': 'UZS',
+        'payment_method': order.payment_method,
+        'admin_url': link,
+    }})
+
+
+@_in_uzbek
 def notify_return(request):
     """A customer asks to return or exchange part of a delivered order (§17 #399).
 

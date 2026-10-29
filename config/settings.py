@@ -256,26 +256,13 @@ TOLOV = {
         "ONE_TIME_PAYMENT": True,
         "COMMISSION_PERCENT": 0.0,
     },
-    # Payme and Octo both take the field name from a setting, so they are
-    # told `total_price` outright. Click cannot be told (§17 #262) and reads
-    # `Order.amount`, which is the same number under the name it insists on.
-    # Payme quotes tiyin and tolov multiplies by 100 on our behalf; Click and
-    # Octo quote soʻm and it does not.
-    "PAYME": {
-        "PAYME_ID": PAYME_ID,
-        "PAYME_KEY": PAYME_KEY,
-        "ACCOUNT_MODEL": "payment.models.Order",
-        # `order_id`, not `id`, and the two ends have to agree: this name is
-        # the key inside Payme's `account` object AND what the webhook looks
-        # the order up by, with tolov special-casing `order_id` to mean the
-        # model's `id`. It is also the default `create_payment` builds the
-        # link with, so leaving both at the library's own pairing is the
-        # tested path — and `order_id` is what a Payme merchant cabinet is
-        # normally configured with anyway.
-        "ACCOUNT_FIELD": "order_id",
-        "AMOUNT_FIELD": "total_price",
-        "ONE_TIME_PAYMENT": True,
-    },
+    # Octo takes the field name from a setting, so it is told `total_price`
+    # outright. Click cannot be told (§17 #262) and reads `Order.amount`, which
+    # is the same number under the name it insists on. Both quote soʻm.
+    #
+    # Payme is not here: its calls are answered by `payment/payme.py`, which
+    # reads `PAYME_KEY` itself, and its pay link is built from `PAYME_ID`
+    # (§17 #421).
     "OCTO_BANK": {
         # int, not text: tolov types this one. Blank until the owner has a
         # shop id, and `int("")` raises, so the coercion tolerates empty.

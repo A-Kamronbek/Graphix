@@ -1,4 +1,4 @@
-"""Checkout, Click payment start/webhook, and order views."""
+"""Checkout, the gateways' callbacks, and order views."""
 import functools
 import json
 import logging
@@ -13,7 +13,9 @@ from django.db import transaction
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from django.utils.decorators import classonlymethod
+from django.utils.decorators import classonlymethod, method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils import translation
 from django.utils.translation import gettext as _, gettext_lazy, ngettext
@@ -22,9 +24,7 @@ from django.utils.translation import gettext as _, gettext_lazy, ngettext
 # gateway has no CSRF token to send (§17 #270).
 from tolov.core.exceptions import AccountNotFound, PermissionDenied
 from tolov.integrations.django.models import PaymentTransaction
-from tolov.integrations.django.views import (BaseClickWebhookView,
-                                             BaseOctoWebhookView,
-                                             BasePaymeWebhookView)
+from tolov.integrations.django.views import BaseClickWebhookView, BaseOctoWebhookView
 
 from core import legal
 from core.i18n import tfield
@@ -34,7 +34,7 @@ from product.templatetags.price_format import price
 from .models import (SOLD, DeliveryOption, District, Order, PaymentOption, Region,
                      RECIPIENT_NAME_MAX, ReturnRequest)
 from user.models import normalize_uz_phone, phone_regex
-from . import promos, returns, services
+from . import payme, promos, returns, services
 
 logger = logging.getLogger(__name__)
 
@@ -669,10 +669,11 @@ def payment_start(request, order_id):
 
 
 class PaidByWebhook:
-    """What every gateway's callback does with a successful payment.
+    """What a tolov callback, Click's or Octo's, does with a successful payment.
 
-    A mixin rather than three copies, because the three hooks differ only in
-    which base class they sit on. tolov hands each one its own
+    A mixin rather than two copies, because the two hooks differ only in
+    which base class they sit on. Payme's calls are answered by
+    :mod:`payment.payme`, not tolov (§17 #421). tolov hands each one its own
     `PaymentTransaction`, whose ``account_id`` is the id we passed when the
     pay link was made — so resolving the order is one lookup, and
     `apply_successful_payment` stays the only place an order's status moves,
@@ -895,20 +896,29 @@ class ClickWebhookAPIView(PaidByWebhook, BaseClickWebhookView):
         return order
 
 
-class PaymeWebhookAPIView(PaidByWebhook, BasePaymeWebhookView):
-    """Payme's JSON-RPC callback endpoint.
+@method_decorator(csrf_exempt, name='dispatch')
+class PaymeWebhookAPIView(View):
+    """Payme's Merchant API endpoint; :mod:`payment.payme` answers every call.
 
-    Payme quotes tiyin; tolov multiplies `total_price` by 100 before comparing,
-    so the amount check needs nothing from us beyond `AMOUNT_FIELD`.
+    Not tolov's view any more: it broke Payme's protocol where Payme's sandbox
+    looks, and twice unsafely (§17 #421). POST only, so the route still says
+    405 to anything else, which is what the smoke matrix and the uptime
+    monitor read as "still mounted" (§12 risk #2).
+
+    A shop without Payme's keys answers 503 and says why in the log, as the
+    tolov callbacks do (§4): Payme reads anything but 200 as a system error
+    and asks again later.
     """
 
-    def before_check_perform_transaction(self, params, account):
-        """Payme's question before it charges: may this order be paid for?
+    http_method_names = ['post']
 
-        Not if it was cancelled. tolov turns the exception into Payme's own
-        "account not found". See :meth:`refuse_cancelled`.
-        """
-        self.refuse_cancelled(account)
+    def post(self, request):
+        if not services.method_is_configured(Order.PaymentMethod.PAYME):
+            logger.error('Payme callback refused: this gateway is not configured '
+                         'on this installation')
+            return HttpResponse(status=503)
+        return JsonResponse(payme.answer(request.body, request.META.get('HTTP_AUTHORIZATION')),
+                            json_dumps_params={'ensure_ascii': False})
 
 
 class OctoWebhookAPIView(PaidByWebhook, BaseOctoWebhookView):

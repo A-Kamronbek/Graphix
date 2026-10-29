@@ -3586,6 +3586,36 @@ msgstr ""
 msgid "koʻrish"
 msgstr ""
 
+msgid "Ruxsat berilmagan."
+msgstr ""
+
+msgid "Soʻrovni oʻqib boʻlmadi."
+msgstr ""
+
+msgid "Soʻrov notoʻgʻri tuzilgan."
+msgstr ""
+
+msgid "Bunday usul yoʻq."
+msgstr ""
+
+msgid "Tizim xatosi."
+msgstr ""
+
+msgid "Summa buyurtma summasiga mos emas."
+msgstr ""
+
+msgid "Tranzaksiya topilmadi."
+msgstr ""
+
+msgid "Bu amalni bajarib boʻlmaydi."
+msgstr ""
+
+msgid "Buyurtma topilmadi."
+msgstr ""
+
+msgid "Bu buyurtma toʻlovni kutmayapti."
+msgstr ""
+
 #~ msgid "Pochta indeksini kiriting."
 #~ msgstr ""
 
