@@ -73,6 +73,24 @@ function TELL(message, kind) {
 }
 
 
+/* How every screen saves: a POST with the session's token, marked so the view
+ * answers JSON, and an answer that is always an object - `{ok: false}` when
+ * the body is not JSON at all, so a caller has one shape to read. It was
+ * written three times, under three names. A dropped connection still rejects,
+ * which is how the status control knows to fall back to the full post.
+ */
+function SEND(url, body) {
+  'use strict';
+  var field = document.querySelector('[name=csrfmiddlewaretoken]');
+  return fetch(url, {
+    method: 'POST',
+    body: body,
+    headers: {'X-Requested-With': 'fetch', 'X-CSRFToken': field ? field.value : ''},
+    credentials: 'same-origin'
+  }).then(function (r) { return r.json().catch(function () { return {ok: false}; }); });
+}
+
+
 (function () {
   'use strict';
 
@@ -118,16 +136,9 @@ function TELL(message, kind) {
       form.submit();
     }
 
-    fetch(form.action, {
-      method: 'POST',
-      body: body,
-      /* Tells the view to answer JSON. The same URL serves the plain form
-         post, so there is one route and one permission check, not two. */
-      headers: {'X-Requested-With': 'fetch'},
-      credentials: 'same-origin'
-    }).then(function (response) {
-      return response.json().catch(function () { return {ok: false}; });
-    }).then(function (data) {
+    /* The same URL serves the plain form post, so there is one route and one
+       permission check, not two. */
+    SEND(form.action, body).then(function (data) {
       if (!data.ok) {
         /* Put the control back where it was and say so out loud rather than
            leaving a select showing a status the order is not in. */
@@ -174,20 +185,6 @@ function TELL(message, kind) {
 (function () {
   'use strict';
 
-  function csrf() {
-    var field = document.querySelector('[name=csrfmiddlewaretoken]');
-    return field ? field.value : '';
-  }
-
-  function post(url, body) {
-    return fetch(url, {
-      method: 'POST',
-      body: body,
-      headers: {'X-Requested-With': 'fetch', 'X-CSRFToken': csrf()},
-      credentials: 'same-origin'
-    }).then(function (r) { return r.json().catch(function () { return {ok: false}; }); });
-  }
-
   /* ------------------------------------------------- one number at a time */
   /* The list's stock boxes, price and switch. Each saves on its own, because
      the alternative is a Save button per row and nobody presses those. */
@@ -206,7 +203,7 @@ function TELL(message, kind) {
       box.classList.remove('is-saved', 'is-error');
     }
 
-    post(row.dataset.inlineUrl, body)
+    SEND(row.dataset.inlineUrl, body)
       .then(function (data) {
         if (box) box.classList.remove('is-saving');
         if (!data.ok) {
@@ -393,7 +390,7 @@ function TELL(message, kind) {
       var body = new FormData();
       body.append('action', 'add');
       files.forEach(function (file) { body.append('images', file); });
-      post(url, body).then(function (data) {
+      SEND(url, body).then(function (data) {
         input.value = '';
         if (!data.ok) { say(data.error || SAY('upload')); return; }
         render(data.images);
@@ -407,7 +404,7 @@ function TELL(message, kind) {
     var body = new FormData();
     body.append('action', 'delete');
     body.append('id', button.dataset.shotDelete);
-    post(url, body).then(function (data) {
+    SEND(url, body).then(function (data) {
       if (data.ok) render(data.images);
     });
   });
@@ -451,30 +448,16 @@ function TELL(message, kind) {
     list.querySelectorAll('.shot').forEach(function (shot) {
       body.append('ids', shot.dataset.id);
     });
-    post(url, body);
+    SEND(url, body);
   });
 })();
 
 
 /* ------------------------------------------- moderation, inbox, reference */
-/* Three more screens, all the same shape: a control changes, one thing saves,
-   the page says so. Sharing the fetch helper below rather than each screen
-   bringing its own. */
+/* Three more screens, all the same shape: a control changes, one thing saves
+   through `SEND`, the page says so. */
 (function () {
   'use strict';
-
-  function token() {
-    var field = document.querySelector('[name=csrfmiddlewaretoken]');
-    return field ? field.value : '';
-  }
-
-  function send(url, body) {
-    return fetch(url, {
-      method: 'POST', body: body,
-      headers: {'X-Requested-With': 'fetch', 'X-CSRFToken': token()},
-      credentials: 'same-origin'
-    }).then(function (r) { return r.json().catch(function () { return {ok: false}; }); });
-  }
 
   /* ------------------------------------------------------------ reviews */
   document.addEventListener('click', function (e) {
@@ -487,7 +470,7 @@ function TELL(message, kind) {
     body.append('status', button.dataset.mod);
     card.querySelectorAll('[data-mod]').forEach(function (b) { b.disabled = true; });
 
-    send(card.dataset.url, body).then(function (data) {
+    SEND(card.dataset.url, body).then(function (data) {
       card.querySelectorAll('[data-mod]').forEach(function (b) { b.disabled = false; });
       if (!data.ok) { TELL(data.error || SAY('failed')); return; }
 
@@ -526,7 +509,7 @@ function TELL(message, kind) {
 
     var body = new FormData();
     body.append('value', box.checked ? '1' : '0');
-    send(card.dataset.url, body).then(function (data) {
+    SEND(card.dataset.url, body).then(function (data) {
       if (!data.ok) return;
       card.classList.toggle('is-unread', !data.value);
       /* The count in the header is the same number the dashboard shows; the
@@ -555,7 +538,7 @@ function TELL(message, kind) {
     /* The URL comes from the row, written by `{% url %}`. Assembling it here
        would mean guessing the language prefix, which is the bug this file
        already made once on the catalogue list. */
-    send(row.dataset.refUrl, body)
+    SEND(row.dataset.refUrl, body)
       .then(function (data) {
         control.classList.remove('is-saving-field');
         if (!data.ok) { TELL(data.error || SAY('failed')); return; }
@@ -591,7 +574,7 @@ function TELL(message, kind) {
     if (!window.confirm(SAY('confirmDelete', {name: button.dataset.refName || ''}))) return;
 
     button.disabled = true;
-    send(button.dataset.refDelete, new FormData()).then(function (data) {
+    SEND(button.dataset.refDelete, new FormData()).then(function (data) {
       button.disabled = false;
       if (!data.ok) { TELL(data.error || SAY('failed')); return; }
       row.remove();

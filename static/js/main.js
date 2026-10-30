@@ -406,13 +406,11 @@
     });
   }
 
-  GX.$ = $;
-  GX.$$ = $$;
-  GX.toast = toast;
+  /* What the page's other scripts borrow. Each one checks before it calls,
+     so a page whose main.js failed still works. */
   GX.announce = announce;
   GX.trapFocus = trapFocus;
   GX.lockScroll = lockScroll;
-  GX.focusablesIn = focusablesIn;
 
   /* ------------------------------------------- broken photographs */
   /* A stored photograph whose file has gone - a database restored against an

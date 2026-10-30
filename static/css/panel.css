@@ -21,7 +21,7 @@
   border-bottom: 1px solid var(--c-line);
   background: color-mix(in srgb, var(--c-bg) 94%, transparent);
   backdrop-filter: blur(8px); }
-.pnl__brand { display: flex; align-items: center; gap: var(--s-2); min-height: 44px; }
+.pnl__brand { display: flex; align-items: center; gap: var(--s-2); min-height: var(--tap); }
 .pnl__brand span { font-family: var(--f-display); font-weight: var(--fw-bold);
   font-size: var(--fs-lg); letter-spacing: .08em; }
 .pnl__who { display: flex; align-items: center; gap: var(--s-4); }
@@ -32,7 +32,7 @@
 .pnl__nav { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none;
   padding: var(--s-2) var(--pad-x); border-bottom: 1px solid var(--c-line); }
 .pnl__nav::-webkit-scrollbar { display: none; }
-.pnl__nav a { flex: none; display: inline-flex; align-items: center; min-height: 44px;
+.pnl__nav a { flex: none; display: inline-flex; align-items: center; min-height: var(--tap);
   padding: 0 var(--s-4); border-radius: var(--r-full);
   color: var(--c-fg-muted); font-size: var(--fs-sm); font-weight: var(--fw-semibold);
   white-space: nowrap; transition: color var(--t-fast), background var(--t-fast); }
@@ -85,7 +85,7 @@ a.stat:hover { border-color: var(--c-fg-muted); }
   font-size: var(--fs-sm); }
 .ord__body strong { color: var(--c-fg); font-weight: var(--fw-semibold); }
 .ord__foot { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
-.ord__foot .select { min-height: 44px; width: auto; flex: 1 1 180px; }
+.ord__foot .select { min-height: var(--tap); width: auto; flex: 1 1 180px; }
 
 /* ---------------------------------------------------------------- filter */
 .pnl__filter { display: grid; gap: var(--s-3); margin-bottom: var(--s-5); }
@@ -187,7 +187,7 @@ a.stat:hover { border-color: var(--c-fg-muted); }
 
 /* ---------------------------------------------------------------- switch */
 .switch { display: inline-flex; align-items: center; gap: var(--s-2);
-  min-height: 44px; cursor: pointer; font-size: var(--fs-sm); }
+  min-height: var(--tap); cursor: pointer; font-size: var(--fs-sm); }
 .switch input { appearance: none; width: 44px; height: 26px; flex: none;
   border-radius: var(--r-full); background: var(--c-surface-3);
   border: 1px solid var(--c-line-control); position: relative;
@@ -210,7 +210,7 @@ a.stat:hover { border-color: var(--c-fg-muted); }
    thing under the finger, whatever the label around it happens to measure, and
    it changes no layout at all. `::before` because `::after` is the knob. */
 .switch input::before { content: ""; position: absolute; left: 0; right: 0;
-  top: 50%; height: 44px; transform: translateY(-50%); }
+  top: 50%; height: var(--tap); transform: translateY(-50%); }
 
 /* --------------------------------------------------------------- gallery */
 /* Drag to reorder. The first photograph is the one the shop leads with, so the
@@ -237,11 +237,11 @@ a.stat:hover { border-color: var(--c-fg-muted); }
   place-items: center; width: 32px; height: 32px; border-radius: 50%;
   background: var(--c-scrim); color: var(--c-fg); }
 .shot__x::after { content: ""; position: absolute; top: 50%; left: 50%;
-  width: 44px; height: 44px; transform: translate(-50%, -50%); }
+  width: var(--tap); height: var(--tap); transform: translate(-50%, -50%); }
 .shot__x:hover { background: var(--c-danger); color: var(--c-brand-fg); }
 
 /* ------------------------------------------------------------------ chips */
-.chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+/* The row is `.chips` from components.css; these are the checkbox chips in it. */
 .chip { display: inline-flex; align-items: center; min-height: 40px;
   padding: 0 var(--s-4); border-radius: var(--r-full);
   background: var(--c-surface-2); border: 1px solid var(--c-line);
@@ -253,11 +253,15 @@ a.stat:hover { border-color: var(--c-fg-muted); }
 
 /* ------------------------------------------------------------------- grid */
 /* Size × price × stock. A table, because that is what it is. */
-.grid { width: 100%; border-collapse: collapse; }
+/* The columns are set, not left to the browser: an auto table hands its width
+   out in proportion to content, and the widest thing in the price column is an
+   empty input — so at 390 px the price ended up narrower than its own number
+   while "Sotuvda" took the room (the same shape as §17 #125). */
+.grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .grid th, .grid td { padding: var(--s-2) var(--s-1) var(--s-2) 0; text-align: left; }
 /* `--fw-regular`, not `--fw-normal`: there has never been a `--fw-normal` in
    tokens.css, so this declaration was invalid and the header rendered at the
-   browser's own bold. The same typo is in pages.css on the reviews table.
+   browser's own bold.
    `overflow-wrap` is what stops this table clipping anything again. A fixed
    layout clips rather than pushing, and a heading that is one long word —
    "Oʻlcham", "Sotuvda", "В продаже" — has no break opportunity, so it ran into
@@ -269,11 +273,6 @@ a.stat:hover { border-color: var(--c-fg-muted); }
   color: var(--c-fg-muted); overflow-wrap: anywhere; }
 .grid tbody th { font-weight: var(--fw-semibold); white-space: nowrap;
   padding-right: var(--s-4); }
-/* The columns are set, not left to the browser: an auto table hands its width
-   out in proportion to content, and the widest thing in the price column is an
-   empty input — so at 390 px the price ended up narrower than its own number
-   while "Sotuvda" took the room (the same shape as §17 #125). */
-.grid { table-layout: fixed; }
 /* Sized for the DATA, now that the headings wrap: a size label, a six-digit
    price, a stock count and a checkbox. Price is the `auto` column and takes
    everything left over, because it is the one that holds the longest value —
@@ -307,7 +306,7 @@ a.stat:hover { border-color: var(--c-fg-muted); }
 .pnl__tabs::-webkit-scrollbar { display: none; }
 /* 44, not 40. The floor is 44 px (§8) and these were four short of it — which
    the panel's own sweep found the first time anybody pointed it at the panel. */
-.pnl__tabs a { flex: none; display: inline-flex; align-items: center; min-height: 44px;
+.pnl__tabs a { flex: none; display: inline-flex; align-items: center; min-height: var(--tap);
   padding: 0 var(--s-4); border-radius: var(--r-full);
   color: var(--c-fg-muted); font-size: var(--fs-sm); white-space: nowrap; }
 .pnl__tabs a:hover { color: var(--c-fg); }
@@ -351,8 +350,6 @@ a.stat:hover { border-color: var(--c-fg-muted); }
 /* `.field__file`, the button-and-file-name field, lives in components.css
    now: the review form uses it too (§18 #29). */
 .field--narrow { flex: 0 1 16ch; }
-.chart__thumb { width: 64px; height: 64px; object-fit: cover;
-  border-radius: var(--r-sm); background: var(--c-surface-2); }
 /* A saved field flashes its border rather than showing a toast: the eye is
    already on the box that was typed in. */
 .is-saved-field { border-color: var(--c-brand) !important; }
@@ -396,7 +393,7 @@ details > summary { cursor: pointer; padding: var(--s-2) 0; }
 .pnl .tap, .pnl .crumbs a { position: relative; }
 .pnl .tap::after, .pnl .crumbs a::after {
   content: ""; position: absolute; left: 0; right: 0; top: 50%;
-  height: 44px; transform: translateY(-50%); }
+  height: var(--tap); transform: translateY(-50%); }
 
 /* The unit under a money tile. Small and muted, because the number is the
    thing being read and "soʻm" is only there so the number is not a count. */

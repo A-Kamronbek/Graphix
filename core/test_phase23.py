@@ -1670,7 +1670,8 @@ class OrderPageHeadTests(NavigationCase):
     def steps(self, status):
         order = delivered(self.user, (self.variant, 1), status=status)
         html = self.page('order_detail', pk=order.pk)
-        return html, re.findall(r'<li class="([^"]*)"', html.split('class="steps"', 1)[1].split('</ol>', 1)[0])
+        track = html.split('class="track"', 1)[1].split('</ol>', 1)[0]
+        return html, re.findall(r'<li class="track__step ?([^"]*)"', track)
 
     def test_the_steps_follow_the_status(self):
         for status, classes in ((Order.Status.PAYING, ['is-now', '', '', '']),
@@ -1681,7 +1682,7 @@ class OrderPageHeadTests(NavigationCase):
             with self.subTest(status=status):
                 self.assertEqual(self.steps(status)[1], classes)
         order = delivered(self.user, (self.variant, 1), status=Order.Status.CANCELLED)
-        self.assertNotIn('class="steps"', self.page('order_detail', pk=order.pk))
+        self.assertNotIn('class="track"', self.page('order_detail', pk=order.pk))
 
     def test_the_one_thing_to_do_comes_first_and_the_rest_are_quiet_links(self):
         html = self.steps(Order.Status.PAYING)[0]

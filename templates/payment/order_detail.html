@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n i18n_fields price_format legal_tags date_tags image_tags %}
+{% load i18n i18n_fields price_format legal_tags date_tags image_tags %}
 {% block title %}{% trans "Buyurtma" %} {{ order.order_no|default:order.id }}{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
 
@@ -26,11 +26,11 @@
 
   {% if order.status != 'cancelled' %}
     {% with at=order.status %}
-    <ol class="steps" aria-label="{% trans 'Buyurtma qayerda' %}">
-      <li class="{% if at == 'paying' %}is-now{% else %}is-done{% endif %}" {% if at == 'paying' %}aria-current="step"{% endif %}>{% trans "Toʻlov" %}</li>
-      <li class="{% if at == 'paid' or at == 'processing' %}is-now{% elif at == 'on_the_way' or at == 'done' %}is-done{% endif %}" {% if at == 'paid' or at == 'processing' %}aria-current="step"{% endif %}>{% trans "Qabul qilindi" %}</li>
-      <li class="{% if at == 'on_the_way' %}is-now{% elif at == 'done' %}is-done{% endif %}" {% if at == 'on_the_way' %}aria-current="step"{% endif %}>{% trans "Yoʻlda" %}</li>
-      <li class="{% if at == 'done' %}is-done{% endif %}" {% if at == 'done' %}aria-current="step"{% endif %}>{% trans "Topshirildi" %}</li>
+    <ol class="track" aria-label="{% trans 'Buyurtma qayerda' %}">
+      <li class="track__step {% if at == 'paying' %}is-now{% else %}is-done{% endif %}" {% if at == 'paying' %}aria-current="step"{% endif %}>{% trans "Toʻlov" %}</li>
+      <li class="track__step{% if at == 'paid' or at == 'processing' %} is-now{% elif at == 'on_the_way' or at == 'done' %} is-done{% endif %}" {% if at == 'paid' or at == 'processing' %}aria-current="step"{% endif %}>{% trans "Qabul qilindi" %}</li>
+      <li class="track__step{% if at == 'on_the_way' %} is-now{% elif at == 'done' %} is-done{% endif %}" {% if at == 'on_the_way' %}aria-current="step"{% endif %}>{% trans "Yoʻlda" %}</li>
+      <li class="track__step{% if at == 'done' %} is-done{% endif %}" {% if at == 'done' %}aria-current="step"{% endif %}>{% trans "Topshirildi" %}</li>
     </ol>
     {% endwith %}
   {% endif %}

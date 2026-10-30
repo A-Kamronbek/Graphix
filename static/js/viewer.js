@@ -63,8 +63,6 @@
     if (e.key === 'Escape') close();
   });
 
-  GX.viewer = { open: open, close: close };
-
   /* ---------------------------------------------------------- size chart */
   /* The chart block is rendered hidden on the product page so the viewer has
    * real markup to show — image, table and note — rather than a second copy
