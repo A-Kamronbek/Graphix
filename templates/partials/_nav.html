@@ -16,9 +16,6 @@
   {% with here=request.resolver_match.url_name chosen=request.GET.category %}
   <nav class="nav__links" aria-label="{% trans 'Asosiy menyu' %}">
     <a href="{% url 'shop' %}" {% if here == 'shop' and not chosen %}class="is-active" aria-current="page"{% endif %}>{% trans "Barcha dizaynlar" %}</a>
-    {% for c in nav_categories %}
-      <a href="{% url 'shop' %}?category={{ c.id }}" {% if here == 'shop' and chosen == c.id|stringformat:'d' %}class="is-active" aria-current="page"{% endif %}>{{ c|t:"name" }}</a>
-    {% endfor %}
     <a href="{% url 'custom_design' %}" {% if here == 'custom_design' %}class="is-active" aria-current="page"{% endif %}>{% trans "Oʻz dizayningiz" %}</a>
   </nav>
   {% endwith %}
