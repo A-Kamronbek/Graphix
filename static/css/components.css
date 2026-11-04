@@ -677,9 +677,9 @@ fieldset.filters__group > .chips { clear: both; }
 .nav__count { position: absolute; top: 2px; right: 0; background: var(--c-brand);
   color: var(--c-brand-fg); font-size: 10px; font-weight: var(--fw-bold); line-height: 1;
   padding: 2px 4px; border-radius: var(--r-full); }
-/* The links take the row from 1100 px (§9 Phase 23 D1). The catalogue, two
-   categories and one's own design, the language and four icons need about
-   980 px; below that the menu holds them, as on a phone. */
+/* The links take the row from 1100 px (§9 Phase 23 D1); below that the menu
+   holds them, as on a phone. They are the catalogue and one's own design: the
+   categories left the header (§17 #425). */
 @media (min-width: 1100px) { .nav__links { display: flex; } .nav__burger { display: none; } }
 /* One line at 360 px (§18 #75): the brand and four 44 px targets need 338 px,
    so the gaps between them go. */
