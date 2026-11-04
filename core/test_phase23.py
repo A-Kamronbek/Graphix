@@ -1564,15 +1564,21 @@ class NavigationCase(TestCase):
 class HeaderAndMenuTests(NavigationCase):
     """D1 and D2: the laptop's links, the grouped phone menu and the bar of five."""
 
-    def test_the_laptops_links_are_the_catalogue_its_categories_and_ones_own_design(self):
+    def test_the_laptops_links_are_the_catalogue_and_ones_own_design(self):
+        """The categories left the header (§17 #425); the row under the title has them."""
         html = self.page()
         links = html.split('class="nav__links"', 1)[1].split('</nav>', 1)[0]
-        self.assertEqual(re.findall(r'>([^<>]+)</a>', links),
-                         ['Barcha dizaynlar', 'Futbolkalar', 'Longslivlar', 'Oʻz dizayningiz'])
-        self.assertIn('href="%s?category=%d"' % (reverse('shop'), self.shirts.pk), links)
-        # The current category is marked.
-        links = self.page('shop', '?category=%d' % self.shirts.pk).split('class="nav__links"', 1)[1]
-        self.assertRegex(links, r'category=%d" class="is-active" aria-current="page"' % self.shirts.pk)
+        self.assertEqual(re.findall(r'>([^<>]+)</a>', links), ['Barcha dizaynlar', 'Oʻz dizayningiz'])
+        self.assertNotIn('?category=', links)
+        # On the catalogue the catalogue is marked; on a category, nothing in
+        # the header is, and the category row marks the category.
+        links = self.page('shop').split('class="nav__links"', 1)[1].split('</nav>', 1)[0]
+        self.assertRegex(links, r'href="%s" class="is-active" aria-current="page"' % reverse('shop'))
+        html = self.page('shop', '?category=%d' % self.shirts.pk)
+        links = html.split('class="nav__links"', 1)[1].split('</nav>', 1)[0]
+        self.assertNotIn('is-active', links)
+        cats = html.split('class="cats"', 1)[1].split('</nav>', 1)[0]
+        self.assertRegex(cats, r'category=%d" class="is-active" aria-current="page"' % self.shirts.pk)
 
     def test_the_phone_menu_is_in_groups_and_has_no_basket(self):
         menu = self.page().split('id="gx-drawer"', 1)[1].split('</nav>', 1)[0]
