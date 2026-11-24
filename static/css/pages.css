@@ -437,7 +437,10 @@ html.js .slides__controls {
 .hero__go:hover { background: var(--c-fg-muted); }
 @media (min-width: 860px) {
   .hero { padding-block: var(--s-7) var(--s-5); }
-  .hero__grid { grid-template-columns: minmax(0, 1fr) var(--hero-side); align-items: center; gap: var(--s-7); }
+  /* The heading's longest word has to fit its column, so until 1280 px the
+     two columns share the width and the heading follows the window. */
+  .hero__grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: center; gap: var(--s-7); }
+  .hero__title { font-size: clamp(var(--fs-4xl), 8.2vw, var(--fs-7xl)); }
   .hero__text { gap: var(--s-5); }
   .hero__lede { font-size: var(--fs-lg); }
   .hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
@@ -447,7 +450,7 @@ html.js .slides__controls {
   /* Three designs dealt like cards, each at its own angle, on a round of
      halftone dots. A card under the pointer
      straightens and comes forward. */
-  .hero__deck { display: block; position: relative; height: var(--deck-h); }
+  .hero__deck { display: block; position: relative; aspect-ratio: var(--ar-deck); }
   .hero__deck::before { content: ""; position: absolute; inset: calc(var(--s-6) * -1) calc(var(--s-7) * -1);
     background: radial-gradient(var(--c-fg-subtle) var(--dot), transparent calc(var(--dot) + 1px)) 0 0 / var(--dot-grid) var(--dot-grid);
     -webkit-mask-image: radial-gradient(closest-side, black 55%, transparent);
@@ -465,6 +468,9 @@ html.js .slides__controls {
     z-index: 2; box-shadow: var(--sh-lg); }
   .hero__shot a { display: block; width: 100%; height: 100%; }
   .hero__shot img { width: 100%; height: 100%; object-fit: cover; }
+}
+@media (min-width: 1280px) {
+  .hero__grid { grid-template-columns: minmax(0, 1fr) var(--hero-side); }
 }
 @keyframes hero-deal { 0% { opacity: 0; rotate: 0deg; translate: 0 var(--s-7); } }
 

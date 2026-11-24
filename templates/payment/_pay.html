@@ -40,3 +40,9 @@
     </p>
   {% endif %}
 {% endif %}
+{% if pay %}
+  {# How long the order waits: the nightly run cancels it after that (§17 #373, §18 #78). #}
+  <p class="small muted">{% blocktrans trimmed with days=pay.days %}
+    Toʻlanmagan buyurtma {{ days }} kundan keyin oʻz-oʻzidan bekor qilinadi.
+  {% endblocktrans %}</p>
+{% endif %}

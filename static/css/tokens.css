@@ -170,7 +170,7 @@
   --tile-row: 128px;
   /* The cards dealt beside the hero's heading: the height of the column
      they are dealt in. A halftone dot and the grid it repeats on. */
-  --deck-h: 380px;
+  --ar-deck: 23 / 19;
   --dot: 2px; --dot-grid: 14px;
   /* The mark behind the own-design band's words. */
   --own-mark: 520px;

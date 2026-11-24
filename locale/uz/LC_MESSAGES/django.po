@@ -2568,6 +2568,11 @@ msgstr ""
 msgid "Telegramda yozish"
 msgstr ""
 
+#: .\templates\payment\_pay.html:45
+#, python-format
+msgid "Toʻlanmagan buyurtma %(days)s kundan keyin oʻz-oʻzidan bekor qilinadi."
+msgstr ""
+
 #: .\templates\payment\payment.html:57
 msgid "(yangi oynada ochiladi)"
 msgstr ""
