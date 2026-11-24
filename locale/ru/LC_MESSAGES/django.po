@@ -2632,6 +2632,11 @@ msgstr ""
 msgid "Telegramda yozish"
 msgstr "Написать в Telegram"
 
+#: .\templates\payment\_pay.html:45
+#, python-format
+msgid "Toʻlanmagan buyurtma %(days)s kundan keyin oʻz-oʻzidan bekor qilinadi."
+msgstr "Неоплаченный заказ автоматически отменяется через %(days)s дня."
+
 #: .\templates\payment\payment.html:57
 msgid "(yangi oynada ochiladi)"
 msgstr "(откроется в новой вкладке)"
@@ -3667,7 +3672,7 @@ msgid "Qaytarish shartlari"
 msgstr "Условия возврата"
 
 msgid "Saqlangan"
-msgstr "Сохранённые"
+msgstr "Избранное"
 
 msgid "Taklif yuborish"
 msgstr "Отправить идею"

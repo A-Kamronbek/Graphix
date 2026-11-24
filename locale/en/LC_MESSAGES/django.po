@@ -2610,6 +2610,11 @@ msgstr ""
 msgid "Telegramda yozish"
 msgstr "Message us on Telegram"
 
+#: .\templates\payment\_pay.html:45
+#, python-format
+msgid "Toʻlanmagan buyurtma %(days)s kundan keyin oʻz-oʻzidan bekor qilinadi."
+msgstr "An unpaid order is cancelled automatically after %(days)s days."
+
 #: .\templates\payment\payment.html:57
 msgid "(yangi oynada ochiladi)"
 msgstr "(opens in a new tab)"

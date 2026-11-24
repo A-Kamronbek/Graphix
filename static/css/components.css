@@ -561,7 +561,8 @@ fieldset.filters__group > .chips { clear: both; }
   border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--sh-lg); }
 .picker-drawer__hd { display: flex; align-items: center; gap: var(--s-3); }
 .picker-drawer__hd h2 { margin-right: auto; }
-.picker-drawer__close { margin-left: auto; color: var(--c-fg-muted); padding: var(--s-2); }
+.picker-drawer__close { margin: calc(var(--s-1) * -1) calc(var(--s-2) * -1) calc(var(--s-1) * -1) auto; color: var(--c-fg-muted); display: grid; place-items: center;
+  min-width: var(--tap); min-height: var(--tap); }
 .picker-drawer__close:hover { color: var(--c-fg); }
 .picker-drawer .picker__list { max-height: none; flex: 1; }
 @media (min-width: 720px) {

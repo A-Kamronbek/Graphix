@@ -628,15 +628,16 @@ def _pay_context(request, order):
 
     ``kind`` is 'gateway' for a form posting to `payment_start`, 'telegram'
     for the link that opens the chat, with ``open`` true the one time the
-    checkout has just sent the customer here. Cash, switched off, has no
-    online step and so no button.
+    checkout has just sent the customer here. ``days`` is how long an unpaid
+    order is kept, said under the button (§18 #78). Cash, switched off, has
+    no online step and so no button.
     """
     if order.status != Order.Status.PAYING:
         return None
     if order.payment_method in services.GATEWAY_CREDENTIALS:
-        return {'kind': 'gateway'}
+        return {'kind': 'gateway', 'days': services.UNPAID_ORDER_DAYS}
     if order.payment_method == Order.PaymentMethod.TELEGRAM:
-        return {'kind': 'telegram',
+        return {'kind': 'telegram', 'days': services.UNPAID_ORDER_DAYS,
                 'link': services.telegram_pay_link(order),
                 'admin': services.telegram_admin(),
                 'open': request.session.pop(OPEN_CHAT_KEY, None) == order.id}
