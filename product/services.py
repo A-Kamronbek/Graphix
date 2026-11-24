@@ -35,6 +35,12 @@ def toggle_like(user, product):
             likes_count=F('likes_count') - 1
         )
 
+    # "Siz uchun" is ordered by what the customer has liked, and its scores are
+    # cached for an hour: dropped here, so the next page already reflects this
+    # heart (§9 Phase 13). Imported here because `recommend` reads the models.
+    from . import recommend
+    recommend.forget(user)
+
     # Read back rather than computing: the value the customer sees should be the
     # value in the column, including any concurrent like that landed alongside.
     count = Product.objects.values_list('likes_count', flat=True).get(pk=product.pk)

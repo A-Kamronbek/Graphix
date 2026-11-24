@@ -650,6 +650,27 @@ class ProductLike(models.Model):
         ordering = ['-created_at']
 
 
+class RowStat(models.Model):
+    """One day's count for one recommended row (§9 Phase 13 item 4).
+
+    How often a signed-in visitor was shown the row and how often a design was
+    opened from it, so "Siz uchun" by likes can be held against the most-liked
+    list it replaced. A count, not a log: it names no visitor and no design.
+    ``row`` is one of ``product.recommend.ROWS``.
+    """
+    day = models.DateField()
+    row = models.CharField(max_length=2)
+    shown = models.PositiveIntegerField(default=0)
+    clicked = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.day} {self.row}: {self.clicked}/{self.shown}"
+
+    class Meta:
+        unique_together = ('day', 'row')
+        ordering = ['-day', 'row']
+
+
 class Review(models.Model):
     """A verified-purchase review, invisible until a staff member approves it.
 

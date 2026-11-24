@@ -17,7 +17,7 @@
 {# anchor is invalid HTML, and nesting one there made tapping the heart follow #}
 {# the link. `.card` is the positioned ancestor it floats against. #}
 <article class="card">
-  <a href="{% url 'item' p.slug %}">
+  <a href="{% url 'item' p.slug %}{% if row_ref %}?r={{ row_ref }}{% endif %}">
     <div class="card__media">
       {% with p.images.all|first as img %}
         <img {% photo_attrs img sizes|default:'card' %} alt="{{ p|t:'name' }}" decoding="async"
