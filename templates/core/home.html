@@ -238,8 +238,9 @@
 </section>
 
 {% if for_you %}
-  {% comment %} "Siz uchun" is the shop's list in its most-liked order until Phase 13
-     ships the real recommender: the most liked first, then the newest
+  {% comment %} "Siz uchun" is the shop's list: for a visitor with likes, the designs
+     sharing tags with them first (§9 Phase 13); then, and for everyone
+     else, the most liked first, then the newest
      (§17 #420, which replaced the sideways row of #403). Its first page is
      here, the shop's grid; as the visitor nears its end shop.js adds the
      shop's next page under it, as it does on the shop (§17 #356). The page
@@ -254,11 +255,11 @@
       </div>
       <div class="grid-products" data-more-grid>
         {% for p in for_you %}
-          {% include "product/_card.html" with p=p %}
+          {% include "product/_card.html" with p=p row_ref=for_you_ref %}
         {% endfor %}
       </div>
       {% if for_you.has_next %}
-        {% include "product/_more.html" with page_obj=for_you base=shop_url base_query="sort=popular" %}
+        {% include "product/_more.html" with page_obj=for_you base=shop_url base_query=for_you_query %}
       {% endif %}
     </div>
   </section>

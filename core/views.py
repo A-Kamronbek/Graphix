@@ -186,13 +186,22 @@ def home(request):
     newest design as a photograph. The owner replaced it with cards he manages
     himself (§17 #251), and `featured` went with it — nothing else read it.
     """
+    from product import recommend
     from product.views import PER_PAGE, POPULAR, annotate_cards
 
     live = Product.objects.filter(is_active=True, variants__available=True)
 
     cards = annotate_cards(live.prefetch_related('images', 'variants'),
                            user=request.user).distinct()
-    for_you = Paginator(cards.order_by(*POPULAR), PER_PAGE).get_page(1)
+    # By what the visitor has liked, where there is anything to go by; the
+    # most-liked order otherwise (§9 Phase 13). Counted for a signed-in
+    # visitor, each kind on its own, so one can be held against the other.
+    ordered, personal = recommend.order(cards, request.user, POPULAR)
+    for_you = Paginator(ordered, PER_PAGE).get_page(1)
+    for_you_ref = ''
+    if request.user.is_authenticated and for_you.object_list:
+        for_you_ref = recommend.FOR_YOU if personal else recommend.POPULAR
+        recommend.shown(for_you_ref)
     return render(request, 'core/home.html', {
         # Evaluated here rather than left as a queryset: the template counts
         # them to decide whether the carousel's controls are worth rendering,
@@ -208,11 +217,13 @@ def home(request):
         # beside it and the sixth is left out (§9 Phase 24).
         'newest': list(cards.order_by('-created_at')[:NEWEST]),
         'home_categories': _home_categories(live),
-        # Most liked until Phase 13 replaces it with the real recommender —
-        # the plan's own stand-in, not a placeholder. Every design on sale,
-        # the ones nobody has liked yet after the rest, or the list would end
-        # where the likes do.
+        # Every design on sale: the ones sharing tags with the visitor's likes
+        # first, then the most liked, the ones nobody has liked yet after the
+        # rest, or the list would end where the likes do. Its next pages are
+        # the shop's in the same order, so the page says which.
         'for_you': for_you,
+        'for_you_query': 'sort=foryou' if personal else 'sort=popular',
+        'for_you_ref': for_you_ref,
         # The three most liked, dealt as cards beside the heading from 860 px:
         # the page's own list, so they cost no query.
         'hero_shots': list(for_you.object_list[:HERO_SHOTS]),

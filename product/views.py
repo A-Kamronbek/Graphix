@@ -17,7 +17,7 @@ from django.views.decorators.http import require_POST
 from core import seo
 from core.i18n import tfield
 from core.ratelimit import is_rate_limited, RATE_LIMIT_MESSAGE
-from . import filters, images, services, size_charts
+from . import filters, images, recommend, services, size_charts
 from .models import Colour, Product, ProductLike, Review, Size, Tag, Variant
 
 
@@ -141,6 +141,13 @@ def _listing(request, search_page=False):
         qs = qs.order_by('min_price', '-created_at', '-pk')
     elif sort == 'price_desc':
         qs = qs.order_by('-min_price', '-created_at', '-pk')
+    elif sort == 'foryou':
+        # The home page's "Siz uchun", carried on: its next pages are asked
+        # for here (§17 #420, §9 Phase 13). With nothing to go by it is the
+        # most-liked list, and says so.
+        qs, personal = recommend.order(qs, request.user, POPULAR)
+        if not personal:
+            sort = 'popular'
     elif sort == 'popular':
         qs = qs.order_by(*POPULAR)
     elif sort == 'rating':
@@ -301,13 +308,24 @@ def item(request, slug):
             'stock': v.stock,
         }
 
-    related = annotate_cards(
-        Product.objects
-        .filter(is_active=True, category=product.category, variants__available=True)
-        .exclude(id=product.id)
-        .prefetch_related('images', 'variants'),
-        user=request.user,
-    ).distinct()[:4]
+    # The designs sharing the most tags with this one; the same category and
+    # then the most liked fill the strip where few do (§9 Phase 13 item 3).
+    similar_ids = recommend.similar(product, POPULAR)
+    place = {pk: n for n, pk in enumerate(similar_ids)}
+    related = sorted(
+        annotate_cards(
+            Product.objects.filter(pk__in=similar_ids).prefetch_related('images', 'variants'),
+            user=request.user,
+        ),
+        key=lambda p: place[p.pk])
+
+    # Counted for a signed-in visitor only, so a guest's links carry nothing
+    # and a crawler meets one address for a design (§9 Phase 13 item 4).
+    counted = request.user.is_authenticated
+    if counted:
+        recommend.clicked(request.GET.get('r'))
+        if related:
+            recommend.shown(recommend.SIMILAR)
 
     is_liked = (request.user.is_authenticated
                 and ProductLike.objects.filter(user=request.user, product=product).exists())
@@ -341,6 +359,7 @@ def item(request, slug):
         # module scope to keep product from taking a startup import on payment.
         'delivery_options': _delivery_options(),
         'related': related,
+        'related_ref': recommend.SIMILAR if counted else '',
     })
 
 

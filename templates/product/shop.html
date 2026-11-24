@@ -145,6 +145,8 @@
           {% for group, items in filter_choice %}{% for item in items %}<input type="hidden" name="{{ group.slug }}" value="{{ item.slug }}">{% endfor %}{% endfor %}
           <label class="sr-only" for="gx-sort">{% trans "Tartiblash" %}</label>
           <select class="select" id="gx-sort" name="sort" data-autosubmit>
+            {# Reached from the home page's "Siz uchun"; offered only while it is the order shown. #}
+            {% if sort == 'foryou' %}<option value="foryou" selected>{% trans "Siz uchun" %}</option>{% endif %}
             <option value="new" {% if sort == 'new' %}selected{% endif %}>{% trans "Yangilari" %}</option>
             <option value="popular" {% if sort == 'popular' %}selected{% endif %}>{% trans "Ommabop" %}</option>
             <option value="rating" {% if sort == 'rating' %}selected{% endif %}>{% trans "Reyting boʻyicha" %}</option>

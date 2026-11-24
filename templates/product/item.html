@@ -294,7 +294,7 @@
     <h2 class="h2">{% trans "Sizga yoqishi mumkin" %}</h2>
     <div class="grid-products">
       {% for p in related %}
-        {% include "product/_card.html" with p=p %}
+        {% include "product/_card.html" with p=p row_ref=related_ref %}
       {% endfor %}
     </div>
   </div>
