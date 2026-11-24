@@ -1,33 +1,62 @@
 {% extends "base.html" %}
-{% load static i18n %}
+{% load static i18n i18n_fields price_format image_tags %}
 
 {% block title %}{% trans "Grafik futbolkalar" %}{% endblock %}
 
 {% block content %}
 
-{% comment %} The slides, and then the two buttons the hero used to hold. Owner's
-   layout (§17 #251): navbar, slides, the two buttons, then the product rows.
+{% comment %} The page opens with what the shop sells, in its own words and at
+   the size of a poster: the heading, the shop's one-line description (the
+   one a search result shows) and the two ways in. The mark that closes the
+   heading turns once as the page arrives, and stands still for a visitor
+   who asked for less motion (§9 Phase 24).
 
-   A scroll-snap track, not a JavaScript slider. With the script blocked the
-   track is still a horizontally scrollable row of cards a thumb can swipe,
-   which is a working carousel rather than the "first slide only" fallback
-   the plan settled for. The script adds the arrows, the dots and the
-   advancing; it is not what makes the thing usable.
+   The owner's slides follow it, unchanged (§17 #251): he manages them, and
+   they are still the first picture on the page. The heading used to be
+   hidden inside them, for want of anywhere to be seen. {% endcomment %}
+<section class="hero">
+  <div class="wrap hero__grid">
+    <div class="hero__text">
+      <h1 class="hero__title">{% trans "Grafik futbolkalar" %}<svg class="hero__mark" aria-hidden="true"><use href="#i-mark"></use></svg></h1>
+      <p class="hero__lede">{% trans "Grafik futbolkalar doʻkoni. Premium sifat, Oʻzbekiston boʻylab yetkazib berish." %}</p>
+      <div class="hero__actions">
+        <a class="btn btn--lg hero__go" href="{% url 'shop' %}">
+          {% trans "Barcha dizaynlar" %}
+          <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+        </a>
+        <a class="btn btn--secondary btn--lg" href="{% url 'custom_design' %}">{% trans "Oʻz dizayningiz" %}</a>
+      </div>
+    </div>
+    {% if hero_shots %}
+      {% comment %} The three most-liked designs, dealt like cards onto a round of
+         halftone dots, from 860 px: below it the column is not drawn, and a
+         photograph that waits to be scrolled to is not fetched for a box
+         nobody sees. Each is a link to its design. {% endcomment %}
+      <ul class="hero__deck">
+        {% for p in hero_shots %}
+          <li class="hero__shot">
+            <a href="{% url 'item' p.slug %}">
+              {% with p.images.all|first as img %}
+                <img {% photo_attrs img "hero-shot" %} alt="{{ p|t:'name' }}" loading="lazy" decoding="async">
+              {% endwith %}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</section>
 
-   The arrows, dots and pause button ship `hidden` and the script reveals
-   them. A control that does nothing is worse than no control, and without
-   the script none of the three can do anything.
-
-   An `h1` regardless. The slides carry their words inside their pictures, so
-   the page would otherwise have no heading at all — an accessibility and
-   SEO regression against a measured 100 (§17 #251). It is visually hidden
-   when there are slides to look at, and shown when there are none. {% endcomment %}
+{% comment %} A scroll-snap track, not a JavaScript slider. With the script blocked the
+   track is still a horizontally scrollable row of cards a thumb can swipe.
+   The script adds the arrows, the dots and the advancing; it is not what
+   makes the thing usable. The arrows, dots and pause button ship `hidden`
+   and the script reveals them: a control that does nothing is worse than no
+   control. {% endcomment %}
 {% if slides %}
   <section class="slides" data-slides
            aria-roledescription="{% trans 'karusel' %}"
            aria-label="{% trans 'Aksiyalar' %}">
-    <h1 class="sr-only">{% trans "Grafik futbolkalar" %}</h1>
-
     <div class="wrap slides__frame">
       <ul class="slides__track" data-slides-track>
         {% for slide in slides %}
@@ -98,38 +127,26 @@
       </div>
     {% endif %}
   </section>
-{% else %}
-  {% comment %} No slides yet. The page still needs its heading, and it should not open
-     with a blank band where a picture is meant to be. {% endcomment %}
-  <section class="section">
-    <div class="wrap">
-      <h1 class="h1">{% trans "Grafik futbolkalar" %}</h1>
-    </div>
-  </section>
 {% endif %}
 
-{# The categories under the slide, in place of two stacked buttons (§9 Phase #}
-{# 23 D3): where a visitor chooses first. One's own design has its band below. #}
-<section class="section section--tight home__cats">
-  <div class="wrap">
-    {% include "partials/_cats.html" with active=None %}
-  </div>
-</section>
-
 {% if newest %}
-  <section class="section">
-    <div class="wrap stack stack--lg">
-      <div class="row row--between">
-        <h2 class="h2">{% trans "Yangi kelganlar" %}</h2>
+  {% comment %} Six new designs. On a phone they are six small cards, three
+     rows of two, and the first is what a phone sees straight after the
+     slide (§17 #29); on a tablet two rows of three. From 860 px the newest
+     is drawn four cells large, four stand
+     beside it in two rows, and the sixth is not drawn. {% endcomment %}
+  <section class="section home__block" aria-labelledby="newest">
+    <div class="wrap">
+      <div class="home__head">
+        <h2 class="home__title" id="newest">{% trans "Yangi kelganlar" %}</h2>
         <a class="link" href="{% url 'shop' %}">{% trans "Barchasi" %}</a>
       </div>
-      <div class="grid-products">
-        {# The first row is what a phone sees soon after the slide and the #}
-        {# categories, so it is fetched rather than deferred, and its first #}
-        {# card is the page's LCP candidate. #}
+      <div class="grid-products grid-products--lead">
         {% for p in newest %}
-          {% if forloop.counter <= 4 %}
-            {% include "product/_card.html" with p=p eager=True lcp=forloop.first %}
+          {% if forloop.first %}
+            {% include "product/_card.html" with p=p eager=True lcp=True sizes="card-lead" %}
+          {% elif forloop.counter <= 4 %}
+            {% include "product/_card.html" with p=p eager=True %}
           {% else %}
             {% include "product/_card.html" with p=p %}
           {% endif %}
@@ -139,17 +156,83 @@
   </section>
 {% endif %}
 
-{# One's own design, as a band of its own (§9 Phase 23 D3, part E), above #}
-{# "Siz uchun": nothing goes under a list that has no end (§17 #420). The #}
-{# statement that stood under it was taken off with that change. #}
-<section class="section">
+{% comment %} What a visitor asks before buying, on one dark band between the
+   lists: what delivery costs, who carries it, how sizes run and how a
+   return works. The prices are the delivery rows' own (§17 #111). {% endcomment %}
+<section class="homefacts" aria-label="{% trans 'Yetkazib berish' %}">
   <div class="wrap">
-    <div class="band">
-      <div class="stack stack--sm">
-        <h2 class="h2">{% trans "Oʻz dizayningiz bormi?" %}</h2>
-        <p>{% trans "Gʻoyangizni, rasmingizni yoki matningizni yuboring: qaysi kiyimga, qaysi rangda va qayerga bosilishini tanlaysiz, biz siz bilan bogʻlanamiz." %}</p>
+    <ul class="homefacts__list">
+      {% for tier in delivery_tiers %}
+        <li class="homefacts__item">
+          <svg class="homefacts__mark" aria-hidden="true"><use href="#i-mark"></use></svg>
+          <span>{{ tier|t:"name" }}</span>
+          <span class="homefacts__figure num">{{ tier.price|price }}&nbsp;{% trans "soʻm" %}</span>
+        </li>
+      {% endfor %}
+      <li class="homefacts__item">
+        <svg class="homefacts__mark" aria-hidden="true"><use href="#i-mark"></use></svg>
+        <a href="{% url 'delivery' %}">{% trans "Oʻzbekiston boʻylab, Oʻzbekiston pochtasi" %}</a>
+      </li>
+      {% if has_size_guide %}
+        <li class="homefacts__item">
+          <svg class="homefacts__mark" aria-hidden="true"><use href="#i-mark"></use></svg>
+          <a href="{% url 'size_guide' %}">{% trans "Oʻlcham jadvali" %}</a>
+        </li>
+      {% endif %}
+      <li class="homefacts__item">
+        <svg class="homefacts__mark" aria-hidden="true"><use href="#i-mark"></use></svg>
+        <a href="{% url 'returns' %}">{% trans "Qaytarish va almashtirish" %}</a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+{% if home_categories %}
+  {% comment %} The categories as tiles, in place of the row of pills (§9 Phase 23
+     D3): each one's name at the size of a heading, how many designs it
+     holds, and the newest of them as its photograph. A photograph shot on
+     white is multiplied onto the tile's ground, so it sits on the tile and
+     not in a white box. {% endcomment %}
+  <section class="section home__block" aria-labelledby="cats">
+    <div class="wrap">
+      <div class="home__head">
+        <h2 class="home__title" id="cats">{% trans "Turkumlar" %}</h2>
+        <a class="link" href="{% url 'shop' %}">{% trans "Barchasi" %}</a>
       </div>
-      <a class="btn btn--secondary btn--lg" href="{% url 'custom_design' %}">{% trans "Taklif yuborish" %}</a>
+      <ul class="tiles">
+        {% for tile in home_categories %}
+          <li>
+            <a class="tile" href="{% url 'shop' %}?category={{ tile.category.id }}">
+              <span class="tile__text">
+                <span class="tile__name">{{ tile.category|t:"name" }}</span>
+                <span class="tile__count num">{% blocktrans count n=tile.count %}{{ n }} ta mahsulot{% plural %}{{ n }} ta mahsulot{% endblocktrans %}</span>
+              </span>
+              <span class="tile__media">
+                <img {% photo_attrs tile.image "tile" %} alt="" loading="lazy" decoding="async">
+              </span>
+              <svg class="i i--lg tile__arrow" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+{% endif %}
+
+{# One's own design, as a band of its own (§9 Phase 23 D3, part E), above #}
+{# "Siz uchun": nothing goes under a list that has no end (§17 #420). From #}
+{# Phase 24 the band is the page's dark ground, edge to edge, with the mark #}
+{# large behind its words. #}
+<section class="own">
+  <div class="wrap own__grid">
+    <svg class="own__mark" aria-hidden="true"><use href="#i-mark"></use></svg>
+    <h2 class="own__title">{% trans "Oʻz dizayningiz bormi?" %}</h2>
+    <div class="own__side">
+      <p>{% trans "Gʻoyangizni, rasmingizni yoki matningizni yuboring: qaysi kiyimga, qaysi rangda va qayerga bosilishini tanlaysiz, biz siz bilan bogʻlanamiz." %}</p>
+      <a class="btn btn--lg own__btn" href="{% url 'custom_design' %}">
+        {% trans "Taklif yuborish" %}
+        <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+      </a>
     </div>
   </div>
 </section>
@@ -164,9 +247,11 @@
      the shop. Last on the page, for the reason above. Below the first
      screen, so every photograph waits to be scrolled to. {% endcomment %}
   {% url 'shop' as shop_url %}
-  <section class="section" aria-labelledby="for-you">
-    <div class="wrap stack stack--lg">
-      <h2 class="h2" id="for-you">{% trans "Siz uchun" %}</h2>
+  <section class="section home__block" aria-labelledby="for-you">
+    <div class="wrap">
+      <div class="home__head">
+        <h2 class="home__title" id="for-you">{% trans "Siz uchun" %}</h2>
+      </div>
       <div class="grid-products" data-more-grid>
         {% for p in for_you %}
           {% include "product/_card.html" with p=p %}

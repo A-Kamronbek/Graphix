@@ -42,6 +42,14 @@ SIZES = {
     # fills the 16:9 card exactly, and on a laptop with no picture of its own
     # it is cut top and bottom, never at the sides (§17 #302).
     'slide-card': '(min-width: 1280px) 1216px, 92vw',
+    # The home page's first new design: a card like the others below 860 px,
+    # and four cells of the grid from there.
+    'card-lead': '(min-width: 1280px) 600px, (min-width: 860px) 46vw, (min-width: 720px) 31vw, 46vw',
+    # A card dealt beside the home page's heading, from 860 px only.
+    'hero-shot': '(min-width: 1280px) 220px, 17vw',
+    # A category's tile on the home page: one to a row on a phone, drawn a
+    # third of the row wide; three to a row from 720 px.
+    'tile': '(min-width: 1280px) 400px, (min-width: 720px) 31vw, 40vw',
     'rail': '64px',
     # The basket's line, 112 px since §9 Phase 23 D6; the order page and the
     # return form draw theirs smaller, from the same file.

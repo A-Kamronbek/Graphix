@@ -69,6 +69,17 @@
      part E): what the shirt looks like, not the system's palette, and used
      for those swatches and nothing else. Each sits in a hairline ring, so
      white reads on the white page. */
+  /* The dark ground. One band of the home page and its own-design section
+     are set on the ink itself, white on it (§9 Phase 24): the page stays
+     white and no photograph sits on these. --c-on-ink-muted is 9.6:1 on the
+     ink; --c-ink-line and --c-ink-mark are decorative, a rule and the large
+     mark behind the words. */
+  --c-ink:           var(--c-fg);
+  --c-on-ink:        #FFFFFF;
+  --c-on-ink-muted:  #BDB6A8;
+  --c-ink-line:      #3B352C;
+  --c-ink-mark:      #26211A;
+
   --c-garment-white: #FFFFFF;
   --c-garment-black: #1A1A1A;
   --c-garment-grey:  #9E9E9E;
@@ -92,19 +103,22 @@
 
   --fs-xs:   12px; --fs-sm:  14px; --fs-base: 16px; --fs-lg:  18px;
   --fs-xl:   20px; --fs-2xl: 24px; --fs-3xl:  32px; --fs-4xl: 40px;
-  --fs-5xl:  56px; --fs-6xl: 72px;
+  --fs-5xl:  56px; --fs-6xl: 72px; --fs-7xl: 96px;
   /* The title of the sign-in pages, a step under --fs-5xl: the largest size
      at which the longest of them, "Roʻyxatdan oʻtish", stays on one line of
      the 420px column those pages are set in. */
   --fs-auth-title: 54px;
 
+  /* Poster type, the home page's headings: lines set close and letters
+     closer, which only reads at these sizes. */
+  --lh-display: .95; --ls-display: -.04em;
   --lh-tight: 1.1; --lh-snug: 1.3; --lh-normal: 1.55; --lh-loose: 1.75;
 
   /* 500 is the floor for body copy, not 400 (§17 #46). It was set for the
      dark ground and is kept on the white one, so no line of text changes
      width. */
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600;
-  --fw-bold:    700; --fw-black:  900;
+  --fw-bold:    700; --fw-extrabold: 800; --fw-black:  900;
 
   --ls-tight: -.02em; --ls-normal: 0; --ls-wide: .06em; --ls-caps: .16em;
 
@@ -118,6 +132,10 @@
 
   /* -------------------------------------------------------------- motion */
   --t-fast: 120ms; --t-base: 200ms; --t-slow: 320ms;
+  /* The one long movement: the mark turning once as the home page arrives. */
+  --t-hero: 900ms;
+  /* The home page's cards being dealt. */
+  --t-deal: 700ms;
   --ease-out: cubic-bezier(.16, 1, .3, 1);
 
   /* -------------------------------------------------------------- layout */
@@ -146,6 +164,18 @@
   --ar-slide-wide: 16 / 5;
   /* Product imagery is 4:5 across the whole catalogue (§8). */
   --ar-product: 4 / 5;
+  /* A category's tile on the home page, from 720 px: a little taller than a
+     product, for the name above the photograph. Below it a tile is a row. */
+  --ar-tile: 1 / 1;
+  --tile-row: 128px;
+  /* The cards dealt beside the hero's heading: the height of the column
+     they are dealt in. A halftone dot and the grid it repeats on. */
+  --deck-h: 380px;
+  --dot: 2px; --dot-grid: 14px;
+  /* The mark behind the own-design band's words. */
+  --own-mark: 520px;
+  /* The home page's hero: the column beside the heading, from 860 px. */
+  --hero-side: 460px;
   /* One photograph must never take more than one screen (§17 #47). */
   --pdp-image-max: min(76vh, 760px);
   --pdp-buy-col: 430px;

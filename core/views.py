@@ -139,6 +139,35 @@ def delivery(request):
         DeliveryOption.objects.filter(is_active=True)))
 
 
+#: The newest designs the home page shows: six small ones on a phone; from
+#: 860 px the first is large, four stand beside it and the sixth is not drawn.
+NEWEST = 6
+#: The most-liked designs dealt as cards beside the home page's heading.
+HERO_SHOTS = 3
+
+
+def _home_categories(live):
+    """Each category that has a design on sale, with a count and a picture.
+
+    The home page draws a category as a tile: its name, how many designs it
+    holds and the newest of them as its photograph. A category with nothing
+    on sale is left out, so no tile leads to an empty list. One query a
+    category, and the shop has a handful (§9 Phase 24).
+    """
+    from product.models import Category
+
+    tiles = []
+    for category in Category.objects.order_by('id'):
+        designs = live.filter(category=category).distinct()
+        count = designs.count()
+        if not count:
+            continue
+        newest = designs.order_by('-created_at').prefetch_related('images').first()
+        tiles.append({'category': category, 'count': count,
+                      'image': next(iter(newest.images.all()), None)})
+    return tiles
+
+
 def home(request):
     """Render the home page.
 
@@ -163,6 +192,7 @@ def home(request):
 
     cards = annotate_cards(live.prefetch_related('images', 'variants'),
                            user=request.user).distinct()
+    for_you = Paginator(cards.order_by(*POPULAR), PER_PAGE).get_page(1)
     return render(request, 'core/home.html', {
         # Evaluated here rather than left as a queryset: the template counts
         # them to decide whether the carousel's controls are worth rendering,
@@ -173,12 +203,19 @@ def home(request):
         'slides': list(Slide.objects.filter(is_active=True)
                        .select_related('phone')
                        .exclude(Q(picture='') & Q(phone__isnull=True))),
-        'newest': list(cards.order_by('-created_at')[:8]),
+        # Six: three rows of two on a phone and two of three on a tablet. On
+        # a laptop the first is four cells large, four fill the two rows
+        # beside it and the sixth is left out (§9 Phase 24).
+        'newest': list(cards.order_by('-created_at')[:NEWEST]),
+        'home_categories': _home_categories(live),
         # Most liked until Phase 13 replaces it with the real recommender —
         # the plan's own stand-in, not a placeholder. Every design on sale,
         # the ones nobody has liked yet after the rest, or the list would end
         # where the likes do.
-        'for_you': Paginator(cards.order_by(*POPULAR), PER_PAGE).get_page(1),
+        'for_you': for_you,
+        # The three most liked, dealt as cards beside the heading from 860 px:
+        # the page's own list, so they cost no query.
+        'hero_shots': list(for_you.object_list[:HERO_SHOTS]),
         # The shop itself, and the search box a result may carry. Only on the
         # home page: an Organization repeated on forty pages is the same fact
         # forty times, and this is the page a search engine treats as the site.

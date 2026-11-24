@@ -141,7 +141,6 @@ code, kbd, samp, pre { font-family: var(--f-mono); }
 .row--wrap  { flex-wrap: wrap; }
 
 .section    { padding-block: var(--s-7); }
-.section--tight { padding-block: var(--s-4); }
 
 /* Wide content never makes the page scroll sideways (plan §5). */
 .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
