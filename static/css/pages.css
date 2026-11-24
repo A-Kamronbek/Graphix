@@ -896,6 +896,31 @@ html.js .slides__controls {
 .retreq__pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
 .retreq:has(input[name="kind"][value="return"]:checked) .retreq__size { display: none; }
 
+/* ---- About: the home page's heading, then numbered rows under ink rules ---- */
+.about { padding-block: var(--s-6) var(--s-8); }
+.about__head { display: grid; gap: var(--s-4); padding-bottom: var(--s-7); }
+.about__lede { font-size: var(--fs-xl); line-height: var(--lh-snug); color: var(--c-fg-muted);
+  max-width: 30ch; text-wrap: balance; }
+.about__row { display: grid; gap: var(--s-4); padding-block: var(--s-5) var(--s-7);
+  border-top: 2px solid var(--c-fg); }
+.about__label { display: flex; align-items: baseline; gap: var(--s-3); }
+.about__no { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-hint); }
+.about__h { font-family: var(--f-display); font-weight: var(--fw-extrabold); font-size: var(--fs-2xl);
+  line-height: var(--lh-tight); letter-spacing: var(--ls-tight); }
+.about__text { display: grid; gap: var(--s-4); color: var(--c-fg-muted); font-size: var(--fs-base);
+  line-height: var(--lh-normal); max-width: 62ch; }
+.about__text .row { margin-top: var(--s-3); }
+@media (min-width: 860px) {
+  .about { padding-block: var(--s-8) var(--s-5); }
+  .about__head { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: end; gap: var(--s-7);
+    padding-bottom: var(--s-9); }
+  .about__lede { font-size: var(--fs-2xl); justify-self: end; }
+  .about__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--s-7);
+    padding-block: var(--s-6) var(--s-9); }
+  .about__h { font-size: var(--fs-3xl); }
+  .about__text { font-size: var(--fs-lg); }
+}
+
 /* ---- Suggesting one's own design (§9 Phase 23 part E) ----
    One column, as the return form. The garment's colours are radios with a
    swatch beside them; "which colour" is asked only for "Boshqa rang" where

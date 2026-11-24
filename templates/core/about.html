@@ -12,26 +12,38 @@
 {% endcomment %}
 
 {% block content %}
-<div class="wrap section">
-  <article class="prose stack stack--lg">
-    <h1 class="h1">{% trans "Biz haqimizda" %}</h1>
+{# Drawn as the home page is (Phase 24): the heading at a poster's size with #}
+{# the mark, then three numbered rows under ink rules. The words are Phase 8's. #}
+<article class="wrap about">
+  <header class="about__head">
+    <h1 class="hero__title">{% trans "Biz haqimizda" %}<svg class="hero__mark" aria-hidden="true"><use href="#i-mark"></use></svg></h1>
+    <p class="about__lede">{% trans "Kiyishni istaydigan grafik futbolkalar — Oʻzbekiston boʻylab yetkazib beriladi." %}</p>
+  </header>
 
-    <p class="lede">{% trans "Kiyishni istaydigan grafik futbolkalar — Oʻzbekiston boʻylab yetkazib beriladi." %}</p>
-
-    <p class="body">{% trans "GRAPHIX bitta narsa bilan shugʻullanadi — grafik futbolka bilan. Dizayn egningizda ham ekrandagidek koʻrinishi kerak. Shuning uchun mahsulot sahifasida eng katta joy rasmga beriladi, mato, zichlik va bosma usuli esa alohida yozib qoʻyiladi." %}</p>
-
-    <p class="body">{% trans "Doʻkonga chiqadigan har bir futbolka avval tekshiriladi: print ham, mato ham oʻzimiz kiyadigan darajada boʻlishi kerak." %}</p>
-
-    <h2 class="h2">{% trans "Olishdan oldin bilasiz" %}</h2>
-    <p class="body">{% trans "Oʻlcham jadvalidagi qiymatlar kiyimning oʻzidan oʻlchangan. Sharhni faqat mahsulotni olgan xaridor qoldiradi va har bir sharh chop etilishidan oldin tekshiriladi. Yetkazib berish narxi va muddati buyurtma berishdan oldin koʻrsatiladi." %}</p>
-
-    <h2 class="h2">{% trans "Oʻz dizayningiz" %}</h2>
-    <p class="body">{% trans "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual dizaynli futbolka tayyorlaymiz." %}</p>
-
-    <div class="row row--wrap">
-      <a class="btn btn--primary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
-      <a class="btn btn--secondary btn--lg" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
+  <section class="about__row">
+    <div class="about__label"><span class="about__no num" aria-hidden="true">01</span><h2 class="about__h">GRAPHIX</h2></div>
+    <div class="about__text">
+      <p>{% trans "GRAPHIX bitta narsa bilan shugʻullanadi — grafik futbolka bilan. Dizayn egningizda ham ekrandagidek koʻrinishi kerak. Shuning uchun mahsulot sahifasida eng katta joy rasmga beriladi, mato, zichlik va bosma usuli esa alohida yozib qoʻyiladi." %}</p>
+      <p>{% trans "Doʻkonga chiqadigan har bir futbolka avval tekshiriladi: print ham, mato ham oʻzimiz kiyadigan darajada boʻlishi kerak." %}</p>
     </div>
-  </article>
-</div>
+  </section>
+
+  <section class="about__row">
+    <div class="about__label"><span class="about__no num" aria-hidden="true">02</span><h2 class="about__h">{% trans "Olishdan oldin bilasiz" %}</h2></div>
+    <div class="about__text">
+      <p>{% trans "Oʻlcham jadvalidagi qiymatlar kiyimning oʻzidan oʻlchangan. Sharhni faqat mahsulotni olgan xaridor qoldiradi va har bir sharh chop etilishidan oldin tekshiriladi. Yetkazib berish narxi va muddati buyurtma berishdan oldin koʻrsatiladi." %}</p>
+    </div>
+  </section>
+
+  <section class="about__row">
+    <div class="about__label"><span class="about__no num" aria-hidden="true">03</span><h2 class="about__h">{% trans "Oʻz dizayningiz" %}</h2></div>
+    <div class="about__text">
+      <p>{% trans "Xohlagan rasm yoki gʻoyangiz bor-u, kolleksiyamizda topolmadingizmi? Boshqa joydan qidirib vaqt yoʻqotmang — bizga yozing. Buyurtma asosida individual dizaynli futbolka tayyorlaymiz." %}</p>
+      <div class="row row--wrap">
+        <a class="btn btn--primary btn--lg" href="{% url 'shop' %}">{% trans "Barcha dizaynlar" %}</a>
+        <a class="btn btn--secondary btn--lg" href="{% url 'contact' %}">{% trans "Bogʻlanish" %}</a>
+      </div>
+    </div>
+  </section>
+</article>
 {% endblock %}
