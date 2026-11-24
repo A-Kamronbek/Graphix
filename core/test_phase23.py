@@ -381,7 +381,7 @@ class ForYouListTests(TempMedia, TestCase):
     def test_it_is_the_shops_grid_handed_to_the_list_script(self):
         html = self.page()
         section = for_you_of(html)
-        self.assertIn('<h2 class="h2" id="for-you">Siz uchun</h2>', section)
+        self.assertIn('<h2 class="home__title" id="for-you">Siz uchun</h2>', section)
         self.assertIn('<div class="grid-products" data-more-grid>', section)
         self.assertRegex(section, r'<div class="more" data-more data-first\b')
         self.assertIn('data-loaded="Yana dizaynlar koʻrsatildi."', section)
@@ -424,7 +424,7 @@ class ForYouListTests(TempMedia, TestCase):
 
     def test_the_band_is_above_it_and_nothing_is_under_it(self):
         html = self.page()
-        self.assertLess(html.index('class="band"'), html.index('id="for-you"'))
+        self.assertLess(html.index('class="own"'), html.index('id="for-you"'))
         after = html.split('id="for-you"', 1)[1].split('</section>', 1)[1].split('</main>', 1)[0]
         self.assertNotIn('<section', after)
         # The statement that stood at the foot is gone.
@@ -1616,13 +1616,18 @@ class HeaderAndMenuTests(NavigationCase):
 class PageChangeTests(NavigationCase):
     """D3 to D9, page by page."""
 
-    def test_home_has_the_categories_under_the_slide_and_the_own_design_band(self):
+    def test_home_has_the_categories_and_the_own_design_band(self):
+        """From Phase 24 the categories are tiles and the band is on the ink.
+
+        A tile is a category with a design on sale: the second category here
+        has none, and a tile to an empty list is not drawn.
+        """
         html = self.page()
-        cats = html.split('class="cats"', 1)[1].split('</nav>', 1)[0]
-        self.assertEqual(re.findall(r'>([^<>]+)</a>', cats), ['Barchasi', 'Futbolkalar', 'Longslivlar'])
+        tiles = html.split('class="tiles"', 1)[1].split('</ul>', 1)[0]
+        self.assertEqual(re.findall(r'class="tile__name">([^<>]+)<', tiles), ['Futbolkalar'])
         self.assertNotIn('Kategoriyalar', html)
         self.assertNotIn('home__cta', html)
-        band = html.split('class="band"', 1)[1].split('</section>', 1)[0]
+        band = html.split('class="own"', 1)[1].split('</section>', 1)[0]
         self.assertIn('Oʻz dizayningiz bormi?', band)
         self.assertIn('href="%s"' % reverse('custom_design'), band)
 

@@ -407,19 +407,181 @@ html.js .slides__controls {
   font-weight: var(--fw-medium); white-space: nowrap; transition: border-color var(--t-fast); }
 .cats a:hover { border-color: var(--c-fg-muted); }
 .cats a.is-active { background: var(--c-fg); border-color: var(--c-fg); color: var(--c-bg); }
-.home__cats { padding-top: var(--s-4); }
-.home__cats .cats a { min-height: 48px; }
 @media (min-width: 860px) {
   .cats { display: flex; flex-wrap: wrap; }
   .cats a { padding-inline: var(--s-5); }
 }
 
-/* One's own design as a band of its own (§9 Phase 23 D3). */
-.band { display: grid; gap: var(--s-4); padding: var(--s-6); background: var(--c-surface);
-  border-radius: var(--r-md); }
-.band p { color: var(--c-fg-muted); max-width: 46ch; }
+/* ------------------------------------------------------------ home page */
+/* The home page from Phase 24 (§9): a heading the size of a poster, the
+   owner's slides, the newest designs with the first of them large, a dark
+   band of the facts a buyer asks for, the categories as tiles, the
+   own-design band on the dark ground, and "Siz uchun". */
+
+/* The hero. On a phone the heading and the shop's line, and the slide
+   straight after: the buttons and the dealt cards wait for 860 px, where the
+   bar of five is gone and there is a column to put them in (§17 #29). */
+.hero { padding-block: var(--s-5) var(--s-2); overflow: hidden; }
+.hero__grid { display: grid; gap: var(--s-3); }
+.hero__text { display: grid; gap: var(--s-3); }
+.hero__title { font-family: var(--f-display); font-weight: var(--fw-extrabold);
+  font-size: clamp(var(--fs-4xl), 13vw, var(--fs-7xl)); line-height: var(--lh-display);
+  letter-spacing: var(--ls-display); text-wrap: balance; }
+.hero__mark { display: inline-block; width: .74em; height: .74em; margin-left: .1em;
+  vertical-align: -.06em; transform-origin: center;
+  animation: hero-mark var(--t-hero) var(--ease-out) both; }
+@keyframes hero-mark { 0% { transform: rotate(-180deg) scale(.6); } }
+.hero__lede { color: var(--c-fg-muted); font-size: var(--fs-base); max-width: 38ch; text-wrap: pretty; }
+.hero__actions, .hero__deck { display: none; }
+.hero__go { background: var(--c-ink); color: var(--c-on-ink); }
+.hero__go:hover { background: var(--c-fg-muted); }
 @media (min-width: 860px) {
-  .band { grid-template-columns: 1fr auto; align-items: center; padding: var(--s-7); }
+  .hero { padding-block: var(--s-7) var(--s-5); }
+  .hero__grid { grid-template-columns: minmax(0, 1fr) var(--hero-side); align-items: center; gap: var(--s-7); }
+  .hero__text { gap: var(--s-5); }
+  .hero__lede { font-size: var(--fs-lg); }
+  .hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+  .hero__actions .btn .i { transition: transform var(--t-base) var(--ease-out); }
+  .hero__actions .btn:hover .i { transform: translateX(var(--s-1)); }
+
+  /* Three designs dealt like cards, each at its own angle, on a round of
+     halftone dots. A card under the pointer
+     straightens and comes forward. */
+  .hero__deck { display: block; position: relative; height: var(--deck-h); }
+  .hero__deck::before { content: ""; position: absolute; inset: calc(var(--s-6) * -1) calc(var(--s-7) * -1);
+    background: radial-gradient(var(--c-fg-subtle) var(--dot), transparent calc(var(--dot) + 1px)) 0 0 / var(--dot-grid) var(--dot-grid);
+    -webkit-mask-image: radial-gradient(closest-side, black 55%, transparent);
+    mask-image: radial-gradient(closest-side, black 55%, transparent); }
+  .hero__shot { position: absolute; width: 46%; aspect-ratio: var(--ar-product); overflow: hidden;
+    background: var(--c-bg); border: 1px solid var(--c-line-strong); border-radius: var(--r-md);
+    box-shadow: var(--sh-md);
+    transition: rotate var(--t-slow) var(--ease-out), translate var(--t-slow) var(--ease-out),
+      box-shadow var(--t-slow) var(--ease-out);
+    animation: hero-deal var(--t-deal) var(--ease-out) both; }
+  .hero__shot:nth-child(1) { left: 0; top: 14%; rotate: -8deg; }
+  .hero__shot:nth-child(2) { left: 27%; top: 0; rotate: 3deg; z-index: 1; animation-delay: var(--t-fast); }
+  .hero__shot:nth-child(3) { left: 54%; top: 16%; rotate: 10deg; animation-delay: var(--t-base); }
+  .hero__shot:hover, .hero__shot:focus-within { rotate: 0deg; translate: 0 calc(var(--s-2) * -1);
+    z-index: 2; box-shadow: var(--sh-lg); }
+  .hero__shot a { display: block; width: 100%; height: 100%; }
+  .hero__shot img { width: 100%; height: 100%; object-fit: cover; }
+}
+@keyframes hero-deal { 0% { opacity: 0; rotate: 0deg; translate: 0 var(--s-7); } }
+
+/* A block of the page: a rule in the ink, the heading under it at the left
+   and the way to the whole list at the right. */
+.home__block { padding-block: var(--s-7); }
+/* Straight under the slides the block needs less air above it: the dots
+   have already made the pause, and on a phone the first design has to show
+   in the first screen (§17 #29). */
+.slides + .home__block { padding-top: var(--s-4); }
+.home__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4);
+  padding-top: var(--s-4); margin-bottom: var(--s-5); border-top: 2px solid var(--c-fg); }
+.home__title { font-family: var(--f-display); font-weight: var(--fw-extrabold);
+  font-size: clamp(var(--fs-3xl), 6vw, var(--fs-5xl)); line-height: 1;
+  letter-spacing: var(--ls-display); text-wrap: balance; }
+@media (min-width: 860px) {
+  .home__block { padding-block: var(--s-9); }
+  .slides + .home__block { padding-top: var(--s-7); }
+  .home__head { padding-top: var(--s-5); margin-bottom: var(--s-7); }
+}
+
+/* The newest designs. Six small cards on a phone and a tablet. From 860 px
+   the first is four cells of the grid and stands two rows tall, its
+   photograph taking whatever the two rows leave so its foot lines up with
+   the second row's; four stand beside it, and the sixth is not drawn. */
+@media (min-width: 860px) {
+  .grid-products--lead > .card:first-child { grid-column: span 2; grid-row: span 2; display: flex; }
+  .grid-products--lead > .card:first-child > a { flex: 1; display: flex; flex-direction: column; }
+  .grid-products--lead > .card:first-child .card__media { flex: 1; aspect-ratio: auto; }
+  .grid-products--lead > .card:first-child .card__name { font-size: var(--fs-2xl); letter-spacing: var(--ls-tight); }
+  .grid-products--lead > .card:nth-child(6) { display: none; }
+}
+
+/* The facts, on the ink, edge to edge. */
+.homefacts { background: var(--c-ink); color: var(--c-on-ink); }
+.homefacts__list { display: grid; padding-block: var(--s-4); }
+.homefacts__item { display: flex; align-items: center; gap: var(--s-3); min-height: var(--tap);
+  font-weight: var(--fw-medium); border-bottom: 1px solid var(--c-ink-line); }
+.homefacts__item:last-child { border-bottom: 0; }
+.homefacts__mark { width: var(--s-3); height: var(--s-3); flex: none; color: var(--c-on-ink-muted); }
+.homefacts__figure { margin-left: auto; font-weight: var(--fw-semibold); }
+.homefacts__item a { display: inline-flex; align-items: center; min-height: var(--tap);
+  text-decoration: underline; text-decoration-color: var(--c-ink-line);
+  text-underline-offset: var(--s-1); transition: text-decoration-color var(--t-fast); }
+.homefacts__item a:hover { text-decoration-color: var(--c-on-ink); }
+.homefacts :focus-visible, .own :focus-visible { outline-color: var(--c-on-ink); }
+/* From 1024 px a rail of columns, a rule between them: the mark, the fact
+   under it, and a price at the size of a figure. */
+@media (min-width: 1024px) {
+  .homefacts__list { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding-block: var(--s-6); }
+  .homefacts__item { display: grid; align-content: start; justify-items: start; gap: var(--s-2);
+    padding-inline: var(--s-5); border-bottom: 0; border-left: 1px solid var(--c-ink-line);
+    font-size: var(--fs-sm); color: var(--c-on-ink-muted); }
+  .homefacts__item:first-child { padding-left: 0; border-left: 0; }
+  .homefacts__item a { color: var(--c-on-ink); min-height: 0; }
+  .homefacts__mark { margin-bottom: var(--s-2); }
+  .homefacts__figure { margin-left: 0; color: var(--c-on-ink); font-size: var(--fs-2xl);
+    font-weight: var(--fw-bold); letter-spacing: var(--ls-tight); }
+}
+
+/* The categories as tiles. A row on a phone, the name at the left and the
+   newest design at the right; from 720 px a tall tile, the name over the
+   photograph. The photograph is multiplied onto the ground: shot on white,
+   it loses its white and stands on the tile. */
+.tiles { display: grid; gap: var(--s-3); }
+.tile { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--tile-row);
+  align-items: center; min-height: var(--tile-row); overflow: hidden;
+  background: var(--c-surface); border-radius: var(--r-md);
+  transition: background-color var(--t-base); }
+.tile:hover { background: var(--c-surface-2); }
+.tile__text { display: grid; gap: var(--s-1); padding: var(--s-4) var(--s-5); }
+.tile__name { font-family: var(--f-display); font-weight: var(--fw-extrabold); font-size: var(--fs-2xl);
+  line-height: var(--lh-tight); letter-spacing: var(--ls-tight); overflow-wrap: anywhere; }
+.tile__count { color: var(--c-fg-muted); font-size: var(--fs-sm); }
+.tile__media { align-self: stretch; }
+.tile__media img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply;
+  transition: transform var(--t-slow) var(--ease-out); }
+.tile:hover .tile__media img { transform: scale(1.04); }
+.tile__arrow { display: none; }
+@media (min-width: 720px) {
+  .tiles { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s-4); }
+  .tile { grid-template-columns: none; grid-template-rows: auto minmax(0, 1fr); align-items: stretch;
+    aspect-ratio: var(--ar-tile); }
+  .tile__text { padding: var(--s-5) var(--s-5) 0; }
+  .tile__name { font-size: clamp(var(--fs-2xl), 3vw, var(--fs-4xl)); letter-spacing: var(--ls-display); }
+  .tile__media { min-height: 0; }
+  .tile__media img { object-position: center 30%; }
+  .tile__arrow { display: block; position: absolute; right: var(--s-5); top: var(--s-5);
+    transition: transform var(--t-base) var(--ease-out); }
+  .tile:hover .tile__arrow { transform: translateX(var(--s-1)); }
+}
+
+/* One's own design, on the ink (§9 Phase 23 D3, Phase 24). The mark behind
+   the words is decoration and is cut by the band's edge. */
+.own { position: relative; overflow: hidden; background: var(--c-ink); color: var(--c-on-ink); }
+.own__grid { position: relative; display: grid; gap: var(--s-5); padding-block: var(--s-8); }
+.own__mark { position: absolute; right: calc(var(--own-mark) / -4); top: 50%;
+  width: var(--own-mark); height: var(--own-mark); color: var(--c-ink-mark);
+  transform: translateY(-50%) rotate(15deg); pointer-events: none; }
+/* Halftone dots rising from the band's foot, behind the words. */
+.own::before { content: ""; position: absolute; inset: 40% 0 0 0;
+  background: radial-gradient(var(--c-ink-line) var(--dot), transparent calc(var(--dot) + 1px)) 0 0 / var(--dot-grid) var(--dot-grid);
+  -webkit-mask-image: linear-gradient(to top, black, transparent);
+  mask-image: linear-gradient(to top, black, transparent); }
+.own__title { position: relative; font-family: var(--f-display); font-weight: var(--fw-extrabold);
+  font-size: clamp(var(--fs-4xl), 8vw, var(--fs-6xl)); line-height: var(--lh-display);
+  letter-spacing: var(--ls-display); text-wrap: balance; }
+.own__side { position: relative; display: grid; gap: var(--s-5); justify-items: start; }
+.own__side p { color: var(--c-on-ink-muted); max-width: 46ch; }
+.own__btn { background: var(--c-on-ink); color: var(--c-ink); }
+.own__btn:hover { background: var(--c-surface-2); }
+.own__btn .i { transition: transform var(--t-base) var(--ease-out); }
+.own__btn:hover .i { transform: translateX(var(--s-1)); }
+@media (max-width: 559px) { .own__btn { display: flex; width: 100%; } }
+@media (min-width: 860px) {
+  .own__grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: end;
+    gap: var(--s-8); padding-block: var(--s-10); }
 }
 
 /* ------------------------------------------------------------------ cart */
