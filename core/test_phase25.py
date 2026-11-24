@@ -1,6 +1,6 @@
 """Phase 25: the other pages drawn as the home page is (plan §9 Phase 25).
 
-The foot of every page stands on the ink with the shop's name across it, the
+The foot of every page stands on the ink, the
 about page has the home page's heading over three numbered rows, and the page
 for a wrong address shows its number at a poster's size. These tests hold what
 a later change could lose without anybody seeing it.
@@ -38,7 +38,7 @@ class FootTests(TestCase):
         self.assertIn('background: var(--c-ink)', rule(css, '.foot'))
         self.assertIn('color: var(--c-on-ink-muted)', rule(css, '.foot'))
         self.assertIn('color: var(--c-on-ink)', rule(css, '.foot h2'))
-        block = css.split('.foot {', 1)[1].split('.foot__word {', 1)[1].split('}', 1)[0]
+        block = css.split('.foot {', 1)[1].split('@media', 1)[0]
         self.assertEqual(re.findall(r'#[0-9a-fA-F]{3,8}\b|rgba?\(', block), [])
 
     def test_its_focus_ring_and_its_link_show_on_the_ink(self):
@@ -47,10 +47,11 @@ class FootTests(TestCase):
         # Brass that is read on the page is too dark on the ink; the fill's tone is not.
         self.assertIn('.foot .link { color: var(--c-brand);', css)
 
-    def test_the_name_across_it_is_drawn_and_not_read(self):
-        foot = self.foot()
-        self.assertIn('<p class="foot__word" aria-hidden="true">GRAPHIX</p>', foot)
-        self.assertIn('--foot-word:', sheet('tokens.css'))
+    def test_no_word_is_drawn_across_it(self):
+        """The shop's name ran across the foot at the page's width; taken out at the developer's word."""
+        self.assertNotIn('foot__word', self.foot())
+        self.assertNotIn('foot__word', sheet('components.css'))
+        self.assertNotIn('--foot-word', sheet('tokens.css'))
 
     def test_it_still_says_what_it_said(self):
         for name in ('home', 'shop', 'about'):

@@ -174,8 +174,6 @@
      they are dealt in. A halftone dot and the grid it repeats on. */
   --ar-deck: 23 / 19;
   --dot: 2px; --dot-grid: 14px;
-  /* The shop's name across the foot of every page. */
-  --foot-word: clamp(72px, 23.5vw, 420px);
   /* The mark behind the own-design band's words. */
   --own-mark: 520px;
   /* The home page's hero: the column beside the heading, from 860 px. */

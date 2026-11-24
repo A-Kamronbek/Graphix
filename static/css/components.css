@@ -771,7 +771,7 @@ fieldset.filters__group > .chips { clear: both; }
 /* No horizontal padding here: the footer's contents are already inside a
    `.wrap`, and setting `--pad-x` on both indented the footer past every other
    block on the page. */
-.foot { position: relative; overflow: hidden; background: var(--c-ink); padding-block: var(--s-8) 0;
+.foot { background: var(--c-ink); padding-block: var(--s-8) var(--s-6);
   color: var(--c-on-ink-muted); font-size: var(--fs-sm); }
 .foot__grid { display: grid; gap: var(--s-5); grid-template-columns: 1fr 1fr; }
 .foot h2 { font-family: var(--f-display); color: var(--c-on-ink); font-size: var(--fs-base);
@@ -786,10 +786,6 @@ fieldset.filters__group > .chips { clear: both; }
 .foot__bot { display: flex; flex-wrap: wrap; gap: var(--s-3); justify-content: space-between;
   margin-top: var(--s-6); padding-top: var(--s-4); border-top: 1px solid var(--c-ink-line);
   font-size: var(--fs-xs); color: var(--c-on-ink-muted); }
-/* The name, as wide as the page and cut by the foot's edge. */
-.foot__word { font-family: var(--f-display); font-weight: var(--fw-extrabold); font-size: var(--foot-word);
-  line-height: .74; letter-spacing: var(--ls-display); text-align: center; white-space: nowrap;
-  color: var(--c-ink-mark); margin-top: var(--s-6); margin-bottom: -.06em; user-select: none; }
 @media (min-width: 720px) { .foot__grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* =================================================== 19. language switcher */
