@@ -440,6 +440,11 @@ html.js .otp__timer { display: block; }
 /* ==================================================== 12. empty / skeleton */
 .empty { text-align: center; padding: var(--s-9) var(--s-4); }
 .empty .i { width: 40px; height: 40px; margin: 0 auto var(--s-4); color: var(--c-fg-subtle); }
+.empty .empty__code { max-width: none; font-family: var(--f-display); font-weight: var(--fw-extrabold);
+  font-size: clamp(var(--fs-7xl), 28vw, var(--fs-poster)); line-height: var(--lh-display);
+  letter-spacing: var(--ls-display); color: var(--c-surface-3); margin-bottom: var(--s-2); }
+.empty .h1 { margin-bottom: var(--s-3); }
+.empty .row { justify-content: center; }
 .empty h3 { font-family: var(--f-display); font-size: var(--fs-2xl); margin-bottom: var(--s-2); }
 .empty p { color: var(--c-fg-muted); max-width: 44ch; margin: 0 auto var(--s-5); }
 
@@ -766,17 +771,21 @@ fieldset.filters__group > .chips { clear: both; }
 /* No horizontal padding here: the footer's contents are already inside a
    `.wrap`, and setting `--pad-x` on both indented the footer past every other
    block on the page. */
-.foot { border-top: 1px solid var(--c-line); padding-block: var(--s-7) var(--s-6);
-  color: var(--c-fg-muted); font-size: var(--fs-sm); }
+.foot { background: var(--c-ink); padding-block: var(--s-8) var(--s-6);
+  color: var(--c-on-ink-muted); font-size: var(--fs-sm); }
 .foot__grid { display: grid; gap: var(--s-5); grid-template-columns: 1fr 1fr; }
-.foot h2 { font-family: var(--f-display); color: var(--c-fg); font-size: var(--fs-base);
+.foot h2 { font-family: var(--f-display); color: var(--c-on-ink); font-size: var(--fs-base);
   font-weight: var(--fw-semibold); margin-bottom: var(--s-3); }
 .foot li { margin-bottom: var(--s-2); }
-.foot a:hover { color: var(--c-fg); }
+.foot a:hover { color: var(--c-on-ink); }
+.foot .subtle { color: var(--c-on-ink-muted); }
+.foot .link { color: var(--c-brand); border-bottom-color: var(--c-ink-line); }
+.foot .link:hover { border-bottom-color: var(--c-brand); }
+.foot :focus-visible { outline-color: var(--c-on-ink); }
 .foot__link { display: inline-flex; align-items: center; gap: var(--s-2); }
 .foot__bot { display: flex; flex-wrap: wrap; gap: var(--s-3); justify-content: space-between;
-  margin-top: var(--s-6); padding-top: var(--s-4); border-top: 1px solid var(--c-line);
-  font-size: var(--fs-xs); color: var(--c-fg-hint); }
+  margin-top: var(--s-6); padding-top: var(--s-4); border-top: 1px solid var(--c-ink-line);
+  font-size: var(--fs-xs); color: var(--c-on-ink-muted); }
 @media (min-width: 720px) { .foot__grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* =================================================== 19. language switcher */
